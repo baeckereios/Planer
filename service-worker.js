@@ -2,18 +2,19 @@
 // Cacht alle App-Dateien für Offline-Nutzung
 
 const CACHE_NAME = 'baeckereios-v15';
+const REPO = '/Planer';
 const FILES = [
-  '/',
-  '/index.html',
-  '/setup.html',
-  '/planer.html',
-  '/froster_gehirn.js',
-  '/stammdaten.js',
-  '/inventurdaten.js',
-  '/translations.js',
-  '/systemdesign.css',
-  '/export.js',
-  '/manifest.json'
+  REPO + '/',
+  REPO + '/index.html',
+  REPO + '/setup.html',
+  REPO + '/planer.html',
+  REPO + '/froster_gehirn.js',
+  REPO + '/stammdaten.js',
+  REPO + '/inventurdaten.js',
+  REPO + '/translations.js',
+  REPO + '/systemdesign.css',
+  REPO + '/export.js',
+  REPO + '/manifest.json'
 ];
 
 // Installation: alle Dateien cachen
