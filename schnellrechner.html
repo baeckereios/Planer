@@ -21,7 +21,7 @@
         .card { background: var(--surface); border: 2px solid var(--border); border-radius: 24px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 20px var(--shadow); }
         .label { font-size: 0.75rem; font-weight: 900; color: var(--amber); letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase; text-align: center; }
 
-        .strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 20px; justify-content: center; }
+        .strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 20px; flex-wrap: nowrap; }
         .pill { min-width: 48px; height: 48px; border-radius: 12px; border: 2px solid var(--border-s); background: var(--surface); font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; }
         .pill.active { border-color: var(--amber); background: var(--amber); color: white; }
         .pill.target { border-color: var(--green); background: var(--green); color: white; }
@@ -160,9 +160,10 @@
             const startOfProd = (todayIdx + (frosterDone ? 2 : 1)) % 7;
             if (targetIdx === null) resetTarget();
             
-            for (let i = 0; i < 7; i++) {
+            const daysToNextMon = (8 - todayIdx) % 7 || 7;
+            const maxDays = daysToNextMon + 1;
+            for (let i = 0; i <= maxDays; i++) {
                 let dIdx = (startOfProd + i) % 7;
-                if (i > 0 && dIdx === 3) break; 
                 const p = document.createElement('div');
                 const isClosed = simClosed[dIdx];
                 const isTarget = dIdx === targetIdx;
@@ -183,9 +184,11 @@
         function buildSandbox() {
             const grid = document.getElementById('sandbox-grid'); grid.innerHTML = '';
             const dayNames = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
-            for(let i=0; i<7; i++) {
+            // Zeige heute bis Di der Folgewoche (max 9 Tage)
+            const daysToNextMon = (8 - todayIdx) % 7 || 7;
+            const maxDays = daysToNextMon + 1; // Mo + Di
+            for(let i=0; i<=maxDays; i++) {
                 let dIdx = (todayIdx + i) % 7;
-                if (i > 0 && dIdx === 3) break; 
                 const row = document.createElement('div'); row.className = 'wg-row';
                 row.innerHTML = `<div class="wg-day">${dayNames[dIdx].substring(0,2)}</div>
                     <button class="wg-ctrl ${simClosed[dIdx]?'is-zu':''}" onclick="simClosed[${dIdx}]=!simClosed[${dIdx}]; buildSandbox(); renderTarget(); calculate();">${simClosed[dIdx]?'🔒 ZU':'AUF'}</button>
