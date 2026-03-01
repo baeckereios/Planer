@@ -1,27 +1,11 @@
-// BäckereiOS Service Worker
-// Cacht alle App-Dateien für Offline-Nutzung
+// BäckereiOS Service Worker — Automatisches Caching
+// Keine manuelle Dateiliste nötig. Neue Dateien werden automatisch gecacht.
+// Zum Aktualisieren: CACHE_NAME hochzählen (z.B. v16 → v17)
 
-const CACHE_NAME = 'baeckereios-v15';
-const REPO = '/Planer';
-const FILES = [
-  REPO + '/',
-  REPO + '/index.html',
-  REPO + '/setup.html',
-  REPO + '/planer.html',
-  REPO + '/froster_gehirn.js',
-  REPO + '/stammdaten.js',
-  REPO + '/inventurdaten.js',
-  REPO + '/translations.js',
-  REPO + '/systemdesign.css',
-  REPO + '/export.js',
-  REPO + '/manifest.json'
-];
+const CACHE_NAME = 'baeckereios-v16';
 
-// Installation: alle Dateien cachen
+// Installation: leerer Cache, Dateien kommen dynamisch rein
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES))
-  );
   self.skipWaiting();
 });
 
@@ -35,9 +19,28 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch: erst aus Cache, dann Netzwerk
+// Fetch: Netzwerk zuerst → Cache aktualisieren → bei Offline: Cache nutzen
 self.addEventListener('fetch', event => {
+  // Nur GET-Requests cachen, keine externen Domains außer Google Fonts
+  const url = new URL(event.request.url);
+  const isLocal = url.origin === self.location.origin;
+  const isFonts = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
+
+  if (!isLocal && !isFonts) return; // Alles andere (APIs etc.) ignorieren
+
   event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request))
+    fetch(event.request)
+      .then(response => {
+        // Erfolgreiche Netzwerkantwort → in Cache speichern
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => {
+        // Offline → aus Cache laden
+        return caches.match(event.request);
+      })
   );
 });
