@@ -98,18 +98,29 @@
 
         /* ─── ACCORDION ─── */
         .acc-item {
-            margin-bottom: 12px;
-            border-radius: 18px;
+            margin-bottom: 6px;
+            border-radius: 14px;
             background: var(--surface);
             border: 2px solid var(--border);
-            box-shadow: 0 4px 16px var(--shadow);
+            box-shadow: 0 2px 8px var(--shadow);
             transition: border-color 0.3s, box-shadow 0.3s, margin 0.3s;
             overflow: hidden;
         }
         .acc-item.active {
             border-color: var(--amber);
             box-shadow: 0 10px 30px rgba(192,122,16,0.18);
-            margin: 16px 0;
+            margin: 12px 0;
+        }
+        /* Inaktive Schritte: kompakt */
+        .acc-item:not(.active) .acc-header {
+            padding: 10px 16px;
+        }
+        .acc-item:not(.active) .acc-title {
+            font-size: 1rem;
+        }
+        .acc-item:not(.active) .acc-num {
+            width: 22px; height: 22px;
+            font-size: 0.75rem;
         }
         .acc-header {
             padding: 16px 20px;

@@ -98,6 +98,7 @@ window.BOS_BRAIN = {
         const rawSteps    = (targetDay - todayIdx + 7) % 7 || 7;
         const totalSteps  = rawSteps < 3 ? rawSteps + 7 : rawSteps;
         const prodDayIdxs = session.productionDays?.[prodId] || [];
+        const STEP = p.step || 6; // Schrittgröße: Standard 6, individuell per stammdaten.js
 
         // Hilfsfunktion: bereinigter Tagesbedarf (identisch zu calculateChain)
         const getAdjustedNeed = (dIdx, isDayZero) => {
@@ -153,7 +154,7 @@ window.BOS_BRAIN = {
         if (prodSteps.length === 0) return planned;
 
         // ── Phase 2: Gesamtbedarf und proportionale Verteilung ──────────────
-        // Keine explizite Reserve: das Aufrunden auf 12er-Stufen liefert den Puffer
+        // Keine explizite Reserve: das Aufrunden auf STEP-Stufen liefert den Puffer
         const totalConsumption = consumptions.reduce((a, b) => a + b, 0);
         const totalNeeded      = Math.max(0, totalConsumption - stock);
         const totalWeight      = prodSteps.reduce((a, p) => a + p.weight, 0);
@@ -163,7 +164,7 @@ window.BOS_BRAIN = {
                 // Anteil proportional zum Verbrauch im eigenen Fenster
                 const share = totalWeight > 0 ? ps.weight / totalWeight : 1 / prodSteps.length;
                 const raw   = totalNeeded * share;
-                planned[ps.stepIdx] = Math.ceil(raw / 12) * 12;
+                planned[ps.stepIdx] = Math.ceil(raw / STEP) * STEP;
             });
         }
 
@@ -184,12 +185,12 @@ window.BOS_BRAIN = {
                 if (restAfterConsumption < 0) {
                     if (lastProdStep >= 0) {
                         // Vorheriger Produktionstag gibt die Differenz ab
-                        const extra = Math.ceil(-restAfterConsumption / 12) * 12;
+                        const extra = Math.ceil(-restAfterConsumption / STEP) * STEP;
                         planned[lastProdStep] += extra;
                         currentRest           += extra; // Nachrechnen: vorheriger Tag hat jetzt mehr geliefert
                     } else {
                         // Kein früherer Prod-Tag → dieser Tag muss selbst mehr produzieren
-                        const extra = Math.ceil(-restAfterConsumption / 12) * 12;
+                        const extra = Math.ceil(-restAfterConsumption / STEP) * STEP;
                         planned[i]  += extra;
                     }
                 }
@@ -200,7 +201,7 @@ window.BOS_BRAIN = {
 
             // Fall b: Bestand zwischen zwei Produktionstagen negativ
             if (currentRest < 0 && lastProdStep >= 0) {
-                const extra = Math.ceil(-currentRest / 12) * 12;
+                const extra = Math.ceil(-currentRest / STEP) * STEP;
                 planned[lastProdStep] += extra;
                 currentRest           += extra;
             }
@@ -212,16 +213,16 @@ window.BOS_BRAIN = {
         // in 12er-Schritten — solange die Versorgung noch gesichert bleibt.
         if (lastProdStep >= 0) {
             const targetConsumption = consumptions[totalSteps]; // Verbrauch am Ziel-Tag
-            const maxAcceptable     = targetConsumption + 12;   // bis zu 12 Bleche Reserve ok
+            const maxAcceptable     = targetConsumption + STEP;  // bis zu 1 Schritt Reserve ok
 
             let finalStock = stock;
             for (let i = 0; i <= totalSteps; i++) {
                 finalStock = finalStock - consumptions[i] + planned[i];
             }
 
-            while (finalStock - 12 > maxAcceptable && planned[lastProdStep] >= 12) {
-                planned[lastProdStep] -= 12;
-                finalStock            -= 12;
+            while (finalStock - STEP > maxAcceptable && planned[lastProdStep] >= STEP) {
+                planned[lastProdStep] -= STEP;
+                finalStock            -= STEP;
             }
         }
 
