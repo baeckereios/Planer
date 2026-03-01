@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BäckereiOS - Mengenübersicht</title>
+    <link rel="stylesheet" href="systemdesign.css">
+    <script src="stammdaten.js"></script>
+    <style>
+        body { background: var(--bg); color: var(--text); padding-bottom: 50px; }
+        
+        .top-nav-bar { background: var(--surface); border-bottom: 1.5px solid var(--border-s); padding: 10px 15px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; z-index: 100; }
+        .btn-back { background: var(--surface2); border: 1.5px solid var(--border-s); color: var(--text); padding: 6px 12px; border-radius: 8px; text-decoration: none; font-family: 'Barlow Condensed'; font-weight: 800; font-size: 0.8rem; text-transform: uppercase; }
+
+        .container { max-width: 900px; margin: 30px auto; padding: 0 15px; }
+        
+        .page-header { margin-bottom: 25px; }
+        .page-title { font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 900; color: var(--amber); margin: 0; }
+        .page-sub { font-size: 0.9rem; color: var(--dim); margin-top: 5px; font-weight: 500; }
+
+        /* Tabellen-Design */
+        .table-card { background: var(--surface); border-radius: 16px; border: 1.5px solid var(--border); overflow: hidden; box-shadow: 0 4px 15px var(--shadow); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        
+        thead th { background: var(--surface2); color: var(--dim); font-family: 'Barlow Condensed'; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; padding: 12px 8px; text-align: center; border-bottom: 2px solid var(--border-s); font-size: 0.7rem; }
+        thead th.col-prod { text-align: left; padding-left: 20px; font-size: 0.75rem; }
+        
+        tbody td { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: center; font-weight: 700; color: var(--text); }
+        tbody td.col-prod { text-align: left; padding-left: 20px; color: var(--text); font-weight: 800; }
+        tbody tr:nth-child(even) { background: rgba(0,0,0,0.02); }
+        
+        .sun-val { color: var(--amber); }
+        .zero-val { color: var(--dim); opacity: 0.4; font-weight: 400; }
+
+        .info-footer { margin-top: 20px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 15px; font-size: 0.8rem; color: var(--dim); line-height: 1.4; }
+        .info-footer strong { color: var(--amber); }
+    </style>
+</head>
+<body>
+
+    <div class="top-nav-bar">
+        <a href="index.html" class="btn-back">← MENÜ</a>
+        <div style="font-family:'Fraunces'; font-weight:900; font-size:1.1rem;">Mengenübersicht</div>
+    </div>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">Tages-Bedarf</h1>
+            <p class="page-sub">Übersicht der hinterlegten Soll-Mengen pro Wochentag.</p>
+        </div>
+
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-prod">PRODUKT</th>
+                        <th>MO</th>
+                        <th>DI</th>
+                        <th>MI</th>
+                        <th>DO</th>
+                        <th>FR</th>
+                        <th>SA</th>
+                        <th>SO</th>
+                        <th>☀️</th>
+                    </tr>
+                </thead>
+                <tbody id="overview-body">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="info-footer">
+            <strong>Hinweis zum Grillwetter (☀️):</strong><br>
+            Die angezeigte Menge in der Spalte "☀️" wird bei aktiviertem Grillwetter automatisch zum normalen Tagesbedarf addiert.
+        </div>
+    </div>
+
+    <script>
+        function init() {
+            // Theme laden
+            document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light');
+            
+            const tbody = document.getElementById('overview-body');
+            const data = window.BOS_STAMMDATEN;
+
+            if(!data) {
+                tbody.innerHTML = '<tr><td colspan="9" style="padding:40px;">⚠️ Fehler: stammdaten.js nicht gefunden!</td></tr>';
+                return;
+            }
+
+            // Alphabetisch sortieren für bessere Übersicht
+            const sortedKeys = Object.keys(data).sort((a, b) => data[a].name.localeCompare(data[b].name));
+
+            sortedKeys.forEach(id => {
+                const p = data[id];
+                const tr = document.createElement('tr');
+                
+                // Produktname
+                let html = `<td class="col-prod">${p.name}</td>`;
+                
+                // Wochentage 0-6
+                p.needs.forEach(val => {
+                    html += `<td class="${val === 0 ? 'zero-val' : ''}">${val}</td>`;
+                });
+                
+                // Grillwetter Zuschlag
+                const sunVal = p.sun || 0;
+                html += `<td class="sun-val ${sunVal === 0 ? 'zero-val' : ''}">${sunVal > 0 ? '+' + sunVal : 0}</td>`;
+                
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
