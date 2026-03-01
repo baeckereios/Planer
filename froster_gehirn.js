@@ -153,8 +153,9 @@ window.BOS_BRAIN = {
         if (prodSteps.length === 0) return planned;
 
         // ── Phase 2: Gesamtbedarf und proportionale Verteilung ──────────────
+        // Keine explizite Reserve: das Aufrunden auf 12er-Stufen liefert den Puffer
         const totalConsumption = consumptions.reduce((a, b) => a + b, 0);
-        const totalNeeded      = Math.max(0, totalConsumption + 12 - stock);
+        const totalNeeded      = Math.max(0, totalConsumption - stock);
         const totalWeight      = prodSteps.reduce((a, p) => a + p.weight, 0);
 
         if (totalNeeded > 0) {
@@ -202,6 +203,25 @@ window.BOS_BRAIN = {
                 const extra = Math.ceil(-currentRest / 12) * 12;
                 planned[lastProdStep] += extra;
                 currentRest           += extra;
+            }
+        }
+
+        // ── Phase 4: Überhang-Trim ───────────────────────────────────────
+        // Wenn der Endbestand am Ziel-Tag mehr als 12 Bleche über dem
+        // Ziel-Tages-Verbrauch liegt, kürzen wir den letzten Produktionstag
+        // in 12er-Schritten — solange die Versorgung noch gesichert bleibt.
+        if (lastProdStep >= 0) {
+            const targetConsumption = consumptions[totalSteps]; // Verbrauch am Ziel-Tag
+            const maxAcceptable     = targetConsumption + 12;   // bis zu 12 Bleche Reserve ok
+
+            let finalStock = stock;
+            for (let i = 0; i <= totalSteps; i++) {
+                finalStock = finalStock - consumptions[i] + planned[i];
+            }
+
+            while (finalStock - 12 > maxAcceptable && planned[lastProdStep] >= 12) {
+                planned[lastProdStep] -= 12;
+                finalStock            -= 12;
             }
         }
 

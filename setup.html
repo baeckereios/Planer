@@ -1152,7 +1152,10 @@
             currentStep = n;
             const newStep = document.getElementById(`step-${currentStep}`);
             newStep.classList.add('active');
-            setTimeout(() => newStep.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+            setTimeout(() => {
+                const top = newStep.getBoundingClientRect().top + window.scrollY - 90;
+                window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+            }, 80);
             if (n === 1) renderProducts();
             if (n === 2) renderInv();
             if (n === 4) renderWeek();
