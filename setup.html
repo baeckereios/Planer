@@ -1150,7 +1150,9 @@
             if (n > maxUnlocked) return;
             document.getElementById(`step-${currentStep}`).classList.remove('active');
             currentStep = n;
-            document.getElementById(`step-${currentStep}`).classList.add('active');
+            const newStep = document.getElementById(`step-${currentStep}`);
+            newStep.classList.add('active');
+            setTimeout(() => newStep.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
             if (n === 1) renderProducts();
             if (n === 2) renderInv();
             if (n === 4) renderWeek();

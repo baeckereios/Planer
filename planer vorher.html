@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BOS - Planer</title>
+    <link rel="stylesheet" href="systemdesign.css">
+    <script src="stammdaten.js"></script>
+    <style>
+        body { padding-bottom: 150px; margin: 0; background: var(--bg); }
+        .container { max-width: 650px; margin: 0 auto; padding: 25px 15px; }
+        
+        .plan-card { background: var(--surface); border: 2.5px solid; border-radius: 20px; padding: 25px 20px; margin-bottom: 35px; box-shadow: 0 8px 25px var(--shadow); position: relative; }
+        .card-red { border-color: rgba(201, 74, 74, 0.5); }
+        .card-green { border-color: rgba(77, 184, 122, 0.5); }
+        
+        .p-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; border-bottom: 2px solid var(--border-s); padding-bottom: 15px; }
+        .p-title { font-family: 'Fraunces', serif; font-size: 1.8rem; font-weight: 900; }
+        
+        .badge { padding: 6px 14px; border-radius: 14px; font-weight: 900; border: 2px solid; }
+        .badge-red { background: rgba(201, 74, 74, 0.1); color: var(--red); border-color: rgba(201, 74, 74, 0.3); }
+        .badge-green { background: rgba(77, 184, 122, 0.1); color: var(--green); border-color: rgba(77, 184, 122, 0.3); }
+        
+        .day-row { background: var(--surface2); border-radius: 16px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border: 2px solid var(--border-s); position: relative; z-index: 2; }
+        .d-input { width: 80px; height: 50px; border: 2.5px solid var(--border-s); border-radius: 12px; text-align: center; font-weight: 900; font-size: 1.3rem; }
+        
+        .connector { position: relative; height: 40px; display: flex; justify-content: center; align-items: center; margin: -2px 0; }
+        .c-line { position: absolute; top: 50%; left: 10%; right: 10%; height: 3px; z-index: 1; }
+        .c-bubble { position: relative; z-index: 2; background: var(--surface); padding: 6px 20px; border-radius: 20px; font-weight: 900; border: 2.5px solid; box-shadow: 0 4px 10px var(--shadow); }
+        
+        .c-pos { border-color: var(--green); color: var(--green); }
+        .c-neg { border-color: var(--red); color: var(--red); }
+        /* DIE GOLDENE RESERVE */
+        .c-reserve { border-color: var(--amber); color: var(--amber); background: rgba(192, 122, 16, 0.05); }
+
+        .bottom-actions { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); padding: 20px; border-top: 2px solid var(--border); display: flex; flex-direction: column; gap: 12px; z-index: 1000; }
+        .btn-act { flex: 1; padding: 18px; border-radius: 14px; font-family: 'Barlow Condensed'; font-weight: 900; font-size: 1.2rem; border: none; cursor: pointer; text-transform: uppercase; color: white; }
+
+        /* DER ECHTE WOCHENPLAN-DRUCK */
+        @media print {
+            body { background: white !important; padding: 0; }
+            .bottom-actions, .brand-header, .btn-reset, .d-input, .top-nav { display: none !important; }
+            .container { max-width: 100%; padding: 0; }
+            .plan-card { border: 2px solid #000 !important; box-shadow: none !important; break-inside: avoid; margin-bottom: 30px; border-radius: 0; }
+            .day-row { background: none !important; border: 1px solid #000 !important; border-radius: 0; }
+            .c-bubble { border: 2px solid #000 !important; color: #000 !important; background: #fff !important; }
+            .print-val { display: block !important; font-weight: 900; font-size: 1.5rem; border: 2px solid #000; padding: 10px; margin-top: 5px; }
+            .p-title { font-size: 2rem !important; }
+        }
+        .print-val { display: none; }
+    </style>
+</head>
+<body>
+    <div class="brand-header">
+        <div class="top-nav"><a href="setup.html" class="btn-back-nav" style="background:var(--bg);">← ZURÜCK</a><div style="font-weight:900; color:var(--amber);">PLANER</div><div style="width:70px;"></div></div>
+        <div class="brand-logo">Bäckerei<span>OS</span></div>
+    </div>
+    <div class="container" id="planner-output"></div>
+    <div class="bottom-actions">
+        <button class="btn-reset" style="width:100%; padding:15px; border-radius:12px; margin-bottom:10px; border:2px solid var(--border-s);" onclick="resetAll()">🔄 Reset</button>
+        <div id="error-state" style="display:flex; gap:10px;"><div class="badge-red" style="flex:1; text-align:center; padding:15px; border-radius:12px; background:rgba(201, 74, 74, 0.1); color: var(--red); font-weight: 900; border: 2px dashed var(--red);">⚠️ PLAN FEHLERHAFT / LÜCKEN!</div></div>
+        <div id="success-state" style="display:none; gap:10px;">
+            <button class="btn-act" style="background:var(--amber);" onclick="window.print()">🖨️ DRUCKEN</button>
+            <button class="btn-act" style="background:var(--green);" onclick="alert('WhatsApp Export...')">💬 WHATSAPP</button>
+        </div>
+    </div>
+    <script>
+        let sess = null; const daysNames = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"], todayIdx = new Date().getDay();
+        function init() {
+            const raw = localStorage.getItem('BOS_SESSION'); if(!raw) return; sess = JSON.parse(raw);
+            buildDOM(); calculateMath();
+        }
+        function buildDOM() {
+            const cont = document.getElementById('planner-output'); cont.innerHTML = '';
+            sess.selectedIds.forEach(id => {
+                const p = window.BOS_STAMMDATEN[id]; if(!p) return;
+                let targetDayIdx = sess.targetDays[id] || 1; let steps = (targetDayIdx - todayIdx + 7) % 7; if(steps === 0) steps = 7;
+                let daysHtml = '';
+                for(let i=0; i<=steps; i++) {
+                    let dIdx = (todayIdx + i) % 7; let isTarget = (i === steps);
+                    daysHtml += `<div class="day-row"><div class="d-name">${daysNames[dIdx]} ${isTarget?'🎯':''}</div><div class="d-need" id="need_${id}_${i}"></div>
+                        <input type="number" class="d-input" id="inp_${id}_${i}" oninput="calculateMath()" placeholder="0">
+                        <div class="print-val" id="p_val_${id}_${i}"></div></div>`;
+                    daysHtml += `<div class="connector"><div class="c-line" id="line_${id}_${i}"></div><div class="c-bubble" id="bub_${id}_${i}">0</div></div>`;
+                }
+                cont.innerHTML += `<div class="plan-card" id="card_${id}"><div class="p-head"><div><div class="p-title">${p.name}</div><div class="p-info">📦 Ist: ${sess.inventory[id]}</div></div><div class="badge" id="badge_${id}"></div></div>${daysHtml}</div>`;
+            });
+        }
+        function calculateMath() {
+            let allOk = true;
+            sess.selectedIds.forEach(id => {
+                const p = window.BOS_STAMMDATEN[id]; let currentStock = sess.inventory[id] || 0;
+                let targetDayIdx = sess.targetDays[id] || 1; let steps = (targetDayIdx - todayIdx + 7) % 7; if(steps === 0) steps = 7;
+                let cardHasNegative = false; let maxDeficit = 0;
+                for(let i=0; i<=steps; i++) {
+                    let dIdx = (todayIdx + i) % 7; let isTarget = (i === steps);
+                    let cfg = sess.weekConfig[dIdx] || {status:'auf', hamster:0, grill:false};
+                    let need = cfg.status === 'zu' ? 0 : p.needs[dIdx];
+                    if(cfg.hamster===1) need=Math.ceil(need*1.5); if(cfg.hamster===2) need=Math.ceil(need*2); if(cfg.grill) need+=p.sun||0;
+                    if(i === 0 && sess.shortages[id]) need += sess.shortages[id];
+                    let actualNeed = (i === 0 && sess.frosterDone) ? 0 : need;
+                    document.getElementById(`need_${id}_${i}`).innerHTML = (i===0 && sess.frosterDone) ? `Bedarf: <span style="opacity:0.3; text-decoration:line-through;">${need}</span> ✓` : `Bedarf: ${need}`;
+                    let prod = parseInt(document.getElementById(`inp_${id}_${i}`).value) || 0;
+                    document.getElementById(`p_val_${id}_${i}`).innerText = prod > 0 ? "PRODUKTION: " + prod : "";
+                    let newStock = currentStock + prod - actualNeed;
+                    let bub = document.getElementById(`bub_${id}_${i}`); let line = document.getElementById(`line_${id}_${i}`);
+                    if(!isTarget) {
+                        bub.innerText = (newStock >= 0 ? '+' : '') + newStock;
+                        bub.className = newStock >= 0 ? 'c-bubble c-pos' : 'c-bubble c-neg';
+                        line.style.background = newStock >= 0 ? 'rgba(77, 184, 122, 0.4)' : 'rgba(201, 74, 74, 0.4)';
+                        if(newStock < 0) { cardHasNegative = true; maxDeficit = Math.min(maxDeficit, newStock); }
+                    } else {
+                        // RESERVE LOGIK: GOLD UND KEIN EINFLUSS AUF allOk
+                        bub.innerText = 'RESERVE: ' + newStock; bub.className = 'c-bubble c-reserve'; line.style.background = 'var(--amber)';
+                    }
+                    currentStock = newStock;
+                }
+                if(cardHasNegative) allOk = false;
+                document.getElementById(`card_${id}`).className = 'plan-card ' + (cardHasNegative ? 'card-red' : 'card-green');
+                document.getElementById(`badge_${id}`).className = 'badge ' + (cardHasNegative ? 'badge-red' : 'badge-green');
+                document.getElementById(`badge_${id}`).innerText = cardHasNegative ? `⚠️ ${Math.abs(maxDeficit)}` : '✓ OK';
+            });
+            document.getElementById('error-state').style.display = allOk ? 'none' : 'flex';
+            document.getElementById('success-state').style.display = allOk ? 'flex' : 'none';
+        }
+        function resetAll() { document.querySelectorAll('.d-input').forEach(i => i.value = ''); calculateMath(); }
+        window.onload = init;
+    </script>
+</body>
+</html>
