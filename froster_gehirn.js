@@ -122,10 +122,14 @@ window.BOS_BRAIN = {
 
         // Welche Steps sind Produktionstage?
         // Letzter Step (target) hat kein Input-Feld → nie produzieren
+        // Jeder Wochentag darf nur EINMAL als Produktionstag vorkommen (bei >7-Tage-Fenstern)
         const isProdStep = [];
+        const seenProdDays = new Set();
         for (let i = 0; i <= totalSteps; i++) {
             const dIdx = (todayIdx + i) % 7;
-            isProdStep.push(i < totalSteps && prodDayIdxs.includes(dIdx));
+            const canProd = i < totalSteps && prodDayIdxs.includes(dIdx) && !seenProdDays.has(dIdx);
+            if (canProd) seenProdDays.add(dIdx);
+            isProdStep.push(canProd);
         }
 
         // ── Phase 1: Coverage-Fenster und Gewichte je Produktionstag ──────────
