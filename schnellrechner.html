@@ -21,6 +21,7 @@
         .card { background: var(--surface); border: 2px solid var(--border); border-radius: 24px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 20px var(--shadow); }
         .label { font-size: 0.75rem; font-weight: 900; color: var(--amber); letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase; text-align: center; }
 
+        .strip-today { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 20px; }
         .strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 20px; flex-wrap: nowrap; }
         .pill { min-width: 48px; height: 48px; border-radius: 12px; border: 2px solid var(--border-s); background: var(--surface); font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; }
         .pill.active { border-color: var(--amber); background: var(--amber); color: white; }
@@ -65,7 +66,7 @@
     <div class="container">
         <div class="card">
             <div class="label" id="lang-calcToday">Heute ist:</div>
-            <div id="strip-today" class="strip"></div>
+            <div id="strip-today" class="strip-today"></div>
 
             <div style="display:grid; grid-template-columns: 1fr 90px; gap:10px; margin-bottom:20px;">
                 <select id="prod-select" onchange="syncStock()" style="padding:15px; border-radius:12px; border:2px solid var(--border-s); font-weight:800; font-family:inherit; background:var(--surface); color:var(--text);">
@@ -128,21 +129,25 @@
 
         function init() {
             document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light');
-            applyLang(); // Aufruf beim Start
-            
+            applyLang();
+            renderToday();
+            buildSandbox();
+            if (!window.BOS_STAMMDATEN) return;
             const sel = document.getElementById('prod-select');
             Object.keys(window.BOS_STAMMDATEN).forEach(id => {
                 const opt = document.createElement('option'); opt.value = id; opt.innerText = window.BOS_STAMMDATEN[id].name;
                 sel.appendChild(opt);
             });
-            renderToday(); buildSandbox();
         }
 
         function renderToday() {
             const c = document.getElementById('strip-today'); c.innerHTML = '';
             const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
             days.forEach((d, i) => {
-                const p = document.createElement('div'); p.className = `pill ${i===todayIdx?'active':''}`; p.innerText = d;
+                const p = document.createElement('div');
+                p.className = `pill ${i === todayIdx ? 'active' : ''}`;
+                p.style.cssText = 'min-width:unset; font-size:0.8rem;';
+                p.innerText = d;
                 p.onclick = () => { todayIdx = i; resetTarget(); renderToday(); renderTarget(); buildSandbox(); calculate(); };
                 c.appendChild(p);
             });
@@ -157,20 +162,34 @@
             const c = document.getElementById('strip-target'); c.innerHTML = '';
             if (frosterDone === null) return;
             const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-            const startOfProd = (todayIdx + (frosterDone ? 2 : 1)) % 7;
+            // Froster fertig: ab heute+2, noch nicht: ab heute+1
+            const offset = frosterDone ? 2 : 1;
+            const startOfProd = (todayIdx + offset) % 7;
             if (targetIdx === null) resetTarget();
-            
+
+            // Max: nächster Dienstag der Folgewoche
+            // Zeige startOfProd bis max Di der Folgewoche
+            const daysToNextTue = (() => {
+                // Dienstag = Index 1
+                const tuesdayIdx = 1;
+                let d = (tuesdayIdx - startOfProd + 7) % 7;
+                if (d === 0) d = 7; // nächster Di
+                return d + 7; // Folgewoche-Di
+            })();
+            // Aber wir zeigen maximal bis zum Di der Folgewoche von heute
+            // einfacher: zeige offset bis offset+9 Tage, aber stoppe nach Di der Folgewoche
             const daysToNextMon = (8 - todayIdx) % 7 || 7;
-            const maxDays = daysToNextMon + 1;
-            for (let i = 0; i <= maxDays; i++) {
-                let dIdx = (startOfProd + i) % 7;
+            const maxSteps = daysToNextMon + 1; // Mo + Di der Folgewoche
+
+            for (let i = offset; i <= maxSteps + offset - 1; i++) {
+                const dIdx = (todayIdx + i) % 7;
                 const p = document.createElement('div');
                 const isClosed = simClosed[dIdx];
                 const isTarget = dIdx === targetIdx;
-                const inRange = isTarget || isDayInRange(startOfProd, targetIdx, dIdx);
-                p.className = `pill ${isClosed?'is-closed':''} ${isTarget ? 'target' : (inRange ? 'in-range' : '')}`;
+                const inRange = !isTarget && isDayInRange(startOfProd, targetIdx, dIdx);
+                p.className = `pill ${isClosed ? 'is-closed' : ''} ${isTarget ? 'target' : (inRange ? 'in-range' : '')}`;
                 p.innerText = days[dIdx];
-                if(!isClosed) p.onclick = () => { targetIdx = dIdx; renderTarget(); calculate(); };
+                if (!isClosed) p.onclick = () => { targetIdx = dIdx; renderTarget(); calculate(); };
                 c.appendChild(p);
             }
         }
