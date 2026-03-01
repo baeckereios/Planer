@@ -780,19 +780,12 @@
                     <div class="welcome-date-row">
                         <div class="date-chip">📅 <span id="date-label"></span></div>
                     </div>
-                    <div class="welcome-greeting">Guten Morgen,<br>Schicht beginnt! 🥐</div>
-                </div>
-                <div class="welcome-intro">
-                    <p><strong>BäckereiOS</strong> führt dich durch die Produktionsplanung für die nächsten Tage. In ca. 2 Minuten ist alles erfasst.</p>
-                    <div class="step-hint"><span class="hint-num">2</span> Produkte wählen &amp; Bestand prüfen</div>
-                    <div class="step-hint"><span class="hint-num">4</span> Froster-Status bestätigen</div>
-                    <div class="step-hint"><span class="hint-num">5</span> Wochenübersicht – Feiertage &amp; Grillwetter</div>
-                    <div class="step-hint"><span class="hint-num">7</span> Bis Mo oder Di der Folgewoche planen</div>
+                    <div class="welcome-greeting">Schicht beginnt! 🥐</div>
                 </div>
 
                 <!-- ── STARTAG ──────────────────────────────────── -->
                 <div class="startday-wrap">
-                    <div class="startday-label">📆 Ab welchem Tag planen wir?</div>
+                    <div class="startday-label">📆 Welcher Tag ist heute?</div>
                     <div class="startday-btns" id="startday-btns"></div>
                 </div>
 
@@ -1262,14 +1255,10 @@
             const daysToNextTue = daysToNextMon + 1;
             for (let i = 0; i <= daysToNextTue; i++) {
                 const dIdx  = (realToday + i) % 7;
-                const isToday   = i === 0;
                 const isSel     = sess.startDayIdx === dIdx;
                 const btn = document.createElement('button');
-                let cls = 'sd-btn';
-                if (isToday) cls += ' sd-today';
-                if (isSel)   cls += ' sd-selected';
-                btn.className = cls;
-                btn.innerHTML = `<span class="sd-day">${dayNames[dIdx]}</span><span class="sd-sub">${isToday ? 'Heute' : '+' + i + 'd'}</span>`;
+                btn.className = 'sd-btn' + (isSel ? ' sd-selected' : '');
+                btn.innerHTML = `<span class="sd-day">${dayNames[dIdx]}</span>`;
                 btn.onclick = () => setStartDay(dIdx);
                 wrap.appendChild(btn);
             }
@@ -1406,7 +1395,7 @@
     </script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js');
+      navigator.serviceWorker.register('/Planer/service-worker.js');
     }
   </script>
 </body>

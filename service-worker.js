@@ -1,31 +1,13 @@
-// BäckereiOS Service Worker
-// Cacht alle App-Dateien für Offline-Nutzung
+// BäckereiOS Service Worker — Automatisches Caching
+// Keine manuelle Dateiliste nötig. Neue Dateien werden automatisch gecacht.
+// Zum Aktualisieren: CACHE_NAME hochzählen (z.B. v15 → v16)
 
 const CACHE_NAME = 'baeckereios-v15';
-const REPO = '/Planer';
-const FILES = [
-  REPO + '/',
-  REPO + '/index.html',
-  REPO + '/setup.html',
-  REPO + '/planer.html',
-  REPO + '/froster_gehirn.js',
-  REPO + '/stammdaten.js',
-  REPO + '/inventurdaten.js',
-  REPO + '/translations.js',
-  REPO + '/systemdesign.css',
-  REPO + '/export.js',
-  REPO + '/manifest.json'
-];
 
-// Installation: alle Dateien cachen
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES))
-  );
   self.skipWaiting();
 });
 
-// Aktivierung: alte Caches löschen
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -35,9 +17,22 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch: erst aus Cache, dann Netzwerk
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+  const isLocal = url.origin === self.location.origin;
+  const isFonts = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
+
+  if (!isLocal && !isFonts) return;
+
   event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request))
+    fetch(event.request)
+      .then(response => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
