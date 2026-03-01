@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#c07a10">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="BäckereiOS">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BäckereiOS - Cockpit</title>
+    <link rel="stylesheet" href="systemdesign.css">
+    <script src="translations.js"></script>
+    <style>
+        body { margin: 0; padding-bottom: 90px; }
+
+        /* ─── HERO ─── */
+        .hero {
+            background: var(--surface);
+            text-align: center;
+            padding: 50px 20px 0;
+            box-shadow: 0 6px 30px var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -60px; left: 50%;
+            transform: translateX(-50%);
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(192,122,16,0.12) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .brand-badge {
+            display: inline-block;
+            background: var(--amber);
+            color: #fff;
+            padding: 5px 18px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            font-family: 'Barlow Condensed';
+        }
+
+        .brand-logo {
+            font-family: 'Fraunces', serif;
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--text);
+            line-height: 1;
+            margin: 0 0 8px;
+            letter-spacing: -1px;
+        }
+        .brand-logo span { color: var(--amber); font-style: italic; }
+
+        .slogan-bar {
+            background: #111;
+            color: var(--amber);
+            padding: 14px 20px;
+            margin-top: 28px;
+            font-family: 'Barlow Condensed';
+            font-weight: 800;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* ─── LAYOUT ─── */
+        .container { max-width: 600px; margin: 0 auto; padding: 30px 18px; }
+
+        .section-label {
+            font-size: 0.7rem;
+            font-weight: 900;
+            color: var(--amber);
+            letter-spacing: 3px;
+            margin: 30px 0 12px 4px;
+            text-transform: uppercase;
+            font-family: 'Barlow Condensed';
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ─── NAV CARDS ─── */
+        .nav-card {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 22px 22px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 12px;
+            text-decoration: none;
+            color: inherit;
+            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 16px var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-card::after {
+            content: '→';
+            position: absolute;
+            right: 22px;
+            font-weight: 900;
+            color: var(--border-s);
+            font-size: 1.2rem;
+            transition: 0.2s;
+        }
+        .nav-card:hover::after { color: var(--amber); right: 16px; }
+        .nav-card:hover {
+            border-color: var(--amber);
+            box-shadow: 0 8px 30px rgba(192,122,16,0.15);
+            transform: translateY(-2px);
+        }
+        .nav-card:active { transform: scale(0.975); background: var(--surface2); }
+
+        .nav-icon {
+            font-size: 2rem;
+            width: 56px; height: 56px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--surface2);
+            border-radius: 16px;
+            flex-shrink: 0;
+            border: 2px solid var(--border);
+            transition: 0.2s;
+        }
+        .nav-card:hover .nav-icon { background: var(--amber-light); border-color: var(--amber); }
+
+        .nav-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .nav-sub { color: var(--dim); font-size: 0.9rem; }
+
+        /* ─── FEATURE CARD (prominent) ─── */
+        .nav-card.featured {
+            border-color: var(--amber);
+            background: linear-gradient(135deg, var(--surface) 60%, rgba(192,122,16,0.05) 100%);
+            box-shadow: 0 8px 30px rgba(192,122,16,0.15);
+        }
+        .nav-card.featured .nav-icon { background: var(--amber); font-size: 2.2rem; border-color: transparent; }
+
+        /* ─── APP GRID ─── */
+        .app-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .app-grid .full-width { grid-column: span 2; }
+
+        .grid-card {
+            flex-direction: column;
+            text-align: center;
+            padding: 22px 12px;
+            gap: 8px;
+        }
+        .grid-card::after { display: none; }
+        .grid-card .nav-icon { margin: 0 auto; }
+        .grid-card .nav-title { font-size: 0.95rem; font-family: 'Barlow', sans-serif; }
+
+        /* ─── BOTTOM BAR ─── */
+        .settings-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--surface);
+            border-top: 2px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .ctrl-btn {
+            background: var(--surface2);
+            border: 2px solid var(--border-s);
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-family: 'Barlow Condensed';
+            color: var(--text);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .ctrl-btn:hover { border-color: var(--amber); }
+
+        /* ─── FADE-IN ANIMATION ─── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .hero { animation: fadeUp 0.5s ease both; }
+        .nav-card:nth-child(1) { animation: fadeUp 0.5s 0.1s ease both; }
+        .nav-card:nth-child(2) { animation: fadeUp 0.5s 0.15s ease both; }
+        .app-grid > * { animation: fadeUp 0.5s 0.2s ease both; }
+    </style>
+</head>
+<body>
+
+    <div class="hero">
+        <div class="brand-badge" id="lang-badge">DEIN DIGITALES MANAGEMENT</div>
+        <h1 class="brand-logo">Bäckerei<span>OS</span></h1>
+        <div class="slogan-bar" id="lang-slogan">„Wir machen das Frühstück erst möglich."</div>
+    </div>
+
+    <div class="container">
+        <div class="section-label" id="lang-quickAccess">Schnellzugriff</div>
+
+        <a href="setup.html" class="nav-card featured">
+            <div class="nav-icon">🚀</div>
+            <div>
+                <div class="nav-title" id="lang-startSetup">Assistent</div>
+                <div class="nav-sub" id="lang-startSetupSub">Planung starten</div>
+            </div>
+        </a>
+
+        <div class="section-label" id="lang-apps">Arbeitsgeräte</div>
+        <div class="app-grid">
+
+            <a href="schnellrechner.html" class="nav-card full-width" style="margin-bottom:0;">
+                <div class="nav-icon">🧮</div>
+                <div>
+                    <div class="nav-title" id="lang-quickCalc" style="font-size:1.3rem;">Schnellrechner</div>
+                    <div class="nav-sub">Sandbox: Fix was ausrechnen</div>
+                </div>
+            </a>
+
+            <a href="#" class="nav-card grid-card">
+                <div class="nav-icon">📅</div>
+                <div class="nav-title" id="lang-workplan">Arbeitsplan</div>
+            </a>
+
+            <a href="frosterliste.html" class="nav-card grid-card">
+                <div class="nav-icon">❄️</div>
+                <div class="nav-title" id="lang-frosterlist">Frosterliste</div>
+            </a>
+
+            <a href="verbrauchsuebersicht.html" class="nav-card full-width">
+                <div class="nav-icon">📊</div>
+                <div>
+                    <div class="nav-title" id="lang-overview" style="font-size:1.1rem;">Mengenübersicht</div>
+                    <div class="nav-sub">Bedarfs-Basis einsehen</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="settings-bar">
+        <button class="ctrl-btn" onclick="toggleTheme()" id="theme-btn">🌙 Dark</button>
+        <select class="ctrl-btn" onchange="changeLang(this.value)" id="lang-select">
+            <option value="de">🇩🇪 Deutsch</option>
+            <option value="en">🇺🇸 English</option>
+            <option value="vi">🇻🇳 Tiếng Việt</option>
+        </select>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const h = document.documentElement;
+            const next = h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            h.setAttribute('data-theme', next);
+            localStorage.setItem('BOS_THEME', next);
+            document.getElementById('theme-btn').innerText = next === 'dark' ? '☀️ Hell' : '🌙 Dark';
+        }
+        function changeLang(l) { localStorage.setItem('BOS_LANG_CODE', l); apply(l); }
+        function apply(l) {
+            if (!window.BOS_LANG) return;
+            const t = window.BOS_LANG[l];
+            if (!t) return;
+            document.querySelectorAll('[id^="lang-"]').forEach(el => {
+                const k = el.id.replace('lang-', '');
+                if (t[k]) el.innerText = t[k];
+            });
+            document.getElementById('lang-select').value = l;
+        }
+        window.onload = () => {
+            const theme = localStorage.getItem('BOS_THEME') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            document.getElementById('theme-btn').innerText = theme === 'dark' ? '☀️ Hell' : '🌙 Dark';
+            apply(localStorage.getItem('BOS_LANG_CODE') || 'de');
+        };
+    </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#c07a10">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="BäckereiOS">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BOS - Planer</title>
+    <!-- Preconnect: Fonts werden früher geladen -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="systemdesign.css">
+    <!-- defer: Scripts blockieren nicht mehr den HTML-Parse -->
+    <style>
+        body { padding-bottom: 160px; margin: 0; }
+
+        /* ─── STICKY HEADER ─── */
+        .app-header {
+            background: var(--surface);
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+
+        .brand-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 18px 20px 0;
+        }
+        .brand-logo {
+            font-family: 'Fraunces', serif;
+            font-weight: 900;
+            font-size: 2.8rem;
+            color: var(--text);
+            line-height: 1;
+            margin: 0;
+        }
+        .brand-logo span { color: var(--amber); font-style: italic; }
+
+        .slogan-bar {
+            background: #111;
+            color: var(--amber);
+            padding: 9px 20px;
+            margin-top: 10px;
+            font-family: 'Barlow Condensed';
+            font-weight: 800;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .sub-nav {
+            display: flex;
+            align-items: center;
+            padding: 10px 18px;
+            gap: 16px;
+            border-top: 2px solid var(--border);
+        }
+        .btn-back-nav {
+            text-decoration: none;
+            color: var(--dim);
+            font-weight: 900;
+            font-size: 0.85rem;
+            font-family: 'Barlow Condensed';
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 7px 12px;
+            background: var(--surface2);
+            border: 2px solid var(--border-s);
+            border-radius: 10px;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .btn-back-nav:hover { border-color: var(--amber); color: var(--amber); }
+
+        .sub-title {
+            font-family: 'Barlow Condensed';
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: var(--amber);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            white-space: nowrap;
+        }
+
+        /* ─── FORTSCHRITTSBALKEN ─── */
+        .plan-progress {
+            padding: 10px 18px 14px;
+            border-top: 1px solid var(--border);
+        }
+        .plan-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .plan-progress-label {
+            font-family: 'Barlow Condensed';
+            font-weight: 900;
+            font-size: 0.82rem;
+            color: var(--dim);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .plan-progress-count {
+            font-family: 'Barlow Condensed';
+            font-weight: 900;
+            font-size: 0.95rem;
+            color: var(--text);
+            transition: color 0.3s;
+        }
+        .plan-progress-count.all-ok { color: var(--green); }
+        .plan-progress-count.has-error { color: var(--red); }
+
+        /* Die eigentliche Leiste mit Start- & Ziel-Icons */
+        .plan-progress-track-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .progress-icon-start {
+            font-size: 1.35rem;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .progress-icon-end {
+            font-size: 1.35rem;
+            flex-shrink: 0;
+            line-height: 1;
+            transition: filter 0.4s;
+        }
+        .progress-icon-end.dimmed { filter: grayscale(1) opacity(0.3); }
+
+        .plan-progress-track {
+            flex: 1;
+            height: 14px;
+            background: var(--surface2);
+            border-radius: 99px;
+            overflow: hidden;
+            border: 2px solid var(--border-s);
+            position: relative;
+        }
+        .plan-progress-fill {
+            height: 100%;
+            border-radius: 99px;
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.4,0,0.2,1), background 0.4s;
+            background: linear-gradient(90deg, var(--amber), #e8a030);
+            position: relative;
+        }
+        .plan-progress-fill.all-ok {
+            background: linear-gradient(90deg, var(--green), #6dd49a);
+        }
+        /* Glimmer-Effekt auf der Füllung */
+        .plan-progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 30px; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4));
+            border-radius: 99px;
+        }
+
+        /* Produkt-Dots unter der Leiste */
+        .plan-progress-dots {
+            display: flex;
+            gap: 5px;
+            margin-top: 7px;
+            justify-content: flex-start;
+            padding: 0 2px;
+        }
+        .p-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--border-s);
+            transition: background 0.3s, transform 0.2s;
+            flex-shrink: 0;
+        }
+        .p-dot.ok { background: var(--green); transform: scale(1.2); }
+        .p-dot.err { background: var(--red); transform: scale(1.2); }
+
+        /* ─── CONTAINER ─── */
+        .container { max-width: 650px; margin: 0 auto; padding: 24px 16px; }
+
+        /* ─── PLAN CARDS ─── */
+        .plan-card {
+            background: var(--surface);
+            border: 2.5px solid var(--border);
+            border-radius: 22px;
+            padding: 0;
+            margin-bottom: 28px;
+            box-shadow: 0 8px 28px var(--shadow);
+            overflow: hidden;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            will-change: border-color; /* GPU-Hint für flüssigere Transitions */
+        }
+        .card-red {
+            border-color: rgba(201, 74, 74, 0.5);
+            box-shadow: 0 8px 28px rgba(201,74,74,0.1);
+        }
+        .card-green {
+            border-color: rgba(77, 184, 122, 0.4);
+            box-shadow: 0 8px 28px rgba(77,184,122,0.08);
+        }
+        .plan-card::before {
+            content: '';
+            display: block;
+            height: 4px;
+            background: var(--border-s);
+            transition: background 0.3s;
+        }
+        .card-red::before { background: linear-gradient(90deg, var(--red), rgba(201,74,74,0.3)); }
+        .card-green::before { background: linear-gradient(90deg, var(--green), rgba(77,184,122,0.3)); }
+
+        .p-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 20px 22px 18px;
+            border-bottom: 2px solid var(--border-s);
+        }
+        .p-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.7rem;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+        .p-info {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--dim);
+            margin-top: 4px;
+        }
+
+        .badge {
+            padding: 7px 14px;
+            border-radius: 14px;
+            font-weight: 900;
+            font-family: 'Barlow Condensed';
+            border: 2px solid;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .badge-red {
+            background: rgba(201, 74, 74, 0.1);
+            color: var(--red);
+            border-color: rgba(201, 74, 74, 0.35);
+        }
+        .badge-green {
+            background: rgba(77, 184, 122, 0.1);
+            color: var(--green);
+            border-color: rgba(77, 184, 122, 0.35);
+        }
+
+        .card-body { padding: 16px 14px; }
+
+        .day-row {
+            background: var(--surface2);
+            border-radius: 14px;
+            padding: 13px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid var(--border-s);
+            position: relative;
+            z-index: 2;
+            gap: 10px;
+            transition: border-color 0.2s;
+        }
+        .day-row:focus-within { border-color: var(--amber); }
+
+        .d-name {
+            font-weight: 900;
+            font-size: 1.1rem;
+            width: 52px;
+            flex-shrink: 0;
+            font-family: 'Barlow Condensed';
+            letter-spacing: 0.5px;
+        }
+        .d-need {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: var(--dim);
+            flex: 1;
+            line-height: 1.5;
+        }
+        .d-input {
+            width: 72px;
+            height: 46px;
+            border: 2.5px solid var(--border-s);
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 900;
+            font-size: 1.2rem;
+            background: var(--surface);
+            color: var(--text);
+            transition: border-color 0.2s;
+            flex-shrink: 0;
+        }
+        .d-input:focus { outline: none; border-color: var(--amber); }
+
+        .connector {
+            position: relative;
+            height: 34px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: -1px 12px;
+        }
+        .c-line {
+            position: absolute;
+            top: 50%; left: 10%; right: 10%;
+            height: 2px;
+            z-index: 1;
+            border-radius: 2px;
+        }
+        .c-bubble {
+            position: relative;
+            z-index: 2;
+            background: var(--surface);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 900;
+            font-family: 'Barlow Condensed';
+            border: 2px solid;
+            font-size: 0.85rem;
+            letter-spacing: 0px;
+            white-space: nowrap;
+        }
+        .c-pos { border-color: var(--green); color: var(--green); }
+        .c-neg { border-color: var(--red); color: var(--red); }
+
+        /* ─── BOTTOM ACTIONS ─── */
+        .bottom-actions {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--surface);
+            padding: 14px 18px;
+            border-top: 2px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+        .btn-reset {
+            width: 100%;
+            padding: 13px;
+            border-radius: 12px;
+            border: 2px solid var(--border-s);
+            background: var(--surface2);
+            font-weight: 900;
+            font-family: 'Barlow Condensed';
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.95rem;
+            color: var(--dim);
+            letter-spacing: 1px;
+            transition: 0.2s;
+        }
+        .btn-reset:hover { border-color: var(--amber); color: var(--amber); }
+
+        .action-row { display: flex; gap: 10px; }
+        .btn-act {
+            flex: 1;
+            padding: 17px;
+            border-radius: 14px;
+            font-family: 'Barlow Condensed';
+            font-weight: 900;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            color: white;
+            letter-spacing: 1px;
+            transition: transform 0.1s;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+        }
+        .btn-act:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
+
+        .error-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 900;
+            font-family: 'Barlow Condensed';
+            font-size: 1rem;
+            letter-spacing: 1px;
+            border: 2px dashed var(--red);
+            background: rgba(201,74,74,0.08);
+            color: var(--red);
+        }
+
+        /* ─── ANIMATIONS ─── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .plan-card { animation: fadeUp 0.4s ease both; }
+        .plan-card:nth-child(1) { animation-delay: 0.04s; }
+        .plan-card:nth-child(2) { animation-delay: 0.10s; }
+        .plan-card:nth-child(3) { animation-delay: 0.16s; }
+        .plan-card:nth-child(4) { animation-delay: 0.22s; }
+        .plan-card:nth-child(5) { animation-delay: 0.28s; }
+    </style>
+</head>
+<body>
+
+    <div class="app-header">
+        <div class="brand-row">
+            <h1 class="brand-logo">Bäckerei<span>OS</span></h1>
+            <div class="slogan-bar">„Wir machen das Frühstück erst möglich."</div>
+        </div>
+        <div class="sub-nav">
+            <a href="setup.html" class="btn-back-nav">← Zurück</a>
+            <div class="sub-title">Planer</div>
+        </div>
+
+        <!-- ─── PLAN-FORTSCHRITT ─── -->
+        <div class="plan-progress">
+            <div class="plan-progress-header">
+                <span class="plan-progress-label">Planfortschritt</span>
+                <span class="plan-progress-count" id="prog-count">– / –</span>
+            </div>
+            <div class="plan-progress-track-wrap">
+                <span class="progress-icon-start" title="Start">🥐</span>
+                <div class="plan-progress-track">
+                    <div class="plan-progress-fill" id="plan-prog-fill"></div>
+                </div>
+                <span class="progress-icon-end dimmed" id="prog-flag" title="Ziel">🏁</span>
+            </div>
+            <div class="plan-progress-dots" id="prog-dots"></div>
+        </div>
+    </div>
+
+    <div class="container" id="planner-output"></div>
+
+    <div class="bottom-actions">
+        <button class="btn-reset" onclick="resetAll()">🔄 Alle Eingaben auf 0 setzen</button>
+        <div id="error-state">
+            <div class="error-banner">⚠️ Plan fehlerhaft – Lücken vorhanden!</div>
+        </div>
+        <div id="success-state" class="action-row" style="display:none;">
+            <button class="btn-act" style="background:var(--amber); box-shadow:0 4px 0 #925d0c;" onclick="printPlan()">🖨️ Drucken</button>
+            <button class="btn-act" style="background:var(--green); box-shadow:0 4px 0 #2d8a50;" onclick="shareWhatsApp()">💬 WhatsApp</button>
+        </div>
+    </div>
+
+        <script src="stammdaten.js"></script>
+    <script src="froster_gehirn.js"></script>
+    <script src="export.js"></script>
+    <script>
+        const daysNames     = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+        const daysNamesFull = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+        let todayJS         = new Date().getDay(); // wird nach Session-Load überschrieben
+        let sess = null, productionPrintData = {};
+
+        // ── DOM-Referenzen gecacht – kein getElementById im heißen Pfad ──
+        const elProgFill  = document.getElementById('plan-prog-fill');
+        const elProgCount = document.getElementById('prog-count');
+        const elProgFlag  = document.getElementById('prog-flag');
+        const elProgDots  = document.getElementById('prog-dots');
+        const elErrorState   = document.getElementById('error-state');
+        const elSuccessState = document.getElementById('success-state');
+
+        // ── Pro Produkt gecachte Element-Maps (nach buildDOM befüllt) ──
+        const domCache = {}; // { id: { card, badge, rows: [{need, inp, bub, line}, ...] } }
+
+        function init() {
+            document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light');
+            // Retry-Loop: localStorage kann auf manchen Android-Browsern beim ersten
+            // Aufruf kurz null liefern, auch wenn Daten vorhanden sind
+            let _retries = 0;
+            function _tryLoad() {
+                const raw = localStorage.getItem('BOS_SESSION');
+                if (!raw) {
+                    if (_retries++ < 5) { setTimeout(_tryLoad, 80); return; }
+                    window.location.href = 'setup.html';
+                    return;
+                }
+                try {
+                    sess = JSON.parse(raw);
+                    todayJS = sess.startDayIdx ?? todayJS; // Manueller Startag
+                } catch(e) {
+                    window.location.href = 'setup.html';
+                    return;
+                }
+                buildDOM();
+                // Auto-Planung: vorberechnete Mengen in Inputs schreiben
+                if (sess.prePlanned) {
+                    sess.selectedIds.forEach(id => {
+                        const planned = sess.prePlanned[id];
+                        if (!planned) return;
+                        planned.forEach((amount, i) => {
+                            const inp = document.getElementById(`inp_${id}_${i}`);
+                            if (inp && amount > 0) inp.value = amount;
+                        });
+                    });
+                }
+                calculateMath();
+            }
+            _tryLoad();
+        }
+
+        function buildDOM() {
+            const cont = document.getElementById('planner-output');
+            // ── Alles auf einmal als Fragment einsetzen – kein reflow pro Produkt ──
+            const frag = document.createDocumentFragment();
+
+            sess.selectedIds.forEach(id => {
+                const p = window.BOS_STAMMDATEN[id];
+                if (!p) return;
+
+                const targetDayJS = sess.targetDays[id] || 1;
+                const rawSteps    = (targetDayJS - todayJS + 7) % 7 || 7;
+                const steps       = rawSteps < 3 ? rawSteps + 7 : rawSteps;
+
+                // HTML als String bauen (einmalig) – kein innerHTML += in der Schleife
+                let rowsHtml = '';
+                for (let i = 0; i <= steps; i++) {
+                    const jsIdx    = (todayJS + i) % 7;
+                    const isTarget = (i === steps);
+                    rowsHtml += `<div class="day-row"><div class="d-name">${daysNames[jsIdx]}${isTarget ? ' 🎯' : ''}</div><div class="d-need" id="need_${id}_${i}"></div><input type="number" class="d-input" id="inp_${id}_${i}" oninput="calculateMath()" placeholder="0"></div>`;
+                    if (!isTarget) rowsHtml += `<div class="connector"><div class="c-line" id="line_${id}_${i}"></div><div class="c-bubble" id="bub_${id}_${i}">0</div></div>`;
+                }
+
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = `
+                    <div class="plan-card" id="card_${id}">
+                        <div class="p-head">
+                            <div>
+                                <div class="p-title">${p.name}</div>
+                                <div class="p-info">📦 Ist: ${sess.inventory[id]} ${sess.frosterDone ? '| ❄️ Froster fertig' : '| 📦 Noch nicht'}</div>
+                            </div>
+                            <div class="badge" id="badge_${id}">–</div>
+                        </div>
+                        <div class="card-body">${rowsHtml}</div>
+                    </div>`;
+                frag.appendChild(wrapper.firstElementChild);
+            });
+
+            cont.innerHTML = '';
+            cont.appendChild(frag);
+
+            // ── DOM-Cache NACH dem Einsetzen befüllen ──
+            sess.selectedIds.forEach(id => {
+                const p = window.BOS_STAMMDATEN[id];
+                if (!p) return;
+                const rawSt = ((sess.targetDays[id] || 1) - todayJS + 7) % 7 || 7;
+                const steps = rawSt < 3 ? rawSt + 7 : rawSt;
+                const rows  = [];
+                for (let i = 0; i <= steps; i++) {
+                    rows.push({
+                        need: document.getElementById(`need_${id}_${i}`),
+                        inp:  document.getElementById(`inp_${id}_${i}`),
+                        bub:  i < steps ? document.getElementById(`bub_${id}_${i}`)  : null,
+                        line: i < steps ? document.getElementById(`line_${id}_${i}`) : null,
+                    });
+                }
+                domCache[id] = {
+                    card:  document.getElementById(`card_${id}`),
+                    badge: document.getElementById(`badge_${id}`),
+                    rows,
+                };
+            });
+
+            // Fortschritts-Dots initialisieren
+            elProgDots.innerHTML = sess.selectedIds
+                .map(id => `<div class="p-dot" id="dot_${id}"></div>`)
+                .join('');
+        }
+
+        function calculateMath() {
+            let okCount = 0;
+            productionPrintData = {};
+            for (let d = 0; d < 7; d++) productionPrintData[d] = [];
+
+            const total = sess.selectedIds.length;
+
+            sess.selectedIds.forEach(id => {
+                const p      = window.BOS_STAMMDATEN[id];
+                const cache  = domCache[id];
+                if (!p || !cache) return;
+
+                const steps = cache.rows.length - 1;
+                const planned = cache.rows.map(r => parseInt(r.inp?.value) || 0);
+
+                // Input-Styling: Produktionstage markieren
+                const prodDays = sess.productionDays?.[id] || [];
+                cache.rows.forEach((r, i) => {
+                    if (!r.inp) return;
+                    const dIdx = (todayJS + i) % 7;
+                    // Produktionstag-Border: amber wenn definiert, sonst normal
+                    if (prodDays.includes(dIdx) && i < cache.rows.length - 1) {
+                        r.inp.style.borderColor = 'var(--amber)';
+                        r.inp.style.boxShadow   = '0 0 0 2px rgba(192,122,16,0.18)';
+                    } else {
+                        r.inp.style.borderColor = '';
+                        r.inp.style.boxShadow   = '';
+                    }
+                    if (!r.inp) return;
+                    const v = planned[i];
+                    r.inp.style.borderColor = v > 0 ? 'var(--amber)' : 'var(--border-s)';
+                    r.inp.style.color       = v > 0 ? 'var(--amber)' : 'var(--text)';
+                });
+
+                const brain = window.BOS_BRAIN.calculateChain(id, sess, planned);
+                if (!brain) return;
+
+                brain.chain.forEach((step, i) => {
+                    const isTarget = (i === steps);
+                    if (step.planned > 0) productionPrintData[step.dayIdx].push({ name: p.name, amount: step.planned, special: 0 });
+
+                    let needDisplay = `Bedarf: ${step.need}`;
+                    if (step.actualConsumption === 0 && step.need > 0) {
+                        needDisplay = `<span style="color:var(--green); font-weight:800;">Bedarf: <span style="text-decoration:line-through; opacity:0.6;">${step.need}</span> ✓ Froster</span>`;
+                        if (i === 0 && sess.shortages[id]) needDisplay += `<br><small style="color:var(--red);">+${sess.shortages[id]} Fehl</small>`;
+                    } else if (step.stockAfterNeed < 0) {
+                        needDisplay = `Bedarf: ${step.need}<br><span style="color:var(--red); font-weight:900; font-size:0.82rem;">⚠️ Lücke: ${Math.abs(step.stockAfterNeed)}</span>`;
+                    }
+                    if (isTarget) {
+                        const ok = step.restAfter >= 0;
+                        needDisplay += `<div style="margin-top:7px; padding-top:7px; border-top:1px dashed var(--border-s); color:${ok ? 'var(--green)' : 'var(--red)'}; font-weight:900;">${ok ? '🏁 ZIEL ERREICHT' : '🚨 ZIEL VERFEHLT'}: ${Math.abs(step.restAfter)}</div>`;
+                    }
+
+                    if (cache.rows[i]?.need) cache.rows[i].need.innerHTML = needDisplay;
+
+                    if (!isTarget && cache.rows[i]?.bub && cache.rows[i]?.line) {
+                        // Bubble: (Bestand morgen / tatsächlicher Verbrauch morgen)
+                        // actualConsumption = 0 wenn Froster den Tag abdeckt → dann nie rot
+                        const nextConsumption = brain.chain[i + 1]?.actualConsumption ?? 0;
+                        const isEnough = step.restAfter >= nextConsumption;
+                        cache.rows[i].bub.textContent = `(${step.restAfter}/${nextConsumption})`;
+                        cache.rows[i].bub.className   = 'c-bubble ' + (!isEnough ? 'c-neg' : 'c-pos');
+                        cache.rows[i].line.style.background = step.isWarning ? 'rgba(201,74,74,0.4)' : 'rgba(77,184,122,0.4)';
+                    }
+                });
+
+                const isOk = brain.isOk;
+                if (isOk) okCount++;
+
+                cache.card.className  = 'plan-card ' + (isOk ? 'card-green' : 'card-red');
+                cache.badge.className = 'badge '     + (isOk ? 'badge-green' : 'badge-red');
+                cache.badge.textContent = isOk ? '✓ Gedeckt' : `⚠️ ${Math.abs(brain.maxDeficit)}`;
+
+                // Fortschritts-Dot pro Produkt
+                const dot = document.getElementById(`dot_${id}`);
+                if (dot) dot.className = 'p-dot ' + (isOk ? 'ok' : 'err');
+            });
+
+            // ── Fortschrittsbalken aktualisieren ──
+            const pct   = total > 0 ? Math.round(okCount / total * 100) : 0;
+            const allOk = okCount === total && total > 0;
+
+            elProgFill.style.width = pct + '%';
+            elProgFill.classList.toggle('all-ok', allOk);
+            elProgCount.textContent = `${okCount} / ${total} gedeckt`;
+            elProgCount.className   = 'plan-progress-count' + (allOk ? ' all-ok' : okCount > 0 ? '' : ' has-error');
+            elProgFlag.classList.toggle('dimmed', !allOk);
+
+            elErrorState.style.display   = allOk ? 'none'  : 'block';
+            elSuccessState.style.display = allOk ? 'flex'  : 'none';
+        }
+
+        function resetAll() {
+            sess.selectedIds.forEach(id => {
+                const cache = domCache[id];
+                if (!cache) return;
+                cache.rows.forEach(r => {
+                    if (!r.inp) return;
+                    r.inp.value = '';
+                    r.inp.style.borderColor = 'var(--border-s)';
+                    r.inp.style.color       = 'var(--text)';
+                });
+            });
+            calculateMath();
+        }
+
+        function printPlan() {
+            const d = [];
+            for (let i = 0; i < 7; i++) {
+                const idx = (todayJS + i) % 7;
+                if (productionPrintData[idx].length > 0) d.push({ name: daysNamesFull[idx], products: productionPrintData[idx] });
+            }
+            window.BOSExport.printProductionPlan({ title: 'Produktionsplan', days: d });
+        }
+
+        function shareWhatsApp() {
+            window.BOSExport.config.truncateNames = false;
+            const d = [];
+            for (let i = 0; i < 7; i++) {
+                const idx = (todayJS + i) % 7;
+                if (productionPrintData[idx].length > 0) d.push({ name: daysNamesFull[idx], products: productionPrintData[idx] });
+            }
+            window.BOSExport.shareProductionPlan({ title: 'Produktionsplan', days: d });
+        }
+
+        // Robuster Init: Abhängigkeiten prüfen bevor init() läuft
+        function _bosBootstrap() {
+            if (!window.BOS_STAMMDATEN || !window.BOS_BRAIN) {
+                setTimeout(_bosBootstrap, 30);
+                return;
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        }
+        _bosBootstrap();
+    </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js');
+    }
+  </script>
+</body>
+</html>
