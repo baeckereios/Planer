@@ -72,7 +72,7 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Brötchenstraße"
+    "station": "Frühschicht"
   },
   "p6": {
     "name": "RosinenBatzen",
@@ -87,7 +87,7 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Brötchenstraße"
+    "station": "Frühschicht"
   },
   "p7": {
     "name": "Zimtwolken",
@@ -117,7 +117,7 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Brötchenstraße"
+    "station": "Rondo"
   },
   "p8": {
     "name": "Schlawiner",
@@ -132,7 +132,7 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 3,
-    "station": "Nachtschicht"
+    "station": "Frühschicht"
   },
   "p9": {
     "name": "Kornknacker",
@@ -147,7 +147,7 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 1,
-    "station": "Nachtschicht"
+    "station": "Frühschicht"
   },
   "p10": {
     "name": "Hasenberger",
@@ -177,7 +177,7 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Brötchenstraße"
+    "station": "Rondo"
   },
   "p12": {
     "name": "Eiszapfen",
@@ -192,7 +192,7 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Brötchenstraße"
+    "station": "Rondo"
   },
   "p13": {
     "name": "Puddingbrezeln",
@@ -207,7 +207,7 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Brötchenstraße"
+    "station": "Rondo"
   },
   "p1771487098374": {
     "name": "Baguette (Bleche)",
