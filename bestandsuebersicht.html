@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bestände – BäckereiOS</title>
+    <script>
+        (function() {
+            try { document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light'); }
+            catch(e) { document.documentElement.setAttribute('data-theme', 'light'); }
+        })();
+    </script>
+    <link rel="stylesheet" href="systemdesign.css">
+    <script src="stammdaten.js"></script>
+    <script src="inventurdaten.js"></script>
+    <style>
+        body { padding-bottom: 40px; background: var(--bg); }
+
+        /* ── HEADER ── */
+        .brand-header {
+            background: var(--surface);
+            text-align: center;
+            padding-top: 15px;
+            box-shadow: 0 4px 10px var(--shadow);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; margin-bottom: 5px; }
+        .btn-back-nav { background: var(--surface2); border: 2px solid var(--border-s); color: var(--text); font-weight: 900; padding: 8px 15px; border-radius: 12px; text-decoration: none; font-size: 0.9rem; }
+        .page-subtitle { font-family: 'Barlow Condensed'; font-weight: 900; color: var(--amber); letter-spacing: 1px; font-size: 1rem; }
+        .brand-logo { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 900; color: var(--text); line-height: 1; margin: 8px 0; }
+        .brand-logo span { color: var(--amber); font-style: italic; }
+        .slogan-bar { background: #111; color: var(--amber); padding: 10px; margin-top: 20px; font-family: 'Barlow Condensed'; font-weight: 800; font-size: 0.9rem; letter-spacing: 1.5px; text-transform: uppercase; text-align: center; }
+
+        /* ── CONTAINER ── */
+        .container { max-width: 680px; margin: 0 auto; padding: 20px 15px; }
+
+        /* ── HINWEIS-BOX ── */
+        .info-box {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-left: 4px solid var(--amber);
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            font-size: 0.82rem;
+            color: var(--dim);
+            line-height: 1.5;
+        }
+        .info-box strong { color: var(--text); display: block; margin-bottom: 4px; font-family: 'Barlow Condensed'; font-size: 0.95rem; letter-spacing: 0.5px; text-transform: uppercase; }
+
+        /* ── STATION FILTER ── */
+        .station-filter { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .sf-btn { flex: 1; min-width: 80px; padding: 10px 8px; border: 2px solid var(--border-s); border-radius: 12px; background: var(--surface); color: var(--dim); font-family: 'Barlow Condensed'; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.5px; cursor: pointer; text-align: center; transition: 0.2s; }
+        .sf-btn.active { border-color: var(--amber); background: var(--amber); color: white; }
+
+        /* ── HEUTE-LABEL ── */
+        .today-label {
+            text-align: center;
+            font-family: 'Barlow Condensed'; font-weight: 800;
+            font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase;
+            color: var(--dim); margin-bottom: 20px;
+        }
+        .today-label span { color: var(--amber); }
+
+        /* ── PRODUKT-GRID ── */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        @media (max-width: 400px) {
+            .product-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* ── PRODUKT-KARTE ── */
+        .prod-card {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 18px;
+            padding: 16px 10px 14px;
+            box-shadow: 0 4px 12px var(--shadow);
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            text-align: center;
+        }
+        .prod-name {
+            font-family: 'Barlow Condensed'; font-weight: 800;
+            font-size: 0.82rem; text-transform: uppercase;
+            letter-spacing: 0.3px; color: var(--text);
+            line-height: 1.2; min-height: 2em;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* ── SVG KREIS ── */
+        .circle-wrap { position: relative; width: 90px; height: 90px; flex-shrink: 0; }
+        .circle-wrap svg { width: 90px; height: 90px; transform: rotate(-90deg); }
+        .circle-bg { fill: none; stroke: var(--border); stroke-width: 7; }
+        .circle-fill { fill: none; stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+        .circle-fill.green  { stroke: #2d9e5f; }
+        .circle-fill.yellow { stroke: #d4a017; }
+        .circle-fill.red    { stroke: #c94a4a; }
+        .circle-fill.grey   { stroke: var(--border-s); }
+
+        .circle-center {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 1px;
+        }
+        .circle-stock {
+            font-family: 'Fraunces', serif; font-weight: 900;
+            font-size: 1.3rem; line-height: 1; color: var(--text);
+        }
+        .circle-divider { width: 20px; height: 1px; background: var(--border-s); }
+        .circle-need {
+            font-family: 'Barlow Condensed'; font-weight: 700;
+            font-size: 0.75rem; color: var(--dim); line-height: 1;
+        }
+
+        /* ── STATUS BADGE ── */
+        .status-badge {
+            font-family: 'Barlow Condensed'; font-weight: 800;
+            font-size: 0.7rem; letter-spacing: 0.5px; text-transform: uppercase;
+            padding: 3px 9px; border-radius: 20px;
+        }
+        .status-badge.green  { background: rgba(45,158,95,0.12);  color: #1a7a45; }
+        .status-badge.yellow { background: rgba(212,160,23,0.12); color: #8a6000; }
+        .status-badge.red    { background: rgba(201,74,74,0.12);  color: #9a1010; }
+        .status-badge.grey   { background: rgba(201,74,74,0.08); color: var(--dim); border: 1px dashed var(--border-s); }
+
+        /* ── KEIN BESTAND ── */
+        .prod-card.no-data { opacity: 0.6; border-style: dashed; }
+        .prod-card.no-data .circle-stock { font-size: 0.85rem; color: var(--dim); }
+        .prod-card.no-data .circle-divider { display: none; }
+        .prod-card.no-data .circle-need { display: none; }
+
+        /* ── LEGENDE ── */
+        .legend {
+            display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+            margin: 24px 0 8px;
+            font-family: 'Barlow Condensed'; font-size: 0.78rem; font-weight: 700;
+            color: var(--dim); letter-spacing: 0.3px;
+        }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: middle; }
+    </style>
+</head>
+<body>
+
+<div class="brand-header">
+    <div class="top-nav">
+        <a href="index.html" class="btn-back-nav">&#8592; COCKPIT</a>
+        <div class="page-subtitle">BEST&#196;NDE</div>
+        <div style="width:80px;"></div>
+    </div>
+    <div class="brand-logo">B&#228;ckerei<span>OS</span></div>
+    <div class="slogan-bar">&#8222;Wir machen das Fr&#252;hst&#252;ck erst m&#246;glich.&#8220;</div>
+</div>
+
+<div class="container">
+
+    <div class="info-box">
+        <strong>&#8505; Nur Richtwerte</strong>
+        Aktueller Frosterbestand vs. standard&#228;&#223;igem Verbrauch bis n&#228;chsten Montag &#8212; ohne Feiertage, Hamster-Tage oder Grill-Wetter. F&#252;r die exakte Produktionsplanung bitte den Assistenten nutzen.
+    </div>
+
+    <div class="station-filter" id="station-filter"></div>
+    <div class="today-label" id="today-label"></div>
+    <div class="product-grid" id="product-grid"></div>
+
+    <div class="legend">
+        <div><span class="legend-dot" style="background:#2d9e5f;"></span>Gut versorgt (&ge;80%)</div>
+        <div><span class="legend-dot" style="background:#d4a017;"></span>Im Auge behalten (&ge;40%)</div>
+        <div><span class="legend-dot" style="background:#c94a4a;"></span>Kritisch (&lt;40%)</div>
+        <div><span class="legend-dot" style="background:#bbb;"></span>Kein Bestand erfasst</div>
+    </div>
+
+</div>
+
+<script>
+var activeStation = 'alle';
+
+// Kreisumfang für r=38: 2 * PI * 38 ≈ 238.76
+var CIRCUMFERENCE = 238.76;
+
+window.onload = function() {
+    if (!window.BOS_STAMMDATEN) {
+        document.getElementById('product-grid').innerHTML =
+            '<div style="grid-column:1/-1;padding:30px;text-align:center;color:var(--red);font-weight:800;">' +
+            '&#9888; stammdaten.js nicht geladen.</div>';
+        return;
+    }
+    buildStationFilter();
+    updateTodayLabel();
+    renderGrid();
+};
+
+// ── Wie viele Tage bis zum nächsten Montag (mindestens 1) ──────────────
+function daysUntilNextMonday() {
+    var jsDay = new Date().getDay(); // 0=So, 1=Mo ... 6=Sa
+    // Tage bis Montag: Mo=7, Di=6, Mi=5, Do=4, Fr=3, Sa=2, So=1
+    var daysLeft = (8 - jsDay) % 7;
+    if (daysLeft === 0) daysLeft = 7;
+    return daysLeft;
+}
+
+// ── Rohbedarf von heute bis nächsten Montag (exkl.) ────────────────────
+// bosIdx: 0=Mo ... 6=So
+function calcRawNeed(prodId) {
+    var p = window.BOS_STAMMDATEN[prodId];
+    if (!p) return 0;
+    var jsDay = new Date().getDay();
+    var days = daysUntilNextMonday();
+    var total = 0;
+    var i, dIdx, bosIdx;
+    for (i = 1; i <= days; i++) {
+        dIdx = (jsDay + i) % 7;            // JS-Wochentag
+        bosIdx = (dIdx === 0) ? 6 : dIdx - 1; // BOS-Index
+        total += p.needs[bosIdx] || 0;
+    }
+    return total;
+}
+
+// ── Aktueller Bestand aus inventurdaten.js ──────────────────────────────
+function getStock(prodId) {
+    if (!window.BOS_INVENTUR) return null;
+    var inv = window.BOS_INVENTUR;
+    // Zuerst products mit ts prüfen
+    if (inv.products && inv.products[prodId]) {
+        var prod = inv.products[prodId];
+        if (prod.ts && prod.ts > 0) {
+            return prod.stock || 0;
+        }
+        // ts=0 → nie gezählt
+        return null;
+    }
+    // Fallback auf stocks-Shortcut
+    if (inv.stocks && inv.stocks[prodId] !== undefined) {
+        return inv.stocks[prodId];
+    }
+    return null;
+}
+
+function updateTodayLabel() {
+    var jsDay = new Date().getDay();
+    var dayNames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    var days = daysUntilNextMonday();
+    var el = document.getElementById('today-label');
+    el.innerHTML = 'Heute: <span>' + dayNames[jsDay] + '</span> &mdash; Bedarf f&#252;r die n&#228;chsten <span>' + days + ' Tage</span> bis Montag';
+}
+
+function buildStationFilter() {
+    var stationSet = {};
+    var keys = Object.keys(window.BOS_STAMMDATEN);
+    var i, st;
+    for (i = 0; i < keys.length; i++) {
+        st = window.BOS_STAMMDATEN[keys[i]].station;
+        if (st) stationSet[st] = true;
+    }
+    var stations = ['alle'].concat(Object.keys(stationSet));
+    var wrap = document.getElementById('station-filter');
+    wrap.innerHTML = '';
+    for (i = 0; i < stations.length; i++) {
+        (function(s) {
+            var btn = document.createElement('button');
+            btn.className = 'sf-btn' + (s === activeStation ? ' active' : '');
+            btn.innerText = s === 'alle' ? 'Alle Produkte' : s;
+            btn.onclick = function() {
+                activeStation = s;
+                renderGrid();
+                var btns = document.querySelectorAll('.sf-btn');
+                for (var j = 0; j < btns.length; j++) btns[j].classList.remove('active');
+                btn.classList.add('active');
+            };
+            wrap.appendChild(btn);
+        })(stations[i]);
+    }
+}
+
+function renderGrid() {
+    var grid = document.getElementById('product-grid');
+    grid.innerHTML = '';
+
+    var keys = Object.keys(window.BOS_STAMMDATEN);
+    var i, k, p, stock, need, pct, colorClass, statusText, card;
+
+    for (i = 0; i < keys.length; i++) {
+        k = keys[i];
+        p = window.BOS_STAMMDATEN[k];
+
+        if (activeStation !== 'alle' && p.station !== activeStation) continue;
+
+        stock = getStock(k);   // null = nicht erfasst
+        need  = calcRawNeed(k);
+
+        // Farbe & Status bestimmen
+        if (stock === null) {
+            colorClass  = 'grey';
+            statusText  = '&#9888; Nicht gez&#228;hlt';
+            pct         = 0;
+        } else {
+            pct = (need > 0) ? Math.min(1, stock / need) : 1;
+            if (pct >= 0.8)       { colorClass = 'green';  statusText = 'Gut versorgt'; }
+            else if (pct >= 0.4)  { colorClass = 'yellow'; statusText = 'Im Auge behalten'; }
+            else                  { colorClass = 'red';    statusText = 'Kritisch'; }
+        }
+
+        card = buildCard(k, p.name, stock, need, pct, colorClass, statusText);
+        grid.appendChild(card);
+    }
+}
+
+function buildCard(k, name, stock, need, pct, colorClass, statusText) {
+    var card = document.createElement('div');
+    card.className = 'prod-card' + (stock === null ? ' no-data' : '');
+
+    // SVG-Kreis berechnen
+    var strokeOffset = CIRCUMFERENCE * (1 - pct);
+    var stockDisplay = (stock === null) ? '?' : stock;
+
+    var svgHtml =
+        '<div class="circle-wrap">' +
+            '<svg viewBox="0 0 90 90">' +
+                '<circle class="circle-bg" cx="45" cy="45" r="38"></circle>' +
+                '<circle class="circle-fill ' + colorClass + '" cx="45" cy="45" r="38"' +
+                    ' stroke-dasharray="' + CIRCUMFERENCE + '"' +
+                    ' stroke-dashoffset="' + strokeOffset.toFixed(1) + '">' +
+                '</circle>' +
+            '</svg>' +
+            '<div class="circle-center">' +
+                '<div class="circle-stock">' + stockDisplay + '</div>' +
+                '<div class="circle-divider"></div>' +
+                '<div class="circle-need">' + need + '</div>' +
+            '</div>' +
+        '</div>';
+
+    card.innerHTML =
+        '<div class="prod-name">' + name + '</div>' +
+        svgHtml +
+        '<div class="status-badge ' + colorClass + '">' + statusText + '</div>';
+
+    return card;
+}
+</script>
+</body>
+</html>

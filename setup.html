@@ -1263,21 +1263,17 @@
             const wrap = document.getElementById('startday-btns');
             if (!wrap) return;
             wrap.innerHTML = '';
-            const realToday    = new Date().getDay();
-            const dayNames     = ['So','Mo','Di','Mi','Do','Fr','Sa'];
-            // Zeige heute bis nächsten Montag (inkl.)
-            // Bis Dienstag der Folgewoche: nächster Montag + 1
-            const daysToNextMon = (8 - realToday) % 7 || 7;
-            const daysToNextTue = daysToNextMon + 1;
-            for (let i = 0; i <= daysToNextTue; i++) {
-                const dIdx  = (realToday + i) % 7;
-                const isSel     = sess.startDayIdx === dIdx;
+            // Feste 7 Wochentage: Mo=1 … So=0 (JS-Indizes)
+            const dayOrder = [1, 2, 3, 4, 5, 6, 0];
+            const dayNames = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+            dayOrder.forEach(function(dIdx) {
+                const isSel = sess.startDayIdx === dIdx;
                 const btn = document.createElement('button');
                 btn.className = 'sd-btn' + (isSel ? ' sd-selected' : '');
-                btn.innerHTML = `<span class="sd-day">${dayNames[dIdx]}</span>`;
-                btn.onclick = () => setStartDay(dIdx);
+                btn.innerHTML = '<span class="sd-day">' + dayNames[dIdx] + '</span>';
+                btn.onclick = function() { setStartDay(dIdx); };
                 wrap.appendChild(btn);
-            }
+            });
         }
 
         function setStartDay(dIdx) {
