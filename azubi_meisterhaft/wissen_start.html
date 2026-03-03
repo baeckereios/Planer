@@ -1,1 +1,137 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wissens-Hub | BäckereiOS</title>
+    <link rel="stylesheet" href="../systemdesign.css">
+    
+    <script>
+        (function() {
+            try { 
+                const localTheme = localStorage.getItem('BOS_THEME');
+                document.documentElement.setAttribute('data-theme', localTheme || 'light'); 
+            } catch(e) {}
+        })();
+    </script>
 
+    <style>
+        body { padding-bottom: 80px; }
+        
+        .hub-intro {
+            background: #111;
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        .hub-intro::before {
+            content: "🍞"; position: absolute; right: -20px; top: -10px;
+            font-size: 8rem; opacity: 0.1; transform: rotate(15deg); pointer-events: none;
+        }
+        .hub-headline { font-family: 'Fraunces', serif; font-weight: 900; font-size: 2rem; color: white; line-height: 1.1; margin: 10px 0; }
+        .hub-headline em { color: var(--amber); font-style: italic; }
+        
+        .topic-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; margin-bottom: 30px; 
+        }
+        
+        .topic-card {
+            background: var(--surface); border: 2px solid var(--border); border-radius: 20px;
+            text-decoration: none; overflow: hidden; transition: 0.2s; display: flex; flex-direction: column;
+            min-height: 160px;
+        }
+        .topic-card:hover { border-color: var(--amber); transform: translateY(-4px); box-shadow: 0 10px 20px var(--shadow); }
+        .topic-card.featured { grid-column: 1 / -1; min-height: auto; }
+
+        .topic-banner { padding: 20px; flex-grow: 1; border-bottom: 2px solid var(--border-s); }
+        
+        /* Farb-Designs */
+        .topic-card[data-topic="wissen"] .topic-banner { background: linear-gradient(135deg, #2d2010, #1a1208); color: white; }
+        .topic-card[data-topic="news"] .topic-banner { background: linear-gradient(135deg, #fdfaf4, #e8dfd0); color: var(--text); }
+        .topic-card[data-topic="history"] .topic-banner { background: linear-gradient(135deg, #2c1a0b, #4a2c10); color: white; }
+        .topic-card[data-topic="snacks"] .topic-banner { background: linear-gradient(135deg, #001a0f, #003020); color: white; }
+        .topic-card[data-topic="mythen"] .topic-banner { background: linear-gradient(135deg, #4a2c5a, #2c1a35); color: white; }
+
+        .topic-name { font-family: 'Fraunces', serif; font-weight: 800; font-size: 1.2rem; margin-top: 5px; color: inherit; }
+        .topic-desc { font-size: 0.75rem; opacity: 0.8; font-family: 'Barlow', sans-serif; margin-top: 5px; color: inherit; line-height: 1.3; }
+        .topic-emoji { font-size: 2rem; display: block; margin-bottom: 5px; }
+        .topic-footer { padding: 10px 15px; font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: var(--dim); display: flex; justify-content: space-between; }
+        
+        .top-nav { margin-bottom: 15px; }
+        .btn-back-link { text-decoration: none; color: var(--dim); font-family: 'Barlow Condensed'; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+    <header class="brand-header">
+        <div class="brand-logo">BÄCKEREI<span>OS</span></div>
+        <div class="slogan-bar">Azubi & Meisterhaft // Hub</div>
+    </header>
+
+    <div style="max-width: 800px; margin: 30px auto; padding: 0 20px;">
+        
+        <div class="top-nav"><a href="../pausenraum.html" class="btn-back-link">← Zurück zum Pausenraum</a></div>
+
+        <div class="hub-intro">
+            <div class="label" style="color: var(--amber); margin-bottom: 5px;">Dein Wissens-Cockpit</div>
+            <h1 class="hub-headline">Alles, was du<br>wissen <em>solltest.</em></h1>
+        </div>
+
+        <div class="label">Bereiche auswählen</div>
+        <div class="topic-grid">
+            
+            <a href="azubi_meisterhaft.html" class="topic-card featured" data-topic="wissen">
+                <div class="topic-banner">
+                    <span class="topic-emoji">🧠</span>
+                    <div class="topic-name">MeisterWissen</div>
+                    <div class="topic-desc">Datenbank: Rohstoffe, Chemie & Fehler.</div>
+                </div>
+                <div class="topic-footer">Öffnen <span>➔</span></div>
+            </a>
+
+            <a href="news.html" class="topic-card" data-topic="news">
+                <div class="topic-banner">
+                    <span class="topic-emoji">📰</span>
+                    <div class="topic-name">News</div>
+                    <div class="topic-desc">Trends & Tarife.</div>
+                </div>
+                <div class="topic-footer">Lesen <span>➔</span></div>
+            </a>
+
+            <a href="history.html" class="topic-card" data-topic="history">
+                <div class="topic-banner">
+                    <span class="topic-emoji">📜</span>
+                    <div class="topic-name">Chronik</div>
+                    <div class="topic-desc">Geschichte.</div>
+                </div>
+                <div class="topic-footer">Zeitstrahl <span>➔</span></div>
+            </a>
+
+            <a href="mythen.html" class="topic-card" data-topic="mythen">
+                <div class="topic-banner">
+                    <span class="topic-emoji">🎭</span>
+                    <div class="topic-name">Mythen</div>
+                    <div class="topic-desc">Populäre Irrtümer.</div>
+                </div>
+                <div class="topic-footer">Aufklären <span>➔</span></div>
+            </a>
+
+            <a href="pausen_snacks.html" class="topic-card" data-topic="snacks">
+                <div class="topic-banner">
+                    <span class="topic-emoji">🥨</span>
+                    <div class="topic-name">Snacks</div>
+                    <div class="topic-desc">Kurioses Wissen.</div>
+                </div>
+                <div class="topic-footer">Pause <span>➔</span></div>
+            </a>
+        </div>
+
+    </div>
+</body>
+</html>

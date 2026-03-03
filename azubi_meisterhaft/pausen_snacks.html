@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pausen Snacks</title>
+    <link rel="stylesheet" href="systemdesign.css">
+    <style>
+        /* Grid Anpassung */
+        .trivia-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        
+        .trivia-card {
+            background: var(--surface); border: 2px solid var(--border); border-radius: 20px;
+            padding: 20px; display: flex; flex-direction: column; height: 100%; transition: 0.2s;
+        }
+        .trivia-card:hover { border-color: var(--amber); transform: translateY(-3px); }
+
+        .t-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .t-cat { font-family: 'Barlow Condensed'; font-weight: 800; color: var(--dim); text-transform: uppercase; font-size: 0.8rem; background: var(--surface2); padding: 5px 10px; border-radius: 6px; letter-spacing: 1px; }
+        .t-icon { font-size: 2rem; }
+        
+        .t-q { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.2rem; margin-bottom: 10px; line-height: 1.2; color: var(--text); }
+        .t-a { color: var(--amber); font-weight: 900; font-family: 'Barlow Condensed'; font-size: 1.1rem; margin-bottom: 15px; text-transform: uppercase; border-bottom: 1px dashed var(--border-s); padding-bottom: 10px; display: block; }
+        
+        /* Fact Box */
+        .fact-box { 
+            background: rgba(192, 122, 16, 0.08); padding: 12px; border-radius: 8px; font-size: 0.85rem; 
+            margin-top: auto; border-left: 3px solid var(--amber); color: var(--text);
+        }
+
+        /* Mini Truth Meter (Jetzt eher als "Faktencheck" Bestätigung) */
+        .mini-meter-container { margin-bottom: 15px; opacity: 0.8; }
+        .mini-meter { height: 4px; background: #eee; width: 100%; margin: 5px 0; border-radius: 2px; }
+        .mini-fill { height: 100%; border-radius: 2px; }
+
+        .nav-back { margin-bottom: 15px; }
+        .nav-back a { text-decoration: none; color: var(--dim); font-family: 'Barlow Condensed'; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; display: inline-block; background: var(--surface); }
+    </style>
+</head>
+<body>
+    <header class="brand-header">
+        <div class="brand-logo">BÄCKEREI<span>OS</span></div>
+        <div class="slogan-bar">Snacks & Kurioses</div>
+    </header>
+
+    <div style="max-width: 900px; margin: 40px auto; padding: 0 20px;">
+        <div class="nav-back"><a href="wissen_start.html">← ZURÜCK ZUM HUB</a></div>
+        
+        <div class="label">Wissen to go</div>
+        <div class="trivia-grid" id="triviaContainer"></div>
+    </div>
+
+    <script src="trivia.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tCont = document.getElementById('triviaContainer');
+            if (typeof triviaData !== 'undefined') {
+                triviaData.forEach(item => {
+                    // Farbe bestimmen (Hier meistens grün, da Fakten)
+                    let color = '#e74c3c'; // Rot
+                    if(item.wahrheitsGrad > 40) color = '#f1c40f'; // Gelb
+                    if(item.wahrheitsGrad > 80) color = '#27ae60'; // Grün
+
+                    tCont.innerHTML += `
+                        <div class="trivia-card">
+                            <div class="t-header">
+                                <span class="t-cat">${item.kategorie}</span>
+                                <span class="t-icon">${item.icon}</span>
+                            </div>
+                            <div class="t-q">${item.frage}</div>
+                            <div class="t-a">➜ ${item.antwort}</div>
+                            
+                            <div class="mini-meter-container">
+                                <div style="font-size:0.65rem; text-transform:uppercase; font-weight:bold; color:${color}; display:flex; justify-content:space-between;">
+                                    <span>Faktencheck</span>
+                                    <span>${item.wahrheitsGrad}% Sicher</span>
+                                </div>
+                                <div class="mini-meter"><div class="mini-fill" style="width:${item.wahrheitsGrad}%; background:${color}"></div></div>
+                            </div>
+
+                            <p style="font-size:0.95rem; line-height:1.5; opacity:0.9; margin-bottom:20px;">${item.story}</p>
+                            <div class="fact-box"><b>🤓 ANGEBER-WISSEN:</b><br>${item.funFact}</div>
+                        </div>
+                    `;
+                });
+            }
+        });
+    </script>
+</body>
+</html>
