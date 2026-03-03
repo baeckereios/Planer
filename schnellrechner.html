@@ -92,6 +92,11 @@
             <button class="btn-toggle-extras" onclick="toggleExtras()" id="lang-calcExtras">⚙️ Feiertage & Grillwetter (Aufklappen)</button>
             <div class="extras-area" id="extras-area">
                 <div id="sandbox-grid"></div>
+                <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border-s);">
+                    <div class="label" style="margin-bottom:8px;">KUNDENBESTELLUNG / FROSTERFEHLMENGEN (+ BLECHE):</div>
+                    <input type="number" id="extra-order-input" placeholder="0" oninput="calculate()"
+                        style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--border-s); text-align:center; font-weight:800; font-size:1.1rem; background:var(--surface); color:var(--text);">
+                </div>
             </div>
 
             <button class="btn-main" style="width:100%; padding:20px; border-radius:16px; background:var(--amber); color:white; border:none; font-weight:900; font-size:1.1rem; cursor:pointer;" id="btn-calc" onclick="calculate()" disabled>
@@ -224,6 +229,7 @@
             const id = document.getElementById('prod-select').value; if(!id || frosterDone === null) return;
             const stock = parseInt(document.getElementById('stock-input').value) || 0;
             const missing = parseInt(document.getElementById('missing-input').value) || 0;
+            const extraOrder = parseInt(document.getElementById('extra-order-input').value) || 0;
             const p = window.BOS_STAMMDATEN[id];
             const offset = frosterDone ? 2 : 1;
             if (targetOffset === null) resetTarget();
@@ -252,6 +258,10 @@
                 rowsHtml += `<tr style="${simClosed[i]?'opacity:0.4; text-decoration:line-through;':''}"><td>${dayNamesLong[dIdx]}${icon}</td><td style="text-align:right;">${need}</td></tr>`;
             }
 
+            if (extraOrder > 0) {
+                totalNeed += extraOrder;
+                rowsHtml += `<tr style="color:var(--amber); font-weight:800;"><td>Sonderbestellung ★</td><td style="text-align:right;">+${extraOrder}</td></tr>`;
+            }
             const rawNeeded = Math.max(0, totalNeed - stock);
             rowsHtml += `<tr class="row-total"><td>Gesamtbedarf</td><td style="text-align:right;">${totalNeed}</td></tr><tr class="row-stock"><td>- Bestand</td><td style="text-align:right;">-${stock}</td></tr>`;
             document.getElementById('calc-table').innerHTML = rowsHtml;

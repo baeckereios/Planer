@@ -627,7 +627,7 @@
                     let needDisplay = `Bedarf: ${step.need}`;
                     if (step.actualConsumption === 0 && step.need > 0) {
                         needDisplay = `<span style="color:var(--green); font-weight:800;">Bedarf: <span style="text-decoration:line-through; opacity:0.6;">${step.need}</span> ✓ Froster</span>`;
-                        if (i === 0 && sess.shortages[id]) needDisplay += `<br><small style="color:var(--red);">+${sess.shortages[id]} Fehl</small>`;
+                        if (i === 0 && sess.shortages[id]) needDisplay += `<br><small style="color:var(--red);">❄️ Frosterfehlmenge: ${sess.shortages[id]} Bleche</small>`;
                     } else if (step.stockAfterNeed < 0) {
                         needDisplay = `Bedarf: ${step.need}<br><span style="color:var(--red); font-weight:900; font-size:0.82rem;">⚠️ Lücke: ${Math.abs(step.stockAfterNeed)}</span>`;
                     }

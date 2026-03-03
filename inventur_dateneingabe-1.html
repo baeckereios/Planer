@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Inventur – BäckereiOS</title>
+
+    <script>
+        (function() {
+            try { document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light'); }
+            catch(e) { document.documentElement.setAttribute('data-theme', 'light'); }
+        })();
+    </script>
+
+    <link rel="stylesheet" href="../systemdesign.css">
+    <script src="../stammdaten.js"></script>
+    <script src="../inventurdaten.js"></script>
+
+    <style>
+        body { padding-bottom: 100px; background: var(--bg); }
+
+        .brand-header {
+            background: var(--surface);
+            text-align: center;
+            padding-top: 15px;
+            box-shadow: 0 4px 10px var(--shadow);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; margin-bottom: 5px; }
+        .btn-back-nav { background: var(--surface2); border: 2px solid var(--border-s); color: var(--text); font-weight: 900; padding: 8px 15px; border-radius: 12px; text-decoration: none; font-size: 0.9rem; }
+        .page-subtitle { font-family: 'Barlow Condensed'; font-weight: 900; color: var(--amber); letter-spacing: 1px; font-size: 1rem; }
+        .brand-logo { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 900; color: var(--text); line-height: 1; margin: 8px 0; }
+        .brand-logo span { color: var(--amber); font-style: italic; }
+        .slogan-bar { background: #111; color: var(--amber); padding: 10px; margin-top: 20px; font-family: 'Barlow Condensed'; font-weight: 800; font-size: 0.9rem; letter-spacing: 1.5px; text-transform: uppercase; text-align: center; }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 20px 15px; }
+
+        /* Station Filter */
+        .station-filter {
+            display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+        }
+        .sf-btn {
+            flex: 1; min-width: 80px; padding: 10px 8px;
+            border: 2px solid var(--border-s); border-radius: 12px;
+            background: var(--surface); color: var(--dim);
+            font-family: 'Barlow Condensed'; font-weight: 800;
+            font-size: 0.85rem; letter-spacing: 0.5px; cursor: pointer;
+            text-align: center; transition: 0.2s;
+        }
+        .sf-btn.active { border-color: var(--amber); background: var(--amber); color: white; }
+
+        /* Produktkarte */
+        .inv-card {
+            background: var(--surface); border: 2px solid var(--border);
+            border-radius: 18px; padding: 18px; margin-bottom: 12px;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        .inv-card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 14px;
+        }
+        .inv-name {
+            font-family: 'Barlow Condensed'; font-weight: 800;
+            font-size: 1.15rem; text-transform: uppercase; color: var(--text);
+        }
+        .inv-ts { font-size: 0.65rem; color: var(--dim); }
+
+        /* 4 Eingabefelder + Summe */
+        .inv-inputs {
+            display: grid; grid-template-columns: repeat(4, 1fr) auto;
+            gap: 8px; align-items: center;
+        }
+        .loc-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .loc-label { font-size: 0.6rem; font-weight: 800; color: var(--dim); text-transform: uppercase; }
+        .loc-inp {
+            width: 100%; text-align: center; padding: 10px 4px;
+            border-radius: 10px; border: 2px solid var(--border-s);
+            background: var(--bg); color: var(--text);
+            font-family: 'Barlow'; font-weight: 800; font-size: 1.1rem;
+            outline: none; box-sizing: border-box;
+            transition: 0.2s;
+        }
+        .loc-inp:focus { border-color: var(--amber); }
+        .sum-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .sum-label { font-size: 0.6rem; font-weight: 800; color: var(--amber); text-transform: uppercase; }
+        .inv-sum {
+            min-width: 48px; text-align: center; padding: 10px 8px;
+            border-radius: 10px; border: 2px solid var(--amber);
+            background: rgba(192,122,16,0.08); color: var(--amber);
+            font-weight: 900; font-size: 1.1rem;
+        }
+
+        /* Footer */
+        .footer-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--surface); border-top: 2px solid var(--border);
+            padding: 15px 20px; z-index: 100;
+            box-shadow: 0 -4px 20px var(--shadow);
+        }
+        .btn-generate {
+            width: 100%; max-width: 600px; margin: 0 auto; display: block;
+            padding: 18px; border-radius: 14px; border: none;
+            background: var(--amber); color: white;
+            font-family: 'Barlow Condensed'; font-weight: 900;
+            font-size: 1.1rem; letter-spacing: 1px; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="brand-header">
+    <div class="top-nav">
+        <a href="admin_landing.html" class="btn-back-nav">← CHEF</a>
+        <div class="page-subtitle">INVENTUR</div>
+        <div style="width:70px;"></div>
+    </div>
+    <div class="brand-logo">Bäckerei<span>OS</span></div>
+    <div class="slogan-bar">„Wir machen das Frühstück erst möglich."</div>
+</div>
+
+<div class="container">
+    <div class="station-filter" id="station-filter"></div>
+    <div id="main-list"></div>
+</div>
+
+<div class="footer-bar">
+    <button class="btn-generate" onclick="generateInventurJS()">⬇ INVENTURDATEN.JS GENERIEREN</button>
+</div>
+
+<script>
+    let workingData = {};
+    let activeStation = 'alle';
+
+    window.onload = function() {
+        if (!window.BOS_STAMMDATEN) return;
+        prepareData();
+        buildStationFilter();
+        renderList();
+    };
+
+    function prepareData() {
+        const cur = window.BOS_INVENTUR || {};
+        for (let k in window.BOS_STAMMDATEN) {
+            const saved = cur.products?.[k];
+            workingData[k] = {
+                locs: saved?.locs || [0, 0, 0, 0],
+                stock: saved?.stock || cur.stocks?.[k] || 0,
+                ts: saved?.ts || cur.timestamp || 0
+            };
+            // Recalculate stock from locs if locs exist
+            if (saved?.locs) {
+                workingData[k].stock = saved.locs.reduce((a, b) => a + b, 0);
+            }
+        }
+    }
+
+    function buildStationFilter() {
+        const stations = ['alle', ...new Set(Object.values(window.BOS_STAMMDATEN).map(p => p.station).filter(Boolean))];
+        const wrap = document.getElementById('station-filter');
+        stations.forEach(s => {
+            const btn = document.createElement('button');
+            btn.className = 'sf-btn' + (s === activeStation ? ' active' : '');
+            btn.innerText = s === 'alle' ? 'Alle Produkte' : s;
+            btn.onclick = () => { activeStation = s; renderList(); document.querySelectorAll('.sf-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); };
+            wrap.appendChild(btn);
+        });
+    }
+
+    function renderList() {
+        const container = document.getElementById('main-list');
+        container.innerHTML = '';
+        for (let k in window.BOS_STAMMDATEN) {
+            const p = window.BOS_STAMMDATEN[k];
+            if (activeStation !== 'alle' && p.station !== activeStation) continue;
+            const d = workingData[k];
+            const neverCounted = d.ts === 0;
+            const ageH = neverCounted ? Infinity : Math.round((Date.now() - d.ts) / 3600000);
+            const stale = neverCounted || ageH >= 24;
+            const tsStr = neverCounted
+                ? 'nie gezählt'
+                : new Date(d.ts).toLocaleString('de-DE', { weekday:'short', hour:'2-digit', minute:'2-digit' });
+
+            const card = document.createElement('div');
+            card.className = 'inv-card';
+            card.innerHTML = `
+                <div class="inv-card-header">
+                    <div class="inv-name">${p.name}</div>
+                    <div class="inv-ts" ${stale ? 'style="color:var(--red); font-weight:800;"' : ''}>🕒 ${tsStr}${stale && !neverCounted ? ` ⚠️ ${ageH}h alt` : ''}</div>
+                </div>
+                <div class="inv-inputs">
+                    ${[0,1,2,3].map(i => `
+                    <div class="loc-wrap">
+                        <div class="loc-label">${i+1}</div>
+                        <input type="number" inputmode="numeric" class="loc-inp" id="loc_${k}_${i}"
+                            value="${d.locs[i] || ''}" placeholder="0"
+                            oninput="updateLoc('${k}', ${i}, this.value)">
+                    </div>`).join('')}
+                    <div class="sum-wrap">
+                        <div class="sum-label">∑</div>
+                        <div class="inv-sum" id="sum_${k}">${d.stock}</div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        }
+    }
+
+    function updateLoc(k, idx, val) {
+        workingData[k].locs[idx] = parseInt(val) || 0;
+        workingData[k].stock = workingData[k].locs.reduce((a, b) => a + b, 0);
+        workingData[k].ts = Date.now();
+        document.getElementById('sum_' + k).innerText = workingData[k].stock;
+    }
+
+    function generateInventurJS() {
+        const stocks = {};
+        for (let k in workingData) stocks[k] = workingData[k].stock;
+
+        const exportObj = { products: workingData, stocks };
+        const js = "window.BOS_INVENTUR = " + JSON.stringify(exportObj, null, 2) + ";";
+        const blob = new Blob([js], { type: "text/javascript" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "inventurdaten.js";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+</script>
+</body>
+</html>

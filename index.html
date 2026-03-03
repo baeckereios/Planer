@@ -11,6 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BäckereiOS - Cockpit</title>
     <link rel="stylesheet" href="systemdesign.css">
+    <script src="zitate.js"></script>
     <script src="translations.js"></script>
     <style>
         body { margin: 0; padding-bottom: 90px; }
@@ -174,6 +175,25 @@
         .grid-card .nav-icon { margin: 0 auto; }
         .grid-card .nav-title { font-size: 0.95rem; font-family: 'Barlow', sans-serif; }
 
+        /* ── ZITAT DES TAGES ── */
+        .quote-of-day {
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 4px;
+            margin: 4px 0 8px;
+            text-align: center;
+        }
+        .quote-of-day-label {
+            font-family: 'Barlow Condensed'; font-weight: 900;
+            font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase;
+            color: var(--dim); margin-bottom: 10px;
+        }
+        .quote-of-day-text {
+            font-family: 'Fraunces', serif; font-style: italic;
+            font-size: 1rem; color: var(--text);
+            line-height: 1.55; opacity: 0.75;
+        }
+
         /* ─── BOTTOM BAR ─── */
         .settings-bar {
             position: fixed;
@@ -228,21 +248,26 @@
         <a href="setup.html" class="nav-card featured">
             <div class="nav-icon">🚀</div>
             <div>
-                <div class="nav-title" id="lang-startSetup">Assistent</div>
+                <div class="nav-title" id="lang-startSetup">PlanungsAssistent</div>
                 <div class="nav-sub" id="lang-startSetupSub">Planung starten</div>
             </div>
         </a>
 
+        <a href="schnellrechner.html" class="nav-card full-width">
+            <div class="nav-icon">🧮</div>
+            <div>
+                <div class="nav-title" id="lang-quickCalc" style="font-size:1.3rem;">Schnellrechner</div>
+                <div class="nav-sub">Sandbox: Fix was ausrechnen</div>
+            </div>
+        </a>
+
+        <div class="quote-of-day">
+            <div class="quote-of-day-label">✦ Zitat des Tages</div>
+            <div class="quote-of-day-text" id="qs-text">...</div>
+        </div>
+
         <div class="section-label" id="lang-apps">Arbeitsgeräte</div>
         <div class="app-grid">
-
-            <a href="schnellrechner.html" class="nav-card full-width" style="margin-bottom:0;">
-                <div class="nav-icon">🧮</div>
-                <div>
-                    <div class="nav-title" id="lang-quickCalc" style="font-size:1.3rem;">Schnellrechner</div>
-                    <div class="nav-sub">Sandbox: Fix was ausrechnen</div>
-                </div>
-            </a>
 
             <a href="frosterliste.html" class="nav-card grid-card">
                 <div class="nav-icon">❄️</div>
@@ -252,6 +277,16 @@
             <a href="ofenangriff.html" class="nav-card grid-card">
                 <div class="nav-icon">🔥</div>
                 <div class="nav-title">Ofenangriff</div>
+            </a>
+
+            <a href="https://my.hidrive.com/share/0a5xcrfaf8" target="_blank" class="nav-card grid-card">
+                <div class="nav-icon">🗂️</div>
+                <div class="nav-title">Teamordner</div>
+            </a>
+
+            <a href="pausenraum.html" class="nav-card grid-card">
+                <div class="nav-icon">☕</div>
+                <div class="nav-title">Pausenraum</div>
             </a>
 
             <a href="bestandsuebersicht.html" class="nav-card grid-card">
@@ -297,11 +332,21 @@
             });
             document.getElementById('lang-select').value = l;
         }
+        // ── ZITAT ──
+        var qQuotes = (typeof QUOTES !== 'undefined') ? QUOTES : ['Ohne Brot ist alles nichts.'];
+
+        function qGetDayQuote() {
+            var n = new Date();
+            var seed = n.getFullYear() * 10000 + (n.getMonth()+1) * 100 + n.getDate();
+            return qQuotes[seed % qQuotes.length];
+        }
+
         window.onload = () => {
             const theme = localStorage.getItem('BOS_THEME') || 'light';
             document.documentElement.setAttribute('data-theme', theme);
             document.getElementById('theme-btn').innerText = theme === 'dark' ? '☀️ Hell' : '🌙 Dark';
             apply(localStorage.getItem('BOS_LANG_CODE') || 'de');
+            document.getElementById('qs-text').textContent = qGetDayQuote();
         };
     </script>
   <script>

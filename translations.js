@@ -8,7 +8,7 @@ window.BOS_LANG = {
         slogan: "„Wir machen das Frühstück erst möglich.“",
         quickAccess: "SCHNELLZUGRIFF",
         apps: "ARBEITSGERÄTE",
-        startSetup: "Assistent",
+        startSetup: "PlanungsAssistent",
         startSetupSub: "Planung starten",
         workplan: "Arbeitsplan",
         frosterlist: "Frosterliste",

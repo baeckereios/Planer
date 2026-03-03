@@ -11,16 +11,20 @@ window.BOS_BRAIN = {
                         ? (session.inventory[prodId].stock || 0) 
                         : (session.inventory?.[prodId] || 0);
                         
-        const shortage = session.shortages?.[prodId] || 0;
-        const todayIdx = session.startDayIdx ?? new Date().getDay();
-        const targetDay = session.targetDays?.[prodId] || 1;
-        
-        let currentRest = stock; 
+        const shortage    = session.shortages?.[prodId] || 0;
+        const todayIdx    = session.startDayIdx ?? new Date().getDay();
+        const targetDay   = session.targetDays?.[prodId] || 1;
+        // Bei Fehlmenge: effektiver Bestand ist reduziert
+        const effectiveStock = stock - shortage;
+        // frosterDone überspringt Schritt 1 NUR wenn kein Mangel herrscht
+        const startStep   = (session.frosterDone && shortage === 0) ? 2 : 1;
+
+        let currentRest = effectiveStock;
         let results = [];
         let allMandatoryCovered = true;
         let maxDeficit = 0;
 
-        const getAdjustedNeed = (dIdx, isDayZero) => {
+        const getAdjustedNeed = (dIdx) => {
             let bosIdx = (dIdx === 0) ? 6 : dIdx - 1;
             let base = p.needs[bosIdx] || 0;
             const cfg = session.weekConfig?.[dIdx] || { status: 'auf', hamster: 0, grill: false };
@@ -28,22 +32,19 @@ window.BOS_BRAIN = {
             let adj = base;
             if (cfg.hamster === 1) adj = Math.ceil(adj * 1.5);
             else if (cfg.hamster === 2) adj = Math.ceil(adj * 2);
-            if (cfg.grill && p.sun) adj += p.sun; 
-            if (isDayZero) adj += shortage; 
+            if (cfg.grill && p.sun) adj += p.sun;
             return Math.ceil(adj);
         };
-
-        const startStep = session.frosterDone ? 2 : 1;
         const raw = (targetDay - todayIdx + 7) % 7 || 7;
         const totalStepsNeeded = raw < 3 ? raw + 7 : raw;
 
         for (let i = 0; i <= totalStepsNeeded; i++) {
             let dIdx = (todayIdx + i) % 7;
-            let dailyNeed = getAdjustedNeed(dIdx, i === 0);
+            let dailyNeed = getAdjustedNeed(dIdx);
             let prodAmount = plannedProd?.[i] || 0;
             
             let nextDIdx = (todayIdx + i + 1) % 7;
-            let nextNeed = getAdjustedNeed(nextDIdx, false);
+            let nextNeed = getAdjustedNeed(nextDIdx);
             
             let actualConsumption = (i >= startStep) ? dailyNeed : 0;
             
@@ -67,9 +68,15 @@ window.BOS_BRAIN = {
                 isWarning: isDayBroken || isNextMorningInDanger
             });
 
-            if (stockAfterNeed < 0 || stockForTomorrow < 0) {
+            // Nur echte Verbrauchslücken zählen als Planfehler
+            // Negativer Start durch Fehlmenge (actualConsumption=0) ist kein Fehler
+            if (actualConsumption > 0 && stockAfterNeed < 0) {
                 allMandatoryCovered = false;
-                maxDeficit = Math.min(maxDeficit, stockAfterNeed, stockForTomorrow);
+                maxDeficit = Math.min(maxDeficit, stockAfterNeed);
+            }
+            if (stockForTomorrow < 0 && i > 0) {
+                allMandatoryCovered = false;
+                maxDeficit = Math.min(maxDeficit, stockForTomorrow);
             }
 
             currentRest = stockForTomorrow;
@@ -94,14 +101,16 @@ window.BOS_BRAIN = {
         const shortage    = session.shortages?.[prodId] || 0;
         const todayIdx    = session.startDayIdx ?? new Date().getDay();
         const targetDay   = session.targetDays?.[prodId] || 1;
-        const startStep   = session.frosterDone ? 2 : 1;
+        const startStep   = (session.frosterDone && shortage === 0) ? 2 : 1;
         const rawSteps    = (targetDay - todayIdx + 7) % 7 || 7;
         const totalSteps  = rawSteps < 3 ? rawSteps + 7 : rawSteps;
         const prodDayIdxs = session.productionDays?.[prodId] || [];
         const STEP = p.step || 6; // Schrittgröße: Standard 6, individuell per stammdaten.js
 
         // Hilfsfunktion: bereinigter Tagesbedarf (identisch zu calculateChain)
-        const getAdjustedNeed = (dIdx, isDayZero) => {
+        const effectiveStock = stock - shortage;
+
+        const getAdjustedNeed = (dIdx) => {
             const bosIdx = (dIdx === 0) ? 6 : dIdx - 1;
             const base   = p.needs[bosIdx] || 0;
             const cfg    = session.weekConfig?.[dIdx] || { status: 'auf', hamster: 0, grill: false };
@@ -110,15 +119,15 @@ window.BOS_BRAIN = {
             if (cfg.hamster === 1) adj = Math.ceil(adj * 1.5);
             else if (cfg.hamster === 2) adj = Math.ceil(adj * 2);
             if (cfg.grill && p.sun) adj += p.sun;
-            if (isDayZero) adj += shortage;
             return Math.ceil(adj);
         };
 
         // Verbrauchsarray aufbauen (actualConsumption je Step)
+        let runningStock = effectiveStock;
         const consumptions = [];
         for (let i = 0; i <= totalSteps; i++) {
             const dIdx = (todayIdx + i) % 7;
-            consumptions.push(i >= startStep ? getAdjustedNeed(dIdx, i === 0) : 0);
+            consumptions.push(i >= startStep ? getAdjustedNeed(dIdx) : 0);
         }
 
         // Welche Steps sind Produktionstage?
@@ -174,7 +183,7 @@ window.BOS_BRAIN = {
         //    → diesen Step selbst anheben (kann nicht rückwärts)
         // b) Lücke ZWISCHEN Produktionstagen
         //    → letzten Produktionstag anheben
-        let currentRest  = stock;
+        let currentRest  = effectiveStock;
         let lastProdStep = -1;
 
         for (let i = 0; i <= totalSteps; i++) {
