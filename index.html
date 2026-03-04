@@ -177,21 +177,23 @@
 
         /* ── ZITAT DES TAGES ── */
         .quote-of-day {
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-            padding: 20px 4px;
-            margin: 4px 0 8px;
-            text-align: center;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-left: 4px solid var(--amber);
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin: 8px 0 4px;
+            box-shadow: 0 3px 14px var(--shadow);
         }
         .quote-of-day-label {
             font-family: 'Barlow Condensed'; font-weight: 900;
             font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase;
-            color: var(--dim); margin-bottom: 10px;
+            color: var(--amber); margin-bottom: 8px;
         }
         .quote-of-day-text {
             font-family: 'Fraunces', serif; font-style: italic;
-            font-size: 1rem; color: var(--text);
-            line-height: 1.55; opacity: 0.75;
+            font-size: 0.98rem; color: var(--text);
+            line-height: 1.55;
         }
 
         /* ─── BOTTOM BAR ─── */
@@ -223,7 +225,27 @@
         }
         .ctrl-btn:hover { border-color: var(--amber); }
 
-        /* ─── FADE-IN ANIMATION ─── */
+        /* ─── SEKUNDÄR-SECTION ─── */
+        .section-label.secondary {
+            color: var(--dim);
+            margin-top: 24px;
+        }
+        .secondary-grid .nav-icon {
+            opacity: 0.7;
+        }
+        .secondary-grid .nav-title {
+            font-size: 0.88rem;
+            color: var(--dim);
+        }
+        .secondary-grid .nav-card {
+            border-color: var(--border-s);
+            box-shadow: none;
+        }
+        .secondary-grid .nav-card:hover {
+            border-color: var(--amber);
+            box-shadow: 0 4px 16px rgba(192,122,16,0.1);
+        }
+        .secondary-grid .nav-card:hover .nav-icon { opacity: 1; }
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(18px); }
             to   { opacity: 1; transform: translateY(0); }
@@ -289,6 +311,21 @@
                 <div class="nav-title">Ofenangriff</div>
             </a>
 
+            <a href="bestandsuebersicht.html" class="nav-card grid-card">
+                <div class="nav-icon">🫙</div>
+                <div class="nav-title">Bestände</div>
+            </a>
+
+        </div>
+
+        <div class="section-label secondary">Nachschlagen &amp; Sonstiges</div>
+        <div class="app-grid secondary-grid">
+
+            <a href="frosterliste.html" class="nav-card grid-card">
+                <div class="nav-icon">❄️</div>
+                <div class="nav-title" id="lang-frosterlist">Frosterliste</div>
+            </a>
+
             <a href="https://my.hidrive.com/share/0a5xcrfaf8" target="_blank" class="nav-card grid-card">
                 <div class="nav-icon">🗂️</div>
                 <div class="nav-title">Teamordner</div>
@@ -299,18 +336,11 @@
                 <div class="nav-title">Pausenraum</div>
             </a>
 
-            <a href="bestandsuebersicht.html" class="nav-card grid-card">
-                <div class="nav-icon">🫙</div>
-                <div class="nav-title">Bestände</div>
+            <a href="verbrauchsuebersicht.html" class="nav-card grid-card">
+                <div class="nav-icon">📏</div>
+                <div class="nav-title">Mengenangaben</div>
             </a>
 
-            <a href="verbrauchsuebersicht.html" class="nav-card full-width">
-                <div class="nav-icon">📊</div>
-                <div>
-                    <div class="nav-title" id="lang-overview" style="font-size:1.1rem;">Mengenübersicht</div>
-                    <div class="nav-sub">Bedarfs-Basis einsehen</div>
-                </div>
-            </a>
         </div>
     </div>
 

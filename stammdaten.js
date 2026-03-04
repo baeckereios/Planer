@@ -12,7 +12,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Brötchenstraße"
+    "station": "Brötchenstraße",
+    "batchSize": 12
   },
   "p2": {
     "name": "Laugenstangen",
@@ -27,7 +28,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 10,
     "unit": 0,
-    "station": "Brötchenstraße"
+    "station": "Brötchenstraße",
+    "batchSize": 1
   },
   "p3": {
     "name": "Rosinenbroetchen",
@@ -42,7 +44,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Brötchenstraße"
+    "station": "Brötchenstraße",
+    "batchSize": 1
   },
   "p4": {
     "name": "Kaesebroetchen",
@@ -57,7 +60,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 5,
     "unit": 0,
-    "station": "Brötchenstraße"
+    "station": "Brötchenstraße",
+    "batchSize": 1
   },
   "p5": {
     "name": "SchokoBatzen",
@@ -72,7 +76,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Frühschicht"
+    "station": "Frühschicht",
+    "batchSize": 1
   },
   "p6": {
     "name": "RosinenBatzen",
@@ -87,7 +92,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Frühschicht"
+    "station": "Frühschicht",
+    "batchSize": 1
   },
   "p7": {
     "name": "Zimtwolken",
@@ -102,7 +108,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Brötchenstraße"
+    "station": "Brötchenstraße",
+    "batchSize": 1
   },
   "p14": {
     "name": "Mohnschnecken",
@@ -117,7 +124,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Rondo"
+    "station": "Rondo",
+    "batchSize": 1
   },
   "p8": {
     "name": "Schlawiner",
@@ -132,7 +140,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 3,
-    "station": "Frühschicht"
+    "station": "Nachtschicht",
+    "batchSize": 1
   },
   "p9": {
     "name": "Kornknacker",
@@ -147,7 +156,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 1,
-    "station": "Frühschicht"
+    "station": "Nachtschicht",
+    "batchSize": 1
   },
   "p10": {
     "name": "Hasenberger",
@@ -162,7 +172,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 2,
-    "station": "Nachtschicht"
+    "station": "Nachtschicht",
+    "batchSize": 1
   },
   "p11": {
     "name": "Plunderstreifen",
@@ -177,7 +188,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Rondo"
+    "station": "Rondo",
+    "batchSize": 1
   },
   "p12": {
     "name": "Eiszapfen",
@@ -192,7 +204,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Rondo"
+    "station": "Rondo",
+    "batchSize": 1
   },
   "p13": {
     "name": "Puddingbrezeln",
@@ -207,7 +220,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Rondo"
+    "station": "Rondo",
+    "batchSize": 1
   },
   "p1771487098374": {
     "name": "Baguette (Bleche)",
@@ -222,7 +236,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Nachtschicht"
+    "station": "Nachtschicht",
+    "batchSize": 1
   },
   "p1771567530004": {
     "name": "Zwiebelbaguette (Bleche)",
@@ -237,7 +252,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Nachtschicht"
+    "station": "Nachtschicht",
+    "batchSize": 1
   },
   "p1771567585845": {
     "name": "Baguette (rote Diele)",
@@ -252,7 +268,8 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Nachtschicht"
+    "station": "Nachtschicht",
+    "batchSize": 1
   },
   "p1771567637826": {
     "name": "Zwiebelbaguette (rote Diele)",
@@ -267,6 +284,23 @@ window.BOS_STAMMDATEN = {
     ],
     "sun": 0,
     "unit": 0,
-    "station": "Nachtschicht"
+    "station": "Nachtschicht",
+    "batchSize": 1
+  },
+  "p1772626050481": {
+    "name": "Einhorn Beot",
+    "needs": [
+      16,
+      12,
+      18,
+      16,
+      13,
+      21,
+      7
+    ],
+    "sun": 0,
+    "unit": 0,
+    "station": "Brötchenstraße",
+    "batchSize": 11
   }
 };
