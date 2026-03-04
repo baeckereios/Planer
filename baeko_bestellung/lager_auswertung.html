@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOS - Auswertung</title>
+    <link rel="stylesheet" href="../systemdesign.css">
+    <style>
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .order-card { border-left: 6px solid var(--border-s); }
+        .order-card.needed { border-left-color: var(--amber); background: var(--amber-light); }
+        .order-badge { background: var(--amber); color: white; padding: 5px 15px; border-radius: 50px; float: right; font-family: 'Barlow Condensed'; font-weight: 900; }
+    </style>
+</head>
+<body>
+    <header class="brand-header">
+        <div class="brand-logo" onclick="location.href='lager_inventur.html'">Bäckerei<span>OS</span></div>
+        <div class="slogan-bar">ERGEBNIS & ARCHIVIERUNG</div>
+    </header>
+    <main class="container">
+        <div id="resultsList"></div>
+        <div style="margin: 40px 0 80px;">
+            <button class="btn-main" onclick="share()">1. WhatsApp senden</button>
+            <button class="btn-main" style="margin-top:15px; background:var(--surface); color:var(--text); border:2px solid var(--amber); box-shadow:none;" onclick="finish()">2. Speichern & Download</button>
+        </div>
+    </main>
+    <script src="baeko_bestand.js"></script>
+    <script src="baeko_historie.js"></script>
+    <script src="lager_gehirn.js"></script>
+    <script>
+        function init() {
+            const data = JSON.parse(localStorage.getItem('BOS_LAGER_TEMP') || '{}');
+            const list = document.getElementById('resultsList');
+            (data.results || []).forEach(res => {
+                const card = document.createElement('div');
+                card.className = `card order-card ${res.order > 0 ? 'needed' : ''}`;
+                card.innerHTML = `${res.order > 0 ? `<span class="order-badge">BESTELLEN: ${res.order}</span>` : `<span class="order-badge" style="background:var(--green)">OK</span>`}
+                    <h2 style="margin:0;">${res.name}</h2>
+                    <div class="dim small" style="margin-top:10px; font-weight:600;">Bestand: ${res.current} ${res.unit} / Soll: ${res.target}</div>`;
+                list.appendChild(card);
+            });
+        }
+        function share() {
+            const data = JSON.parse(localStorage.getItem('BOS_LAGER_TEMP') || '{}');
+            window.open(`https://wa.me/?text=${window.BOS_LAGER_BRAIN.generateWhatsAppText(data.results)}`, '_blank');
+        }
+        function finish() {
+            const data = JSON.parse(localStorage.getItem('BOS_LAGER_TEMP') || '{}');
+            let h = JSON.parse(localStorage.getItem('BOS_LAGER_HISTORY') || '[]');
+            h.push(data.snapshot);
+            localStorage.setItem('BOS_LAGER_HISTORY', JSON.stringify(h));
+            const combined = [...(window.BOS_BAEKO_HISTORIE || []), ...h];
+            const blob = new Blob(["window.BOS_BAEKO_HISTORIE = " + JSON.stringify(combined, null, 4) + ";"], { type: "text/javascript" });
+            const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "baeko_historie.js"; a.click();
+            localStorage.removeItem('BOS_LAGER_HISTORY');
+            location.href = '../index.html';
+        }
+        window.onload = init;
+    </script>
+</body>
+</html>
