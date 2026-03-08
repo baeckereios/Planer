@@ -18,16 +18,23 @@
         <div class="slogan-bar">LAGER-ZÄHLUNG</div>
     </header>
     <main class="container">
+        
         <div class="holiday-banner">
-            <div><div class="label" style="margin:0;">Feiertage einplanen?</div><small class="dim">Erhöht das Soll-Ziel</small></div>
+            <div>
+                <div class="label" style="margin:0; font-size: 1.05rem;">Fällt ein Liefertag aus?</div>
+                <small class="dim">(z.B. wegen Feiertag - Erhöht das Soll-Ziel)</small>
+            </div>
             <input type="checkbox" id="holidayToggle" style="width:30px; height:30px; accent-color:var(--amber);">
         </div>
+        
         <div id="productList"></div>
         <div style="margin: 40px 0 60px;"><button class="btn-main" onclick="saveAndProceed()">Zählung abschließen</button></div>
     </main>
-    <script src="baeko_bestand.js"></script>
-    <script src="baeko_historie.js"></script>
+
+    <script src="../baeko_bestand.js"></script>
+    <script src="../baeko_historie.js"></script>
     <script src="lager_gehirn.js"></script>
+    
     <script>
         function init() {
             const list = document.getElementById('productList');
@@ -67,5 +74,6 @@
         }
         window.onload = () => { if (window.BOS_BAEKO_CONFIG) init(); else setTimeout(init, 200); };
     </script>
+    <script src="../shell.js"></script>
 </body>
 </html>

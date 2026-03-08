@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════════════
-   FROSTERLISTE — ORIGINAL-LAYOUT
+   FROSTERLISTE — ORIGINAL-LAYOUT (Responsiv angepasst)
    ═══════════════════════════════════════════════════════ */
 
 :root {
@@ -38,7 +38,7 @@ body {
     -webkit-print-color-adjust: exact;
 }
 
-/* ── Kontroll-Leiste (Original Farben & Buttons) ── */
+/* ── Kontroll-Leiste ── */
 .controls {
     display: flex;
     gap: 10px;
@@ -61,19 +61,20 @@ body {
     text-decoration: none;
 }
 .btn:hover { opacity: .85; }
-.btn-cockpit { background: #555; } /* Neutral für die App-Navigation */
+.btn-cockpit { background: #555; } 
 .btn-print  { background: #2563eb; }
 .btn-add    { background: #16a34a; }
 .btn-remove { background: #dc2626; }
 
-/* ── A4-Seite ── */
+/* ── A4-Seite (Responsiv für Screen) ── */
 .page {
     background: #fff;
-    width: 210mm;
+    width: 100%;             
+    max-width: 210mm;        
     margin: 0 auto;
-    padding: 10mm 10mm 8mm;
+    padding: 15px;           
     box-shadow: 0 2px 20px rgba(0,0,0,.12);
-    border-radius: 4px;
+    border-radius: 8px;
 }
 
 .page-header {
@@ -117,12 +118,20 @@ body {
     letter-spacing: 1px;
 }
 
+/* Horizontaler Scroll-Container für die Tabelle auf schmalen Displays */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; 
+    margin-bottom: 4mm;
+}
+
 /* ── Tabelle ── */
 table {
     width: 100%;
+    min-width: 650px; 
     border-collapse: collapse;
     font-size: 8.2pt;
-    margin-bottom: 4mm;
 }
 
 thead tr:first-child th {
@@ -202,10 +211,34 @@ td.no-sunday {
     margin-bottom: 4px;
 }
 
+/* ── DRUCK-ANSICHT (Striktes DIN A4 ohne Shell) ── */
 @media print {
-    .controls { display: none !important; }
-    body { background: #fff; padding: 0; margin: 0; filter: grayscale(100%); }
-    .page { box-shadow: none; width: 100%; height: 275mm; margin: 0; padding: 6mm 8mm 2mm; border-radius: 0; }
+    /* Versteckt die Buttons und die injizierte Shell.js Leisten! */
+    .controls, .bos-shell-header, .bos-shell-bottom { display: none !important; }
+    
+    /* Setzt das Padding zurück, das die Shell in den Body schreibt */
+    body { background: #fff !important; padding: 0 !important; margin: 0 !important; filter: grayscale(100%); }
+    
+    .page { 
+        box-shadow: none; 
+        width: 100%; 
+        max-width: none;
+        height: 275mm; 
+        margin: 0; 
+        padding: 6mm 8mm 2mm; 
+        border-radius: 0; 
+    }
+    
+    /* Scrollen beim Druck abschalten */
+    .table-responsive {
+        overflow-x: visible;
+        margin-bottom: 0;
+    }
+    table {
+        min-width: 0;
+        margin-bottom: 4mm;
+    }
+
     @page { size: A4 portrait; margin: 8mm 6mm; }
 }
 </style>
@@ -228,53 +261,55 @@ td.no-sunday {
         </div>
     </div>
 
-    <table id="productTable">
-        <thead>
-            <tr>
-                <th colspan="2" class="col-produkt">Produkt</th>
-                <th rowspan="2" class="col-zahlen">Bestand</th>
-                <th rowspan="2" class="col-zahlen sep-r">Zu&shy;viel</th>
-                <th rowspan="2" class="col-zahlen sep-r">Soll<br>nä. Tag</th>
-                <th rowspan="2" class="col-zahlen">Fehlt</th>
-                <th rowspan="2" class="col-zahlen">Wohin</th>
-            </tr>
-            <tr>
-                <th class="col-mosa">MoSa</th>
-                <th class="col-so">Sonntag</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Schrippen (gelbe Dielen)</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Mohn / Sesam</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Hasenberger</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Kornknacker</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Käsebrötchen</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Laugenstangen</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Hasenpfoten</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Rosinenbrötchen</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Brioche Rosinen</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Brioche Schoko</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Laugenecken</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Buttercroissant</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Schokocroissant</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Mini-Croissant</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Mini-Schokocroissant</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true">Plunderstreifen</td><td class="no-sunday"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true">Puddingbrezeln</td><td class="no-sunday"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true">Schnecken</td><td class="no-sunday"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true">Zimtwolken</td><td class="no-sunday"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Streuselkuchen</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Baguettestangen (Lochbleche)</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Zwiebelbaguette (Lochbleche)</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true">Weißbrote</td><td class="no-sunday"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Baguettestangen für Fahrer (rote Dielen)</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Zwiebelbaguette für Fahrer (rote Dielen)</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Schlawiner</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-            <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table id="productTable">
+            <thead>
+                <tr>
+                    <th colspan="2" class="col-produkt">Produkt</th>
+                    <th rowspan="2" class="col-zahlen">Bestand</th>
+                    <th rowspan="2" class="col-zahlen sep-r">Zu&shy;viel</th>
+                    <th rowspan="2" class="col-zahlen sep-r">Soll<br>nä. Tag</th>
+                    <th rowspan="2" class="col-zahlen">Fehlt</th>
+                    <th rowspan="2" class="col-zahlen">Wohin</th>
+                </tr>
+                <tr>
+                    <th class="col-mosa">MoSa</th>
+                    <th class="col-so">Sonntag</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Schrippen (gelbe Dielen)</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Mohn / Sesam</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Hasenberger</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Kornknacker</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Käsebrötchen</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Laugenstangen</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Hasenpfoten</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Rosinenbrötchen</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Brioche Rosinen</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Brioche Schoko</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Laugenecken</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Buttercroissant</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Schokocroissant</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Mini-Croissant</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Mini-Schokocroissant</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true">Plunderstreifen</td><td class="no-sunday"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true">Puddingbrezeln</td><td class="no-sunday"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true">Schnecken</td><td class="no-sunday"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true">Zimtwolken</td><td class="no-sunday"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Streuselkuchen</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Baguettestangen (Lochbleche)</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Zwiebelbaguette (Lochbleche)</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true">Weißbrote</td><td class="no-sunday"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Baguettestangen für Fahrer (rote Dielen)</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Zwiebelbaguette für Fahrer (rote Dielen)</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true">Schlawiner</td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+                <tr><td class="produkt-mosa" contenteditable="true"></td><td class="produkt-so" contenteditable="true"></td><td></td><td class="sep-r"></td><td class="sep-r"></td><td></td><td></td></tr>
+            </tbody>
+        </table>
+    </div> 
 
     <div class="notes-label">Notizen / Sonderbestellungen</div>
     <div class="notes-area" contenteditable="true"></div>
@@ -294,5 +329,6 @@ function removeRow() {
     if(tb.rows.length > 0) tb.deleteRow(-1);
 }
 </script>
+<script src="shell.js" defer></script>
 </body>
 </html>

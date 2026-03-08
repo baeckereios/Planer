@@ -2,7 +2,7 @@
 // Keine manuelle Dateiliste nötig. Neue Dateien werden automatisch gecacht.
 // Zum Aktualisieren: CACHE_NAME hochzählen (z.B. v15 → v16)
 
-const CACHE_NAME = 'baeckereios-v15';
+const CACHE_NAME = 'baeckereios-v16';
 
 self.addEventListener('install', event => {
   self.skipWaiting();

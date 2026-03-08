@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Das Magazin | BäckereiOS</title>
+    <link rel="stylesheet" href="../systemdesign.css">
+    <style>
+        :root { --paper: #f4f4f0; --ink: #1a1a1a; --line: #ccc; --neutral: #7f8c8d; --highlight: #d35400; }
+        body { background-color: white; color: var(--ink); font-family: 'Barlow', sans-serif; margin: 0; padding-bottom: 100px; }
+
+        .market-header { padding: 30px 20px 20px; text-align: center; background: white; }
+        .market-brand { font-family: 'Fraunces', serif; font-weight: 900; font-size: 2.4rem; text-transform: uppercase; letter-spacing: -2px; line-height: 1; color: var(--ink); }
+        .status-badge { display: inline-block; margin-top: 10px; padding: 6px 15px; border: 2px solid var(--highlight); color: var(--highlight); background: rgba(211,84,0,0.05); font-family: 'Barlow Condensed'; font-weight: 900; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        .magazin-zone { padding: 30px 15px 50px; background: white; border-top: 1px solid var(--line); }
+        .zone-title { font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 900; margin-bottom: 25px; text-align: center; color: var(--ink); display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .zone-title span { background: var(--highlight); color: white; padding: 4px 12px; font-size: 0.9rem; font-family: 'Barlow Condensed'; letter-spacing: 2px; text-transform: uppercase; border-radius: 4px; }
+        .container { max-width: 720px; margin: 0 auto; }
+
+        .artikel-list { display: flex; flex-direction: column; gap: 12px; }
+
+        .artikel-card { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; transition: border-color 0.2s; }
+        .artikel-card.open { border-color: var(--highlight); }
+
+        .artikel-header { display: flex; align-items: flex-start; gap: 12px; padding: 16px 18px; cursor: pointer; user-select: none; background: white; }
+        .artikel-card.open .artikel-header { background: #fff8f3; }
+
+        .artikel-meta { flex: 1; }
+        .artikel-tag { display: inline-block; padding: 2px 7px; background: var(--paper); font-family: 'Barlow Condensed'; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: var(--neutral); border-radius: 4px; margin-bottom: 6px; }
+        .artikel-headline { font-weight: 800; font-size: 1.05rem; line-height: 1.35; color: var(--ink); margin-bottom: 4px; }
+        .artikel-teaser { font-size: 0.88rem; color: #888; line-height: 1.4; }
+
+        .artikel-arrow { font-size: 1.1rem; color: var(--highlight); transition: transform 0.25s ease; padding-top: 2px; flex-shrink: 0; }
+        .artikel-card.open .artikel-arrow { transform: rotate(90deg); }
+
+        .artikel-body { display: none; padding: 0 18px 20px; background: #fff8f3; border-top: 1px solid #f0e0d0; }
+        .artikel-card.open .artikel-body { display: block; }
+        .artikel-body-text { font-size: 0.95rem; line-height: 1.75; color: #333; white-space: pre-wrap; padding-top: 14px; }
+
+        #error-msg { color: #c0392b; text-align: center; display: none; margin-top: 40px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header class="market-header">
+        <div class="market-brand">Das <span style="font-style:italic; color:var(--highlight);">Magazin</span></div>
+        <div id="status-badge" class="status-badge">Lade Daten...</div>
+    </header>
+
+    <div id="error-msg">⚠️ Datei 'markt_daten.js' fehlt!</div>
+
+    <div class="magazin-zone">
+        <div class="container">
+            <div class="zone-title"><span>Magazin</span> Trends &amp; Inspiration</div>
+            <div class="artikel-list" id="artikel-list"></div>
+        </div>
+    </div>
+
+    <script src="../markt_daten.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof marktDaten === 'undefined') {
+                document.getElementById('error-msg').style.display = 'block'; return;
+            }
+
+            document.getElementById('status-badge').innerText = `AUSGABE: ${marktDaten.meta.ausgabe}`;
+
+            const list = document.getElementById('artikel-list');
+            marktDaten.trends.forEach((item, i) => {
+                const teaser = item.teaser || item.text || '';
+                const body   = item.body   || item.text || '';
+                const card = document.createElement('div');
+                card.className = 'artikel-card';
+                card.id = 'artikel-' + i;
+                card.innerHTML = `
+                    <div class="artikel-header" onclick="toggleArtikel(${i})">
+                        <div class="artikel-meta">
+                            <div class="artikel-tag">${item.kategorie}</div>
+                            <div class="artikel-headline">${item.headline}</div>
+                            <div class="artikel-teaser">${teaser}</div>
+                        </div>
+                        <div class="artikel-arrow">▶</div>
+                    </div>
+                    <div class="artikel-body">
+                        <div class="artikel-body-text">${body}</div>
+                    </div>`;
+                list.appendChild(card);
+            });
+        });
+
+        function toggleArtikel(i) {
+            document.getElementById('artikel-' + i).classList.toggle('open');
+        }
+    </script>
+    <script src="../shell.js"></script>
+</body>
+</html>

@@ -74,6 +74,7 @@
                 </select>
                 <input type="number" id="stock-input" placeholder="Ist" oninput="calculate()" style="padding:15px; border-radius:12px; border:2px solid var(--border-s); text-align:center; font-weight:800; background:var(--surface); color:var(--text);">
             </div>
+            <div id="inventur-warn" style="display:none; background:rgba(224,92,92,0.1); border:1.5px solid var(--red); border-radius:12px; padding:10px 14px; margin-top:-10px; margin-bottom:14px; font-size:0.82rem; font-weight:800; color:var(--red); text-align:center;">⚠️ Inventur älter als 24 Std. — Bestand bitte manuell eintragen</div>
 
             <div class="label" id="lang-calcStatus">Status für Morgen:</div>
             <div class="froster-group">
@@ -108,6 +109,46 @@
                 <div class="res-val" id="res-val">0</div>
                 <div style="font-weight:900; font-size:1.1rem; color:var(--dim); margin-bottom:20px;" id="res-unit">BLECHE</div>
                 <table class="calc-table" id="calc-table"></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- HILFE -->
+    <div style="max-width:600px; margin: 0 auto 40px; padding: 0 20px;">
+        <div style="border-top: 2px dashed var(--border); padding-top: 20px;">
+            <div style="font-family:'Barlow Condensed'; font-weight:900; font-size:0.75rem; letter-spacing:1.5px; color:var(--amber); text-transform:uppercase; margin-bottom:14px;">❓ Kurzanleitung</div>
+
+            <div style="display:flex; flex-direction:column; gap:10px; font-size:0.88rem; color:var(--dim); font-weight:700; line-height:1.5;">
+
+                <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
+                    <span style="color:var(--text);">📅 Heute & Reicht bis</span><br>
+                    Wähle den aktuellen Wochentag. Dann wählst du, bis einschließlich welchem Tag die Ware reichen soll — maximal bis Dienstag der Folgewoche.
+                </div>
+
+                <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
+                    <span style="color:var(--text);">❄️ Froster-Status</span><br>
+                    <b style="color:var(--green);">FERTIG</b> = Froster ist bereits aufgetaut → Produktion beginnt übermorgen.<br>
+                    <b style="color:var(--red);">NOCH NICHT</b> = Froster läuft noch heute Nacht → Produktion beginnt morgen.
+                </div>
+
+                <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
+                    <span style="color:var(--text);">🐹 Hamster-Modus</span><br>
+                    Aktivierbar pro Tag in den Feiertags-Einstellungen.<br>
+                    <b>🐹 Einfach</b> = Mittelwert aus Samstagsmenge und normaler Tagesmenge<br>
+                    <b>🐹🐹 Ultra</b> = volle Samstagsmenge — maximale Produktion<br>
+                    Nochmal klicken deaktiviert den Hamster wieder.
+                </div>
+
+                <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
+                    <span style="color:var(--text);">☀️ Grillwetter</span><br>
+                    Erhöht die Menge um den produktspezifischen Sonnenzuschlag — für Tage mit erwarteter Terrassennutzung oder Grillsaison.
+                </div>
+
+                <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
+                    <span style="color:var(--text);">⚠️ Alte Inventur</span><br>
+                    Liegt die letzte Inventur mehr als 24 Stunden zurück, wird der Bestand nicht automatisch eingetragen — bitte manuell zählen und eintragen.
+                </div>
+
             </div>
         </div>
     </div>
@@ -173,7 +214,8 @@
             const offset = frosterDone ? 2 : 1;
             if (targetOffset === null) resetTarget();
 
-            for (let i = offset; i <= offset + 7; i++) {
+            const maxOffset = 8 - todayIdx; // immer Dienstag der Folgewoche
+            for (let i = offset; i <= maxOffset; i++) {
                 const dIdx = (todayIdx + i) % 7;
                 const p = document.createElement('div');
                 const isClosed = simClosed[i];
@@ -202,15 +244,13 @@
         function buildSandbox() {
             const grid = document.getElementById('sandbox-grid'); grid.innerHTML = '';
             const dayNames = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
-            // Zeige heute bis Di der Folgewoche (max 9 Tage)
-            const daysToNextMon = (8 - todayIdx) % 7 || 7;
-            const maxDays = daysToNextMon + 1; // Mo + Di
-            for(let i = 1; i <= 9; i++) {
+            const sbMax = 8 - todayIdx;
+            for(let i = 1; i <= sbMax; i++) {
                 let dIdx = (todayIdx + i) % 7;
                 const row = document.createElement('div'); row.className = 'wg-row';
                 row.innerHTML = `<div class="wg-day">${dayNames[dIdx].substring(0,2)}</div>
                     <button class="wg-ctrl ${simClosed[i]?'is-zu':''}" onclick="simClosed[${i}]=!simClosed[${i}]; buildSandbox(); renderTarget(); calculate();">${simClosed[i]?'🔒 ZU':'AUF'}</button>
-                    <button class="wg-ctrl ${(simHamster[i]||0)>0?'active':''}" onclick="simHamster[${i}]=(simHamster[${i}]||0+1)%3; buildSandbox(); calculate();">${simHamster[i]===2?HAMSTER_ICON_DOUBLE:(simHamster[i]===1?HAMSTER_ICON_SINGLE:'· Kein')}</button>
+                    <button class="wg-ctrl ${(simHamster[i]||0)>0?'active':''}" onclick="simHamster[${i}]=((simHamster[${i}]||0)+1)%3; buildSandbox(); calculate();">${simHamster[i]===2?HAMSTER_ICON_DOUBLE:(simHamster[i]===1?HAMSTER_ICON_SINGLE:'· Kein')}</button>
                     <button class="wg-ctrl ${simSun[i]?'active':''}" onclick="simSun[${i}]=!simSun[${i}]; buildSandbox(); calculate();">☀️ ${simSun[i]?'An':'Aus'}</button>`;
                 grid.appendChild(row);
             }
@@ -250,8 +290,9 @@
                 let need = simClosed[i] ? 0 : p.needs[dIdx];
                 let icon = simClosed[i] ? ' 🔒' : '';
                 if(!simClosed[i]) {
-                    if(simHamster[i] === 1) { need = Math.ceil(need * 1.5); icon = ' ' + HAMSTER_ICON_SINGLE; }
-                    else if(simHamster[i] === 2) { need = Math.ceil(need * 2.0); icon = ' ' + HAMSTER_ICON_DOUBLE; }
+                    const satNeed = p.needs[5];
+                    if(simHamster[i] === 1) { need = Math.ceil((satNeed + need) / 2); icon = ' ' + HAMSTER_ICON_SINGLE; }
+                    else if(simHamster[i] === 2) { need = satNeed; icon = ' ' + HAMSTER_ICON_DOUBLE; }
                     if(simSun[i] && p.sun > 0) { need += p.sun; icon += ' ☀️'; }
                 }
                 totalNeed += need;
@@ -276,8 +317,35 @@
         }
 
         function toggleExtras() { const a = document.getElementById('extras-area'); a.style.display = a.style.display==='none'?'block':'none'; }
-        function syncStock() { const id = document.getElementById('prod-select').value; if(window.BOS_INVENTUR?.stocks?.[id] !== undefined) document.getElementById('stock-input').value = window.BOS_INVENTUR.stocks[id]; calculate(); }
+        function syncStock() {
+            const id = document.getElementById('prod-select').value;
+            if (!id) return;
+            const inp = document.getElementById('stock-input');
+            // Inventur-Alter prüfen
+            if (window.BOS_INVENTUR?.products) {
+                let latestTs = 0;
+                for (const key in window.BOS_INVENTUR.products) {
+                    if (window.BOS_INVENTUR.products[key].ts > latestTs)
+                        latestTs = window.BOS_INVENTUR.products[key].ts;
+                }
+                if (latestTs > 0 && (Date.now() - latestTs) / 3600000 > 24) {
+                    inp.value = '';
+                    inp.placeholder = '0';
+                    inp.style.borderColor = 'var(--red)';
+                    document.getElementById('inventur-warn').style.display = 'block';
+                    calculate();
+                    return;
+                }
+            }
+            inp.style.borderColor = '';
+            inp.placeholder = 'Ist';
+            document.getElementById('inventur-warn').style.display = 'none';
+            if (window.BOS_INVENTUR?.stocks?.[id] !== undefined)
+                inp.value = window.BOS_INVENTUR.stocks[id];
+            calculate();
+        }
         window.onload = init;
     </script>
+  <script src="shell.js"></script>
 </body>
 </html>

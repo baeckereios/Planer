@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#c07a10">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="BäckereiOS">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BäckereiOS – Cockpit</title>
+
+  <link rel="stylesheet" href="systemdesign.css">
+  <script src="zitate.js"></script>
+  <script src="translations.js"></script>
+  <script src="info_ticker.js"></script>
+  <script src="inventurdaten.js"></script>
+  <script src="system_status.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding-bottom: 90px;
+      background: var(--bg);
+      font-family: 'Barlow', sans-serif;
+    }
+
+    /* ─── TOP HEADER ─── */
+    .top-header {
+      background: var(--surface);
+      border-bottom: 2px solid var(--border);
+      padding: 18px 20px 14px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px var(--shadow);
+    }
+    .brand-logo {
+      font-family: 'Fraunces', serif;
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--text);
+      line-height: 1;
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
+    .brand-logo span { color: var(--amber); font-style: italic; }
+    .brand-slogan {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-top: 5px;
+    }
+
+    /* ─── TAB VIEWS ─── */
+    .tab-view { display: none; }
+    .tab-view.active { display: block; }
+
+    /* ─── CONTAINER ─── */
+    .container { max-width: 600px; margin: 0 auto; padding: 20px 16px; }
+
+    /* ─── STARTSEITE ─── */
+
+    /* Tagesquote */
+    .daily-quote-strip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      border-left: 3px solid var(--amber);
+      background: var(--surface);
+      border-radius: 0 10px 10px 0;
+      animation: fadeUp 0.4s ease both;
+    }
+    .dq-mark {
+      color: var(--amber);
+      font-family: 'Fraunces', serif;
+      font-size: 1.6rem;
+      line-height: 1;
+      flex-shrink: 0;
+      opacity: 0.6;
+      margin-top: -4px;
+    }
+    .dq-text {
+      font-family: 'Fraunces', serif;
+      font-style: italic;
+      font-size: 0.9rem;
+      font-weight: 300;
+      color: var(--text);
+      line-height: 1.5;
+      opacity: 0.8;
+    }
+
+    /* Schwarzes Brett */
+    .brett-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      animation: fadeUp 0.4s 0.05s ease both;
+    }
+    .brett-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 0.78rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .brett-title::after {
+      content: '';
+      display: inline-block;
+      width: 40px;
+      height: 1px;
+      background: var(--border);
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    .brett-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border-s);
+      border-left: 4px solid var(--dim);
+      border-radius: 10px;
+      padding: 13px 14px;
+      margin-bottom: 9px;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      color: var(--text);
+      animation: fadeUp 0.35s ease both;
+    }
+    .brett-card.typ-alert { border-left-color: #e74c3c; }
+    .brett-card.typ-neu   { border-left-color: #27ae60; }
+    .brett-card.typ-info  { border-left-color: #3498db; }
+
+    .brett-meta {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 5px;
+      flex-wrap: wrap;
+    }
+    .brett-badge {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 900;
+      background: var(--surface2);
+      border: 1px solid var(--border-s);
+      border-radius: 5px;
+      padding: 1px 7px;
+      color: var(--text);
+    }
+    .brett-time {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--dim);
+    }
+    .brett-card-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text);
+    }
+    .brett-empty {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--dim);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+    }
+
+    /* ─── SCHNELLRECHNER TAB ─── */
+    .tab-direct-hint {
+      text-align: center;
+      padding: 40px 20px 20px;
+      color: var(--dim);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .tab-direct-hint a {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--amber);
+      color: white;
+      text-decoration: none;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+      padding: 16px 32px;
+      border-radius: 14px;
+      margin-top: 12px;
+      transition: 0.2s;
+      box-shadow: 0 4px 18px rgba(192,122,16,0.25);
+    }
+    .tab-direct-hint a:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(192,122,16,0.35); }
+
+    /* ─── ASSISTENT TAB ─── */
+
+    /* ─── MEHR TAB ─── */
+    .mehr-section-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 0.72rem;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin: 20px 0 10px 2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .mehr-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .mehr-section-label:first-child { margin-top: 4px; }
+
+    .tool-link {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      background: var(--surface);
+      border: 1.5px solid var(--border-s);
+      border-radius: 10px;
+      padding: 13px 14px;
+      text-decoration: none;
+      color: inherit;
+      margin-bottom: 8px;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative;
+      -webkit-tap-highlight-color: transparent;
+      animation: fadeUp 0.35s ease both;
+    }
+    .tool-link::after {
+      content: '→';
+      position: absolute;
+      right: 14px;
+      color: var(--border-s);
+      font-weight: 900;
+      transition: 0.15s;
+    }
+    .tool-link:hover { border-color: var(--amber); background: var(--surface); }
+    .tool-link:hover::after { color: var(--amber); right: 10px; }
+    .tool-link:active { transform: scale(0.98); }
+    .tool-icon {
+      font-size: 1.3rem;
+      width: 38px; height: 38px;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .tool-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 0.95rem;
+      line-height: 1.1;
+      margin-bottom: 1px;
+    }
+    .tool-sub {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      color: var(--dim);
+      font-weight: 600;
+    }
+    .tool-link.dim-tool { opacity: 0.75; }
+    .tool-link.dim-tool:hover { opacity: 1; }
+
+    /* ─── BOTTOM NAV ─── */
+    .bottom-nav-wrap {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 200;
+    }
+
+    /* Statusstreifen */
+    .status-strip {
+      background: var(--surface2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 16px;
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: var(--dim);
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #bbb;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .status-dot.ok   { background: #2ecc71; }
+    .status-dot.warn { background: #e74c3c; }
+
+    /* Tab Bar */
+    .tab-bar {
+      background: var(--surface);
+      border-top: 2px solid var(--border);
+      padding: 8px 0 10px;
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      backdrop-filter: blur(12px);
+    }
+    .tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 14px;
+      color: var(--dim);
+      transition: color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      min-width: 60px;
+    }
+    .tab-btn.active { color: var(--amber); }
+    .tab-btn:hover  { color: var(--text); }
+    .tab-btn.active:hover { color: var(--amber); }
+
+    .tab-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+      transition: transform 0.15s;
+    }
+    .tab-btn.active .tab-icon { transform: scale(1.1); }
+
+    .tab-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      font-size: 0.65rem;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    /* ─── SETTINGS ZEILE im Mehr-Tab ─── */
+    .settings-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .ctrl-btn {
+      flex: 1;
+      background: var(--surface2);
+      border: 2px solid var(--border-s);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-family: 'Barlow Condensed', sans-serif;
+      color: var(--text);
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .ctrl-btn:hover { border-color: var(--amber); }
+
+    /* ─── ANIMATION ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .top-header { animation: fadeUp 0.3s ease both; }
+  
+      /* ── FOLDER AKKORDEON ── */
+      .tool-folder { border: 1.5px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 0; background: var(--surface); }
+      .tool-folder-toggle { border: none !important; border-radius: 0 !important; margin-bottom: 0 !important; position: relative; cursor: pointer; }
+      .folder-arrow { margin-left: auto; font-size: 1rem; color: var(--amber); transition: transform 0.25s ease; padding-right: 4px; }
+      .tool-folder.open .folder-arrow { transform: rotate(90deg); }
+      .folder-children { display: none; border-top: 1px solid var(--border); }
+      .tool-folder.open .folder-children { display: block; }
+      .tool-child { border-radius: 0 !important; border: none !important; border-bottom: 1px solid var(--border) !important; padding-left: 28px !important; background: var(--bg) !important; }
+      .tool-child:last-child { border-bottom: none !important; }
+</style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <div class="top-header">
+    <h1 class="brand-logo">Bäckerei<span>OS</span></h1>
+    <div class="brand-slogan">Dein digitaler Backstuben-Manager</div>
+  </div>
+
+  <!-- TAB: START -->
+  <div class="tab-view active" id="tab-start">
+    <div class="container">
+
+      <div class="brett-header">
+        <span class="brett-title">💬 Schwarzes Brett</span>
+      </div>
+
+      <div id="brett-content">
+        <div class="brett-empty">Lade Infos...</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB: SCHNELLRECHNER -->
+  <div class="tab-view" id="tab-rechner">
+    <div class="tab-direct-hint">
+      <div>Direkt weiter zum</div>
+      <a href="schnellrechner.html">🧮 Schnellrechner</a>
+    </div>
+  </div>
+
+  <!-- TAB: ASSISTENT -->
+  <div class="tab-view" id="tab-assistent">
+    <div class="tab-direct-hint">
+      <div>Schichtplanung starten mit dem</div>
+      <a href="setup.html">🚀 PlanungsAssistent</a>
+    </div>
+  </div>
+
+  <!-- TAB: MEHR -->
+  <div class="tab-view" id="tab-mehr">
+    <div class="container">
+
+      <!-- 1. WERKZEUGE -->
+      <div class="mehr-section-label">Werkzeuge <span style="font-weight:500; opacity:0.6; font-size:0.85em;">· Die aktiven Helfer</span></div>
+
+      <a href="baeko_bestellung/blechrechner.html" class="tool-link">
+        <div class="tool-icon">📏</div>
+        <div>
+          <div class="tool-name">BlechRechner</div>
+          <div class="tool-sub">Blechmengen berechnen</div>
+        </div>
+      </a>
+      <a href="ofenangriff.html" class="tool-link">
+        <div class="tool-icon">🔥</div>
+        <div>
+          <div class="tool-name">Ofenangriff</div>
+          <div class="tool-sub">Backprogramme &amp; Zeiten</div>
+        </div>
+      </a>
+      <a href="schnellrechner.html" class="tool-link">
+        <div class="tool-icon">🧮</div>
+        <div>
+          <div class="tool-name">Schnellrechner</div>
+          <div class="tool-sub">Produktionsmenge berechnen</div>
+        </div>
+      </a>
+
+      <!-- 2. BÄKO -->
+      <div class="mehr-section-label">BÄKO <span style="font-weight:500; opacity:0.6; font-size:0.85em;">· Der externe Warenfluss</span></div>
+
+      <div class="tool-folder" id="folder-baeko">
+        <div class="tool-link tool-folder-toggle" onclick="toggleFolder('folder-baeko')">
+          <div class="tool-icon">📦</div>
+          <div>
+            <div class="tool-name">BÄKO</div>
+            <div class="tool-sub">Lager &amp; Auswertung</div>
+          </div>
+          <div class="folder-arrow">▸</div>
+        </div>
+        <div class="folder-children" id="folder-baeko-children">
+          <a href="baeko_bestellung/lager_inventur.html" class="tool-link tool-child">
+            <div class="tool-icon">📋</div>
+            <div>
+              <div class="tool-name">Lager-Inventur</div>
+              <div class="tool-sub">Inventur &amp; Bestellvorbereitung</div>
+            </div>
+          </a>
+          <a href="baeko_bestellung/baeko_lager_analyse_klon.html" class="tool-link tool-child">
+            <div class="tool-icon">📊</div>
+            <div>
+              <div class="tool-name">Lager-Analyse</div>
+              <div class="tool-sub">Auswertung &amp; Übersicht</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- 3. PLANUNG & ENTSCHEIDUNG -->
+      <div class="mehr-section-label">Planung &amp; Entscheidung <span style="font-weight:500; opacity:0.6; font-size:0.85em;">· Das Herzstück</span></div>
+
+      <a href="Backplan_Aktuell.html" class="tool-link">
+        <div class="tool-icon">📅</div>
+        <div>
+          <div class="tool-name">Wochenplan</div>
+          <div class="tool-sub">Strategie &amp; Wettervorschau</div>
+        </div>
+      </a>
+      <a href="bestandsuebersicht.html" class="tool-link">
+        <div class="tool-icon">🫙</div>
+        <div>
+          <div class="tool-name">Bestände</div>
+          <div class="tool-sub">Aktuelle Lagerübersicht</div>
+        </div>
+      </a>
+      <a href="verbrauchsuebersicht.html" class="tool-link">
+        <div class="tool-icon">📊</div>
+        <div>
+          <div class="tool-name">Mengenangaben</div>
+          <div class="tool-sub">Bedarfs-Basis einsehen</div>
+        </div>
+      </a>
+      <a href="frosterliste.html" class="tool-link">
+        <div class="tool-icon">❄️</div>
+        <div>
+          <div class="tool-name">Frosterliste</div>
+          <div class="tool-sub">Druckvorlage · A4</div>
+        </div>
+      </a>
+
+      <!-- 4. MARKT & NEWS -->
+      <div class="mehr-section-label">Markt &amp; News <span style="font-weight:500; opacity:0.6; font-size:0.85em;">· Der Blick nach draußen</span></div>
+
+      <div class="tool-folder" id="folder-markt">
+        <div class="tool-link tool-folder-toggle" onclick="toggleFolder('folder-markt')">
+          <div class="tool-icon">📈</div>
+          <div>
+            <div class="tool-name">Markt-Radar</div>
+            <div class="tool-sub">Rohstoff-News &amp; Marktlage</div>
+          </div>
+          <div class="folder-arrow">▸</div>
+        </div>
+        <div class="folder-children" id="folder-markt-children">
+          <a href="news_rohstoffe/rohstoff_fakten.html" class="tool-link tool-child">
+            <div class="tool-icon">📊</div>
+            <div>
+              <div class="tool-name">RohstoffFakten</div>
+              <div class="tool-sub">Preise &amp; Marktanalyse</div>
+            </div>
+          </a>
+          <a href="news_rohstoffe/das_magazin.html" class="tool-link tool-child">
+            <div class="tool-icon">📰</div>
+            <div>
+              <div class="tool-name">Das Magazin</div>
+              <div class="tool-sub">Trends &amp; Inspiration</div>
+            </div>
+          </a>
+          <a href="news_rohstoffe/geschichte.html" class="tool-link tool-child">
+            <div class="tool-icon">📜</div>
+            <div>
+              <div class="tool-name">Leitartikel</div>
+              <div class="tool-sub">Geschichte &amp; Handwerk</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- 5. INTERNES -->
+      <div class="mehr-section-label">Internes <span style="font-weight:500; opacity:0.6; font-size:0.85em;">· Für das Team</span></div>
+
+      <a href="https://my.hidrive.com/share/0a5xcrfaf8" target="_blank" class="tool-link">
+        <div class="tool-icon">🗂️</div>
+        <div>
+          <div class="tool-name">Teamordner</div>
+          <div class="tool-sub">Geteilte Dokumente</div>
+        </div>
+      </a>
+      <div class="tool-folder" id="folder-pause">
+        <div class="tool-link tool-folder-toggle" onclick="toggleFolder('folder-pause')">
+          <div class="tool-icon">☕</div>
+          <div>
+            <div class="tool-name">Pausenraum</div>
+            <div class="tool-sub">Spiele &amp; Wissen</div>
+          </div>
+          <div class="folder-arrow">▸</div>
+        </div>
+        <div class="folder-children" id="folder-pause-children">
+          <a href="games/games.html" class="tool-link tool-child">
+            <div class="tool-icon">🎮</div>
+            <div>
+              <div class="tool-name">BäckerSpiele</div>
+              <div class="tool-sub">Spieleauswahl</div>
+            </div>
+          </a>
+          <a href="azubi_meisterhaft/wissen_start.html" class="tool-link tool-child">
+            <div class="tool-icon">🧠</div>
+            <div>
+              <div class="tool-name">Wissen &amp; Kurioses</div>
+              <div class="tool-sub">Azubi &amp; Meisterhaft</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- 6. ASSISTENTEN -->
+      <div class="mehr-section-label">Assistenten <span style="font-weight:500; opacity:0.6; font-size:0.85em;">· Geführte Workflows</span></div>
+
+      <div class="tool-folder" id="folder-assistenten">
+        <div class="tool-link tool-folder-toggle" onclick="toggleFolder('folder-assistenten')">
+          <div class="tool-icon">🚀</div>
+          <div>
+            <div class="tool-name">Assistenten</div>
+            <div class="tool-sub">Geführte Planung</div>
+          </div>
+          <div class="folder-arrow">▸</div>
+        </div>
+        <div class="folder-children" id="folder-assistenten-children">
+          <a href="setup.html" class="tool-link tool-child">
+            <div class="tool-icon">📋</div>
+            <div>
+              <div class="tool-name">PlanungsAssistent</div>
+              <div class="tool-sub">Schicht &amp; Produktion planen</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <button class="ctrl-btn" onclick="toggleTheme()" id="theme-btn">🌙 Dark</button>
+        <select class="ctrl-btn" onchange="changeLang(this.value)" id="lang-select">
+          <option value="de">🇩🇪 Deutsch</option>
+          <option value="en">🇺🇸 English</option>
+          <option value="vi">🇻🇳 Tiếng Việt</option>
+        </select>
+        <button onclick="openAdminGate()" class="ctrl-btn" style="flex:0; padding:0 16px; opacity:0.4;" title="Admin">⚙️</button>
+      </div>
+
+      <!-- Admin-Passwort Modal -->
+      <div id="admin-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:none; align-items:center; justify-content:center;">
+        <div style="background:var(--surface); border-radius:20px; padding:28px 24px; width:min(340px, 90vw); box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+          <div style="font-family:'Barlow Condensed'; font-weight:900; font-size:1.1rem; letter-spacing:1px; text-transform:uppercase; color:var(--amber); margin-bottom:6px;">⚙️ Admin-Bereich</div>
+          <div style="font-size:0.82rem; color:var(--dim); margin-bottom:18px;">Zugang nur für berechtigte Nutzer.</div>
+          <input type="password" id="admin-pw-input" placeholder="Passwort" autocomplete="off"
+            style="width:100%; padding:14px; border-radius:12px; border:2px solid var(--border); font-size:1rem; font-weight:800; background:var(--surface); color:var(--text); box-sizing:border-box; margin-bottom:10px;"
+            onkeydown="if(event.key==='Enter') checkAdminPw()">
+          <div id="admin-pw-error" style="display:none; color:var(--red); font-size:0.8rem; font-weight:800; margin-bottom:10px;">❌ Falsches Passwort</div>
+          <div style="display:flex; gap:10px;">
+            <button onclick="closeAdminGate()" style="flex:1; padding:12px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface2); font-weight:800; cursor:pointer; color:var(--dim);">Abbrechen</button>
+            <button onclick="checkAdminPw()" style="flex:1; padding:12px; border-radius:10px; border:none; background:var(--amber); color:white; font-weight:900; cursor:pointer;">Weiter →</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BOTTOM NAVIGATION -->
+  <div class="bottom-nav-wrap">
+
+    <!-- Statusstreifen -->
+    <div class="status-strip">
+      <div class="status-item">
+        <div class="status-dot" id="dot-inventur"></div>
+        <span id="label-inventur">Inventur: –</span>
+      </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="start" onclick="switchTab('start', this)">
+        <span class="tab-icon">🏠</span>
+        <span class="tab-label">Start</span>
+      </button>
+      <button class="tab-btn" data-tab="rechner" onclick="switchTab('rechner', this)">
+        <span class="tab-icon">🧮</span>
+        <span class="tab-label">Rechner</span>
+      </button>
+      <button class="tab-btn" data-tab="assistent" onclick="switchTab('assistent', this)">
+        <span class="tab-icon">🚀</span>
+        <span class="tab-label">Assistent</span>
+      </button>
+      <button class="tab-btn" data-tab="mehr" onclick="switchTab('mehr', this)">
+        <span class="tab-icon">☰</span>
+        <span class="tab-label">Mehr</span>
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    /* ── TABS ── */
+
+    function toggleFolder(id) {
+      const folder = document.getElementById(id);
+      folder.classList.toggle('open');
+    }
+    function switchTab(name, btn) {
+      document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      btn.classList.add('active');
+      // Rechner und Assistent: direkt weiterleiten
+      if (name === 'rechner')   { window.location.href = 'schnellrechner.html'; return; }
+      if (name === 'assistent') { window.location.href = 'setup.html'; return; }
+    }
+
+    /* ── THEME ── */
+    function toggleTheme() {
+      const h = document.documentElement;
+      const next = h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      h.setAttribute('data-theme', next);
+      localStorage.setItem('BOS_THEME', next);
+      document.getElementById('theme-btn').innerText = next === 'dark' ? '☀️ Hell' : '🌙 Dark';
+    }
+
+    /* ── SPRACHE ── */
+    function changeLang(l) { localStorage.setItem('BOS_LANG_CODE', l); applyLang(l); }
+    function applyLang(l) {
+      if (!window.BOS_LANG) return;
+      const t = window.BOS_LANG[l];
+      if (!t) return;
+      document.querySelectorAll('[id^="lang-"]').forEach(el => {
+        const k = el.id.replace('lang-', '');
+        if (t[k]) el.innerText = t[k];
+      });
+      document.getElementById('lang-select').value = l;
+    }
+
+    /* ── TAGESQUOTE ── */
+    function getDailyQuote() {
+      const quotes = (typeof QUOTES !== 'undefined') ? QUOTES : ['Ohne Brot ist alles nichts.'];
+      const n = new Date();
+      const seed = n.getFullYear() * 10000 + (n.getMonth() + 1) * 100 + n.getDate();
+      return quotes[seed % quotes.length];
+    }
+
+    /* ── SCHWARZES BRETT ── */
+    function buildBrett() {
+      const wrap = document.getElementById('brett-content');
+      if (typeof tickerData === 'undefined' || tickerData.length === 0) {
+        wrap.innerHTML = '<div class="brett-empty">Keine aktuellen Einträge</div>';
+        return;
+      }
+      wrap.innerHTML = '';
+      tickerData.forEach((item, i) => {
+        const cls = item.typ === 'alert' ? 'typ-alert' : item.typ === 'neu' ? 'typ-neu' : 'typ-info';
+        const card = document.createElement('div');
+        card.className = `brett-card ${cls}`;
+        card.style.animationDelay = (0.08 + i * 0.06) + 's';
+        card.innerHTML = `
+          <div class="brett-meta">
+            <span class="brett-badge">${item.datum}</span>
+            <span class="brett-time">${item.uhrzeit}</span>
+            <span class="brett-card-title">${item.titel}</span>
+          </div>
+          <div>${item.text}</div>`;
+        wrap.appendChild(card);
+      });
+    }
+
+    /* ── STATUS STRIP ── */
+    function buildStatus() {
+      const pad = x => String(x).padStart(2, '0');
+
+      // Inventur — aus inventurdaten.js (BOS_INVENTUR)
+      const dotInv = document.getElementById('dot-inventur');
+      const lblInv = document.getElementById('label-inventur');
+      if (typeof window.BOS_INVENTUR !== 'undefined' && window.BOS_INVENTUR.products) {
+        let latestTs = 0;
+        for (const key in window.BOS_INVENTUR.products) {
+          if (window.BOS_INVENTUR.products[key].ts > latestTs)
+            latestTs = window.BOS_INVENTUR.products[key].ts;
+        }
+        if (latestTs > 0) {
+          const inv = new Date(latestTs);
+          const diffH = (Date.now() - latestTs) / 3600000;
+          const ok = diffH <= 24;
+          dotInv.classList.toggle('ok', ok);
+          dotInv.classList.toggle('warn', !ok);
+          lblInv.textContent = 'Inventur: ' + pad(inv.getHours()) + ':' + pad(inv.getMinutes()) + ' Uhr, '
+            + pad(inv.getDate()) + '.' + pad(inv.getMonth() + 1) + '.' + inv.getFullYear()
+            + (ok ? '' : ' 🔴');
+        } else {
+          dotInv.classList.add('warn');
+          lblInv.textContent = 'Inventur: Nicht erfasst';
+        }
+      } else {
+        dotInv.classList.add('warn');
+        lblInv.textContent = 'Inventur: Keine Daten';
+      }
+
+    }
+
+    /* ── INIT ── */
+    // #mehr Anker: direkt den Mehr-Tab öffnen wenn von Unterseite zurück
+    function checkHashTab() {
+        if (window.location.hash === '#mehr') {
+            const btn = document.querySelector('[data-tab="mehr"]');
+            if (btn) switchTab('mehr', btn);
+            history.replaceState(null, '', window.location.pathname);
+        }
+    }
+
+    // Admin Gate
+    const ADMIN_PW = 'boss2024'; // Passwort hier ändern
+    function openAdminGate() {
+      const m = document.getElementById('admin-modal');
+      m.style.display = 'flex';
+      document.getElementById('admin-pw-input').value = '';
+      document.getElementById('admin-pw-error').style.display = 'none';
+      setTimeout(() => document.getElementById('admin-pw-input').focus(), 100);
+    }
+    function closeAdminGate() {
+      document.getElementById('admin-modal').style.display = 'none';
+    }
+    function checkAdminPw() {
+      const val = document.getElementById('admin-pw-input').value;
+      if (val === ADMIN_PW) {
+        closeAdminGate();
+        location.href = 'AdminTools/admin_landing.html';
+      } else {
+        const err = document.getElementById('admin-pw-error');
+        err.style.display = 'block';
+        document.getElementById('admin-pw-input').value = '';
+        document.getElementById('admin-pw-input').focus();
+        // Kurzes Schütteln
+        const inp = document.getElementById('admin-pw-input');
+        inp.style.animation = 'shake 0.3s ease';
+        setTimeout(() => inp.style.animation = '', 300);
+      }
+    }
+    // Schütteln-Animation
+    if (!document.getElementById('shake-style')) {
+      const s = document.createElement('style');
+      s.id = 'shake-style';
+      s.textContent = '@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }';
+      document.head.appendChild(s);
+    }
+
+    window.onload = () => {
+      const theme = localStorage.getItem('BOS_THEME') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('theme-btn').innerText = theme === 'dark' ? '☀️ Hell' : '🌙 Dark';
+      applyLang(localStorage.getItem('BOS_LANG_CODE') || 'de');
+      buildBrett();
+      buildStatus();
+      checkHashTab();
+    };
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/Planer/service-worker.js');
+    }
+  </script>
+</body>
+</html>

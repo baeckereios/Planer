@@ -1,0 +1,119 @@
+/* admin_design.css - PREMIUM UPDATE */
+
+:root {
+    --bg-color: #f8fafc;       /* Sehr helles, modernes Grau-Blau */
+    --card-bg: #ffffff;
+    --text-main: #334155;      /* Weicheres Schwarz */
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;   /* Dezentere Rahmen */
+    --btn-primary: #0f172a;    /* Edles, sehr dunkles Blau/Schwarz */
+    --btn-hover: #1e293b;
+    --alert-color: #ef4444;    /* Modernes Rot */
+    --alert-bg: #fef2f2;
+    --success-color: #10b981;  /* Modernes Grün */
+    --success-bg: #ecfdf5;
+    --border-radius: 12px;     /* Weichere, moderne Ecken */
+}
+
+/* Mobile First Base */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    margin: 0;
+    padding: 10px 5px 120px 5px; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 100%; 
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* Etwas enger zusammen */
+    box-sizing: border-box;
+}
+
+.card {
+    background-color: var(--card-bg);
+    padding: 18px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 6px rgba(0,0,0,0.02); /* Premium Schatten */
+    border: 1px solid var(--border-color);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+h2 {
+    margin-top: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding-bottom: 10px;
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border-color);
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 1rem;
+    background-color: #f1f5f9; /* Dezentes Grau für Inputs */
+    color: var(--text-main);
+    transition: all 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #3b82f6; /* Modernes Blau bei Fokus */
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+textarea { resize: vertical; min-height: 80px; }
+
+/* Basis-Button jetzt deutlich kleiner und edler */
+button {
+    background-color: var(--btn-primary);
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    margin-top: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    width: 100%;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+button:active { transform: scale(0.98); }
+button:hover { background-color: var(--btn-hover); }
+
+small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    display: block;
+    margin-top: 4px;
+}
+
+@media (min-width: 768px) {
+    body { padding: 40px 20px; }
+    .container { max-width: 600px; margin: 0 auto; gap: 20px; }
+    .card { padding: 25px; }
+    h2 { font-size: 1.3rem; }
+}

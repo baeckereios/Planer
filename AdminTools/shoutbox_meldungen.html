@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BäckereiOS - Ticker Verwaltung</title>
+    <link rel="stylesheet" href="admin_design.css">
+    
+    <script>
+        document.write('<script src="../info_ticker.js?v=' + new Date().getTime() + '"><\/script>');
+    </script>
+
+    <style>
+        .btn-export { background-color: var(--success-color); font-size: 1.1rem; }
+        .btn-export:hover { background-color: #27ae60; }
+        .ticker-item { border-left: 5px solid #ccc; padding: 10px 15px; margin-top: 10px; background-color: #fdfdfd; border-radius: 0 var(--border-radius) var(--border-radius) 0; position: relative; border: 1px solid var(--border-color); border-left-width: 5px; }
+        .ticker-item.alert { border-left-color: var(--alert-color); }
+        .ticker-item.neu { border-left-color: var(--success-color); }
+        .ticker-item.info { border-left-color: #3498db; }
+        .ticker-item.inaktiv { opacity: 0.5; filter: grayscale(100%); }
+        .ticker-header { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
+        .ticker-title { font-weight: bold; margin: 0 0 5px 0; color: var(--text-main); }
+        .ticker-text { margin: 0; font-size: 0.95rem; line-height: 1.4;}
+        .action-buttons { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-small { padding: 8px 12px; font-size: 0.8rem; width: auto; margin-top: 0; background-color: #bdc3c7; }
+        .btn-small:hover { background-color: #95a5a6; }
+        .btn-delete { background-color: var(--alert-color); }
+        .btn-delete:hover { background-color: #c0392b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="card">
+        <div class="hide-in-assistant" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
+            <h2 style="border: none; padding: 0; margin: 0;">1. Neue Meldung erstellen</h2>
+            <a href="admin_landing.html" style="text-decoration: none; color: var(--text-muted); font-size: 0.85rem; font-weight: bold;">← ZURÜCK</a>
+        </div>
+        <h2 class="hide-in-assistant" style="display: none;">1. Neue Meldung erstellen</h2>
+        
+        <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;"><label for="datum">Datum</label><input type="text" id="datum" placeholder="TT.MM.JJJJ"></div>
+            <div style="flex: 1;"><label for="uhrzeit">Uhrzeit</label><input type="text" id="uhrzeit" placeholder="HH:MM"></div>
+        </div>
+
+        <label for="typ">Kategorie</label>
+        <select id="typ">
+            <option value="alert">🔴 Technik / Notfall</option>
+            <option value="neu">🟢 Sortiment / Neu</option>
+            <option value="info">🔵 Allgemein / Info</option>
+        </select>
+
+        <label for="titel">Titel / Kurze Überschrift</label>
+        <input type="text" id="titel" placeholder="z.B. Ofen defekt">
+
+        <label for="text">Meldungstext</label>
+        <textarea id="text" placeholder="Details zur Meldung hier eintragen..."></textarea>
+
+        <button onclick="addTicker()">Meldung hinzufügen</button>
+    </div>
+
+    <div class="card">
+        <h2>2. Aktuelle Meldungen</h2>
+        <div id="tickerList"></div>
+        <button class="btn-export" onclick="exportJS()">💾 info_ticker.js herunterladen</button>
+    </div>
+
+</div>
+
+<script>
+    // --- AUTOMATIK-START ---
+    window.addEventListener('DOMContentLoaded', (event) => {
+        // Falls die Datei noch gar nicht existiert (z.B. beim ersten Start)
+        if (typeof tickerData === 'undefined') {
+            window.tickerData = []; 
+        }
+        setDateTime();
+        renderList(); 
+    });
+
+    function setDateTime() {
+        const now = new Date();
+        document.getElementById('datum').value = now.toLocaleDateString('de-DE');
+        document.getElementById('uhrzeit').value = now.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'});
+    }
+
+    function addTicker() {
+        const datum = document.getElementById('datum').value;
+        const uhrzeit = document.getElementById('uhrzeit').value;
+        const typ = document.getElementById('typ').value;
+        const titel = document.getElementById('titel').value;
+        const text = document.getElementById('text').value;
+
+        if(!titel || !text) { alert("Bitte Titel und Text ausfüllen!"); return; }
+        
+        // Sicherheits-Check, falls das Array leer ist
+        if (typeof tickerData === 'undefined') {
+            window.tickerData = [];
+        }
+
+        tickerData.unshift({ datum: datum, uhrzeit: uhrzeit, typ: typ, titel: titel, text: text, inaktiv: false });
+        document.getElementById('titel').value = ''; document.getElementById('text').value = '';
+        setDateTime(); 
+        renderList();
+    }
+
+    function toggleStatus(index) { 
+        tickerData[index].inaktiv = !tickerData[index].inaktiv; 
+        renderList(); 
+    }
+    
+    function deleteTicker(index) { 
+        if(confirm("Diese Meldung wirklich komplett löschen?")) { 
+            tickerData.splice(index, 1); 
+            renderList(); 
+        } 
+    }
+
+    function renderList() {
+        const listDiv = document.getElementById('tickerList');
+        listDiv.innerHTML = '';
+        
+        if (typeof tickerData === 'undefined' || tickerData.length === 0) { 
+            listDiv.innerHTML = '<p style="color:#7f8c8d; text-align:center;">Noch keine Meldungen vorhanden.</p>'; 
+            return; 
+        }
+
+        tickerData.forEach((item, index) => {
+            const isInactive = item.inaktiv === true; 
+            const inactiveClass = isInactive ? 'inaktiv' : '';
+            const statusText = isInactive ? 'Wieder aktivieren' : 'Erledigt (Ausgrauen)';
+
+            listDiv.innerHTML += `
+                <div class="ticker-item ${item.typ} ${inactiveClass}">
+                    <div class="ticker-header"><span>${item.datum} - ${item.uhrzeit}</span></div>
+                    <div class="ticker-title">${item.titel}</div>
+                    <p class="ticker-text">${item.text}</p>
+                    <div class="action-buttons">
+                        <button class="btn-small" onclick="toggleStatus(${index})">${statusText}</button>
+                        <button class="btn-small btn-delete" onclick="deleteTicker(${index})">Löschen</button>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function exportJS() {
+        if(typeof tickerData === 'undefined' || tickerData.length === 0) { alert("Es gibt keine Daten zum Exportieren."); return; }
+        // Wir exportieren es mit 'var' statt 'const', um bei mehrfachem Laden noch sicherer zu sein
+        const fileContent = `/* * BÄCKEREIOS - INFO TICKER DATEN \n * Generiert am ${new Date().toLocaleString('de-DE')} \n */\n\nvar tickerData = ${JSON.stringify(tickerData, null, 4)};`;
+        const blob = new Blob([fileContent], { type: 'application/javascript' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'info_ticker.js';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+
+    // --- DER ULTIMATIVE PANZER-CODE FÜR DEN ASSISTENTEN ---
+    if (window !== window.parent || window.location.search.includes('embedded=1')) {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            body { padding: 0 0 150px 0 !important; background-color: #ffffff !important; }
+            .container { padding: 20px 15px 40px 15px !important; max-width: 100% !important; margin: 0 !important; }
+            .hide-in-assistant { display: none !important; }
+            .card { box-shadow: none !important; border: none !important; padding: 15px 0 !important; border-bottom: 1px solid #eee !important; border-radius: 0 !important; }
+        `;
+        document.head.appendChild(style);
+    }
+</script>
+</body>
+</html>

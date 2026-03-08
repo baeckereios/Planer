@@ -42,12 +42,6 @@ body {
     background-color: var(--bg);
     color: var(--text);
     margin: 0;
-    /* DAS GITTER-REVIVAL */
-    background-image: 
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 25px 25px;
-    background-attachment: fixed;
     transition: background 0.3s;
 }
 
@@ -76,21 +70,21 @@ body {
     text-align: center;
 }
 
-/* KARTEN-DESIGN MIT TIEFE */
+/* KARTEN-DESIGN */
 .card, .nav-card, .acc-item {
     background: var(--surface);
-    border: 2px solid var(--border);
-    border-radius: 24px;
-    padding: 25px;
-    margin-bottom: 20px;
-    box-shadow: 0 10px 30px var(--shadow);
-    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px var(--shadow);
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 
 .card:hover, .nav-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-2px);
     border-color: var(--amber);
-    box-shadow: 0 15px 40px var(--shadow);
+    box-shadow: 0 6px 20px var(--shadow);
 }
 
 /* TYPOGRAFIE-UPGRADE */
@@ -114,43 +108,93 @@ h1, h2, .brand-logo {
 /* BUTTONS */
 .btn-main, .btn-calc {
     width: 100%;
-    padding: 20px;
-    border-radius: 16px;
+    padding: 16px 20px;
+    border-radius: 10px;
     background: var(--amber);
     color: white;
     border: none;
     font-family: 'Barlow Condensed';
     font-weight: 900;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     cursor: pointer;
     text-transform: uppercase;
-    box-shadow: 0 6px 0 #925d0c; /* 3D-Effekt unten */
-    transition: 0.1s;
+    letter-spacing: 1px;
+    transition: opacity 0.15s, transform 0.15s;
 }
 
-.btn-main:active, .btn-calc:active {
-    transform: translateY(4px);
-    box-shadow: 0 2px 0 #925d0c;
-}
+.btn-main:hover, .btn-calc:hover { opacity: 0.9; }
+.btn-main:active, .btn-calc:active { transform: scale(0.98); opacity: 0.85; }
 
 /* PILLS & TABS */
 .pill, .c-btn, .tab {
-    min-width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    border: 2px solid var(--border-s);
+    min-width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border-s);
     background: var(--surface);
-    font-weight: 900;
+    font-weight: 800;
     font-family: 'Barlow Condensed';
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: 0.2s;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 
 .pill.active, .c-btn.active, .tab.active {
     border-color: var(--amber);
     background: var(--amber);
     color: white;
+}
+
+/* ── INPUTS & SELECTS ── */
+input, select, textarea {
+    font-family: 'Barlow', sans-serif;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    transition: border-color 0.15s;
+    outline: none;
+}
+input:focus, select:focus, textarea:focus {
+    border-color: var(--amber);
+}
+
+/* ── SCROLLBAR GLOBAL ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-s); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--amber); }
+
+/* ── BACK NAV ── */
+.btn-back-nav {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 0.78rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--amber);
+    text-decoration: none;
+    padding: 6px 0;
+    transition: opacity 0.15s;
+}
+.btn-back-nav:hover { opacity: 0.7; }
+
+/* ── TOP NAV (Unterseiten) ── */
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+}
+.page-subtitle {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dim);
 }

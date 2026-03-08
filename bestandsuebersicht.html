@@ -11,10 +11,12 @@
         })();
     </script>
     <link rel="stylesheet" href="systemdesign.css">
-    <script src="stammdaten.js"></script>
-    <script src="inventurdaten.js"></script>
+    
+    <script src="stammdaten.js" defer></script>
+    <script src="inventurdaten.js" defer></script>
+    
     <style>
-        body { padding-bottom: 40px; background: var(--bg); }
+        body { padding-bottom: 90px; background: var(--bg); }
 
         /* ── HEADER ── */
         .brand-header {
@@ -34,24 +36,79 @@
         /* ── CONTAINER ── */
         .container { max-width: 680px; margin: 0 auto; padding: 20px 15px; }
 
-        /* ── HINWEIS-BOX ── */
-        .info-box {
+        /* ── SCHLANKES STATUS-DASHBOARD ── */
+        .status-dashboard {
             background: var(--surface);
-            border: 2px solid var(--border);
-            border-left: 4px solid var(--amber);
+            border: 1.5px solid var(--border);
             border-radius: 14px;
-            padding: 14px 16px;
-            margin-bottom: 20px;
-            font-size: 0.82rem;
-            color: var(--dim);
-            line-height: 1.5;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px var(--shadow);
         }
-        .info-box strong { color: var(--text); display: block; margin-bottom: 4px; font-family: 'Barlow Condensed'; font-size: 0.95rem; letter-spacing: 0.5px; text-transform: uppercase; }
+        .status-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 8px; margin-bottom: 8px;
+            border-bottom: 1px solid var(--border-s);
+        }
+        .status-row:last-of-type { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+        .status-label {
+            font-family: 'Barlow Condensed'; font-weight: 800; font-size: 0.85rem;
+            text-transform: uppercase; color: var(--dim); letter-spacing: 0.5px;
+        }
+        .status-val {
+            font-family: 'Barlow Condensed'; font-weight: 700; font-size: 0.9rem; color: var(--text);
+            text-align: right;
+        }
+        .status-val.ok { color: #2d9e5f; }
+        .status-val.warn { color: #c94a4a; }
+        .status-val span { font-weight: 500; font-size: 0.75rem; color: var(--dim); display: block; margin-top: 2px; }
+        
+        .status-hint {
+            margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-s);
+            font-size: 0.72rem; color: var(--dim); line-height: 1.4; text-align: center;
+        }
+        .status-hint strong { color: var(--text); }
 
-        /* ── STATION FILTER ── */
-        .station-filter { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-        .sf-btn { flex: 1; min-width: 80px; padding: 10px 8px; border: 2px solid var(--border-s); border-radius: 12px; background: var(--surface); color: var(--dim); font-family: 'Barlow Condensed'; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.5px; cursor: pointer; text-align: center; transition: 0.2s; }
-        .sf-btn.active { border-color: var(--amber); background: var(--amber); color: white; }
+        /* ── STATION FILTER (CHIPS) ── */
+        .filter-wrap {
+            margin-bottom: 24px;
+        }
+        .filter-label {
+            text-align: center;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        .station-filter { 
+            display: flex; 
+            gap: 8px; 
+            flex-wrap: wrap; 
+            justify-content: center;
+        }
+        .sf-btn { 
+            padding: 8px 16px; 
+            border: 1.5px solid var(--border-s); 
+            border-radius: 20px; 
+            background: var(--surface); 
+            color: var(--dim); 
+            font-family: 'Barlow Condensed'; 
+            font-weight: 800; 
+            font-size: 0.85rem; 
+            letter-spacing: 0.5px; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            white-space: nowrap; 
+        }
+        .sf-btn.active { 
+            border-color: var(--amber); 
+            background: var(--amber); 
+            color: white; 
+            box-shadow: 0 4px 10px rgba(192,122,16,0.25);
+        }
 
         /* ── HEUTE-LABEL ── */
         .today-label {
@@ -59,8 +116,9 @@
             font-family: 'Barlow Condensed'; font-weight: 800;
             font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase;
             color: var(--dim); margin-bottom: 20px;
+            background: var(--surface2); padding: 8px; border-radius: 8px; border: 1px solid var(--border);
         }
-        .today-label span { color: var(--amber); }
+        .today-label span { color: var(--amber); font-weight: 900; }
 
         /* ── PRODUKT-GRID ── */
         .product-grid {
@@ -115,7 +173,7 @@
             font-size: 0.75rem; color: var(--dim); line-height: 1;
         }
 
-        /* ── STATUS BADGE ── */
+        /* ── STATUS BADGE & REICHT BIS ── */
         .status-badge {
             font-family: 'Barlow Condensed'; font-weight: 800;
             font-size: 0.7rem; letter-spacing: 0.5px; text-transform: uppercase;
@@ -126,24 +184,17 @@
         .status-badge.red    { background: rgba(201,74,74,0.12);  color: #9a1010; }
         .status-badge.grey   { background: rgba(201,74,74,0.08); color: var(--dim); border: 1px dashed var(--border-s); }
 
+        .reach-date {
+            font-family: 'Barlow Condensed'; font-weight: 800;
+            font-size: 0.75rem; color: var(--amber); letter-spacing: 0.5px;
+            margin-top: -3px; text-transform: uppercase;
+        }
+
         /* ── KEIN BESTAND ── */
         .prod-card.no-data { opacity: 0.6; border-style: dashed; }
         .prod-card.no-data .circle-stock { font-size: 0.85rem; color: var(--dim); }
         .prod-card.no-data .circle-divider { display: none; }
         .prod-card.no-data .circle-need { display: none; }
-
-        /* ── DATETIME ── */
-        .datetime-bar {
-            text-align: center; margin-bottom: 16px;
-            font-family: 'Fraunces', serif; font-weight: 900;
-            font-size: 2rem; color: var(--text); line-height: 1;
-        }
-        .datetime-bar small {
-            display: block; font-family: 'Barlow Condensed'; font-weight: 700;
-            font-size: 0.85rem; color: var(--dim); letter-spacing: 1px;
-            text-transform: uppercase; margin-top: 4px;
-        }
-
 
         /* ── ACTION BAR ── */
         .action-bar { display: flex; gap: 10px; margin-top: 24px; }
@@ -174,14 +225,30 @@
 
 <div class="container">
 
-    <div class="info-box">
-        <strong>&#8505; Nur Richtwerte</strong>
-        Aktueller Frosterbestand vs. standard&#228;&#223;igem Verbrauch bis n&#228;chsten Montag &#8212; ohne Feiertage, Hamster-Tage oder Grill-Wetter. F&#252;r die exakte Produktionsplanung bitte den Assistenten nutzen.
+    <div class="status-dashboard">
+        <div class="status-row">
+            <div class="status-label">Letzte Inventur</div>
+            <div class="status-val" id="datetime-val">Lade...</div>
+        </div>
+        <div class="status-row">
+            <div class="status-label">Froster</div>
+            <div class="status-val" id="froster-val">Lade...</div>
+        </div>
+        <div class="status-hint">
+            ℹ️ <strong>Nur Richtwerte:</strong> Exakte Feinplanung (inkl. Feiertage/Sonderwetter) bitte über den Assistenten.
+        </div>
     </div>
 
-    <div class="datetime-bar" id="datetime-bar"></div>
+    <div id="stale-inventur-warn" style="display:none; background:rgba(224,92,92,0.1); border:2px solid var(--red,#c0392b); border-radius:14px; padding:14px 16px; margin-bottom:16px;">
+        <div style="font-family:'Barlow Condensed'; font-weight:900; font-size:0.85rem; letter-spacing:1px; text-transform:uppercase; color:var(--red,#c0392b); margin-bottom:4px;">⚠️ Achtung: Veraltete Bestände</div>
+        <div style="font-size:0.82rem; color:var(--text); line-height:1.5;">Die letzte Inventur liegt <strong id="stale-hours"></strong> zurück. Diese Werte sind möglicherweise nicht mehr aktuell — bitte nicht als Grundlage für Produktionsentscheidungen verwenden.</div>
+    </div>
 
-    <div class="station-filter" id="station-filter"></div>
+    <div class="filter-wrap">
+        <div class="filter-label">Welche Station möchtest du prüfen?</div>
+        <div class="station-filter" id="station-filter"></div>
+    </div>
+
     <div class="today-label" id="today-label"></div>
     <div class="product-grid" id="product-grid"></div>
 
@@ -201,15 +268,111 @@
 
 <script>
 var activeStation = 'alle';
-var frosterStatus = null; // null = nicht angegeben, true = ja, false = nein
+var latestInvTsGlobal = 0;
+var anchorDate = new Date(); // Der magische Start-Tag
+var isInitialized = false;
+var retryCount = 0;
 
-function loadFrosterStatus() {
-    try {
-        var val = localStorage.getItem('BOS_FROSTER');
-        if (val === 'true')  frosterStatus = true;
-        else if (val === 'false') frosterStatus = false;
-        else frosterStatus = null;
-    } catch(e) { frosterStatus = null; }
+function initApp() {
+    if (isInitialized) return;
+
+    if (!window.BOS_STAMMDATEN || !window.BOS_INVENTUR) {
+        retryCount++;
+        if (retryCount < 20) {
+            setTimeout(initApp, 50);
+            return;
+        } else {
+            if (!window.BOS_STAMMDATEN) {
+                document.getElementById('product-grid').innerHTML =
+                    '<div style="grid-column:1/-1;padding:30px;text-align:center;color:#c94a4a;font-weight:800;">' +
+                    '&#9888; Lade-Verzögerung. Bitte Seite einmal neu laden.</div>';
+                document.getElementById('datetime-val').innerHTML = '<span style="color:#c94a4a">Fehler</span>';
+                document.getElementById('froster-val').innerHTML  = '<span style="color:#c94a4a">Fehler</span>';
+                return;
+            }
+        }
+    }
+
+    isInitialized = true;
+    setupTimeLogic(); 
+    buildStationFilter();
+    renderGrid();
+}
+
+// ── DIE NEUE "EISERNE FROSTER-REGEL" (01:30 bis 20:00 Uhr) ──
+function setupTimeLogic() {
+    var elDatetime = document.getElementById('datetime-val');
+    var elFroster = document.getElementById('froster-val');
+    var elToday = document.getElementById('today-label');
+    
+    // 1. Neuesten Stempel finden
+    if (window.BOS_INVENTUR && window.BOS_INVENTUR.products) {
+        for (var key in window.BOS_INVENTUR.products) {
+            if (window.BOS_INVENTUR.products[key].ts > latestInvTsGlobal) {
+                latestInvTsGlobal = window.BOS_INVENTUR.products[key].ts;
+            }
+        }
+    }
+    
+    if (latestInvTsGlobal === 0) {
+        elDatetime.innerHTML = 'Nicht erfasst';
+        elFroster.innerHTML = '⚠️ Keine Daten';
+        elToday.innerHTML = 'Keine Inventur gefunden.';
+        anchorDate = new Date(); 
+        anchorDate.setDate(anchorDate.getDate() + 1);
+        return;
+    }
+
+    // 2. Datum in der UI formatieren
+    var pad = function(n) { return n < 10 ? '0'+n : n; };
+    var invDateObj = new Date(latestInvTsGlobal);
+    var invDateStr = pad(invDateObj.getDate()) + '.' + pad(invDateObj.getMonth()+1) + '.';
+    var invTimeStr = pad(invDateObj.getHours()) + ':' + pad(invDateObj.getMinutes()) + ' Uhr';
+    elDatetime.innerHTML = '⏱ ' + invDateStr + ' ' + invTimeStr;
+
+    // Alter der Inventur prüfen — Warnung wenn >24h
+    var diffH = (Date.now() - latestInvTsGlobal) / 3600000;
+    if (diffH > 24) {
+        var warn = document.getElementById('stale-inventur-warn');
+        warn.style.display = 'block';
+        var h = Math.floor(diffH);
+        var label = h < 48 ? h + ' Stunden' : Math.floor(h/24) + ' Tage';
+        document.getElementById('stale-hours').textContent = label;
+    }
+
+    // 3. Das Zeitfenster prüfen (01:30 bis 20:00 Uhr)
+    var invHour = invDateObj.getHours();
+    var invMin = invDateObj.getMinutes();
+    // Umrechnung in absolute Minuten seit Mitternacht (01:30 = 90 Min, 20:00 = 1200 Min)
+    var minutesSinceMidnight = (invHour * 60) + invMin;
+    
+    var isFrosterDone = false;
+
+    if (minutesSinceMidnight >= 90 && minutesSinceMidnight <= 1200) {
+        isFrosterDone = true;
+    }
+
+    // 4. Anker-Datum setzen
+    anchorDate = new Date(latestInvTsGlobal);
+
+    if (isFrosterDone) {
+        // Zählung im Zeitfenster = Ware für heute UND morgen ist schon draußen. 
+        // Bestand ist also für ÜBERMORGEN (+2 Tage).
+        anchorDate.setDate(anchorDate.getDate() + 2);
+        elFroster.className = 'status-val ok'; 
+        elFroster.innerHTML = '✅ Erledigt <span>(Zählung zw. 01:30 & 20:00 Uhr)</span>';
+    } else {
+        // Zählung außerhalb des Fensters = Ware für morgen ist noch drin (+1 Tag).
+        anchorDate.setDate(anchorDate.getDate() + 1);
+        elFroster.className = 'status-val warn'; 
+        elFroster.innerHTML = '⚠️ Offen <span>(Zählung zw. 20:00 & 01:30 Uhr)</span>';
+    }
+
+    // 5. Überschrift setzen
+    var dayNames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    var anchorDayName = dayNames[anchorDate.getDay()];
+    
+    elToday.innerHTML = 'Rest-Bedarf f&#252;r die Zeit von <span style="color:var(--amber);font-weight:900;">' + anchorDayName.toUpperCase() + '</span> bis n&#228;chsten Montag';
 }
 
 function getDateTimeStr() {
@@ -226,24 +389,16 @@ function getDateTimeStr() {
 }
 
 function getFrosterStr() {
-    if (frosterStatus === true)  return '✓ Froster gemacht';
-    if (frosterStatus === false) return '✗ Froster NICHT gemacht';
-    return '– Froster: nicht angegeben';
-}
+    if (latestInvTsGlobal === 0) return 'Froster: Keine Daten';
+    
+    var invDateObj = new Date(latestInvTsGlobal);
+    var invHour = invDateObj.getHours();
+    var invMin = invDateObj.getMinutes();
+    var minutes = (invHour * 60) + invMin;
+    
+    var isFrosterDone = (minutes >= 90 && minutes <= 1200);
 
-function updateDatetime() {
-    var el = document.getElementById('datetime-bar');
-    var now = new Date();
-    var h = now.getHours();
-    var min = now.getMinutes();
-    var days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-    var d = now.getDate();
-    var m = now.getMonth() + 1;
-    var y = now.getFullYear();
-    el.innerHTML =
-        (h < 10 ? '0'+h : h) + ':' + (min < 10 ? '0'+min : min) +
-        '<small>' + days[now.getDay()] + ', ' +
-        (d < 10 ? '0'+d : d) + '.' + (m < 10 ? '0'+m : m) + '.' + y + '</small>';
+    return isFrosterDone ? '✓ Froster: Erledigt (01:30 - 20:00)' : '✗ Froster: Offen (> 20:00 / < 01:30)';
 }
 
 function shareBestand() {
@@ -291,8 +446,19 @@ function printBestand() {
         '</tr>';
     }
 
-    var frosterColor = frosterStatus === true ? '#1a7a45' : (frosterStatus === false ? '#9a1010' : '#555');
-    var frosterBg    = frosterStatus === true ? '#eaf7ef' : (frosterStatus === false ? '#fceaea' : '#f5f5f5');
+    var isFrosterDone = false;
+    if (latestInvTsGlobal > 0) {
+        var invDateObj = new Date(latestInvTsGlobal);
+        var invHour = invDateObj.getHours();
+        var invMin = invDateObj.getMinutes();
+        var minutes = (invHour * 60) + invMin;
+        if (minutes >= 90 && minutes <= 1200) {
+            isFrosterDone = true;
+        }
+    }
+
+    var frosterColor = isFrosterDone ? '#1a7a45' : '#9a1010';
+    var frosterBg    = isFrosterDone ? '#eaf7ef' : '#fceaea';
 
     var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
         '<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,900&family=Barlow+Condensed:wght@600;800;900&display=swap" rel="stylesheet">' +
@@ -324,83 +490,93 @@ function printBestand() {
         rows +
         '</table>' +
         '<div class="note">Richtwerte ohne Feiertage/Modifikatoren. Erstellt mit BäckereiOS.</div>' +
-        '</body></html>';
+        '\n</body></html>';
 
     var w = window.open('', '_blank');
     w.document.write(html);
     w.document.close();
 }
 
-// Kreisumfang für r=38: 2 * PI * 38 ≈ 238.76
 var CIRCUMFERENCE = 238.76;
 
-window.onload = function() {
-    if (!window.BOS_STAMMDATEN) {
-        document.getElementById('product-grid').innerHTML =
-            '<div style="grid-column:1/-1;padding:30px;text-align:center;color:var(--red);font-weight:800;">' +
-            '&#9888; stammdaten.js nicht geladen.</div>';
-        return;
-    }
-    loadFrosterStatus();
-    updateDatetime();
-    setInterval(updateDatetime, 60000);
-    buildStationFilter();
-    updateTodayLabel();
-    renderGrid();
-};
-
-// ── Wie viele Tage bis zum nächsten Montag (mindestens 1) ──────────────
-function daysUntilNextMonday() {
-    var jsDay = new Date().getDay(); // 0=So, 1=Mo ... 6=Sa
-    // Tage bis Montag: Mo=7, Di=6, Mi=5, Do=4, Fr=3, Sa=2, So=1
+function daysUntilNextMondayFromAnchor() {
+    var jsDay = anchorDate.getDay(); 
     var daysLeft = (8 - jsDay) % 7;
     if (daysLeft === 0) daysLeft = 7;
     return daysLeft;
 }
 
-// ── Rohbedarf von heute bis nächsten Montag (exkl.) ────────────────────
-// bosIdx: 0=Mo ... 6=So
 function calcRawNeed(prodId) {
     var p = window.BOS_STAMMDATEN[prodId];
     if (!p) return 0;
-    var jsDay = new Date().getDay();
-    var days = daysUntilNextMonday();
+    
+    var jsDay = anchorDate.getDay();
+    var days = daysUntilNextMondayFromAnchor();
     var total = 0;
-    var i, dIdx, bosIdx;
-    for (i = 1; i <= days; i++) {
-        dIdx = (jsDay + i) % 7;            // JS-Wochentag
-        bosIdx = (dIdx === 0) ? 6 : dIdx - 1; // BOS-Index
+    
+    // Da wir ab dem berechneten "Anker-Datum" starten, zählen wir einfach ab diesem Tag!
+    for (var i = 0; i < days; i++) {
+        var dIdx = (jsDay + i) % 7;            
+        var bosIdx = (dIdx === 0) ? 6 : dIdx - 1; 
         total += p.needs[bosIdx] || 0;
     }
     return total;
 }
 
-// ── Aktueller Bestand aus inventurdaten.js ──────────────────────────────
+function calcReachDate(prodId, stock) {
+    if (stock <= 0) return 'Leer';
+    var p = window.BOS_STAMMDATEN[prodId];
+    if (!p || !p.needs) return '';
+    
+    var totalWeeklyNeed = p.needs.reduce(function(a,b){return a+b;}, 0);
+    if (totalWeeklyNeed === 0) return 'Kein Bedarf';
+
+    var remaining = stock;
+    var d = new Date(anchorDate.getTime()); // Er simuliert ab dem Anker-Datum!
+
+    var daysCount = 0;
+    
+    while (remaining > 0 && daysCount < 60) {
+        var jsDay = d.getDay();
+        var bosIdx = (jsDay === 0) ? 6 : jsDay - 1; 
+        var dailyNeed = p.needs[bosIdx] || 0;
+        
+        remaining -= dailyNeed;
+        
+        if (remaining < 0) {
+            break; 
+        }
+        
+        d.setDate(d.getDate() + 1);
+        daysCount++;
+    }
+    
+    if (daysCount === 0) {
+        var dayNames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+        return 'Reicht nicht für ' + dayNames[anchorDate.getDay()];
+    }
+    
+    if (daysCount >= 60) return '> 60 Tage';
+    
+    d.setDate(d.getDate() - 1);
+    var pad = function(n) { return n < 10 ? '0'+n : n; };
+    return 'Reicht bis: ' + pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.';
+}
+
 function getStock(prodId) {
     if (!window.BOS_INVENTUR) return null;
     var inv = window.BOS_INVENTUR;
-    // Zuerst products mit ts prüfen
     if (inv.products && inv.products[prodId]) {
         var prod = inv.products[prodId];
         if (prod.ts && prod.ts > 0) {
             return prod.stock || 0;
         }
-        // ts=0 → nie gezählt
         return null;
     }
-    // Fallback auf stocks-Shortcut
     if (inv.stocks && inv.stocks[prodId] !== undefined) {
         return inv.stocks[prodId];
     }
     return null;
-}
-
-function updateTodayLabel() {
-    var jsDay = new Date().getDay();
-    var dayNames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-    var days = daysUntilNextMonday();
-    var el = document.getElementById('today-label');
-    el.innerHTML = 'Heute: <span>' + dayNames[jsDay] + '</span> &mdash; Bedarf f&#252;r die n&#228;chsten <span>' + days + ' Tage</span> bis Montag';
 }
 
 function buildStationFilter() {
@@ -436,7 +612,7 @@ function renderGrid() {
     grid.innerHTML = '';
 
     var keys = Object.keys(window.BOS_STAMMDATEN);
-    var i, k, p, stock, need, pct, colorClass, statusText, card;
+    var i, k, p, stock, need, pct, colorClass, statusText, card, reachStr;
 
     for (i = 0; i < keys.length; i++) {
         k = keys[i];
@@ -444,10 +620,10 @@ function renderGrid() {
 
         if (activeStation !== 'alle' && p.station !== activeStation) continue;
 
-        stock = getStock(k);   // null = nicht erfasst
+        stock = getStock(k);   
         need  = calcRawNeed(k);
+        reachStr = '';
 
-        // Farbe & Status bestimmen
         if (stock === null) {
             colorClass  = 'grey';
             statusText  = '&#9888; Nicht gez&#228;hlt';
@@ -457,18 +633,19 @@ function renderGrid() {
             if (pct >= 0.8)       { colorClass = 'green';  statusText = 'Gut versorgt'; }
             else if (pct >= 0.4)  { colorClass = 'yellow'; statusText = 'Im Auge behalten'; }
             else                  { colorClass = 'red';    statusText = 'Kritisch'; }
+            
+            reachStr = calcReachDate(k, stock);
         }
 
-        card = buildCard(k, p.name, stock, need, pct, colorClass, statusText);
+        card = buildCard(k, p.name, stock, need, pct, colorClass, statusText, reachStr);
         grid.appendChild(card);
     }
 }
 
-function buildCard(k, name, stock, need, pct, colorClass, statusText) {
+function buildCard(k, name, stock, need, pct, colorClass, statusText, reachStr) {
     var card = document.createElement('div');
     card.className = 'prod-card' + (stock === null ? ' no-data' : '');
 
-    // SVG-Kreis berechnen
     var strokeOffset = CIRCUMFERENCE * (1 - pct);
     var stockDisplay = (stock === null) ? '?' : stock;
 
@@ -491,10 +668,15 @@ function buildCard(k, name, stock, need, pct, colorClass, statusText) {
     card.innerHTML =
         '<div class="prod-name">' + name + '</div>' +
         svgHtml +
-        '<div class="status-badge ' + colorClass + '">' + statusText + '</div>';
+        '<div class="status-badge ' + colorClass + '">' + statusText + '</div>' +
+        (reachStr ? '<div class="reach-date">' + reachStr + '</div>' : '');
 
     return card;
 }
+
+document.addEventListener('DOMContentLoaded', initApp);
+window.addEventListener('load', initApp); 
 </script>
+<script src="shell.js" defer></script>
 </body>
 </html>

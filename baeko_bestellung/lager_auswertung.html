@@ -15,18 +15,21 @@
 <body>
     <header class="brand-header">
         <div class="brand-logo" onclick="location.href='lager_inventur.html'">Bäckerei<span>OS</span></div>
-        <div class="slogan-bar">ERGEBNIS & ARCHIVIERUNG</div>
+        <div class="slogan-bar">ERGEBNIS & BESTELLUNG</div>
     </header>
     <main class="container">
         <div id="resultsList"></div>
+        
         <div style="margin: 40px 0 80px;">
-            <button class="btn-main" onclick="share()">1. WhatsApp senden</button>
-            <button class="btn-main" style="margin-top:15px; background:var(--surface); color:var(--text); border:2px solid var(--amber); box-shadow:none;" onclick="finish()">2. Speichern & Download</button>
+            <p class="dim small" style="text-align:center; margin-bottom: 15px;">Sende die Daten nun per WhatsApp an den Chef/die Bestellung.</p>
+            <button class="btn-main" onclick="share()">📱 Bestellung per WhatsApp senden</button>
         </div>
     </main>
-    <script src="baeko_bestand.js"></script>
-    <script src="baeko_historie.js"></script>
+
+    <script src="../baeko_bestand.js"></script>
+    <script src="../baeko_historie.js"></script>
     <script src="lager_gehirn.js"></script>
+    
     <script>
         function init() {
             const data = JSON.parse(localStorage.getItem('BOS_LAGER_TEMP') || '{}');
@@ -40,22 +43,15 @@
                 list.appendChild(card);
             });
         }
+        
         function share() {
             const data = JSON.parse(localStorage.getItem('BOS_LAGER_TEMP') || '{}');
-            window.open(`https://wa.me/?text=${window.BOS_LAGER_BRAIN.generateWhatsAppText(data.results)}`, '_blank');
+            // Übergibt den Snapshot an das Gehirn, damit der Code an die WhatsApp angehängt wird!
+            window.open(`https://wa.me/?text=${window.BOS_LAGER_BRAIN.generateWhatsAppText(data.results, data.snapshot)}`, '_blank');
         }
-        function finish() {
-            const data = JSON.parse(localStorage.getItem('BOS_LAGER_TEMP') || '{}');
-            let h = JSON.parse(localStorage.getItem('BOS_LAGER_HISTORY') || '[]');
-            h.push(data.snapshot);
-            localStorage.setItem('BOS_LAGER_HISTORY', JSON.stringify(h));
-            const combined = [...(window.BOS_BAEKO_HISTORIE || []), ...h];
-            const blob = new Blob(["window.BOS_BAEKO_HISTORIE = " + JSON.stringify(combined, null, 4) + ";"], { type: "text/javascript" });
-            const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "baeko_historie.js"; a.click();
-            localStorage.removeItem('BOS_LAGER_HISTORY');
-            location.href = '../index.html';
-        }
+        
         window.onload = init;
     </script>
+    <script src="../shell.js"></script>
 </body>
 </html>

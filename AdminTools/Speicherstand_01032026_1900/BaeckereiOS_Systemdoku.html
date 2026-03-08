@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BäckereiOS – Systemdokumentation</title>
+<style>
+  :root {
+    --amber: #c07a10; --amber-l: rgba(192,122,16,0.1);
+    --green: #2d9e5f; --red: #c94a4a; --blue: #3a7bd5;
+    --bg: #f5f0e8; --surface: #fff; --border: #e0d8cc;
+    --text: #1a1a1a; --dim: #888;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; }
+  .sidebar { position: fixed; top: 0; left: 0; width: 250px; height: 100vh; background: #111; overflow-y: auto; padding: 15px 0; z-index: 100; }
+  .sidebar-brand { color: var(--amber); font-size: 1.1rem; font-weight: 900; font-style: italic; padding: 0 18px 12px; border-bottom: 1px solid #333; margin-bottom: 8px; }
+  .sidebar .sh { color: #666; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; padding: 10px 18px 3px; }
+  .sidebar a { display: block; color: #bbb; text-decoration: none; padding: 5px 18px; font-size: 0.82rem; border-left: 3px solid transparent; transition: 0.15s; }
+  .sidebar a:hover { color: white; background: rgba(192,122,16,0.12); border-left-color: var(--amber); }
+  .main { margin-left: 250px; padding: 40px 48px 80px; max-width: 1050px; }
+  .hero { background: linear-gradient(135deg, #0f0f0f, #1c1206); color: white; padding: 44px; border-radius: 18px; margin-bottom: 36px; }
+  .hero h1 { font-size: 2.8rem; color: var(--amber); font-style: italic; margin-bottom: 6px; }
+  .hero p { color: #999; font-size: 1rem; margin-bottom: 16px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag { background: rgba(192,122,16,0.2); border: 1px solid var(--amber); color: var(--amber); padding: 3px 11px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+  h2.sec { font-size: 1.5rem; border-bottom: 3px solid var(--amber); padding-bottom: 8px; margin: 44px 0 18px; }
+  h3.sub { font-size: 1rem; color: var(--amber); font-weight: 800; margin: 20px 0 8px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 20px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .card.al { border-left: 4px solid var(--amber); }
+  .card.gl { border-left: 4px solid var(--green); }
+  .card.bl { border-left: 4px solid var(--blue); }
+  .fb { display: inline-block; font-family: monospace; font-size: 0.82rem; font-weight: 700; padding: 3px 10px; border-radius: 6px; margin-right: 8px; }
+  .fb.html { background: #1a1a3a; color: #8888ff; }
+  .fb.js { background: #2d2d00; color: #f0db4f; }
+  .fb.css { background: #002d2d; color: #4fc0d0; }
+  .rt { background: var(--amber-l); color: var(--amber); padding: 2px 9px; border-radius: 5px; font-size: 0.72rem; font-weight: 700; }
+  code { font-family: monospace; font-size: 0.82rem; background: #f0ece4; padding: 1px 5px; border-radius: 3px; }
+  pre { background: #1e1e2e; color: #cdd6f4; padding: 16px; border-radius: 9px; overflow-x: auto; font-size: 0.8rem; line-height: 1.5; margin: 10px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.87rem; }
+  th { background: #1a1a1a; color: var(--amber); padding: 9px 11px; text-align: left; font-size: 0.72rem; letter-spacing: 1px; text-transform: uppercase; }
+  td { padding: 8px 11px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--amber-l); }
+  .alert { padding: 12px 16px; border-radius: 9px; margin: 10px 0; font-size: 0.88rem; }
+  .alert.w { background: rgba(192,122,16,0.1); border: 1px solid var(--amber); }
+  .alert.i { background: rgba(58,123,213,0.1); border: 1px solid var(--blue); }
+  .alert.s { background: rgba(45,158,95,0.1); border: 1px solid var(--green); }
+  .alert strong { display: block; margin-bottom: 3px; }
+  .tabu { background: #fff5f5; border: 2px solid var(--red); border-radius: 9px; padding: 14px 16px; margin: 10px 0; }
+  .tabu strong { color: var(--red); display: block; margin-bottom: 4px; }
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+  .fs { background: var(--surface); border: 2px solid var(--border); border-radius: 9px; padding: 9px 14px; font-size: 0.82rem; font-weight: 700; text-align: center; }
+  .fs.a { border-color: var(--amber); background: var(--amber-l); color: var(--amber); }
+  .fa { color: var(--amber); font-size: 1.1rem; font-weight: 900; }
+  .arch { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+  .ab { background: var(--surface); border: 2px solid var(--border); border-radius: 11px; padding: 15px; }
+  .ab h4 { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin-bottom: 6px; }
+  .ab .n { font-size: 0.95rem; font-weight: 800; }
+  .ab .d { font-size: 0.75rem; color: var(--amber); margin-top: 3px; }
+  p { margin-bottom: 8px; }
+  ul, ol { padding-left: 20px; margin-bottom: 8px; }
+  li { margin-bottom: 3px; font-size: 0.92rem; }
+  @media (max-width: 860px) { .sidebar { display: none; } .main { margin-left: 0; padding: 20px; } .arch { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-brand">BäckereiOS</div>
+  <div class="sh">Übersicht</div>
+  <a href="#vision">Vision & Philosophie</a>
+  <a href="#architektur">Systemarchitektur</a>
+  <a href="#datenfluss">Datenfluss</a>
+  <a href="#session">BOS_SESSION</a>
+  <div class="sh">Datendateien</div>
+  <a href="#stammdaten">stammdaten.js</a>
+  <a href="#inventurdaten">inventurdaten.js</a>
+  <div class="sh">Kern-Logik</div>
+  <a href="#gehirn">froster_gehirn.js</a>
+  <a href="#chain">↳ calculateChain</a>
+  <a href="#auto">↳ calculateAutoPlanning</a>
+  <a href="#step">↳ STEP-System</a>
+  <div class="sh">HTML-Module</div>
+  <a href="#index">index.html</a>
+  <a href="#setup">setup.html</a>
+  <a href="#planer">planer.html</a>
+  <a href="#schnellrechner">schnellrechner.html</a>
+  <a href="#inventur">inventur_dateneingabe.html</a>
+  <a href="#admin">admin_landing.html</a>
+  <div class="sh">Infrastruktur</div>
+  <a href="#export">export.js</a>
+  <a href="#sw">service-worker.js</a>
+  <a href="#deployment">Deployment</a>
+  <div class="sh">Regeln</div>
+  <a href="#tabu">🚫 Tabu-Zonen</a>
+  <a href="#roadmap">Roadmap</a>
+</nav>
+
+<main class="main">
+
+<div class="hero">
+  <h1>BäckereiOS</h1>
+  <p>Offline-PWA für Froster-Produktionsplanung · Version 15 · GitHub Pages Revision v11</p>
+  <div class="tags">
+    <span class="tag">PWA · Offline-First</span>
+    <span class="tag">Vanilla JS · Kein Framework</span>
+    <span class="tag">GitHub Pages</span>
+    <span class="tag">18 Produkte</span>
+    <span class="tag">2 Stationen (erweiterbar)</span>
+    <span class="tag">localStorage</span>
+  </div>
+</div>
+
+<!-- VISION -->
+<h2 class="sec" id="vision">Vision & Philosophie</h2>
+<div class="card al">
+  <p><strong>BäckereiOS löst ein konkretes Nachtschicht-Problem:</strong> Wie viel muss heute produziert werden, damit der Froster bis zum Planungsziel reicht — ohne Engpässe, ohne übermäßige Überproduktion?</p>
+  <p>Zwischen Froster-Produktion und Ladenregal liegen 1–2 Tage (Auftauzeit). Deshalb plant der Assistent die gesamte Woche voraus und verteilt die Produktion proportional — <strong>nicht</strong> einfach Tagesbedarf = Produktion.</p>
+</div>
+
+<div class="card bl">
+  <h3 class="sub">Manifest</h3>
+  <ul>
+    <li><strong>Logik vor Eleganz</strong> — korrekte Berechnung geht vor schönem Code</li>
+    <li><strong>Keine stillen Architektur-Änderungen</strong> — strukturelle Änderungen werden zuerst besprochen</li>
+    <li><strong>Poka-Yoke</strong> — System verhindert Fehler durch Design, nicht durch nachträgliche Warnungen</li>
+    <li><strong>calcRowStatus-Mathematik nur nach Rücksprache ändern</strong></li>
+    <li><strong>Hilfetexte nie kürzen</strong></li>
+  </ul>
+</div>
+
+<div class="alert w">
+  <strong>⚠️ Warum 1 + 1 ≠ 2</strong>
+  Bedarf eines Tages ≠ Produktion. Produkt für Dienstag muss Sonntag oder Montag produziert werden. Deshalb denkt der Algorithmus in Fenster-Gewichten, nicht in Tagessummen.
+</div>
+
+<!-- ARCHITEKTUR -->
+<h2 class="sec" id="architektur">Systemarchitektur</h2>
+<div class="arch">
+  <div class="ab" style="border-color:var(--amber);">
+    <h4>Daten-Schicht</h4>
+    <div class="n">stammdaten.js</div><div class="d">→ window.BOS_STAMMDATEN · Readonly</div>
+    <div class="n" style="margin-top:10px;">inventurdaten.js</div><div class="d">→ window.BOS_INVENTUR · Ulf pflegt</div>
+  </div>
+  <div class="ab" style="border-color:var(--blue);">
+    <h4>Kern-Algorithmus</h4>
+    <div class="n">froster_gehirn.js</div><div class="d">→ window.BOS_BRAIN · 2 Methoden</div>
+    <div class="n" style="margin-top:10px;">export.js</div><div class="d">→ WhatsApp / Druck</div>
+  </div>
+  <div class="ab" style="border-color:var(--green);">
+    <h4>Haupt-Workflow</h4>
+    <div class="n">index → setup → planer</div><div class="d">→ Cockpit · 8-Schritt-Assistent · Plan</div>
+  </div>
+  <div class="ab" style="border-color:var(--dim);">
+    <h4>Hilfs-Tools &amp; Admin</h4>
+    <div class="n">schnellrechner.html</div><div class="d">→ Ad-hoc Einzelprodukt-Kalkulation</div>
+    <div class="n" style="margin-top:10px;">admin_tools/ (Unterordner)</div><div class="d">→ admin_landing · inventur_dateneingabe</div>
+  </div>
+</div>
+
+<div class="alert i">
+  <strong>Ordnerstruktur auf GitHub</strong>
+  Stammordner: <code>/Planer/</code> &nbsp;|&nbsp; Admin: <code>/Planer/admin_tools/</code><br>
+  Admin-Dateien nutzen <code>../systemdesign.css</code>, <code>../stammdaten.js</code>, <code>../inventurdaten.js</code>
+</div>
+
+<!-- DATENFLUSS -->
+<h2 class="sec" id="datenfluss">Datenfluss (Haupt-Workflow)</h2>
+<div class="flow">
+  <div class="fs a">index.html<br><small>Cockpit</small></div>
+  <div class="fa">→</div>
+  <div class="fs a">setup.html<br><small>8 Schritte</small></div>
+  <div class="fa">→</div>
+  <div class="fs" style="border-color:var(--green)">localStorage<br><small>BOS_SESSION</small></div>
+  <div class="fa">→</div>
+  <div class="fs a">planer.html<br><small>Eingabe &amp; Rechnung</small></div>
+  <div class="fa">→</div>
+  <div class="fs" style="border-color:var(--green)">export.js<br><small>WhatsApp / Druck</small></div>
+</div>
+
+<!-- SESSION -->
+<h2 class="sec" id="session">BOS_SESSION — Das zentrale Datenobjekt</h2>
+<div class="card">
+  <p>Wird in <code>setup.html</code> aufgebaut, in <code>localStorage['BOS_SESSION']</code> gespeichert, von <code>planer.html</code> beim Start geladen.</p>
+  <table>
+    <tr><th>Feld</th><th>Typ</th><th>Bedeutung</th></tr>
+    <tr><td><code>selectedIds</code></td><td>Array</td><td>Produkt-IDs der Session ["p1","p4"]</td></tr>
+    <tr><td><code>inventory</code></td><td>Object</td><td>Bestände je Produkt-ID → <code>{p4: 25}</code> oder <code>{p4: {stock:25, ts:…}}</code></td></tr>
+    <tr><td><code>frosterDone</code></td><td>Boolean</td><td>true = Froster fertig → startStep=2 (übermorgen). false = startStep=1 (morgen)</td></tr>
+    <tr><td><code>weekConfig</code></td><td>Object</td><td>Je JS-Wochentag 0-6: <code>{status:'auf'|'zu', hamster:0|1|2, grill:bool}</code></td></tr>
+    <tr><td><code>shortages</code></td><td>Object</td><td>Fehlmengen für Morgen je Produkt-ID</td></tr>
+    <tr><td><code>targetDays</code></td><td>Object</td><td>Planungsziel je Produkt-ID (JS-Wochentag 0=So)</td></tr>
+    <tr><td><code>productionDays</code></td><td>Object</td><td>Erlaubte Produktionstage je Produkt (Array von JS-Wochentagen)</td></tr>
+    <tr><td><code>station</code></td><td>String</td><td>Gewählte Station ("Brötchenstraße" etc.)</td></tr>
+    <tr><td><code>startDayIdx</code></td><td>Number</td><td>JS-Wochentag heute (0=So, 1=Mo … 6=Sa)</td></tr>
+    <tr><td><code>autoPlanning</code></td><td>Object|null</td><td>Ergebnis calculateAutoPlanning je Produkt-ID</td></tr>
+    <tr><td><code>prePlanned</code></td><td>Object</td><td>Mengen-Arrays je Produkt für planer.html Vorladung</td></tr>
+  </table>
+</div>
+
+<!-- STAMMDATEN -->
+<h2 class="sec" id="stammdaten">stammdaten.js</h2>
+<div class="card">
+  <div style="margin-bottom:12px;"><span class="fb js">stammdaten.js</span><span class="rt">Daten-Schicht · Readonly</span></div>
+  <p>Setzt <code>window.BOS_STAMMDATEN</code>. Wird als erstes Script geladen. Alle anderen Module setzen es voraus.</p>
+
+  <h3 class="sub">Produkt-Schema</h3>
+  <pre>{
+  "p4": {
+    "name":    "Kaesebroetchen",
+    "needs":   [16, 16, 17, 17, 18, 23, 20],  // Index 0=Mo … 6=So (BOS-Index!)
+    "sun":     5,      // Zusatzbedarf Grillwetter (Bleche)
+    "unit":    0,      // 0=Bleche, 1=Pressen×25/30×1.06, 2=Pressen×20/30, 3=Brühst.÷9
+    "station": "Brötchenstraße",
+    "step":    6       // Schrittgröße (optional, default=6)
+  }
+}</pre>
+
+  <div class="alert w">
+    <strong>⚠️ Index-Falle — IMMER beachten</strong>
+    BOS needs[]-Index: <strong>0=Montag … 6=Sonntag</strong><br>
+    JavaScript Date.getDay(): <strong>0=Sonntag … 6=Samstag</strong><br>
+    Umrechnung: <code>bosIdx = (jsDay === 0) ? 6 : jsDay - 1</code>
+  </div>
+
+  <h3 class="sub">Alle 18 Produkte</h3>
+  <table>
+    <tr><th>ID</th><th>Name</th><th>Station</th><th>Unit</th></tr>
+    <tr><td>p1</td><td>Hasenpfoten</td><td>Brötchenstraße</td><td>Bleche</td></tr>
+    <tr><td>p2</td><td>Laugenstangen</td><td>Brötchenstraße</td><td>Bleche + sun=10</td></tr>
+    <tr><td>p3</td><td>Rosinenbroetchen</td><td>Brötchenstraße</td><td>Bleche</td></tr>
+    <tr><td>p4</td><td>Kaesebroetchen</td><td>Brötchenstraße</td><td>Bleche + sun=5</td></tr>
+    <tr><td>p5</td><td>SchokoBatzen</td><td>Brötchenstraße</td><td>Bleche</td></tr>
+    <tr><td>p6</td><td>RosinenBatzen</td><td>Brötchenstraße</td><td>Bleche</td></tr>
+    <tr><td>p7</td><td>Zimtwolken</td><td>Brötchenstraße</td><td>Bleche (So=0)</td></tr>
+    <tr><td>p11</td><td>Plunderstreifen</td><td>Brötchenstraße</td><td>Bleche (So=0)</td></tr>
+    <tr><td>p12</td><td>Eiszapfen</td><td>Brötchenstraße</td><td>Bleche (nur Di/Do/Sa)</td></tr>
+    <tr><td>p13</td><td>Puddingbrezeln</td><td>Brötchenstraße</td><td>Bleche (nur Mo/Mi/Fr)</td></tr>
+    <tr><td>p14</td><td>Mohnschnecken</td><td>Brötchenstraße</td><td>Bleche (So=0)</td></tr>
+    <tr><td>p8</td><td>Schlawiner</td><td>Nachtschicht</td><td>Brühstücke (÷9)</td></tr>
+    <tr><td>p9</td><td>Kornknacker</td><td>Nachtschicht</td><td>Pressen (×25/30×1.06)</td></tr>
+    <tr><td>p10</td><td>Hasenberger</td><td>Nachtschicht</td><td>Pressen (×20/30)</td></tr>
+    <tr><td>p177…98</td><td>Baguette (Bleche)</td><td>Nachtschicht</td><td>Bleche</td></tr>
+    <tr><td>p177…04</td><td>Zwiebelbaguette (Bleche)</td><td>Nachtschicht</td><td>Bleche</td></tr>
+    <tr><td>p177…85</td><td>Baguette (rote Diele)</td><td>Nachtschicht</td><td>Bleche</td></tr>
+    <tr><td>p177…26</td><td>Zwiebelbaguette (rote Diele)</td><td>Nachtschicht</td><td>Bleche</td></tr>
+  </table>
+  <div class="alert i">Stationen noch unvollständig — geplant: Rondo, Frühschicht, Konditorei, Versand. Nur in stammdaten.js eintragen, kein Code-Umbau nötig.</div>
+</div>
+
+<!-- INVENTURDATEN -->
+<h2 class="sec" id="inventurdaten">inventurdaten.js</h2>
+<div class="card">
+  <div style="margin-bottom:12px;"><span class="fb js">inventurdaten.js</span><span class="rt">Ulf pflegt manuell</span></div>
+  <p>Setzt <code>window.BOS_INVENTUR</code>. Generiert durch <code>inventur_dateneingabe.html</code>, dann auf GitHub hochgeladen.</p>
+  <pre>window.BOS_INVENTUR = {
+  "products": {
+    "p4": {
+      "locs": [12, 8, 0, 0],  // 4 Zähl-Orte (Ort 1+2+3+4)
+      "stock": 20,              // Summe der locs
+      "ts": 1735000000000       // Unix-Timestamp Millisekunden
+    }
+  },
+  "stocks": { "p4": 20 }       // Schnell-Lookup
+}</pre>
+  <div class="alert w">
+    <strong>24h-Regel (setup.html Schritt 3)</strong>
+    <code>isFresh = ts &gt; 0 && (Date.now() - ts) &lt; 86_400_000</code><br>
+    Nicht frisch → Bestand = 0, rote Warnung "Bestand veraltet (Xh alt)", Nutzer muss selbst eingeben.
+  </div>
+</div>
+
+<!-- FROSTER GEHIRN -->
+<h2 class="sec" id="gehirn">froster_gehirn.js — window.BOS_BRAIN</h2>
+<div class="card">
+  <div style="margin-bottom:12px;"><span class="fb js">froster_gehirn.js</span><span class="rt">Kern-Algorithmus · 231 Zeilen</span></div>
+  <p>Das Herzstück. Zwei Methoden auf <code>window.BOS_BRAIN</code>.</p>
+</div>
+
+<h2 class="sec" id="chain">BOS_BRAIN.calculateChain(prodId, session, plannedProd)</h2>
+<div class="card gl">
+  <p><strong>Zweck:</strong> Simuliert Bestandsverlauf. Prüft ob Plan Lücken erzeugt. Wird bei jeder Eingabe in planer.html aufgerufen.</p>
+  <table>
+    <tr><th>Parameter</th><th>Typ</th><th>Bedeutung</th></tr>
+    <tr><td>prodId</td><td>String</td><td>"p4"</td></tr>
+    <tr><td>session</td><td>Object</td><td>BOS_SESSION</td></tr>
+    <tr><td>plannedProd</td><td>Array</td><td>Geplante Mengen je Step [0,24,0,0,48,0,60,0]</td></tr>
+  </table>
+  <h3 class="sub">Rückgabe je chain-Step</h3>
+  <pre>{
+  stepIdx, dayIdx, dayName,
+  need,              // bereinigter Tagesbedarf (Hamster/Grill/Feiertag)
+  actualConsumption, // 0 solange frosterDone-Offset aktiv
+  planned,           // Produktion
+  stockAfterNeed,    // Bestand NACH Verbrauch (vor Produktion)
+  restAfter,         // Bestand NACH Verbrauch + Produktion
+  isWarning          // true bei Lücke oder nächster Morgen gefährdet
+}</pre>
+  <div class="alert w">
+    <strong>frosterDone-Offset:</strong> startStep = frosterDone ? 2 : 1<br>
+    Bei true: Verbrauch beginnt erst ab Step 2. Steps 0 und 1 haben actualConsumption = 0.
+  </div>
+  <h3 class="sub">getAdjustedNeed — Bedarfsbereinigung</h3>
+  <pre>bosIdx = (jsDay === 0) ? 6 : jsDay - 1
+base = p.needs[bosIdx]
+if (cfg.status === 'zu') return 0
+if (hamster === 1) adj = ceil(adj * 1.5)
+if (hamster === 2) adj = ceil(adj * 2.0)
+if (grill && p.sun) adj += p.sun
+if (isDayZero) adj += shortage</pre>
+</div>
+
+<h2 class="sec" id="auto">BOS_BRAIN.calculateAutoPlanning(prodId, session)</h2>
+<div class="card bl">
+  <p><strong>Zweck:</strong> Berechnet automatisch optimale Produktionsmengen. 4 Phasen:</p>
+
+  <h3 class="sub">Phase 1 — Coverage-Fenster &amp; Gewichte</h3>
+  <p>Je Produktionstag: Gewicht = eigener Verbrauch + alle Folgetage bis zum nächsten Produktionstag + Verbrauch des nächsten Produktionstags (damit dieser morgens nicht leer startet).</p>
+
+  <h3 class="sub">Phase 2 — Proportionale Verteilung</h3>
+  <pre>totalNeeded = max(0, totalConsumption - stock)
+share = weight / totalWeight
+planned[step] = ceil(totalNeeded * share / STEP) * STEP</pre>
+
+  <h3 class="sub">Phase 3 — Sicherheits-Pass (sequenziell)</h3>
+  <p>Läuft den Plan durch. Bestand negativ → vorheriger Produktionstag wird erhöht. Garantiert Lückenfreiheit.</p>
+
+  <h3 class="sub">Phase 4 — Überhang-Trim</h3>
+  <pre>maxAcceptable = targetConsumption + STEP
+while (finalStock - STEP > maxAcceptable && planned[lastProd] >= STEP):
+    planned[lastProd] -= STEP; finalStock -= STEP</pre>
+  <p>Kürzt letzten Produktionstag bis Restbestand maximal 1 STEP über Ziel-Tagesbedarf.</p>
+  
+  <div class="alert w">
+    <strong>Duplikat-Schutz bei &gt;7-Tage-Fenstern:</strong>
+    <code>seenProdDays = new Set()</code> — jeder Wochentag darf nur einmal als Produktionstag markiert werden.
+  </div>
+</div>
+
+<h2 class="sec" id="step">STEP-System (Schrittgröße)</h2>
+<div class="card">
+  <p><code>const STEP = p.step || 6</code> — Standard 6, individuell je Produkt in stammdaten.js als <code>"step": 12</code> setzbar. Alle 4 Algorithmus-Phasen nutzen STEP.</p>
+  <div class="alert i">TODO: Stikkengröße je Produkt mit Kollegen abstimmen, dann in stammdaten.js eintragen. Kein Code-Umbau nötig.</div>
+</div>
+
+<!-- SETUP.HTML -->
+<h2 class="sec" id="setup">setup.html — Der Assistent</h2>
+<div class="card">
+  <div style="margin-bottom:12px;"><span class="fb html">setup.html</span><span class="rt">Haupt-Workflow · 1418 Zeilen</span></div>
+
+  <h3 class="sub">8 Accordion-Schritte</h3>
+  <table>
+    <tr><th>#</th><th>Name</th><th>Was wird gesetzt</th></tr>
+    <tr><td>1</td><td>Welcher Tag ist heute?</td><td><code>sess.startDayIdx</code> — KRITISCH für alle Folgeberechnungen</td></tr>
+    <tr><td>2</td><td>Produkte auswählen</td><td><code>sess.selectedIds</code>, gefiltert nach Station</td></tr>
+    <tr><td>3</td><td>Was ist noch im Froster?</td><td><code>sess.inventory</code>, 24h-Check, Override möglich</td></tr>
+    <tr><td>4</td><td>Froster-Status</td><td><code>sess.frosterDone</code> — Poka-Yoke: 2 Buttons, kein Default</td></tr>
+    <tr><td>5</td><td>Wochen-Planung</td><td><code>sess.weekConfig</code> (AUF/ZU, Hamster 0/1/2, Grill)</td></tr>
+    <tr><td>6</td><td>Fehlmengen &amp; Sonderbestellungen</td><td><code>sess.shortages</code></td></tr>
+    <tr><td>7</td><td>Planungs-Ziel</td><td><code>sess.targetDays</code> je Produkt (JS-Wochentag)</td></tr>
+    <tr><td>8</td><td>Produktions-Tage</td><td><code>sess.productionDays</code>, löst calculateAutoPlanning aus</td></tr>
+  </table>
+
+  <h3 class="sub">Globale Variablen</h3>
+  <table>
+    <tr><th>Variable</th><th>Bedeutung</th></tr>
+    <tr><td><code>currentStep</code></td><td>Aktiver Schritt (0–7)</td></tr>
+    <tr><td><code>maxUnlocked</code></td><td>Höchster freigeschalteter Schritt</td></tr>
+    <tr><td><code>sess</code></td><td>Das BOS_SESSION-Objekt</td></tr>
+    <tr><td><code>STATIONS</code></td><td>["Brötchenstraße","Nachtschicht","Frühschicht","Rondo","Konditorei","Versand"]</td></tr>
+  </table>
+
+  <h3 class="sub">Wichtige Funktionen</h3>
+  <table>
+    <tr><th>Funktion</th><th>Zweck</th></tr>
+    <tr><td><code>init()</code></td><td>Theme, Station-Grid, WeekConfig, renderStartDay</td></tr>
+    <tr><td><code>renderProducts()</code></td><td>Produkt-Chips nach Station</td></tr>
+    <tr><td><code>renderInv()</code></td><td>Froster-Bestände mit 24h-Check + Override-Button</td></tr>
+    <tr><td><code>overrideInv(id, btn)</code></td><td>Manueller Bestand-Override</td></tr>
+    <tr><td><code>renderWeek()</code></td><td>Wochen-Grid AUF/ZU, Hamster, Grill</td></tr>
+    <tr><td><code>renderTarget()</code></td><td>Planungsziel-Picker je Produkt</td></tr>
+    <tr><td><code>renderStartDay()</code></td><td>Heute-Picker (kein Heute-Marker, kein Default)</td></tr>
+    <tr><td><code>cycleHamster(jsIdx)</code></td><td>0 → 1 → 2 → 0</td></tr>
+    <tr><td><code>setFrosterStatus(v)</code></td><td>Poka-Yoke Button true/false</td></tr>
+    <tr><td><code>goToStep(n)</code></td><td>Öffnet Schritt, scrollt mit 90px Offset für sticky Header</td></tr>
+    <tr><td><code>validateStep(n)</code></td><td>Prüft Vollständigkeit von Schritt n</td></tr>
+    <tr><td><code>finishSetup()</code></td><td>Session speichern → AutoPlanning → planer.html</td></tr>
+  </table>
+</div>
+
+<!-- PLANER -->
+<h2 class="sec" id="planer">planer.html — Der Produktionsplan</h2>
+<div class="card">
+  <div style="margin-bottom:12px;"><span class="fb html">planer.html</span><span class="rt">Produktionsplan · 731 Zeilen</span></div>
+  <p>Liest BOS_SESSION, zeigt je Produkt eine Karte mit Eingabefeldern je Tag. Kalkuliert live via BOS_BRAIN.calculateChain.</p>
+  <table>
+    <tr><th>Variable</th><th>Bedeutung</th></tr>
+    <tr><td><code>sess</code></td><td>BOS_SESSION aus localStorage</td></tr>
+    <tr><td><code>domCache</code></td><td><code>{id: {card, badge, rows:[{need,inp,bub,line}]}}</code></td></tr>
+    <tr><td><code>productionPrintData</code></td><td>Produktionsdaten je Wochentag für Export</td></tr>
+    <tr><td><code>todayJS</code></td><td>JS-Wochentag (aus sess.startDayIdx)</td></tr>
+  </table>
+  <table>
+    <tr><th>Funktion</th><th>Zweck</th></tr>
+    <tr><td><code>init()</code></td><td>Session laden, auf BOS_STAMMDATEN warten, buildDOM</td></tr>
+    <tr><td><code>buildDOM()</code></td><td>Alle Produkt-Karten erstellen, domCache befüllen</td></tr>
+    <tr><td><code>calculateMath()</code></td><td>calculateChain für alle Produkte, DOM aktualisieren</td></tr>
+    <tr><td><code>resetAll()</code></td><td>Alle Inputs auf 0</td></tr>
+    <tr><td><code>printPlan()</code></td><td>Export via export.js</td></tr>
+  </table>
+</div>
+
+<!-- SCHNELLRECHNER -->
+<h2 class="sec" id="schnellrechner">schnellrechner.html</h2>
+<div class="card">
+  <div style="margin-bottom:12px;"><span class="fb html">schnellrechner.html</span><span class="rt">Einzel-Kalkulation · 273 Zeilen</span></div>
+  <p>Standalone ohne Session. Ad-hoc-Berechnung für ein einzelnes Produkt.</p>
+
+  <h3 class="sub">Globale Variablen</h3>
+  <table>
+    <tr><th>Variable</th><th>Bedeutung</th></tr>
+    <tr><td><code>todayIdx</code></td><td>BOS-Index heute (0=Mo … 6=So)</td></tr>
+    <tr><td><code>targetIdx</code></td><td>Wochentag-Index des Ziels (0–6)</td></tr>
+    <tr><td><code>targetOffset</code></td><td>Absoluter Abstand heute→Ziel in Tagen (2–9). KRITISCH: verhindert Verwechslung bei doppeltem Wochentag im Fenster</td></tr>
+    <tr><td><code>frosterDone</code></td><td>null / true / false</td></tr>
+    <tr><td><code>simClosed[i]</code></td><td>Offset i ab heute ist geschlossen (Object, Key=Offset, NICHT Wochentag)</td></tr>
+    <tr><td><code>simHamster[i]</code></td><td>Offset i: 0/1/2 Hamster-Level</td></tr>
+    <tr><td><code>simSun[i]</code></td><td>Offset i: Grillwetter an/aus</td></tr>
+  </table>
+
+  <div class="alert w">
+    <strong>⚠️ Offset-Keys nicht Wochentag-Keys</strong>
+    simClosed/simHamster/simSun nutzen <code>i</code> (Tage ab heute) als Key. <code>simClosed[3]</code> = "3 Tage ab heute ist zu". Wären es Wochentag-Keys, würde Mi dieser Woche und Mi nächster Woche verwechselt.
+  </div>
+
+  <h3 class="sub">Funktionen</h3>
+  <table>
+    <tr><th>Funktion</th><th>Zweck</th></tr>
+    <tr><td><code>renderToday()</code></td><td>7er-Grid, alle Tage sichtbar, kein Scroll</td></tr>
+    <tr><td><code>resetTarget()</code></td><td>targetIdx + targetOffset auf Froster-Offset setzen</td></tr>
+    <tr><td><code>renderTarget()</code></td><td>Strip offset…offset+7, in-range bis targetOffset</td></tr>
+    <tr><td><code>buildSandbox()</code></td><td>Feiertage/Grill Grid, i=1..9, Offset-Keys</td></tr>
+    <tr><td><code>calculate()</code></td><td>Summiert Bedarf offset→targetOffset, zieht Bestand ab</td></tr>
+    <tr><td><code>setFroster(v)</code></td><td>Froster-Wahl, zeigt Fehlmenge-Feld bei true</td></tr>
+    <tr><td><code>syncStock()</code></td><td>Lädt Bestand aus BOS_INVENTUR.stocks</td></tr>
+  </table>
+</div>
+
+<!-- INVENTUR -->
+<h2 class="sec" id="inventur">inventur_dateneingabe.html (admin_tools/)</h2>
+<div class="card">
+  <div style="margin-bottom:12px;"><span class="fb html">inventur_dateneingabe.html</span><span class="rt">Admin-Tool · Ulf only</span></div>
+
+  <div class="flow">
+    <div class="fs a">Froster zählen<br><small>~5 Min</small></div>
+    <div class="fa">→</div>
+    <div class="fs a">4 Orte eingeben<br><small>Summe automatisch</small></div>
+    <div class="fa">→</div>
+    <div class="fs a">GENERIEREN<br><small>inventurdaten.js DL</small></div>
+    <div class="fa">→</div>
+    <div class="fs a">GitHub Upload<br><small>~1 Min</small></div>
+    <div class="fa">→</div>
+    <div class="fs" style="border-color:var(--green)">Alle Geräte<br><small>aktuell</small></div>
+  </div>
+
+  <table>
+    <tr><th>Variable</th><th>Bedeutung</th></tr>
+    <tr><td><code>workingData</code></td><td>Arbeitsdaten: <code>{k: {locs:[0,0,0,0], stock:0, ts:0}}</code></td></tr>
+    <tr><td><code>activeStation</code></td><td>"alle" oder Stationsname für Filter</td></tr>
+  </table>
+  <table>
+    <tr><th>Funktion</th><th>Zweck</th></tr>
+    <tr><td><code>prepareData()</code></td><td>Lädt vorhandene Inventurdaten oder setzt auf 0</td></tr>
+    <tr><td><code>buildStationFilter()</code></td><td>Buttons dynamisch aus stammdaten.js Stationen</td></tr>
+    <tr><td><code>renderList()</code></td><td>Karten je Produkt mit 4 Eingabefeldern + Summe</td></tr>
+    <tr><td><code>updateLoc(k, idx, val)</code></td><td>Einzelfeld → Summe neu berechnen, ts setzen</td></tr>
+    <tr><td><code>generateInventurJS()</code></td><td>Datei-Download inventurdaten.js</td></tr>
+  </table>
+</div>
+
+<!-- EXPORT -->
+<h2 class="sec" id="export">export.js</h2>
+<div class="card">
+  <div style="margin-bottom:12px;"><span class="fb js">export.js</span><span class="rt">Export · 530 Zeilen</span></div>
+  <p>Erzeugt WhatsApp-Nachrichten und Druck-HTML aus productionPrintData (aggregiert nach Wochentagen). Wird von planer.html aufgerufen.</p>
+</div>
+
+<!-- SERVICE WORKER -->
+<h2 class="sec" id="sw">service-worker.js</h2>
+<div class="card">
+  <div style="margin-bottom:12px;"><span class="fb js">service-worker.js</span><span class="rt">PWA · Offline-Cache</span></div>
+  <p>Cacht alle App-Dateien. Registrierung über absoluten Pfad <code>/Planer/service-worker.js</code> (wegen GitHub Pages Subfolder).</p>
+  <div class="alert w">
+    <strong>Update-Pflicht:</strong> Bei jedem GitHub-Upload die Cache-Version in service-worker.js um 1 erhöhen. Sonst laden Clients die alten gecachten Dateien.
+  </div>
+</div>
+
+<!-- DEPLOYMENT -->
+<h2 class="sec" id="deployment">Deployment</h2>
+<div class="card">
+  <p><strong>Live-URL:</strong> <code>https://baeckereios.github.io/Planer</code></p>
+  <p><strong>Repository:</strong> öffentlich · github.com/baeckereios/Planer</p>
+  <p><strong>PWA:</strong> installierbar auf Android/iOS über Chrome → Zum Startbildschirm</p>
+  <h3 class="sub">Update-Prozess</h3>
+  <ol>
+    <li>Geänderte Dateien auf GitHub hochladen</li>
+    <li>In service-worker.js Cache-Version +1</li>
+    <li>service-worker.js auch hochladen</li>
+    <li>Clients aktualisieren sich beim nächsten Online-Start automatisch</li>
+  </ol>
+</div>
+
+<!-- TABU -->
+<h2 class="sec" id="tabu">🚫 Tabu-Zonen</h2>
+<div class="tabu">
+  <strong>1. Poka-Yoke Froster (setup.html Schritt 4)</strong>
+  Exakt 2 Buttons. Kein Default. BERECHNEN gesperrt bis Wahl getroffen. Niemals Vorauswahl einbauen.
+</div>
+<div class="tabu">
+  <strong>2. calcRowStatus-Mathematik (planer.html)</strong>
+  Farblogik basiert auf step.restAfter und step.stockAfterNeed. Schwellenwerte nur nach Absprache ändern.
+</div>
+<div class="tabu">
+  <strong>3. calculateChain-Kern (froster_gehirn.js)</strong>
+  isDayBroken / isNextMorningInDanger / startStep-Offset sind absichtlich so. Nicht anfassen.
+</div>
+<div class="tabu">
+  <strong>4. Hilfetexte in setup.html</strong>
+  Niemals kürzen.
+</div>
+
+<!-- ROADMAP -->
+<h2 class="sec" id="roadmap">Roadmap</h2>
+<div class="card al">
+  <h3 class="sub">Kurzfristig</h3>
+  <ul>
+    <li>Stationen in stammdaten.js vervollständigen (Rondo, Frühschicht, Konditorei, Versand)</li>
+    <li>Schrittgröße <code>step</code> je Produkt nach Kollegen-Abstimmung einpflegen</li>
+    <li>Schnellrechner Offset-System im echten Betrieb verifizieren</li>
+  </ul>
+  <h3 class="sub">Mittelfristig</h3>
+  <ul>
+    <li>inventur_dateneingabe.html UI weiter optimieren</li>
+    <li>Evtl. Schicht-Übergabe-Modul reaktivieren</li>
+  </ul>
+  <h3 class="sub">Bewusst nicht geplant</h3>
+  <ul>
+    <li>Kein Backend — GitHub Pages reicht</li>
+    <li>Kein automatischer Inventur-Sync — Upload-Workflow ist ausreichend</li>
+    <li>Keine Base64-Import-Funktion — overengineering</li>
+  </ul>
+</div>
+
+</main>
+</body>
+</html>

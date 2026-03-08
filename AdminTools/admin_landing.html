@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BäckereiOS - Chef Konsole</title>
+    <link rel="stylesheet" href="admin_design.css">
+    <style>
+        .admin-card { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: var(--border-radius); padding: 20px; display: flex; align-items: center; gap: 20px; margin-bottom: 12px; text-decoration: none; color: var(--text-main); transition: 0.2s; }
+        .admin-card:hover { border-color: var(--btn-primary); }
+        .admin-icon { font-size: 2rem; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--border-radius); flex-shrink: 0;}
+        .info-list { color: var(--text-muted); font-size: 0.85rem; line-height: 1.6; padding-left: 20px;}
+        .info-list strong { color: var(--text-main); }
+        
+        .group-header {
+            color: var(--text-muted); 
+            text-transform: uppercase; 
+            font-size: 0.85rem; 
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin: 35px 0 10px 0; 
+            border-bottom: 2px solid var(--border-color); 
+            padding-bottom: 5px;
+        }
+
+        /* Spezial-Highlight für den Assistenten */
+        .assistant-card {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white !important;
+            border: none;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
+        }
+        .assistant-card .admin-icon { background: rgba(255,255,255,0.1); border: none; }
+        .assistant-card small { color: #94a3b8; }
+        .assistant-card strong { color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div style="text-align: center; margin-bottom: 10px; padding-bottom: 10px;">
+        <h1 style="margin: 0; font-size: 2.2rem; font-weight: 900;">BOS <span style="color: var(--text-muted); font-style: italic;">Chef</span></h1>
+        <small style="font-weight: bold; color: var(--btn-primary);">Kontrolle & Stammdaten</small>
+    </div>
+
+    <a href="assistenten_fuehrer.html" class="admin-card assistant-card">
+        <div class="admin-icon">🚀</div>
+        <div>
+            <strong style="font-size: 1.2rem; display: block; margin-bottom: 3px;">Tages-Assistent</strong>
+            <small>Geführter Workflow für den heutigen Tag</small>
+        </div>
+    </a>
+
+    <a href="assistent_planer.html" class="admin-card" style="border-left: 4px solid var(--btn-primary); margin-top: -5px;">
+        <div class="admin-icon" style="font-size: 1.5rem;">⚙️</div>
+        <div>
+            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Assistenten Planer</strong>
+            <small>Abläufe & Wochentage konfigurieren</small>
+        </div>
+    </a>
+
+
+    <h3 class="group-header" style="color: #0369a1; border-color: #bae6fd;">🛒 BÄKO Management</h3>
+
+    <a href="lager_admin.html" class="admin-card" style="border-left: 4px solid #94a3b8;">
+        <div class="admin-icon">🏢</div>
+        <div>
+            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">1. BÄKO Katalog</strong>
+            <small>Sollmengen & Artikel anlegen (Schablone)</small>
+        </div>
+    </a>
+
+    <a href="baeko_historie_import.html" class="admin-card" style="border-left: 4px solid #0ea5e9;">
+        <div class="admin-icon">📥</div>
+        <div>
+            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">2. Daten-Import</strong>
+            <small>WhatsApp-Zählung einlesen (Gehirn füttern)</small>
+        </div>
+    </a>
+
+    <a href="baeko_lager_analyse.html" class="admin-card" style="border-left: 4px solid #10b981;">
+        <div class="admin-icon">📈</div>
+        <div>
+            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">3. Verbrauchsanalyse</strong>
+            <small>Verbrauch vs. Soll auswerten & optimieren</small>
+        </div>
+    </a>
+
+
+    <h3 class="group-header">⚙️ Produktion & Stammdaten</h3>
+    
+    <a href="inventur_dateneingabe.html" class="admin-card">
+        <div class="admin-icon">📦</div>
+        <div>
+            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Froster-Inventur</strong>
+            <small>Bestände manuell zählen & JS exportieren</small>
+        </div>
+    </a>
+
+    <a href="verbrauchsdaten_admin.html" class="admin-card">
+        <div class="admin-icon">📊</div>
+        <div>
+            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Verbrauchs-Master</strong>
+            <small>Produkte, Tagesbedarfe & Stationen pflegen</small>
+        </div>
+    </a>
+
+    <a href="ofenangriff_datenpflege.html" class="admin-card">
+        <div class="admin-icon">🔥</div>
+        <div>
+            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Ofenangriff-Master</strong>
+            <small>Backprogramme & Backplan verwalten</small>
+        </div>
+    </a>
+
+
+    <h3 class="group-header">📢 Ticker & KI-Analysen</h3>
+
+    <a href="shoutbox_meldungen.html" class="admin-card">
+        <div class="admin-icon">💬</div>
+        <div>
+            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Info-Ticker</strong>
+            <small>Schwarzes Brett für das Team aktualisieren</small>
+        </div>
+    </a>
+
+    <a href="wochenvorschau_prompt.html" class="admin-card">
+        <div class="admin-icon">📅</div>
+        <div>
+            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">KI Wochen-Planer</strong>
+            <small>Wochenprognose generieren & verwalten</small>
+        </div>
+    </a>
+
+    <a href="Datenerfassungs_Prompt.html" class="admin-card">
+        <div class="admin-icon">🧠</div>
+        <div>
+            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">KI Tages-Einschätzung</strong>
+            <small>Wetter- & Ferien-Abgleich für Backzettel</small>
+        </div>
+    </a>
+
+    <a href="markt_prompt.html" class="admin-card">
+        <div class="admin-icon">📡</div>
+        <div>
+            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">KI Markt-Radar</strong>
+            <small>Mitbewerber-News & Rohstoff-Updates abrufen</small>
+        </div>
+    </a>
+
+
+    <div class="card" style="margin-top: 40px; background-color: #f8fafc; border: 1px solid var(--border-color); box-shadow: none;">
+        <h3 style="margin-top: 0; font-size: 1rem; color: var(--btn-primary);">📖 System-Architektur</h3>
+        <ul class="info-list">
+            <li><strong>Der Assistent:</strong> Führt dich durch deine hinterlegten Tagesroutinen (Bündelt Inventur, Ticker & BÄKO).</li>
+            <li><strong>Assistenten Planer:</strong> Dein neues CMS, um den Tages-Assistenten komplett ohne Programmieren anzupassen.</li>
+            <li><strong>BÄKO Management:</strong> Katalog anlegen (Schablone) ➔ WhatsApp-Daten importieren (Gehirn) ➔ Analysieren.</li>
+            <li><strong>Stammdaten:</strong> Feste Backend-Werte (Ofen, Verbräuche), die das Team im Frontend nutzt.</li>
+            <li><strong>KI-Prompts:</strong> Intelligente Text-Schablonen für deine Chats mit der KI.</li>
+        </ul>
+    </div>
+
+</div>
+
+</body>
+</html>

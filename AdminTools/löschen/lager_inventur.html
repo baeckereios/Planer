@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BäckereiOS - Lager Zählung</title>
+    <link rel="stylesheet" href="admin_design.css">
+    <style>
+        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .holiday-banner { background: #fafafa; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="hide-in-assistant" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 style="margin: 0; font-size: 1.8rem;">📦 Lager Zählung</h1>
+        <a href="admin_landing.html" style="text-decoration: none; color: var(--text-muted); font-size: 0.85rem; font-weight: bold;">← ZURÜCK</a>
+    </div>
+
+    <div class="holiday-banner">
+        <div>
+            <strong style="display: block; font-size: 1.1rem;">Feiertage einplanen?</strong>
+            <small style="color: var(--text-muted);">Erhöht das Soll-Ziel für die Bestellung</small>
+        </div>
+        <input type="checkbox" id="holidayToggle" style="width:25px; height:25px; margin: 0;">
+    </div>
+
+    <div id="productList" style="display: flex; flex-direction: column; gap: 15px;"></div>
+
+    <button style="margin-top: 30px; background-color: var(--btn-primary);" onclick="saveAndProceed()">✅ Zählung abschließen</button>
+
+</div>
+
+<script src="baeko_bestand.js"></script>
+<script src="baeko_historie.js"></script>
+<script src="lager_gehirn.js"></script>
+<script>
+    function init() {
+        const list = document.getElementById('productList');
+        const products = window.BOS_BAEKO_CONFIG.products;
+        const history = window.BOS_BAEKO_HISTORIE || [];
+        const lastSession = history.length > 0 ? history[history.length - 1] : {};
+        
+        for (let id in products) {
+            const p = products[id];
+            if (!p.show_in_inventory) continue;
+            
+            const lastStock = (lastSession.stocks && lastSession.stocks[id] !== undefined) ? lastSession.stocks[id] : "?";
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <div style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 5px; font-weight: bold;">LETZTER STAND: ${lastStock} ${p.unit}</div>
+                <h2 style="margin:0; font-size:1.4rem; border:none; padding:0;">${p.name}</h2>
+                <div class="grid-inputs">
+                    <div><label style="margin-top:0;">IST (Regal)</label><input type="number" class="count-input" data-id="${id}" data-type="count" placeholder="0" style="margin-top:5px;"></div>
+                    <div><label style="margin-top:0;">NEU (Ware)</label><input type="number" class="count-input" data-id="${id}" data-type="delivery" placeholder="0" style="margin-top:5px;"></div>
+                </div>`;
+            list.appendChild(card);
+        }
+    }
+    
+    function saveAndProceed() {
+        const results = [];
+        const isHoliday = document.getElementById('holidayToggle').checked;
+        const snapshot = { date: new Date().toISOString(), isHoliday, stocks: {} };
+        
+        document.querySelectorAll('.count-input').forEach(inp => {
+            const id = inp.dataset.id; const type = inp.dataset.type;
+            if (!snapshot.stocks[id]) snapshot.stocks[id] = { count: 0, delivery: 0 };
+            snapshot.stocks[id][type] = inp.value || 0;
+        });
+        
+        for (let id in snapshot.stocks) {
+            const res = window.BOS_LAGER_BRAIN.calculate(id, snapshot.stocks[id].count, snapshot.stocks[id].delivery, isHoliday);
+            results.push(res); snapshot.stocks[id] = res.current;
+        }
+        
+        localStorage.setItem('BOS_LAGER_TEMP', JSON.stringify({ results, snapshot }));
+        location.href = 'lager_auswertung.html';
+    }
+    window.onload = () => { if (window.BOS_BAEKO_CONFIG) init(); else setTimeout(init, 200); };
+
+    // --- DER ULTIMATIVE PANZER-CODE FÜR DEN ASSISTENTEN ---
+    if (window !== window.parent || window.location.search.includes('embedded=1')) {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            body { padding: 0 0 150px 0 !important; background-color: #ffffff !important; }
+            .container { padding: 20px 15px 40px 15px !important; max-width: 100% !important; margin: 0 !important; }
+            .hide-in-assistant { display: none !important; }
+            .card { box-shadow: none !important; border: none !important; padding: 15px 0 !important; border-bottom: 1px solid #eee !important; border-radius: 0 !important; }
+        `;
+        document.head.appendChild(style);
+    }
+</script>
+</body>
+</html>

@@ -3,126 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Wissens-Hub | BäckereiOS</title>
+    <title>Wissen & Kurioses | BäckereiOS</title>
     <link rel="stylesheet" href="../systemdesign.css">
-    
+    <script src="../zitate.js"></script>
     <script>
         (function() {
-            try { 
-                const localTheme = localStorage.getItem('BOS_THEME');
-                document.documentElement.setAttribute('data-theme', localTheme || 'light'); 
-            } catch(e) {}
+            try { document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light'); } catch(e) {}
         })();
     </script>
-
     <style>
         body { padding-bottom: 80px; }
-        
-        .hub-intro {
-            background: #111;
-            border-radius: 24px;
-            padding: 30px;
-            margin-bottom: 25px;
-            position: relative;
-            overflow: hidden;
-            border: 2px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-        }
-        .hub-intro::before {
-            content: "🍞"; position: absolute; right: -20px; top: -10px;
-            font-size: 8rem; opacity: 0.1; transform: rotate(15deg); pointer-events: none;
-        }
-        .hub-headline { font-family: 'Fraunces', serif; font-weight: 900; font-size: 2rem; color: white; line-height: 1.1; margin: 10px 0; }
-        .hub-headline em { color: var(--amber); font-style: italic; }
-        
-        .topic-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 15px; margin-bottom: 30px; 
-        }
-        
-        .topic-card {
-            background: var(--surface); border: 2px solid var(--border); border-radius: 20px;
-            text-decoration: none; overflow: hidden; transition: 0.2s; display: flex; flex-direction: column;
-            min-height: 160px;
-        }
-        .topic-card:hover { border-color: var(--amber); transform: translateY(-4px); box-shadow: 0 10px 20px var(--shadow); }
-        .topic-card.featured { grid-column: 1 / -1; min-height: auto; }
+        .page-wrap { max-width: 600px; margin: 0 auto; padding: 20px 16px; }
 
-        .topic-banner { padding: 20px; flex-grow: 1; border-bottom: 2px solid var(--border-s); }
-        
-        /* Farb-Designs */
-        .topic-card[data-topic="wissen"] .topic-banner { background: linear-gradient(135deg, #2d2010, #1a1208); color: white; }
-        /* News-Style entfernt, da Button entfernt wurde */
-        .topic-card[data-topic="history"] .topic-banner { background: linear-gradient(135deg, #2c1a0b, #4a2c10); color: white; }
-        .topic-card[data-topic="snacks"] .topic-banner { background: linear-gradient(135deg, #001a0f, #003020); color: white; }
-        .topic-card[data-topic="mythen"] .topic-banner { background: linear-gradient(135deg, #4a2c5a, #2c1a35); color: white; }
+        .quote-card {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-left: 4px solid var(--amber);
+            border-radius: 16px;
+            padding: 20px 18px 16px;
+            margin-bottom: 28px;
+            box-shadow: 0 4px 18px var(--shadow);
+        }
+        .quote-text {
+            font-family: 'Fraunces', serif;
+            font-size: 1.05rem; font-weight: 300; font-style: italic;
+            color: var(--text); line-height: 1.6;
+            transition: opacity 0.4s ease;
+        }
+        .quote-text.fade { opacity: 0; }
+        .quote-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+        .quote-source {
+            font-family: 'Barlow Condensed'; font-weight: 800; font-size: 0.68rem;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--amber);
+        }
+        .quote-nav { display: flex; gap: 8px; align-items: center; }
+        .quote-btn {
+            background: var(--surface2); border: 1.5px solid var(--border);
+            color: var(--dim); width: 32px; height: 32px;
+            border-radius: 9px; font-size: 0.9rem; cursor: pointer;
+            transition: 0.2s; display: flex; align-items: center; justify-content: center;
+        }
+        .quote-btn:hover { border-color: var(--amber); color: var(--amber); }
+        .quote-auto {
+            background: transparent; border: none; color: var(--dim);
+            font-family: 'Barlow Condensed'; font-weight: 700; font-size: 0.68rem;
+            letter-spacing: 1px; padding: 5px 10px; border-radius: 8px; cursor: pointer; transition: 0.2s;
+        }
+        .quote-auto.active { color: var(--amber); background: rgba(192,122,16,0.08); }
+        .quote-dots { display: flex; gap: 5px; justify-content: center; margin-top: 12px; }
+        .q-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); transition: 0.3s; }
+        .q-dot.active { background: var(--amber); width: 16px; border-radius: 3px; }
 
-        .topic-name { font-family: 'Fraunces', serif; font-weight: 800; font-size: 1.2rem; margin-top: 5px; color: inherit; }
-        .topic-desc { font-size: 0.75rem; opacity: 0.8; font-family: 'Barlow', sans-serif; margin-top: 5px; color: inherit; line-height: 1.3; }
-        .topic-emoji { font-size: 2rem; display: block; margin-bottom: 5px; }
-        .topic-footer { padding: 10px 15px; font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: var(--dim); display: flex; justify-content: space-between; }
-        
-        .top-nav { margin-bottom: 15px; }
-        .btn-back-link { text-decoration: none; color: var(--dim); font-family: 'Barlow Condensed'; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; }
+        .section-label {
+            font-family: 'Barlow Condensed'; font-weight: 900; font-size: 0.72rem;
+            letter-spacing: 1.5px; text-transform: uppercase; color: var(--amber); margin-bottom: 12px;
+        }
+        .topic-list { display: flex; flex-direction: column; gap: 10px; }
+        .topic-row {
+            display: flex; align-items: center; gap: 14px;
+            background: var(--surface); border: 1.5px solid var(--border);
+            border-radius: 14px; padding: 14px 16px;
+            text-decoration: none; color: var(--text);
+            transition: border-color 0.2s, transform 0.15s;
+        }
+        .topic-row:hover, .topic-row:active { border-color: var(--amber); transform: translateX(3px); }
+        .topic-row.featured { border-color: var(--amber); background: linear-gradient(135deg, var(--surface), rgba(192,122,16,0.04)); }
+        .topic-icon {
+            font-size: 1.6rem; width: 44px; height: 44px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--surface2); border-radius: 10px; flex-shrink: 0;
+        }
+        .topic-body { flex: 1; }
+        .topic-name {
+            font-family: 'Barlow Condensed'; font-weight: 900; font-size: 1.05rem;
+            text-transform: uppercase; letter-spacing: 0.5px; color: var(--text);
+        }
+        .topic-desc { font-size: 0.8rem; color: var(--dim); margin-top: 2px; line-height: 1.3; }
+        .topic-tag { font-family: 'Barlow Condensed'; font-size: 0.65rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--amber); margin-top: 4px; }
+        .topic-arrow { color: var(--amber); font-size: 1rem; flex-shrink: 0; }
     </style>
 </head>
 <body>
+    <div class="page-wrap">
 
-    <header class="brand-header">
-        <div class="brand-logo">BÄCKEREI<span>OS</span></div>
-        <div class="slogan-bar">Azubi & Meisterhaft // Hub</div>
-    </header>
-
-    <div style="max-width: 800px; margin: 30px auto; padding: 0 20px;">
-        
-        <div class="top-nav"><a href="../pausenraum.html" class="btn-back-link">← Zurück zum Pausenraum</a></div>
-
-        <div class="hub-intro">
-            <div class="label" style="color: var(--amber); margin-bottom: 5px;">Dein Wissens-Cockpit</div>
-            <h1 class="hub-headline">Alles, was du<br>wissen <em>solltest.</em></h1>
+        <div class="quote-card" id="quote-card-el">
+            <div class="quote-text" id="quote-text">Lade Zitat...</div>
+            <div class="quote-meta">
+                <div>
+                    <div class="quote-source">Backstuben-Weisheiten</div>
+                    <button class="quote-auto" id="auto-btn" onclick="toggleAuto()">⏱ AUTO</button>
+                </div>
+                <div class="quote-nav">
+                    <button class="quote-btn" onclick="prevQuote()">&#8592;</button>
+                    <button class="quote-btn" onclick="nextQuote()">&#8594;</button>
+                </div>
+            </div>
+            <div class="quote-dots" id="quote-dots"></div>
         </div>
 
-        <div class="label">Bereiche auswählen</div>
-        <div class="topic-grid">
-            
-            <a href="azubi_meisterhaft.html" class="topic-card featured" data-topic="wissen">
-                <div class="topic-banner">
-                    <span class="topic-emoji">🧠</span>
+        <div class="section-label">Wissens-Bereiche</div>
+        <div class="topic-list">
+
+            <a href="azubi_meisterhaft.html" class="topic-row featured">
+                <div class="topic-icon">🧠</div>
+                <div class="topic-body">
                     <div class="topic-name">MeisterWissen</div>
-                    <div class="topic-desc">Datenbank: Rohstoffe, Chemie & Fehler.</div>
+                    <div class="topic-desc">Rohstoffe, Backtriebmittel, Chemie & typische Fehler — die Wissensdatenbank.</div>
+                    <div class="topic-tag">Datenbank</div>
                 </div>
-                <div class="topic-footer">Öffnen <span>➔</span></div>
+                <div class="topic-arrow">▶</div>
             </a>
 
-            <a href="history.html" class="topic-card" data-topic="history">
-                <div class="topic-banner">
-                    <span class="topic-emoji">📜</span>
+            <a href="history.html" class="topic-row">
+                <div class="topic-icon">📜</div>
+                <div class="topic-body">
                     <div class="topic-name">Chronik</div>
-                    <div class="topic-desc">Geschichte.</div>
+                    <div class="topic-desc">Die Geschichte des Bäckerhandwerks auf einem Zeitstrahl.</div>
+                    <div class="topic-tag">Zeitstrahl</div>
                 </div>
-                <div class="topic-footer">Zeitstrahl <span>➔</span></div>
+                <div class="topic-arrow">▶</div>
             </a>
 
-            <a href="mythen.html" class="topic-card" data-topic="mythen">
-                <div class="topic-banner">
-                    <span class="topic-emoji">🎭</span>
-                    <div class="topic-name">Mythen</div>
-                    <div class="topic-desc">Populäre Irrtümer.</div>
+            <a href="mythen.html" class="topic-row">
+                <div class="topic-icon">🎭</div>
+                <div class="topic-body">
+                    <div class="topic-name">Mythen & Fakten</div>
+                    <div class="topic-desc">Populäre Irrtümer rund ums Backen — aufgeklärt.</div>
+                    <div class="topic-tag">Richtig vs. Falsch</div>
                 </div>
-                <div class="topic-footer">Aufklären <span>➔</span></div>
+                <div class="topic-arrow">▶</div>
             </a>
 
-            <a href="pausen_snacks.html" class="topic-card" data-topic="snacks">
-                <div class="topic-banner">
-                    <span class="topic-emoji">🥨</span>
-                    <div class="topic-name">Snacks</div>
-                    <div class="topic-desc">Kurioses Wissen.</div>
+            <a href="pausen_snacks.html" class="topic-row">
+                <div class="topic-icon">🥨</div>
+                <div class="topic-body">
+                    <div class="topic-name">Snacks & Kurioses</div>
+                    <div class="topic-desc">Skurrile Fakten und Trivia für die Pause.</div>
+                    <div class="topic-tag">Trivia</div>
                 </div>
-                <div class="topic-footer">Pause <span>➔</span></div>
+                <div class="topic-arrow">▶</div>
             </a>
+
         </div>
-
     </div>
+
+    <script>
+    var quotes = (typeof QUOTES !== 'undefined') ? QUOTES : ['Ohne Brot ist alles nichts.'];
+    var currentIdx = 0, autoMode = false, autoTimer = null, DOT_COUNT = 7;
+
+    function buildDots() {
+        var wrap = document.getElementById('quote-dots'); wrap.innerHTML = '';
+        for (var i = 0; i < DOT_COUNT; i++) {
+            var d = document.createElement('div'); d.className = 'q-dot'; wrap.appendChild(d);
+        }
+    }
+    function updateDots() {
+        var dots = document.querySelectorAll('.q-dot');
+        var segment = Math.floor(currentIdx / quotes.length * DOT_COUNT);
+        dots.forEach(function(d, i) { d.classList.toggle('active', i === segment); });
+    }
+    function showQuote(idx) {
+        var el = document.getElementById('quote-text');
+        el.classList.add('fade');
+        setTimeout(function() { el.textContent = quotes[idx]; el.classList.remove('fade'); updateDots(); }, 350);
+    }
+    function nextQuote() { currentIdx = (currentIdx + 1) % quotes.length; showQuote(currentIdx); }
+    function prevQuote() { currentIdx = (currentIdx - 1 + quotes.length) % quotes.length; showQuote(currentIdx); }
+    function toggleAuto() {
+        autoMode = !autoMode;
+        var btn = document.getElementById('auto-btn');
+        btn.classList.toggle('active', autoMode);
+        btn.textContent = autoMode ? '⏸ AUTO' : '⏱ AUTO';
+        if (autoMode) { autoTimer = setInterval(nextQuote, 6000); } else { clearInterval(autoTimer); }
+    }
+    var touchStartX = 0;
+    document.getElementById('quote-card-el').addEventListener('touchstart', function(e) { touchStartX = e.touches[0].clientX; }, {passive:true});
+    document.getElementById('quote-card-el').addEventListener('touchend', function(e) {
+        var diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 40) { if (diff > 0) nextQuote(); else prevQuote(); }
+    }, {passive:true});
+    window.onload = function() {
+        currentIdx = Math.floor(Math.random() * quotes.length);
+        document.getElementById('quote-text').textContent = quotes[currentIdx];
+        buildDots(); updateDots();
+        setTimeout(toggleAuto, 3000);
+    };
+    </script>
+    <script src="../shell.js"></script>
 </body>
 </html>

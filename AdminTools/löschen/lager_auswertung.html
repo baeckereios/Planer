@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BäckereiOS - Auswertung</title>
+    <link rel="stylesheet" href="admin_design.css">
+    <style>
+        /* Premium UI Styles für die Auswertung */
+        .order-card {
+            padding: 18px 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            margin-bottom: 0;
+            transition: all 0.2s;
+        }
+        
+        /* Hervorhebung, wenn bestellt werden muss (Sanftes Orange) */
+        .order-card.needed {
+            border-color: #f59e0b; 
+            background: #fffbeb;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
+        }
+        
+        .card-title {
+            margin: 0 0 8px 0;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+        .card-details {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        
+        /* Die kleinen Status-Pillen oben rechts in der Karte */
+        .order-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            float: right;
+            font-weight: 800;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-order { background-color: #f59e0b; color: white; }
+        .badge-ok { background-color: var(--success-bg); color: var(--success-color); border: 1px solid var(--success-color); }
+
+        /* Große, gut drückbare Action-Buttons am Ende */
+        .action-buttons { display: flex; flex-direction: column; gap: 12px; margin-top: 25px; }
+        .btn-wa { background-color: #10b981; font-size: 1.05rem; padding: 16px; box-shadow: 0 4px 12px rgba(16,185,129,0.2); }
+        .btn-save { background-color: #f8fafc; color: var(--text-main); border: 1px solid #cbd5e1; font-size: 1.05rem; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="hide-in-assistant" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800;">📋 Auswertung</h1>
+        <a href="lager_inventur.html" style="text-decoration: none; color: var(--text-muted); font-size: 0.8rem; font-weight: bold; padding: 5px 10px; border-radius: 6px; background: #fff; border: 1px solid var(--border-color);">Zurück</a>
+    </div>
+
+    <div id="resultsList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+
+    <div class="action-buttons">
+        <button class="btn-wa" onclick="share()">📱 1. WhatsApp senden</button>
+        <button class="btn-save" onclick="finish()">💾 2. Speichern & Beenden</button>
+    </div>
+
+</div>
+
+<script src="baeko_bestand.js"></script>
+<script src="baeko_historie.js"></script>
+<script src="lager_gehirn.js"></script>
+<script>
+    function init() {
+        const data = JSON.parse(localStorage.getItem('BOS_LAGER_TEMP') || '{}');
+        const list = document.getElementById('resultsList');
+        
+        (data.results || []).forEach(res => {
+            const card = document.createElement('div');
+            const isNeeded = res.order > 0;
+            card.className = `order-card ${isNeeded ? 'needed' : ''}`;
+            
+            const badgeHtml = isNeeded ? 
+                `<span class="order-badge badge-order">Bestellen: ${res.order}</span>` : 
+                `<span class="order-badge badge-ok">✓ OK</span>`;
+                
+            card.innerHTML = `${badgeHtml}
+                <h2 class="card-title">${res.name}</h2>
+                <div class="card-details">Bestand: ${res.current} ${res.unit} / Soll: ${res.target}</div>`;
+            list.appendChild(card);
+        });
+    }
+    
+    function share() {
+        const data = JSON.parse(localStorage.getItem('BOS_LAGER_TEMP') || '{}');
+        window.open(`https://wa.me/?text=${window.BOS_LAGER_BRAIN.generateWhatsAppText(data.results)}`, '_blank');
+    }
+    
+    function finish() {
+        const data = JSON.parse(localStorage.getItem('BOS_LAGER_TEMP') || '{}');
+        let h = JSON.parse(localStorage.getItem('BOS_LAGER_HISTORY') || '[]');
+        h.push(data.snapshot);
+        localStorage.setItem('BOS_LAGER_HISTORY', JSON.stringify(h));
+        
+        const combined = [...(window.BOS_BAEKO_HISTORIE || []), ...h];
+        const blob = new Blob(["window.BOS_BAEKO_HISTORIE = " + JSON.stringify(combined, null, 4) + ";"], { type: "text/javascript" });
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "baeko_historie.js"; a.click();
+        
+        localStorage.removeItem('BOS_LAGER_TEMP');
+        
+        if (window !== window.parent || window.location.search.includes('embedded=1')) {
+            document.querySelector('.container').innerHTML = `
+                <div style="text-align:center; padding: 40px 20px; margin-top: 20px;">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">✅</div>
+                    <h2 style="border: none; font-weight:800; color:var(--text-main);">Gesichert!</h2>
+                    <p style="color:var(--text-muted); line-height: 1.5;">Die Historie wurde heruntergeladen.<br><br>Klicke nun im Assistenten unten auf <strong>"ERLEDIGT & WEITER"</strong>.</p>
+                </div>
+            `;
+        } else {
+            location.href = 'admin_landing.html';
+        }
+    }
+    window.onload = init;
+
+    // --- MAGIC SCRIPT FÜR EDGE-TO-EDGE IM ASSISTENTEN ---
+    if (window !== window.parent || window.location.search.includes('embedded=1')) {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            body { padding: 0 0 150px 0 !important; background-color: var(--bg-color) !important; }
+            .container { padding: 15px 12px 40px 12px !important; max-width: 100% !important; margin: 0 !important; gap: 8px !important;}
+            .hide-in-assistant { display: none !important; }
+        `;
+        document.head.appendChild(style);
+    }
+</script>
+</body>
+</html>

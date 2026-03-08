@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BäckereiOS - Mengenübersicht</title>
     <link rel="stylesheet" href="systemdesign.css">
+    
     <script src="stammdaten.js"></script>
+    <script src="shell.js" defer></script>
+    
     <style>
-        body { background: var(--bg); color: var(--text); padding-bottom: 50px; }
-        
-        .top-nav-bar { background: var(--surface); border-bottom: 1.5px solid var(--border-s); padding: 10px 15px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; z-index: 100; }
-        .btn-back { background: var(--surface2); border: 1.5px solid var(--border-s); color: var(--text); padding: 6px 12px; border-radius: 8px; text-decoration: none; font-family: 'Barlow Condensed'; font-weight: 800; font-size: 0.8rem; text-transform: uppercase; }
-
+        body { background: var(--bg); color: var(--text); padding-bottom: 90px; }
         .container { max-width: 900px; margin: 30px auto; padding: 0 15px; }
         
         .page-header { margin-bottom: 25px; }
@@ -37,11 +36,6 @@
     </style>
 </head>
 <body>
-
-    <div class="top-nav-bar">
-        <a href="index.html" class="btn-back">← MENÜ</a>
-        <div style="font-family:'Fraunces'; font-weight:900; font-size:1.1rem;">Mengenübersicht</div>
-    </div>
 
     <div class="container">
         <div class="page-header">
@@ -76,8 +70,7 @@
     </div>
 
     <script>
-        function init() {
-            // Theme laden
+        function initTable() {
             document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light');
             
             const tbody = document.getElementById('overview-body');
@@ -88,22 +81,17 @@
                 return;
             }
 
-            // Alphabetisch sortieren für bessere Übersicht
             const sortedKeys = Object.keys(data).sort((a, b) => data[a].name.localeCompare(data[b].name));
 
             sortedKeys.forEach(id => {
                 const p = data[id];
                 const tr = document.createElement('tr');
                 
-                // Produktname
                 let html = `<td class="col-prod">${p.name}</td>`;
-                
-                // Wochentage 0-6
                 p.needs.forEach(val => {
                     html += `<td class="${val === 0 ? 'zero-val' : ''}">${val}</td>`;
                 });
                 
-                // Grillwetter Zuschlag
                 const sunVal = p.sun || 0;
                 html += `<td class="sun-val ${sunVal === 0 ? 'zero-val' : ''}">${sunVal > 0 ? '+' + sunVal : 0}</td>`;
                 
@@ -112,7 +100,8 @@
             });
         }
 
-        window.onload = init;
+        // Sicherer Weg, um zu warten, bis das HTML geladen ist
+        document.addEventListener('DOMContentLoaded', initTable);
     </script>
 </body>
 </html>

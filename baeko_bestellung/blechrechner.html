@@ -31,7 +31,7 @@
         <div id="standardList"></div>
     </main>
 
-    <script src="baeko_bestand.js"></script>
+    <script src="../baeko_bestand.js"></script>
     <script src="lager_gehirn.js"></script>
     <script>
         const dayIdx = (new Date().getDay() + 6) % 7; 
@@ -100,7 +100,8 @@
             const res = window.BOS_LAGER_BRAIN.convertStandard(id, bleche);
             target.value = Math.round(res * 10) / 10 + " Kartons";
         }
-        window.onload = render;
+        if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", render); } else { render(); }
     </script>
+  <script src="../shell.js"></script>
 </body>
 </html>

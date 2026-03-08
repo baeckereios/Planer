@@ -134,8 +134,8 @@
         <button onclick="resetDay()" style="background:var(--surface2); border:2px solid var(--border-s); color:var(--dim); font-weight:900; padding:8px 12px; border-radius:12px; font-size:0.85rem; cursor:pointer;">&#8635; Reset</button>
     </div>
     <div class="brand-logo">Bäckerei<span>OS</span></div>
-    <div class="day-tabs" id="tabs"></div>
 </div>
+<div class="day-tabs" id="tabs" style="position:sticky; top:52px; z-index:90; background:var(--surface); border-bottom:1.5px solid var(--border); box-shadow:0 2px 8px var(--shadow);"></div>
 
 <div class="container">
     <div id="checklist"></div>
@@ -370,5 +370,6 @@ function shareDay() {
     }
 }
 </script>
+  <script src="shell.js"></script>
 </body>
 </html>
