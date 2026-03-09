@@ -1,9 +1,22 @@
 /* =========================================================
    BÄCKEREIOS - TAGES-ASSISTENT KONFIGURATION
-   Generiert am: 8.3.2026, 07:29:05
+   Generiert am: 9.3.2026, 03:14:09
    ========================================================= */
 
 window.BOS_ASSISTENT_PLAN = [
+    {
+        "titel": "Backzettel Datenbank Aufbau",
+        "datei": "datenbank_manager.html",
+        "tage": {
+            "Montag": true,
+            "Dienstag": true,
+            "Mittwoch": true,
+            "Donnerstag": true,
+            "Freitag": true,
+            "Samstag": true,
+            "Sonntag": true
+        }
+    },
     {
         "titel": "Wetter & Einschätzung",
         "datei": "Datenerfassungs_Prompt.html",
@@ -80,6 +93,19 @@ window.BOS_ASSISTENT_PLAN = [
             "Freitag": false,
             "Samstag": false,
             "Sonntag": false
+        }
+    },
+    {
+        "titel": "ServiceWorker Generator",
+        "datei": "serviceworker_generator.html",
+        "tage": {
+            "Montag": true,
+            "Dienstag": true,
+            "Mittwoch": true,
+            "Donnerstag": true,
+            "Freitag": true,
+            "Samstag": true,
+            "Sonntag": true
         }
     }
 ];

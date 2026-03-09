@@ -625,7 +625,35 @@
         </div>
       </div>
 
-      <!-- 6. ASSISTENTEN -->
+      <!-- 6. NACHTSCHICHT -->
+      <div class="tool-folder" id="folder-nacht">
+        <div class="tool-link tool-folder-toggle" onclick="toggleFolder('folder-nacht')">
+          <div class="tool-icon">🌙</div>
+          <div>
+            <div class="tool-name">NachtSchicht</div>
+            <div class="tool-sub">Spezialrechner für die Nacht</div>
+          </div>
+          <div class="folder-arrow">▸</div>
+        </div>
+        <div class="folder-children" id="folder-nacht-children">
+          <a href="nachtschicht/brot_rechner.html" class="tool-link tool-child">
+            <div class="tool-icon">🍞</div>
+            <div>
+              <div class="tool-name">BrotRechner</div>
+              <div class="tool-sub">Brotmengen berechnen</div>
+            </div>
+          </a>
+          <a href="nachtschicht/sauerteig_rechner.html" class="tool-link tool-child">
+            <div class="tool-icon">🫧</div>
+            <div>
+              <div class="tool-name">Sauerteig &amp; Vortag</div>
+              <div class="tool-sub">Ansätze berechnen</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- 7. ASSISTENTEN -->
       <div class="tool-folder" id="folder-assistenten">
         <div class="tool-link tool-folder-toggle" onclick="toggleFolder('folder-assistenten')">
           <div class="tool-icon">🚀</div>
@@ -654,6 +682,7 @@
           <option value="vi">🇻🇳 Tiếng Việt</option>
         </select>
         <button onclick="openAdminGate()" class="ctrl-btn" style="flex:0; padding:0 16px; opacity:0.4;" title="Admin">⚙️</button>
+        <a href="hilfe.html" class="ctrl-btn" style="flex:0; padding:0 16px; text-decoration:none; display:flex; align-items:center; justify-content:center;" title="Hilfe">❓</a>
       </div>
 
       <!-- Admin-Passwort Modal -->

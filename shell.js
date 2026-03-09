@@ -27,8 +27,11 @@
         'history.html':              { title: 'Geschichte',         mode: 'full', tab: 'mehr'       },
         'mythen.html':               { title: 'Mythen & Fakten',    mode: 'full', tab: 'mehr'       },
         'pausen_snacks.html':        { title: 'Pausen-Snacks',      mode: 'full', tab: 'mehr'       },
+        'hilfe.html':                { title: 'Hilfe',              mode: 'full', tab: 'mehr'       },
         'changelog.html':            { title: 'Changelog',          mode: 'full', tab: 'mehr'       },
         'backspiel.html':            { title: 'BäckerRun',          mode: 'full', tab: 'mehr'       },
+        'brot_rechner.html':         { title: 'BrotRechner',        mode: 'full', tab: 'mehr'       },
+        'sauerteig_rechner.html':    { title: 'Sauerteig & Vortag', mode: 'full', tab: 'mehr'       },
         'games.html':                { title: 'BäckerSpiele',       mode: 'full', tab: 'mehr'       },
     };
 
@@ -36,7 +39,7 @@
     const config   = PAGE_CONFIG[filename] || { title: '', mode: 'full', tab: 'mehr' };
 
     // NEU: Die intelligente Ordner-Erkennung
-    const isSubfolder = window.location.href.includes('/baeko_bestellung/') || window.location.href.includes('/news_rohstoffe/') || window.location.href.includes('/azubi_meisterhaft/') || window.location.href.includes('/games/');
+    const isSubfolder = window.location.href.includes('/baeko_bestellung/') || window.location.href.includes('/news_rohstoffe/') || window.location.href.includes('/azubi_meisterhaft/') || window.location.href.includes('/games/') || window.location.href.includes('/nachtschicht/');
     const base = isSubfolder ? '../' : '';
 
     const isMinimal = config.mode === 'minimal';

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BäckereiOS - Brotrechner</title>
+    
+    <link rel="stylesheet" href="../systemdesign.css">
+    <script src="../shell.js"></script>
+    
+    <script src="../AdminTools/brot_daten.js"></script>
+    <script src="../AdminTools/brot_gehirn.js"></script>
+    
+    <style>
+        .day-nav { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 10px; margin-bottom: 20px; scrollbar-width: none; }
+        .day-nav::-webkit-scrollbar { display: none; }
+        .day-btn { padding: 10px 20px; border-radius: 20px; border: 1px solid var(--border-color); background: white; font-weight: bold; color: var(--text-muted); white-space: nowrap; cursor: pointer;}
+        .day-btn.active { background: var(--btn-primary); color: white; border-color: var(--btn-primary); }
+        
+        .teig-card { border-left: 5px solid #f59e0b; margin-bottom: 25px; }
+        .teig-header { border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; }
+        
+        .weg-box { background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+        .weg-title { font-size: 1rem; font-weight: 800; color: var(--btn-primary); margin-top: 0; margin-bottom: 10px; border-bottom: 1px dashed var(--border-color); padding-bottom: 5px;}
+        
+        .input-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 8px; background: #f8fafc; border-radius: 6px; }
+        .input-row input { width: 80px; text-align: center; font-size: 1.2rem; font-weight: bold; padding: 8px; margin: 0; border: 1px solid #cbd5e1; border-radius: 6px;}
+        
+        .korrektur-banner { background: #fefce8; border: 1px dashed #fcd34d; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: none; }
+        
+        .result-box { background: #1e293b; color: white; padding: 20px; border-radius: 12px; margin-top: 20px; }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .res-item { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; text-align: center; }
+        .res-val { font-size: 1.5rem; font-weight: 900; color: #34d399; font-family: 'Fraunces', serif;}
+        .res-lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; }
+        .res-item.brueh .res-val { color: #facc15; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 style="margin-bottom: 5px;">Kneter-Station</h1>
+    <p style="color: var(--text-muted); margin-top: 0;">Wähle den aktuellen Produktionstag:</p>
+    
+    <div class="day-nav" id="day-nav"></div>
+    <div id="rechner-bereich"></div>
+</div>
+
+<script>
+    const tage = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+    let aktiverTag = tage[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1]; 
+
+    function init() {
+        if(!window.BOS_BROT_DATEN || !window.BOS_BROT_BRAIN) {
+            document.getElementById('rechner-bereich').innerHTML = "<div class='card' style='color:red;'>Fehler: brot_daten.js oder brot_gehirn.js fehlt!</div>";
+            return;
+        }
+        buildNav();
+        renderTeige();
+    }
+
+    function buildNav() {
+        const nav = document.getElementById('day-nav');
+        nav.innerHTML = '';
+        tage.forEach(tag => {
+            const btn = document.createElement('button');
+            btn.className = `day-btn ${tag === aktiverTag ? 'active' : ''}`;
+            btn.innerText = tag;
+            btn.onclick = () => { aktiverTag = tag; buildNav(); renderTeige(); };
+            nav.appendChild(btn);
+        });
+    }
+
+    function renderTeige() {
+        const bereich = document.getElementById('rechner-bereich');
+        bereich.innerHTML = '';
+        let found = false;
+
+        for(let id in window.BOS_BROT_DATEN) {
+            const t = window.BOS_BROT_DATEN[id];
+            if(!(t.wochentage || []).includes(aktiverTag)) continue;
+            found = true;
+
+            let produkteHtml = '';
+            (t.endprodukte || []).forEach((p, idx) => {
+                produkteHtml += `
+                <div class="input-row">
+                    <div>
+                        <strong style="display:block; font-size:1.05rem; color:var(--text-main);">${p.name}</strong>
+                        <small style="color:var(--text-muted);">Einwaage: ${p.einwaage}g</small>
+                    </div>
+                    <input type="number" id="menge_${id}_${idx}" placeholder="0" inputmode="numeric" oninput="berechne('${id}', 'produkte')">
+                </div>`;
+            });
+
+            // Warn-Banner, falls der "Momentane Standard" im Admin aktiviert wurde
+            let bannerHtml = '';
+            if (t.korrektur_aktiv) {
+                bannerHtml = `
+                <div class="korrektur-banner" style="display:block;">
+                    <div style="font-weight:bold; color:#a16207; font-size:0.9rem;">⚠️ Automatische Teig-Korrektur aktiv</div>
+                    <div style="font-size:0.8rem; color:#b45309; margin-top:2px;">Der "Momentane Standard" (z.B. Mehlcharge) aus dem Tresor wird im Hintergrund automatisch auf die Bestellmenge angewandt.</div>
+                </div>`;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'card teig-card';
+            card.innerHTML = `
+                <div class="teig-header">
+                    <h2 style="margin:0; font-size:1.6rem; color:#b45309;">${t.name}</h2>
+                    <div style="font-size:0.85rem; color:var(--text-muted); font-weight:bold; margin-top:5px;">
+                        <span>⚙️ ${t.programm || 'Kein Programm'}</span>
+                        ${t.kommentar ? ` | <span style="color:#ef4444;">⚠️ ${t.kommentar}</span>` : ''}
+                    </div>
+                </div>
+                
+                ${bannerHtml}
+
+                <div class="weg-box">
+                    <h3 class="weg-title">WEG 1: Ich weiß, was ich brauche</h3>
+                    ${produkteHtml}
+                </div>
+
+                <div style="text-align:center; font-weight:900; color:#cbd5e1; margin-bottom:15px;">ODER</div>
+
+                <div class="weg-box" style="border-color:#bae6fd; background:#f0f9ff;">
+                    <h3 class="weg-title" style="color:#0369a1;">WEG 2: Ich habe fertige Eimer</h3>
+                    <div class="input-row" style="background:transparent; padding:0;">
+                        <div>
+                            <strong style="display:block; font-size:1.05rem; color:#0369a1;">Anzahl Brühstück-Chargen</strong>
+                            <small style="color:#0284c7;">1 Eimer = ${t.charge_brote || 21} Standard-Brote</small>
+                        </div>
+                        <input type="number" id="chargen_${id}" placeholder="0" inputmode="decimal" style="border-color:#bae6fd; color:#0369a1;" oninput="berechne('${id}', 'chargen')">
+                    </div>
+                </div>
+
+                <div class="result-box" id="result_${id}" style="display:none;"></div>
+            `;
+            bereich.appendChild(card);
+        }
+
+        if(!found) bereich.innerHTML = `<div class="card" style="text-align:center; color:var(--text-muted);">An diesem Tag sind keine Teige hinterlegt.</div>`;
+    }
+
+    const lastMode = {}; 
+
+    function berechne(id, mode) {
+        const t = window.BOS_BROT_DATEN[id];
+        lastMode[id] = mode;
+        const currentMode = lastMode[id] || 'produkte';
+
+        let produkteMengen = [];
+        (t.endprodukte || []).forEach((p, idx) => {
+            produkteMengen.push(parseInt(document.getElementById(`menge_${id}_${idx}`)?.value) || 0);
+        });
+        const chargenMenge = parseFloat(document.getElementById(`chargen_${id}`)?.value) || 0;
+
+        if (currentMode === 'produkte') {
+            document.getElementById(`chargen_${id}`).value = '';
+        } else if (currentMode === 'chargen') {
+            (t.endprodukte || []).forEach((p, idx) => {
+                const el = document.getElementById(`menge_${id}_${idx}`);
+                if(el) el.value = '';
+            });
+        }
+
+        // Aufruf ans neue Gehirn (ohne Manuelle Inputs von hier)
+        const res = window.BOS_BROT_BRAIN.calculate(id, currentMode, produkteMengen, chargenMenge);
+
+        const resBox = document.getElementById(`result_${id}`);
+        if (!res.show) { 
+            resBox.style.display = 'none'; 
+            return; 
+        }
+
+        let infoText = res.istEimerModus 
+            ? `<div style="font-size:0.75rem; color:#38bdf8; text-transform:uppercase; margin-top:10px;">Reicht für ca. ${res.gesamtBroteFiktiv} Standard-Brote</div>` 
+            : '';
+
+        let korrekturLabel = res.korrekturInfo ? `<div style="font-size:0.8rem; color:#fcd34d; margin-top:10px; font-weight:bold;">${res.korrekturInfo}</div>` : '';
+
+        resBox.style.display = 'block';
+        resBox.innerHTML = `
+            <div style="text-align:center; border-bottom:1px solid #334155; padding-bottom:10px;">
+                <div style="font-size:0.85rem; color:#94a3b8; text-transform:uppercase;">Endgewicht aus dem Kneter</div>
+                <div style="font-size:2.2rem; font-weight:900; color:white;">${(res.zielTeigGewicht/1000).toFixed(2)} kg</div>
+                ${infoText}
+                ${korrekturLabel}
+            </div>
+            <div class="result-grid">
+                <div class="res-item"><div class="res-val">${window.BOS_BROT_BRAIN.formatGramm(res.calcMehl)}</div><div class="res-lbl">Mehl</div></div>
+                <div class="res-item"><div class="res-val" style="color:#60a5fa;">${window.BOS_BROT_BRAIN.formatGramm(res.calcWasser)}</div><div class="res-lbl">Wasser</div></div>
+                <div class="res-item"><div class="res-val" style="color:#d946ef;">${window.BOS_BROT_BRAIN.formatGramm(res.calcSauer)}</div><div class="res-lbl">Sauerteig</div></div>
+                <div class="res-item brueh"><div class="res-val">${res.bruehText}</div><div class="res-lbl">Brühstück</div></div>
+                <div class="res-item" style="grid-column: span 2;"><div class="res-val" style="color:#f87171;">${window.BOS_BROT_BRAIN.formatGramm(res.calcZutaten)}</div><div class="res-lbl">Zutaten (Salz/Hefe)</div></div>
+            </div>
+        `;
+    }
+
+    window.addEventListener('load', () => { setTimeout(init, 200); });
+</script>
+</body>
+</html>

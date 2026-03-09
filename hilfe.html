@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hilfe | BäckereiOS</title>
+    <link rel="stylesheet" href="systemdesign.css">
+    <script>
+        (function() {
+            try { document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light'); } catch(e) {}
+        })();
+    </script>
+    <style>
+        body { padding-bottom: 80px; }
+        .page-wrap { max-width: 600px; margin: 0 auto; padding: 20px 16px; }
+
+        /* PAGE HEADER */
+        .help-header {
+            margin-bottom: 28px;
+        }
+        .help-header h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--text);
+            margin: 0 0 4px;
+        }
+        .help-header p {
+            font-size: 0.85rem;
+            color: var(--dim);
+            margin: 0;
+        }
+
+        /* SECTION */
+        .help-section {
+            margin-bottom: 10px;
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            background: var(--surface);
+        }
+        .help-section-toggle {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+        .help-section-toggle:hover { background: var(--surface2); }
+        .help-section-icon {
+            font-size: 1.4rem;
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--surface2);
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+        .help-section-title {
+            flex: 1;
+        }
+        .help-section-name {
+            font-family: 'Barlow Condensed';
+            font-weight: 900;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text);
+        }
+        .help-section-sub {
+            font-size: 0.78rem;
+            color: var(--dim);
+            margin-top: 2px;
+        }
+        .help-section-arrow {
+            color: var(--amber);
+            font-size: 1rem;
+            transition: transform 0.25s;
+        }
+        .help-section.open .help-section-arrow { transform: rotate(90deg); }
+
+        .help-section-body {
+            display: none;
+            border-top: 1.5px solid var(--border);
+            padding: 0;
+        }
+        .help-section.open .help-section-body { display: block; }
+
+        /* ARTICLES inside section */
+        .help-article {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .help-article:last-child { border-bottom: none; }
+        .help-article-title {
+            font-family: 'Barlow Condensed';
+            font-weight: 900;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--amber);
+            margin-bottom: 8px;
+        }
+        .help-article p {
+            font-size: 0.88rem;
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0 0 8px;
+        }
+        .help-article p:last-child { margin-bottom: 0; }
+
+        /* STEPS */
+        .help-steps { list-style: none; padding: 0; margin: 8px 0 0; }
+        .help-steps li {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--text);
+            line-height: 1.5;
+        }
+        .help-steps li:last-child { border-bottom: none; }
+        .step-num {
+            flex-shrink: 0;
+            width: 24px; height: 24px;
+            background: var(--amber);
+            color: white;
+            border-radius: 50%;
+            font-family: 'Barlow Condensed';
+            font-weight: 900;
+            font-size: 0.8rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* FAQ */
+        .faq-item {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-q {
+            font-weight: 800;
+            font-size: 0.88rem;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+        .faq-a {
+            font-size: 0.84rem;
+            color: var(--dim);
+            line-height: 1.5;
+        }
+
+        /* PLACEHOLDER */
+        .coming-soon {
+            padding: 20px 16px;
+            text-align: center;
+            font-size: 0.82rem;
+            color: var(--dim);
+            font-family: 'Barlow Condensed';
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+    <div class="help-header">
+        <h1>❓ Hilfe</h1>
+        <p>Anleitungen, FAQ und Erklärungen zu allen Funktionen von BäckereiOS.</p>
+    </div>
+
+    <!-- 1. SCHNELLRECHNER -->
+    <div class="help-section" id="hs-schnell">
+        <div class="help-section-toggle" onclick="toggleSection('hs-schnell')">
+            <div class="help-section-icon">🧮</div>
+            <div class="help-section-title">
+                <div class="help-section-name">Schnellrechner</div>
+                <div class="help-section-sub">Produktionsmengen · Hamster · Froster-Status</div>
+            </div>
+            <div class="help-section-arrow">▸</div>
+        </div>
+        <div class="help-section-body">
+
+            <div class="help-article">
+                <div class="help-article-title">📋 Schritt-für-Schritt</div>
+                <ol class="help-steps">
+                    <li><span class="step-num">1</span> Wähle den heutigen Wochentag aus.</li>
+                    <li><span class="step-num">2</span> Wähle das Produkt und prüfe den automatisch eingetragenen Bestand (oder trage ihn manuell ein).</li>
+                    <li><span class="step-num">3</span> Wähle den Froster-Status: <b>Fertig</b> = Froster ist bereits aufgetaut, Produktion beginnt übermorgen. <b>Noch nicht</b> = Froster läuft heute Nacht, Produktion beginnt morgen.</li>
+                    <li><span class="step-num">4</span> Wähle, bis einschließlich welchem Tag die Ware reichen soll — maximal bis Dienstag der Folgewoche.</li>
+                    <li><span class="step-num">5</span> Optional: Feiertage, Hamster oder Grillwetter in den Extras einstellen.</li>
+                    <li><span class="step-num">6</span> Auf <b>BERECHNEN</b> tippen.</li>
+                </ol>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">🐹 Hamster-Modus</div>
+                <p>Aktivierbar pro Tag in den Extras. Der Hamster-Modus erhöht die Produktionsmenge für Tage mit erwartet hohem Ansturm.</p>
+                <p><b>🐹 Einfach:</b> Mittelwert aus Samstagsmenge und normaler Tagesmenge.<br>
+                <b>🐹🐹 Ultra:</b> Volle Samstagsmenge — maximale Produktion.</p>
+                <p>Nochmal klicken deaktiviert den Hamster wieder.</p>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">⚠️ Alte Inventur</div>
+                <p>Liegt die letzte Inventur mehr als 24 Stunden zurück, wird der Bestand <b>nicht automatisch eingetragen</b>. Ein roter Banner erscheint. Bitte den aktuellen Bestand manuell zählen und eintragen.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 2. FROSTER-SYSTEM -->
+    <div class="help-section" id="hs-froster">
+        <div class="help-section-toggle" onclick="toggleSection('hs-froster')">
+            <div class="help-section-icon">❄️</div>
+            <div class="help-section-title">
+                <div class="help-section-name">Froster-System & Poka-Yoke</div>
+                <div class="help-section-sub">Sicherheitsmechanismus · Setup-Workflow</div>
+            </div>
+            <div class="help-section-arrow">▸</div>
+        </div>
+        <div class="help-section-body">
+
+            <div class="help-article">
+                <div class="help-article-title">🔒 Was ist Poka-Yoke?</div>
+                <p>Poka-Yoke ist ein Sicherheitsprinzip aus der Produktion: Fehler werden durch technische Sperren verhindert, bevor sie passieren können. Im Froster-System bedeutet das: Der Schnellrechner ist gesperrt, bis du bewusst entschieden hast, ob der Froster fertig ist oder nicht.</p>
+                <p>So wird verhindert, dass versehentlich mit falschen Annahmen gerechnet wird.</p>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">📋 Schritt-für-Schritt: Setup</div>
+                <ol class="help-steps">
+                    <li><span class="step-num">1</span> Beim Start landet die App automatisch im <b>Setup</b> (PlanungsAssistent). Dieser muss zuerst abgeschlossen werden.</li>
+                    <li><span class="step-num">2</span> Der Froster-Status wird abgefragt: <b>FERTIG</b> (Ware ist bereits draußen) oder <b>NOCH NICHT</b> (Froster läuft heute Nacht).</li>
+                    <li><span class="step-num">3</span> Erst nach dieser Auswahl wird der BERECHNEN-Button im Schnellrechner freigeschaltet.</li>
+                    <li><span class="step-num">4</span> Der gewählte Status bleibt für die gesamte Schicht gespeichert.</li>
+                </ol>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">❄️ Was bedeutet Froster FERTIG?</div>
+                <p>Die Ware wurde bereits in der vorherigen Nacht aus dem Froster genommen und taut gerade auf. Sie ist für <b>heute und morgen</b> verfügbar. Die Produktion beginnt also <b>übermorgen</b>.</p>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">❌ Was bedeutet NOCH NICHT?</div>
+                <p>Der Froster wird <b>in dieser Nacht</b> geleert. Die Ware ist ab <b>morgen</b> verfügbar. Die Produktion beginnt also <b>morgen</b>.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 3. INVENTUR & BÄKO -->
+    <div class="help-section" id="hs-inventur">
+        <div class="help-section-toggle" onclick="toggleSection('hs-inventur')">
+            <div class="help-section-icon">📦</div>
+            <div class="help-section-title">
+                <div class="help-section-name">Inventur & BÄKO</div>
+                <div class="help-section-sub">Lager-Zählung · Bestellvorbereitung · Analyse</div>
+            </div>
+            <div class="help-section-arrow">▸</div>
+        </div>
+        <div class="help-section-body">
+
+            <div class="help-article">
+                <div class="help-article-title">📋 Lager-Inventur: Schritt-für-Schritt</div>
+                <ol class="help-steps">
+                    <li><span class="step-num">1</span> BÄKO → Lager-Inventur öffnen.</li>
+                    <li><span class="step-num">2</span> Für jedes Produkt den aktuellen <b>IST-Bestand</b> (was im Regal liegt) und die <b>NEU-Ware</b> (frisch geliefert, noch nicht eingeräumt) eintragen.</li>
+                    <li><span class="step-num">3</span> Feiertag-Toggle aktivieren, falls in den nächsten Tagen ein Feiertag ansteht — das erhöht das Soll-Ziel automatisch.</li>
+                    <li><span class="step-num">4</span> <b>Zählung abschließen</b> tippen — die Daten werden gespeichert und du landest in der Auswertung.</li>
+                </ol>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">📊 Lager-Analyse</div>
+                <p>Die Lager-Analyse zeigt die Verbrauchshistorie pro Produkt. Sie hilft dabei, Bestellmengen und Trends zu erkennen — wann wird wie viel verbraucht, wo gibt es regelmäßige Engpässe?</p>
+                <p>Die Seite liest aus den gespeicherten Zählungen der Vergangenheit und berechnet Durchschnittswerte.</p>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">⚠️ Wichtig: Inventur-Aktualität</div>
+                <p>Alle anderen Tools (Schnellrechner, Bestände) zeigen eine Warnung, wenn die letzte Inventur älter als <b>24 Stunden</b> ist. Regelmäßige Zählungen sind daher entscheidend für zuverlässige Berechnungen.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 4. BESTÄNDE -->
+    <div class="help-section" id="hs-bestand">
+        <div class="help-section-toggle" onclick="toggleSection('hs-bestand')">
+            <div class="help-section-icon">🫙</div>
+            <div class="help-section-title">
+                <div class="help-section-name">Bestände</div>
+                <div class="help-section-sub">Lagerübersicht · Reichweite · Stationsfilter</div>
+            </div>
+            <div class="help-section-arrow">▸</div>
+        </div>
+        <div class="help-section-body">
+
+            <div class="help-article">
+                <div class="help-article-title">📖 Was zeigt die Seite?</div>
+                <p>Die Bestandsübersicht gibt einen schnellen Überblick über alle Produkte: wie viel aktuell vorhanden ist, wie viel noch benötigt wird, und bis wann der Bestand reicht.</p>
+                <p>Grüner Kreis = gut versorgt. Roter Kreis = kritisch oder leer. Die Zahl oben im Kreis ist der aktuelle Bestand, die Zahl unten der Restbedarf.</p>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">🏭 Stationsfilter</div>
+                <p>Mit den Buttons oben kannst du die Ansicht auf eine bestimmte Station filtern: <b>Alle Produkte</b>, <b>Brötchenstraße</b>, <b>Frühschicht</b>, <b>Rondo</b> oder <b>Nachtschicht</b>. So siehst du nur das, was für deine Station relevant ist.</p>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">⚠️ Veraltete Bestände</div>
+                <p>Liegt die letzte Inventur mehr als 24 Stunden zurück, erscheint ein roter Warnbalken oben auf der Seite. Die angezeigten Werte können dann veraltet sein — <b>nicht als Grundlage für Produktionsentscheidungen verwenden</b>.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 5. BLECHRECHNER -->
+    <div class="help-section" id="hs-blech">
+        <div class="help-section-toggle" onclick="toggleSection('hs-blech')">
+            <div class="help-section-icon">📏</div>
+            <div class="help-section-title">
+                <div class="help-section-name">BlechRechner</div>
+                <div class="help-section-sub">Blechmengen · Karton-Umrechnung</div>
+            </div>
+            <div class="help-section-arrow">▸</div>
+        </div>
+        <div class="help-section-body">
+
+            <div class="help-article">
+                <div class="help-article-title">📖 Was macht der BlechRechner?</div>
+                <p>Der BlechRechner hat zwei Funktionen pro Produkt:</p>
+                <p><b>Absetzen → Aus Froster:</b> Du gibst die Anzahl der Bleche ein, die du absetzen willst — der Rechner zeigt, wie viele Kartons du dafür aus dem Froster brauchst.</p>
+                <p><b>Kreuzrechnung:</b> Umrechnung zwischen alten und neuen Einheiten, z.B. Stück ↔ Bleche.</p>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">📋 Schritt-für-Schritt</div>
+                <ol class="help-steps">
+                    <li><span class="step-num">1</span> Produkt in der Karte auswählen.</li>
+                    <li><span class="step-num">2</span> Anzahl der Bleche eingeben, die du absetzen möchtest.</li>
+                    <li><span class="step-num">3</span> Das Feld <b>Aus Froster</b> berechnet automatisch die benötigten Kartons.</li>
+                    <li><span class="step-num">4</span> Für die Kreuzrechnung: Wert in einem der beiden oberen Felder eingeben — das andere wird automatisch berechnet.</li>
+                </ol>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 6. OFENANGRIFF -->
+    <div class="help-section" id="hs-ofen">
+        <div class="help-section-toggle" onclick="toggleSection('hs-ofen')">
+            <div class="help-section-icon">🔥</div>
+            <div class="help-section-title">
+                <div class="help-section-name">Ofenangriff</div>
+                <div class="help-section-sub">Backprogramme · Zeiten</div>
+            </div>
+            <div class="help-section-arrow">▸</div>
+        </div>
+        <div class="help-section-body">
+
+            <div class="help-article">
+                <div class="help-article-title">📖 Was zeigt der Ofenangriff?</div>
+                <p>Der Ofenangriff ist die digitale Übersicht aller Backprogramme mit zugehörigen Zeiten, Temperaturen und Besonderheiten. Er dient als schnelle Referenz während der Schicht — kein Suchen in Papierlisten mehr.</p>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">💡 Tipp</div>
+                <p>Der Ofenangriff ist besonders nützlich für Auszubildende und neue Mitarbeiter, die die Programme noch nicht auswendig kennen. Bei Unsicherheiten immer zuerst hier nachschauen.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 7. WOCHENPLAN -->
+    <div class="help-section" id="hs-woche">
+        <div class="help-section-toggle" onclick="toggleSection('hs-woche')">
+            <div class="help-section-icon">📅</div>
+            <div class="help-section-title">
+                <div class="help-section-name">Wochenplan</div>
+                <div class="help-section-sub">Strategie · Wettervorschau · Prompt-Generator</div>
+            </div>
+            <div class="help-section-arrow">▸</div>
+        </div>
+        <div class="help-section-body">
+
+            <div class="help-article">
+                <div class="help-article-title">📖 Was ist der Wochenplan?</div>
+                <p>Der Wochenplan ist ein KI-gestütztes Planungswerkzeug. Er generiert einen strukturierten Prompt, den du in eine KI (z.B. Gemini) einfügst — und bekommst eine fertige Wochenstrategie zurück, inklusive Wettereinflüsse und Besonderheiten.</p>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">📋 Schritt-für-Schritt</div>
+                <ol class="help-steps">
+                    <li><span class="step-num">1</span> Wochenplan öffnen.</li>
+                    <li><span class="step-num">2</span> Relevante Infos eingeben: Wetter, Feiertage, besondere Ereignisse.</li>
+                    <li><span class="step-num">3</span> Prompt kopieren und in die KI deiner Wahl einfügen.</li>
+                    <li><span class="step-num">4</span> Die KI-Antwort gibt eine vollständige Wochenstrategie zurück.</li>
+                </ol>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 8. NACHTSCHICHT -->
+    <div class="help-section" id="hs-nacht">
+        <div class="help-section-toggle" onclick="toggleSection('hs-nacht')">
+            <div class="help-section-icon">🌙</div>
+            <div class="help-section-title">
+                <div class="help-section-name">NachtSchicht</div>
+                <div class="help-section-sub">BrotRechner · Sauerteig & Vortag</div>
+            </div>
+            <div class="help-section-arrow">▸</div>
+        </div>
+        <div class="help-section-body">
+
+            <div class="help-article">
+                <div class="help-article-title">🍞 BrotRechner</div>
+                <p>Der BrotRechner ist speziell für die Nachtschicht konzipiert. Er berechnet die benötigte Brotmenge auf Basis von Tagesbedarf, Bestand und gewünschtem Zieldatum — analog zum Schnellrechner, aber auf Brote ausgelegt.</p>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">🫧 Sauerteig & Vortag</div>
+                <p>Dieses Tool hilft bei der Berechnung von Sauerteig-Ansätzen und Vorteigen. Eingabe: gewünschte Endmenge und Teigführung. Ausgabe: wie viel Anstellgut, Mehl und Wasser für den Ansatz benötigt werden.</p>
+                <p>Besonders wichtig für die Nachtschicht, da Sauerteige und Vorteige oft viele Stunden im Voraus angesetzt werden müssen.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 9. MARKT & NEWS -->
+    <div class="help-section" id="hs-markt">
+        <div class="help-section-toggle" onclick="toggleSection('hs-markt')">
+            <div class="help-section-icon">📈</div>
+            <div class="help-section-title">
+                <div class="help-section-name">Markt & News</div>
+                <div class="help-section-sub">RohstoffFakten · Das Magazin · Leitartikel</div>
+            </div>
+            <div class="help-section-arrow">▸</div>
+        </div>
+        <div class="help-section-body">
+
+            <div class="help-article">
+                <div class="help-article-title">📊 RohstoffFakten</div>
+                <p>Zeigt aktuelle Rohstoffpreise und Marktanalysen — Weizen, Butter, Energie und weitere relevante Zutaten. Preistendenzen (steigend/fallend) werden mit Farbindikatoren dargestellt.</p>
+                <p>Die Daten stammen aus <b>markt_daten.js</b> und werden manuell über den Markt-Prompt-Generator aktualisiert.</p>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">📰 Das Magazin</div>
+                <p>Branchentrends, Inspirationen und kurze Fachartikel rund ums Bäckerhandwerk. Jeder Artikel lässt sich aufklappen für den vollständigen Text.</p>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">📜 Leitartikel</div>
+                <p>Ein ausführlicher redaktioneller Artikel pro Ausgabe — im GEO-Stil, faktisch korrekt, über Geschichte und Handwerk des Backens. Kann ausgedruckt oder geteilt werden.</p>
+            </div>
+
+            <div class="help-article">
+                <div class="help-article-title">🔄 Inhalte aktualisieren</div>
+                <p>Über den <b>Markt-Prompt-Generator</b> (im Mehr-Menü) kannst du einen Prompt für eine KI generieren, die antwort als JS-Datei herunterladen und ins System einpflegen. So bleiben Rohstoffpreise und Artikel aktuell.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 10. FAQ -->
+    <div class="help-section" id="hs-faq">
+        <div class="help-section-toggle" onclick="toggleSection('hs-faq')">
+            <div class="help-section-icon">💬</div>
+            <div class="help-section-title">
+                <div class="help-section-name">Häufige Fragen (FAQ)</div>
+                <div class="help-section-sub">Allgemeine Fragen · Fehlersuche</div>
+            </div>
+            <div class="help-section-arrow">▸</div>
+        </div>
+        <div class="help-section-body">
+
+            <div class="faq-item">
+                <div class="faq-q">Warum zeigt der Schnellrechner „Manuell eingeben" beim Bestand?</div>
+                <div class="faq-a">Die letzte Inventur ist älter als 24 Stunden. Der Bestand wird aus Sicherheitsgründen nicht automatisch übernommen — bitte aktuell zählen und manuell eintragen.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-q">Warum sehe ich veraltete Inhalte?</div>
+                <div class="faq-a">BäckereiOS speichert Seiten im Cache für Offline-Nutzung. Nach einem Update kann es sein, dass der Browser noch die alte Version zeigt. Seite neu laden (lange auf Reload drücken) oder Cache leeren.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-q">Was bedeutet der rote Punkt bei der Inventur-Anzeige?</div>
+                <div class="faq-a">Die letzte Inventur liegt mehr als 24 Stunden zurück. Die angezeigten Bestände können veraltet sein.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-q">Kann ich BäckereiOS ohne Internet nutzen?</div>
+                <div class="faq-a">Ja — BäckereiOS ist als PWA (Progressive Web App) konzipiert und funktioniert offline, solange die Seiten einmal geladen wurden.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-q">Wo finde ich den Changelog?</div>
+                <div class="faq-a">Derzeit noch nicht direkt verlinkt — kommt in einer späteren Version auf diese Hilfeseite.</div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+function toggleSection(id) {
+    const el = document.getElementById(id);
+    el.classList.toggle('open');
+}
+</script>
+<script src="shell.js"></script>
+</body>
+</html>
