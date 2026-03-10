@@ -19,10 +19,12 @@ window.BOS_LAGER_BRAIN = {
     // 2. KREUZ-RECHNUNG: Für HasenBerger & KornKnacker
     convertCross: function(id, value, source) {
         const p = window.BOS_BAEKO_CONFIG.products[id];
+        const f = p.factor || 1;
         if (source === 'alt') {
-            return (value * p.val_alt) / p.val_blech;
+            // Pressen → Bleche: Schlüsselzahl erhöht Gewicht je Stück → weniger Bleche nötig → ÷ factor
+            return (value * p.val_alt) / p.val_blech / f;
         } else {
-            const f = p.factor || 1;
+            // Bleche → Pressen: × factor
             return (value * p.val_blech / p.val_alt) * f;
         }
     },

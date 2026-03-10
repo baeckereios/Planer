@@ -16,41 +16,29 @@
 
         <div class="card">
             <h2>Schritt 1: Befehl für die KI kopieren</h2>
-            <textarea id="promptText" readonly style="height: 480px; background-color: var(--bg-color); color: var(--text-muted); font-size: 0.85rem;">Hier sind die Backzettel. Bitte erstelle den Datenbank-Eintrag für diesen Tag.
+            <textarea id="promptText" readonly style="height: 520px; background-color: var(--bg-color); color: var(--text-muted); font-size: 0.85rem; line-height: 1.4;">Hier ist ein computergedruckter Backzettel. Bitte erstelle den Datenbank-Eintrag für diesen Tag.
 Recherchiere das historische Wetter/Ferien für dieses Datum in Seelze/Niedersachsen.
-Gib mir als Antwort AUSSCHLIESSLICH den reinen JSON-Code zurück, ohne jeglichen Markdown-Text (kein ```json) oder Erklärungen. 
+Gib mir als Antwort AUSSCHLIESSLICH den reinen JSON-Code zurück, ohne jeglichen Markdown-Text (kein ```json) oder Erklärungen.
 
-Nutze exakt dieses Format:
+WICHTIGE REGELN ZUM AUSLESEN DER MENGEN:
+1. Erfasse ALLE Produkte, die auf dem Zettel stehen. 
+2. Übernimm die Produktnamen exakt buchstabengetreu! WICHTIG: "Baguette" und "Baguette Teiglinge" sind völlig unterschiedliche Artikel und dürfen nicht zusammengefasst werden.
+3. Lies für jedes Produkt die absolute Stückzahl aus der Spalte "Anzahl" ab. (Falls dort "+ X extra" steht, addiere das zur Gesamtmenge).
+4. Lies die Blech-Menge aus der Spalte "Anzahl Bleche" ab. Falls die Spalte leer ist, MUSST du die Bleche selbst berechnen: Teile dafür die Stückzahl durch die "Menge Charge".
+5. Speichere die Stückzahl exakt unter dem Produktnamen. Speichere die Blech-Menge unter "[Produktname]_bleche".
+
+Nutze exakt dieses Format (passe die Produkte dynamisch an das an, was du auf dem Zettel findest):
 {
   "datum": "YYYY-MM-DD",
   "wochentag": "NameDesTages",
   "kontext": { "wetter": "sonnig/bedeckt/regen", "temperatur": 15, "ferien": false, "feiertag": false, "besonderheit": "" },
   "produkte": {
-    "schlawiner_gesamt": 0,
-    "hasenberger": 0,
-    "kornknacker": 0,
-    "kaesebroetchen": 0,
-    "hasenpfoetchen": 0,
-    "rosinen_hedwig": 0,
-    "schoko_batzen": 0,
-    "rosinen_batzen": 0,
-    "laugenstangen": 0,
-    "stangen_gesamt": 0,
-    "baguettestange_teig": 0,
-    "zwiebelstange": 0,
-    "zwiebelstange_teig": 0,
-    "dinkel_gerster_750g": 0,
-    "kastenweissbrot": 0,
-    "korbgerster_1250g": 0,
-    "gersterbrot_1250g": 0,
-    "findling_500g": 0,
-    "schwarzbrot_750g": 0,
-    "oma_hertas": 0,
-    "streuselkuchen": 0,
-    "kaesekuchen": 0,
-    "plunderstreifen": 0,
-    "puddingbrezel": 0,
-    "eiszapfen": 0
+    "Baguette": 120,
+    "Baguette_bleche": 6,
+    "Baguette Teiglinge": 45,
+    "Baguette Teiglinge_bleche": 3,
+    "Hasenberger": 50,
+    "Hasenberger_bleche": 2
   }
 }</textarea>
             <button id="copyBtn" onclick="copyPrompt()">📋 Prompt kopieren</button>

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚙️ AutoSync: Stammdaten & Kasse</title>
+    
+    <link rel="stylesheet" href="admin_design.css">
+    <script src="../stammdaten.js"></script>
+    
+    <style>
+        :root {
+            --primary: #0f172a;
+            --primary-hover: #1e293b;
+            --bg-body: #f3f4f6;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --card-bg: #ffffff;
+            --border-light: #e5e7eb;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-body); color: var(--text-main); margin: 0; padding: 10px; }
+        
+        .admin-container { max-width: 850px; margin: 20px auto; padding: 40px; background: var(--card-bg); border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        
+        h1 { font-size: 2em; margin-bottom: 0.2em; color: var(--text-main); text-align: center; font-weight: 800; letter-spacing: -0.02em; }
+        .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 40px; font-size: 1.1em; }
+
+        .phase { display: none; }
+        .phase.aktiv { display: block; animation: fadeInUp 0.4s ease-out; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .fortschritt { display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 2px solid var(--border-light); padding-bottom: 15px; color: #9ca3af; font-weight: bold; text-transform: uppercase; font-size: 0.9em; letter-spacing: 0.05em;}
+        .fortschritt .aktiv { color: var(--accent); }
+
+        .kalender-container { 
+            background: #f8fafc; 
+            border: 2px solid var(--border-light); 
+            border-radius: 12px; 
+            padding: 20px; 
+            margin: 0 auto 40px auto; 
+            max-width: 650px; 
+        }
+        
+        .kalender-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;}
+        .kalender-titel { font-weight: bold; font-size: 1.1em; color: var(--primary); }
+        .kalender-info { font-size: 0.85em; color: var(--text-muted); line-height: 1.3; }
+        
+        .tage-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+        
+        .tag-kachel { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 2px; 
+            border-radius: 8px; border: 2px solid var(--success); background: #ecfdf5; cursor: pointer; transition: all 0.2s; user-select: none;
+        }
+        .tag-kachel:hover { transform: scale(1.05); }
+        .tag-wochentag { font-size: 0.75em; font-weight: bold; text-transform: uppercase; color: #065f46; }
+        .tag-datum { font-size: 0.9em; font-weight: bold; color: #064e3b; margin-top: 2px;}
+        
+        .tag-kachel.inaktiv { border-color: var(--danger); background: #fef2f2; opacity: 0.7; }
+        .tag-kachel.inaktiv .tag-wochentag { color: #991b1b; text-decoration: line-through; }
+        .tag-kachel.inaktiv .tag-datum { color: #7f1d1d; text-decoration: line-through; }
+        .tag-kachel.is-feiertag { border-width: 3px; position: relative; }
+        .tag-kachel.is-feiertag::after { content: "🌴"; position: absolute; top: -10px; right: -8px; font-size: 1.2em; }
+
+        .check-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-bottom: 40px; }
+        .sektion-titel { font-size: 1.2em; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid var(--border-light); padding-bottom: 5px; color: var(--primary); }
+        
+        .produkt-karte-label input[type="checkbox"] { display: none; }
+        .karte-inhalt { display: flex; align-items: center; gap: 15px; padding: 16px; background: var(--card-bg); border: 2px solid var(--border-light); border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+        .karte-inhalt:hover { border-color: #cbd5e1; background: #f8fafc; }
+        .produkt-karte-label input[type="checkbox"]:checked + .karte-inhalt { border-color: var(--accent); background: #eff6ff; }
+
+        .check-kreis { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #cbd5e1; background: #fff; position: relative; flex-shrink: 0; transition: all 0.2s; }
+        .produkt-karte-label input[type="checkbox"]:checked + .karte-inhalt .check-kreis { background: var(--accent); border-color: var(--accent); }
+        .produkt-karte-label input[type="checkbox"]:checked + .karte-inhalt .check-kreis::after { content: '✓'; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: bold; font-size: 14px; }
+
+        .texte { display: flex; flex-direction: column; }
+        .schicker-name { font-weight: 700; color: var(--text-main); font-size: 1.05em; line-height: 1.2;}
+        .info-badge { font-size: 0.75em; padding: 3px 6px; border-radius: 4px; background: #e5e7eb; color: var(--text-muted); margin-top: 5px; display: inline-block; width: fit-content; transition: background 0.3s; }
+        .info-badge.update-flash { background: var(--accent); color: white; } 
+
+        .akkordeon-karte { background: #fff; border: 1px solid var(--border-light); border-radius: 10px; margin-bottom: 15px; overflow: hidden; }
+        .akkordeon-kopf { background: #f8fafc; padding: 15px 20px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; list-style: none; font-size: 1.1em; }
+        .akkordeon-kopf::after { content: "▼"; font-size: 0.8em; color: var(--text-muted); }
+        .akkordeon-karte[open] .akkordeon-kopf::after { content: "▲"; }
+        .akkordeon-inhalt { padding: 15px; border-top: 1px solid var(--border-light); }
+        
+        .days-grid { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 8px; margin-top: 10px; margin-bottom: 25px; }
+        .day-col { flex: 1 1 calc(25% - 8px); min-width: 50px; display: flex; flex-direction: column; gap: 6px; text-align: center; }
+        .day-lbl { font-size: 0.75rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
+        .day-inp { width: 100%; text-align: center; padding: 10px 0; border: 1px solid var(--border-light); border-radius: 6px; font-weight: bold; background: #f8fafc; font-size: 1em; }
+        .day-inp:focus { border-color: var(--accent); background: #fff; outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+
+        .einstellungs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .einstellungs-feld { display: flex; flex-direction: column; gap: 5px; }
+        .einstellungs-feld label { font-size: 0.85em; font-weight: bold; color: var(--text-muted); }
+        select, input[type="number"] { padding: 10px; border: 1px solid var(--border-light); border-radius: 6px; background: #fff; font-size: 0.95em; outline: none; width: 100%; box-sizing: border-box; }
+        select:focus, input[type="number"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+
+        .btn-container { display: flex; gap: 10px; margin-top: 30px; flex-wrap: wrap;}
+        .btn { padding: 14px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.05em; flex-grow: 1; text-align: center; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-secondary { background: #e5e7eb; color: var(--text-main); }
+        
+        .code-box { width: 100%; height: 350px; margin-top: 20px; font-family: monospace; padding: 20px; background: #1e293b; color: #34d399; border-radius: 12px; border: none; font-size: 0.9em; resize: vertical; box-sizing: border-box; }
+        .hinweis-box { background: #eff6ff; border-left: 4px solid var(--accent); padding: 16px; margin-top: 30px; border-radius: 0 8px 8px 0; color: #1e3a8a; line-height: 1.5; }
+
+        @media (max-width: 600px) {
+            .admin-container { padding: 20px 15px; border-radius: 12px; margin: 0 auto; box-shadow: none;}
+            h1 { font-size: 1.6em; }
+            .kalender-container { padding: 15px 10px; }
+            .tage-grid { gap: 5px; }
+            .tag-kachel { padding: 8px 0; border-width: 1px; }
+            .tag-wochentag { font-size: 0.65em; }
+            .tag-datum { font-size: 0.75em; }
+            .tag-kachel.is-feiertag::after { font-size: 1em; top: -8px; right: -5px; }
+            .karte-inhalt { padding: 12px; gap: 10px;}
+            .schicker-name { font-size: 0.95em; }
+            .akkordeon-kopf { padding: 12px 15px; font-size: 1em; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-container">
+        <h1>📊 Stammdaten AutoSync</h1>
+        <p class="subtitle">Kassen-Durchschnitt mit Stammdaten verschmelzen</p>
+        
+        <div id="lade-status" style="text-align: center; color: var(--text-muted); padding: 40px; font-style: italic;">
+            Lade Kassendaten und kalibriere Zeitraum...
+        </div>
+
+        <div id="phase-1" class="phase">
+            <div class="fortschritt">
+                <span class="aktiv">1. Zeitraum & Produkte</span>
+                <span>2. Werte prüfen</span>
+            </div>
+            
+            <div class="kalender-container">
+                <div class="kalender-header">
+                    <div class="kalender-titel">🗓️ 21-Tage Kontrolle</div>
+                    <div class="kalender-info">Tippe auf einen Tag, um ihn auszuschließen.</div>
+                </div>
+                <div id="kalender-grid" class="tage-grid"></div>
+            </div>
+            
+            <div class="sektion-titel">Aktuelle Stammdaten</div>
+            <div id="liste-bekannt" class="check-raster"></div>
+            
+            <div class="sektion-titel" style="color: #10b981;">Neue Produkte (Kasse)</div>
+            <div id="liste-neu" class="check-raster"></div>
+            
+            <div class="btn-container">
+                <button id="btn-weiter" class="btn btn-primary">Weiter zur Prüfung ➡️</button>
+            </div>
+        </div>
+
+        <div id="phase-2" class="phase">
+            <div class="fortschritt">
+                <span>1. Zeitraum & Produkte ✓</span>
+                <span class="aktiv">2. Werte prüfen</span>
+            </div>
+            
+            <p style="margin-bottom: 25px; color: var(--text-muted); font-size: 0.9em;">Klappe die Produkte auf, um die errechneten Werte bei Bedarf anzupassen oder Stationen für Neuzugänge festzulegen.</p>
+            
+            <div id="akkordeon-container"></div>
+
+            <div class="btn-container">
+                <button id="btn-zurueck" class="btn btn-secondary">⬅️ Zurück</button>
+                <button id="btn-generieren" class="btn btn-primary">💾 stammdaten.js sichern</button>
+            </div>
+
+            <div id="ausgabe-bereich" style="display: none;">
+                <div class="hinweis-box">
+                    <strong>📋 Anleitung:</strong><br>
+                    Kopiere den Text und ersetze damit den Inhalt deiner <code>stammdaten.js</code>.
+                </div>
+                <textarea id="code-ausgabe" class="code-box" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const feiertageNDS = [
+            "2025-01-01", "2025-04-18", "2025-04-21", "2025-05-01", "2025-05-29", "2025-06-09", "2025-10-03", "2025-10-31", "2025-12-25", "2025-12-26",
+            "2026-01-01", "2026-04-03", "2026-04-06", "2026-05-01", "2026-05-14", "2026-05-25", "2026-10-03", "2026-10-31", "2026-12-25", "2026-12-26",
+            "2027-01-01", "2027-03-26", "2027-03-29", "2027-05-01", "2027-05-06", "2027-05-17", "2027-10-03", "2027-10-31", "2027-12-25", "2027-12-26"
+        ];
+        const wochentageNamen = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+        const UNITS = ["Bleche", "Pressen (KornKnacker)", "Pressen (HasenBerger)", "Brühstücke"];
+        const STATIONS = ["Brötchenstraße", "Frühschicht", "Nachtschicht", "Rondo", "Konditorei", "Versand"];
+
+        let datenbankRoh = []; 
+        let zeitraumTage = []; 
+        let datenbankWerte = {}; 
+        let auswahlListe = [];   
+
+        function bereinigeName(dbName) {
+            return dbName.replace('_stueck', '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        document.addEventListener('DOMContentLoaded', initSystem);
+
+        async function initSystem() {
+            try {
+                if (typeof window.BOS_STAMMDATEN === 'undefined') {
+                    throw new Error("Konnte stammdaten.js nicht laden!");
+                }
+
+                const response = await fetch('../backmengen_db.json');
+                if (!response.ok) throw new Error('Konnte backmengen_db.json nicht laden.');
+                datenbankRoh = await response.json();
+
+                baueKalenderArray();
+                zeichneKalender();
+                berechneDurchschnitte(); 
+
+                document.getElementById('lade-status').style.display = 'none';
+                document.getElementById('phase-1').classList.add('aktiv');
+
+            } catch (fehler) {
+                document.getElementById('lade-status').innerHTML = `<span style="color:red; font-weight:bold;">Fehler: ${fehler.message}</span>`;
+            }
+        }
+
+        function baueKalenderArray() {
+            const heute = new Date();
+            for (let i = 21; i > 0; i--) {
+                const datumObj = new Date(heute.getTime() - (i * 24 * 60 * 60 * 1000));
+                
+                // ZEITZONEN FIX: Lokale deutsche Zeit festnageln!
+                const y = datumObj.getFullYear();
+                const m = String(datumObj.getMonth() + 1).padStart(2, '0');
+                const d_str = String(datumObj.getDate()).padStart(2, '0');
+                const datumString = `${y}-${m}-${d_str}`;
+
+                const wochentagIndex = datumObj.getDay();
+                const istFeiertag = feiertageNDS.includes(datumString);
+
+                zeitraumTage.push({
+                    datumObj: datumObj,
+                    datumString: datumString,
+                    label: `${datumObj.getDate()}.${datumObj.getMonth() + 1}.`,
+                    wochentag: wochentageNamen[wochentagIndex],
+                    aktiv: !istFeiertag, 
+                    istFeiertag: istFeiertag
+                });
+            }
+        }
+
+        function zeichneKalender() {
+            const grid = document.getElementById('kalender-grid');
+            grid.innerHTML = '';
+
+            zeitraumTage.forEach((tag) => {
+                const kachel = document.createElement('div');
+                kachel.className = `tag-kachel ${tag.aktiv ? '' : 'inaktiv'} ${tag.istFeiertag ? 'is-feiertag' : ''}`;
+                kachel.innerHTML = `
+                    <div class="tag-wochentag">${tag.wochentag}</div>
+                    <div class="tag-datum">${tag.label}</div>
+                `;
+                
+                kachel.addEventListener('click', () => {
+                    tag.aktiv = !tag.aktiv;
+                    zeichneKalender(); 
+                    berechneDurchschnitte(); 
+                });
+
+                grid.appendChild(kachel);
+            });
+        }
+
+        function berechneDurchschnitte() {
+            const aktiveTageStrings = zeitraumTage.filter(t => t.aktiv).map(t => t.datumString);
+            const rohdaten = {};
+
+            datenbankRoh.forEach(eintrag => {
+                const eDatum = new Date(eintrag.datum);
+                const datumString = eintrag.datum; // ZEITZONEN FIX: Datum direkt aus der JSON nehmen
+
+                if (!aktiveTageStrings.includes(datumString)) return;
+
+                const wochentag = (eDatum.getDay() + 6) % 7; 
+
+                Object.entries(eintrag.produkte).forEach(([produktName, menge]) => {
+                    if (produktName.includes('_bleche')) return; 
+                    
+                    const schickerName = bereinigeName(produktName);
+                    const val = parseInt(menge);
+                    
+                    if (val > 0) {
+                        if (!rohdaten[schickerName]) {
+                            rohdaten[schickerName] = { 0:[], 1:[], 2:[], 3:[], 4:[], 5:[], 6:[] };
+                        }
+                        rohdaten[schickerName][wochentag].push(val);
+                    }
+                });
+            });
+
+            datenbankWerte = {};
+            Object.entries(rohdaten).forEach(([name, tage]) => {
+                const avgNeeds = [0, 0, 0, 0, 0, 0, 0];
+                for (let t = 0; t < 7; t++) {
+                    if (tage[t].length > 0) {
+                        const sum = tage[t].reduce((a, b) => a + b, 0);
+                        avgNeeds[t] = Math.round(sum / tage[t].length); 
+                    }
+                }
+                datenbankWerte[name] = avgNeeds;
+            });
+
+            zeichneProduktListen();
+        }
+
+        function zeichneProduktListen() {
+            const listeBekannt = document.getElementById('liste-bekannt');
+            const listeNeu = document.getElementById('liste-neu');
+            
+            const gemerkteHaken = Array.from(document.querySelectorAll('.produkt-karte-label input[type="checkbox"]:checked')).map(cb => cb.value);
+            
+            listeBekannt.innerHTML = '';
+            listeNeu.innerHTML = '';
+            
+            const alteStammdatenNamen = Object.values(window.BOS_STAMMDATEN).map(p => p.name.toLowerCase());
+
+            Object.entries(datenbankWerte).forEach(([produktName, avgNeeds]) => {
+                const istBekannt = alteStammdatenNamen.includes(produktName.toLowerCase());
+                const maxWert = Math.max(...avgNeeds);
+                
+                const label = document.createElement('label');
+                label.className = 'produkt-karte-label';
+                
+                const sollCheckedSein = gemerkteHaken.length > 0 ? gemerkteHaken.includes(produktName) : istBekannt;
+                const checked = sollCheckedSein ? "checked" : "";
+                
+                label.innerHTML = `
+                    <input type="checkbox" id="vorauswahl-${produktName}" value="${produktName}" ${checked}>
+                    <div class="karte-inhalt">
+                        <div class="check-kreis"></div>
+                        <div class="texte">
+                            <span class="schicker-name">${produktName}</span>
+                            <span class="info-badge" id="badge-${produktName}">Ø Spitze: ${maxWert} Stück</span>
+                        </div>
+                    </div>
+                `;
+                
+                if (gemerkteHaken.length > 0) {
+                    setTimeout(() => {
+                        const b = document.getElementById(`badge-${produktName}`);
+                        if(b) { b.classList.add('update-flash'); setTimeout(()=>b.classList.remove('update-flash'), 400); }
+                    }, 50);
+                }
+                
+                if (istBekannt) {
+                    listeBekannt.appendChild(label);
+                } else {
+                    listeNeu.appendChild(label);
+                }
+            });
+        }
+
+        document.getElementById('btn-weiter').addEventListener('click', () => {
+            auswahlListe = [];
+            document.querySelectorAll('#phase-1 input[type="checkbox"]:checked').forEach(box => {
+                auswahlListe.push(box.value);
+            });
+
+            if (auswahlListe.length === 0) {
+                alert("Bitte wähle mindestens ein Produkt aus!");
+                return;
+            }
+
+            bauePhase2();
+            document.getElementById('phase-1').classList.remove('aktiv');
+            document.getElementById('phase-2').classList.add('aktiv');
+        });
+
+        document.getElementById('btn-zurueck').addEventListener('click', () => {
+            document.getElementById('phase-2').classList.remove('aktiv');
+            document.getElementById('ausgabe-bereich').style.display = 'none';
+            document.getElementById('phase-1').classList.add('aktiv');
+        });
+
+        function bauePhase2() {
+            const container = document.getElementById('akkordeon-container');
+            container.innerHTML = '';
+
+            const unitsHTML = UNITS.map((u, i) => `<option value="${i}">${u}</option>`).join('');
+            const stationsHTML = STATIONS.map(s => `<option value="${s}">${s}</option>`).join('');
+
+            auswahlListe.forEach((name, index) => {
+                let oldConfig = null;
+                let oldId = null;
+                for (const [key, value] of Object.entries(window.BOS_STAMMDATEN)) {
+                    if (value.name.toLowerCase() === name.toLowerCase()) {
+                        oldConfig = value;
+                        oldId = key;
+                        break;
+                    }
+                }
+
+                const unitVal = oldConfig ? oldConfig.unit : 0;
+                const stationVal = oldConfig ? oldConfig.station : "Brötchenstraße";
+                const batchVal = oldConfig ? oldConfig.batchSize : 1;
+                const sunVal = oldConfig ? oldConfig.sun : 0;
+                const dbId = oldId ? oldId : 'p' + Date.now() + index; 
+                
+                const newNeeds = datenbankWerte[name];
+
+                const karte = document.createElement('details');
+                karte.className = 'akkordeon-karte';
+                
+                const uHtml = unitsHTML.replace(`value="${unitVal}"`, `value="${unitVal}" selected`);
+                const sHtml = stationsHTML.replace(`value="${stationVal}"`, `value="${stationVal}" selected`);
+
+                karte.innerHTML = `
+                    <summary class="akkordeon-kopf">
+                        <span>${name}</span>
+                        <span style="font-size: 0.75em; color: var(--text-muted); font-weight: normal;">${oldConfig ? '🔄 Update' : '✨ Neu'}</span>
+                    </summary>
+                    <div class="akkordeon-inhalt">
+                        
+                        <input type="hidden" id="id-${index}" value="${dbId}">
+                        <input type="hidden" id="name-${index}" value="${name}">
+
+                        <div style="font-size: 0.85em; color: var(--accent); margin-bottom: 5px; font-weight: bold;">Schnitt aus ${zeitraumTage.filter(t=>t.aktiv).length} Tagen (Mo-So):</div>
+                        <div class="days-grid">
+                            <div class="day-col"><div class="day-lbl">Mo</div><input class="day-inp" type="number" id="d0-${index}" value="${newNeeds[0]}"></div>
+                            <div class="day-col"><div class="day-lbl">Di</div><input class="day-inp" type="number" id="d1-${index}" value="${newNeeds[1]}"></div>
+                            <div class="day-col"><div class="day-lbl">Mi</div><input class="day-inp" type="number" id="d2-${index}" value="${newNeeds[2]}"></div>
+                            <div class="day-col"><div class="day-lbl">Do</div><input class="day-inp" type="number" id="d3-${index}" value="${newNeeds[3]}"></div>
+                            <div class="day-col"><div class="day-lbl">Fr</div><input class="day-inp" type="number" id="d4-${index}" value="${newNeeds[4]}"></div>
+                            <div class="day-col"><div class="day-lbl">Sa</div><input class="day-inp" type="number" id="d5-${index}" value="${newNeeds[5]}"></div>
+                            <div class="day-col"><div class="day-lbl">So</div><input class="day-inp" type="number" id="d6-${index}" value="${newNeeds[6]}"></div>
+                        </div>
+
+                        <div style="border-top: 1px dashed var(--border-light); padding-top: 15px; margin-top: 10px;">
+                            <div class="einstellungs-grid">
+                                <div class="einstellungs-feld">
+                                    <label>Station</label>
+                                    <select id="station-${index}">${sHtml}</select>
+                                </div>
+                                <div class="einstellungs-feld">
+                                    <label>Zähleinheit</label>
+                                    <select id="unit-${index}">${uHtml}</select>
+                                </div>
+                                <div class="einstellungs-feld">
+                                    <label>Gebinde</label>
+                                    <input type="number" id="batch-${index}" value="${batchVal}" min="1">
+                                </div>
+                                <div class="einstellungs-feld">
+                                    <label>☀️ Grill-Extra</label>
+                                    <input type="number" id="sun-${index}" value="${sunVal}" min="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(karte);
+            });
+        }
+
+        document.getElementById('btn-generieren').addEventListener('click', () => {
+            const finalData = {};
+
+            for (const [key, value] of Object.entries(window.BOS_STAMMDATEN)) {
+                finalData[key] = value;
+            }
+
+            auswahlListe.forEach((_, index) => {
+                const id = document.getElementById(`id-${index}`).value;
+                const name = document.getElementById(`name-${index}`).value;
+                
+                const needs = [
+                    parseInt(document.getElementById(`d0-${index}`).value) || 0,
+                    parseInt(document.getElementById(`d1-${index}`).value) || 0,
+                    parseInt(document.getElementById(`d2-${index}`).value) || 0,
+                    parseInt(document.getElementById(`d3-${index}`).value) || 0,
+                    parseInt(document.getElementById(`d4-${index}`).value) || 0,
+                    parseInt(document.getElementById(`d5-${index}`).value) || 0,
+                    parseInt(document.getElementById(`d6-${index}`).value) || 0
+                ];
+
+                finalData[id] = {
+                    name: name,
+                    needs: needs,
+                    sun: parseInt(document.getElementById(`sun-${index}`).value) || 0,
+                    unit: parseInt(document.getElementById(`unit-${index}`).value) || 0,
+                    station: document.getElementById(`station-${index}`).value,
+                    batchSize: parseInt(document.getElementById(`batch-${index}`).value) || 1
+                };
+            });
+
+            const entries = [];
+            Object.keys(finalData).forEach(key => {
+                const p = finalData[key];
+                const needsStr = JSON.stringify(p.needs);
+                entries.push(`  "${key}": {\n    "name": "${p.name}",\n    "needs": ${needsStr},\n    "sun": ${p.sun},\n    "unit": ${p.unit},\n    "station": "${p.station}",\n    "batchSize": ${p.batchSize}\n  }`);
+            });
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('de-DE') + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+
+            const output = `// stammdaten.js — BäckereiOS Produktstammdaten\n// Generiert: ${dateStr} via Stammdaten AutoSync\n// Produkte: ${Object.keys(finalData).length}\n//\n// ANLEITUNG: Diese Datei ersetzt die bestehende stammdaten.js im Hauptordner.\n// Auf GitHub hochladen → Änderungen sind nach 1-2 Minuten aktiv.\n\nwindow.BOS_STAMMDATEN = {\n${entries.join(',\n')}\n};\n`;
+
+            const ausgabeBereich = document.getElementById('ausgabe-bereich');
+            ausgabeBereich.style.display = 'block';
+            document.getElementById('code-ausgabe').value = output;
+            
+            ausgabeBereich.scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>

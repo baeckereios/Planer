@@ -40,7 +40,7 @@
     const config   = PAGE_CONFIG[filename] || { title: '', mode: 'full', tab: 'mehr' };
 
     // NEU: Die intelligente Ordner-Erkennung
-    const isSubfolder = window.location.href.includes('/baeko_bestellung/') || window.location.href.includes('/news_rohstoffe/') || window.location.href.includes('/azubi_meisterhaft/') || window.location.href.includes('/games/') || window.location.href.includes('/nachtschicht/') || window.location.href.includes('/durchschnittsverbauch/');
+    const isSubfolder = window.location.href.includes('/baeko_bestellung/') || window.location.href.includes('/news_rohstoffe/') || window.location.href.includes('/azubi_meisterhaft/') || window.location.href.includes('/games/') || window.location.href.includes('/nachtschicht/');
     const base = isSubfolder ? '../' : '';
 
     const isMinimal = config.mode === 'minimal';
