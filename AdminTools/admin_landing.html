@@ -203,12 +203,73 @@
             </div>
         </a>
 
-    <div class="card" style="margin-top: 40px; background-color: #f8fafc; border: 1px solid var(--border-color); box-shadow: none;">
-        <div class="help-acc-header" onclick="toggleHelp()">
-            <h3>📖 System-Architektur &amp; Hilfe</h3>
-            <span class="acc-arrow" id="arrow-help">▶</span>
-        </div>
-        <div class="help-acc-body" id="acc-help">
+    </div><!-- /acc-body stamm -->
+
+
+    <div class="acc-header" onclick="toggleAcc('ticker')" style="color:#7c3aed; border-color:#ddd6fe;">
+        📢 Ticker &amp; KI-Analysen
+        <span class="acc-arrow" id="arrow-ticker">▶</span>
+    </div>
+    <div class="acc-body" id="acc-ticker">
+        <a href="datenbank_manager.html" class="admin-card" style="border-left: 4px solid #7c3aed; margin-top:8px;">
+            <div class="admin-icon">🗄️</div>
+            <div>
+                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Datenbank-Manager</strong>
+                <small>Backmengen-DB einsehen, bereinigen &amp; exportieren</small>
+            </div>
+        </a>
+        <a href="shoutbox_meldungen.html" class="admin-card" style="border-left: 4px solid #f59e0b;">
+            <div class="admin-icon">📢</div>
+            <div>
+                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Shoutbox</strong>
+                <small>Schwarzes Brett — Nachrichten für das Team</small>
+            </div>
+        </a>
+        <a href="wochenvorschau_prompt.html" class="admin-card" style="border-left: 4px solid #06b6d4;">
+            <div class="admin-icon">🤖</div>
+            <div>
+                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Wochenvorschau-Prompt</strong>
+                <small>KI-Prompt für Wochenprognose generieren</small>
+            </div>
+        </a>
+        <a href="Datenerfassungs_Prompt.html" class="admin-card" style="border-left: 4px solid #06b6d4;">
+            <div class="admin-icon">📋</div>
+            <div>
+                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Datenerfassungs-Prompt</strong>
+                <small>KI-Prompt für Backmengen-Erfassung generieren</small>
+            </div>
+        </a>
+        <a href="markt_prompt.html" class="admin-card" style="border-left: 4px solid #06b6d4;">
+            <div class="admin-icon">📰</div>
+            <div>
+                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Markt-Radar-Prompt</strong>
+                <small>KI-Prompt für Markt- &amp; Rohstoffanalyse generieren</small>
+            </div>
+        </a>
+    </div>
+
+
+    <div class="acc-header" onclick="toggleAcc('wartung')" style="color:#dc2626; border-color:#fecaca;">
+        ⚡ System-Wartung
+        <span class="acc-arrow" id="arrow-wartung">▶</span>
+    </div>
+    <div class="acc-body" id="acc-wartung">
+        <a href="serviceworker_generator.html" class="admin-card" style="border-left: 4px solid #dc2626; margin-top:8px;">
+            <div class="admin-icon">🔄</div>
+            <div>
+                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Update-Assistent</strong>
+                <small>Browser-Caches zurücksetzen — neue Version auf allen Geräten erzwingen</small>
+            </div>
+        </a>
+    </div>
+
+
+    <div class="acc-header" onclick="toggleAcc('hilfe')">
+        📖 System-Architektur &amp; Hilfe
+        <span class="acc-arrow" id="arrow-hilfe">▶</span>
+    </div>
+    <div class="acc-body" id="acc-hilfe">
+        <div class="card" style="margin-top: 12px; background-color: #f8fafc; border: 1px solid var(--border-color); box-shadow: none;">
             <ul class="info-list" style="margin-top: 8px;">
                 <li><strong>Tages-Assistent:</strong> Führt dich durch deine hinterlegten Tagesroutinen — bündelt Inventur, Ticker und BÄKO in einem geführten Workflow.</li>
                 <li><strong>Wochenaufgaben konfigurieren:</strong> Hier legst du fest welche Routinen der Tages-Assistent an welchen Wochentagen anzeigt — ohne Programmieren.</li>
@@ -222,19 +283,12 @@
             </ul>
         </div>
     </div>
-
     <script>
         function toggleAcc(id) {
             const body = document.getElementById('acc-' + id);
             const arrow = document.getElementById('arrow-' + id);
             body.classList.toggle('open');
             arrow.classList.toggle('open');
-            arrow.textContent = body.classList.contains('open') ? '▼' : '▶';
-        }
-        function toggleHelp() {
-            const body = document.getElementById('acc-help');
-            const arrow = document.getElementById('arrow-help');
-            body.classList.toggle('open');
             arrow.textContent = body.classList.contains('open') ? '▼' : '▶';
         }
     </script>

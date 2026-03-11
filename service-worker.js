@@ -1,38 +1,20 @@
-// BäckereiOS Service Worker — Automatisches Caching
-// Keine manuelle Dateiliste nötig. Neue Dateien werden automatisch gecacht.
-// Zum Aktualisieren: CACHE_NAME hochzählen (z.B. v15 → v16)
 
-const CACHE_NAME = 'baeckereios-v16';
+const CACHE_NAME = 'planer-cache-v109';
+const ASSETS = ['./', './index.html', './systemdesign.css'];
 
-self.addEventListener('install', event => {
-  self.skipWaiting();
+self.addEventListener('install', e => {
+    self.skipWaiting();
+    console.log('Service Worker V109 installiert');
 });
 
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
+self.addEventListener('activate', e => {
+    e.waitUntil(
+        caches.keys().then(keys => Promise.all(
+            keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+        ))
+    );
 });
 
-self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-  const isLocal = url.origin === self.location.origin;
-  const isFonts = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
-
-  if (!isLocal && !isFonts) return;
-
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        if (response && response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        }
-        return response;
-      })
-      .catch(() => caches.match(event.request))
-  );
+self.addEventListener('fetch', e => {
+    e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
 });
