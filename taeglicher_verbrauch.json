@@ -1,0 +1,6 @@
+{
+  "zeitraum_tage": 14,
+  "feiertage_ausschliessen": true,
+  "sondertage_ausschliessen": true,
+  "ausgeschlossene_tage": []
+}

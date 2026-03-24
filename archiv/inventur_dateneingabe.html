@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Inventur – BäckereiOS</title>
+    <script>
+        (function() {
+            try { document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light'); }
+            catch(e) { document.documentElement.setAttribute('data-theme', 'light'); }
+        })();
+    </script>
+    <link rel="stylesheet" href="../systemdesign.css">
+    <script src="../stammdaten.js"></script>
+    <script src="../inventurdaten.js"></script>
+    <style>
+        body { padding-bottom: 100px; background: var(--bg); }
+
+        /* ── FROSTER TOGGLE ── */
+        .froster-bar {
+            display: flex; align-items: center; justify-content: center;
+            gap: 12px; padding: 14px 15px 0;
+            font-family: 'Barlow Condensed'; font-weight: 900;
+            font-size: 1rem; letter-spacing: 1px; text-transform: uppercase;
+            color: var(--dim);
+        }
+        .froster-btn {
+            padding: 10px 22px; border-radius: 12px; border: 2px solid var(--border-s);
+            background: var(--surface); color: var(--dim);
+            font-family: 'Barlow Condensed'; font-weight: 900; font-size: 0.95rem;
+            letter-spacing: 1px; cursor: pointer; transition: 0.2s;
+        }
+        .froster-btn.yes { border-color: #2d9e5f; background: rgba(45,158,95,0.1); color: #1a7a45; }
+        .froster-btn.no  { border-color: #c94a4a; background: rgba(201,74,74,0.1);  color: #9a1010; }
+
+        .brand-header { background: var(--surface); text-align: center; padding-top: 15px; box-shadow: 0 4px 10px var(--shadow); position: sticky; top: 0; z-index: 100; }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; margin-bottom: 5px; }
+        .btn-back-nav { background: var(--surface2); border: 2px solid var(--border-s); color: var(--text); font-weight: 900; padding: 8px 15px; border-radius: 12px; text-decoration: none; font-size: 0.9rem; }
+        .page-subtitle { font-family: 'Barlow Condensed'; font-weight: 900; color: var(--amber); letter-spacing: 1px; font-size: 1rem; }
+        .brand-logo { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 900; color: var(--text); line-height: 1; margin: 8px 0; }
+        .brand-logo span { color: var(--amber); font-style: italic; }
+        .slogan-bar { background: #111; color: var(--amber); padding: 10px; margin-top: 20px; font-family: 'Barlow Condensed'; font-weight: 800; font-size: 0.9rem; letter-spacing: 1.5px; text-transform: uppercase; text-align: center; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px 15px; }
+
+        /* Station Filter */
+        .station-filter { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .sf-btn { flex: 1; min-width: 80px; padding: 10px 8px; border: 2px solid var(--border-s); border-radius: 12px; background: var(--surface); color: var(--dim); font-family: 'Barlow Condensed'; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.5px; cursor: pointer; text-align: center; transition: 0.2s; }
+        .sf-btn.active { border-color: var(--amber); background: var(--amber); color: white; }
+
+        /* Produktkarte */
+        .inv-card { background: var(--surface); border: 2px solid var(--border); border-radius: 18px; padding: 18px; margin-bottom: 12px; box-shadow: 0 4px 12px var(--shadow); transition: opacity 0.2s; }
+
+        /* Nicht gezählt → ausgegraut */
+        .inv-card.uncounted { opacity: 0.5; }
+        .inv-card.uncounted .inv-inputs { pointer-events: none; }
+
+        /* Aus Datei geladen → ausgegraut, nur Inputs gesperrt */
+        .inv-card.from-file { opacity: 0.35; }
+        .inv-card.from-file .inv-inputs { pointer-events: none; }
+
+        .inv-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 8px; }
+        .inv-name { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 1.15rem; text-transform: uppercase; color: var(--text); }
+        .inv-ts { font-size: 0.65rem; color: var(--dim); text-align: right; flex-shrink: 0; }
+
+        /* ZÄHLEN / FERTIG Button */
+        .btn-zaehlen {
+            width: 100%; padding: 14px;
+            border-radius: 12px; border: 2px dashed var(--border-s);
+            background: transparent; color: var(--dim);
+            font-family: 'Barlow Condensed'; font-weight: 800;
+            font-size: 1rem; letter-spacing: 1px; cursor: pointer;
+            margin-bottom: 12px; transition: 0.2s;
+        }
+        .btn-zaehlen:active { background: var(--bg); }
+        .inv-card.counted .btn-zaehlen {
+            border-style: solid; border-color: var(--green);
+            color: var(--green); background: rgba(45,158,95,0.06);
+        }
+
+        /* Eingabefelder */
+        .inv-inputs { display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 8px; align-items: center; }
+        .loc-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .loc-label { font-size: 0.6rem; font-weight: 800; color: var(--dim); text-transform: uppercase; }
+        .loc-inp { width: 100%; text-align: center; padding: 10px 4px; border-radius: 10px; border: 2px solid var(--border-s); background: var(--bg); color: var(--text); font-family: 'Barlow'; font-weight: 800; font-size: 1.1rem; outline: none; box-sizing: border-box; transition: 0.2s; }
+        .loc-inp:focus { border-color: var(--amber); }
+        .loc-inp:disabled { opacity: 0.4; cursor: not-allowed; }
+        .sum-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .sum-label { font-size: 0.6rem; font-weight: 800; color: var(--amber); text-transform: uppercase; }
+        .inv-sum { min-width: 48px; text-align: center; padding: 10px 8px; border-radius: 10px; border: 2px solid var(--amber); background: rgba(192,122,16,0.08); color: var(--amber); font-weight: 900; font-size: 1.1rem; }
+
+        /* Footer */
+        .footer-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 2px solid var(--border); padding: 15px 20px; z-index: 100; box-shadow: 0 -4px 20px var(--shadow); }
+        .btn-generate { padding: 18px; border-radius: 14px; border: none; background: var(--amber); color: white; font-family: 'Barlow Condensed'; font-weight: 900; font-size: 1.1rem; letter-spacing: 1px; cursor: pointer; }
+        .btn-load { flex: 0 0 auto; padding: 18px 16px; border-radius: 14px; border: 2px solid var(--border-s); background: var(--surface2); color: var(--text); font-family: 'Barlow Condensed'; font-weight: 900; font-size: 0.95rem; letter-spacing: 1px; cursor: pointer; text-align: center; white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+<div class="brand-header">
+    <div class="top-nav">
+        <a href="admin_landing.html" class="btn-back-nav">&#8592; CHEF</a>
+        <div class="page-subtitle">INVENTUR</div>
+        <div style="width:70px;"></div>
+    </div>
+    <div class="brand-logo">B&#228;ckerei<span>OS</span></div>
+    <div class="slogan-bar">&#8222;Wir machen das Fr&#252;hst&#252;ck erst m&#246;glich.&#8220;</div>
+</div>
+
+<div class="froster-bar">
+    Froster:
+    <button class="froster-btn" id="froster-btn" onclick="toggleFroster()">&#63; Nicht angegeben</button>
+</div>
+
+<div class="container">
+    <div class="station-filter" id="station-filter"></div>
+    <div id="main-list"></div>
+</div>
+
+<div class="footer-bar">
+    <div style="max-width:600px; margin:0 auto; display:flex; gap:10px;">
+        <button style="flex:0 0 auto; padding:18px 16px; border-radius:14px; border:2px solid var(--red); background:transparent; color:var(--red); font-family:'Barlow Condensed'; font-weight:900; font-size:0.95rem; letter-spacing:1px; cursor:pointer; white-space:nowrap;" onclick="resetAll()">&#8635; RESET</button>
+        <label class="btn-load">
+            &#128194; LADEN
+            <input type="file" accept=".js" style="display:none;" onchange="importInventurJS(this)">
+        </label>
+        <button class="btn-generate" style="flex:1;" onclick="generateInventurJS()">&#8595; GENERIEREN</button>
+    </div>
+</div>
+
+<script>
+var workingData = {};
+var activeStation = 'alle';
+
+window.onload = function() {
+    if (!window.BOS_STAMMDATEN) {
+        document.getElementById('main-list').innerHTML =
+            '<div style="padding:30px;text-align:center;color:var(--red);font-weight:800;">' +
+            '&#9888; stammdaten.js nicht geladen.<br>' +
+            '<small style="font-weight:400;color:var(--dim);">Pfad pruefen: ../stammdaten.js</small></div>';
+        return;
+    }
+    prepareData();
+    buildStationFilter();
+    renderList();
+};
+
+// ── workingData-Schema ───────────────────────────────────────────────
+// {
+//   locs:     [0,0,0,0],  // Zählwerte je Ort
+//   stock:    0,           // Summe der locs
+//   ts:       0,           // Timestamp letzter Zählung (0 = nie)
+//   counted:  false,       // true = bewusst gezählt (auch 0 ist ein gültiger Wert)
+//   _fromFile: false       // true = aus Datei importiert, nicht selbst gezählt
+// }
+
+function toggleFroster() {
+    var btn = document.getElementById('froster-btn');
+    var cur = localStorage.getItem('BOS_FROSTER');
+    if (cur === null || cur === 'null') {
+        localStorage.setItem('BOS_FROSTER', 'true');
+        btn.className = 'froster-btn yes';
+        btn.innerHTML = '&#10003; Froster gemacht';
+    } else if (cur === 'true') {
+        localStorage.setItem('BOS_FROSTER', 'false');
+        btn.className = 'froster-btn no';
+        btn.innerHTML = '&#10007; Froster NICHT gemacht';
+    } else {
+        localStorage.removeItem('BOS_FROSTER');
+        btn.className = 'froster-btn';
+        btn.innerHTML = '&#63; Nicht angegeben';
+    }
+}
+
+function initFrosterBtn() {
+    var btn = document.getElementById('froster-btn');
+    var val = localStorage.getItem('BOS_FROSTER');
+    if (val === 'true')  { btn.className = 'froster-btn yes'; btn.innerHTML = '&#10003; Froster gemacht'; }
+    else if (val === 'false') { btn.className = 'froster-btn no'; btn.innerHTML = '&#10007; Froster NICHT gemacht'; }
+}
+
+function prepareData() {
+    var cur = window.BOS_INVENTUR || {};
+    var curProducts = cur.products || {};
+    var curStocks = cur.stocks || {};
+    var k, saved;
+    for (k in window.BOS_STAMMDATEN) {
+        saved = curProducts[k] || null;
+        workingData[k] = {
+            locs:      (saved && saved.locs)  ? saved.locs  : [0, 0, 0, 0],
+            stock:     0,
+            ts:        (saved && saved.ts)    ? saved.ts    : 0,
+            counted:   false,
+            _fromFile: false
+        };
+        if (saved && saved.locs) {
+            workingData[k].stock = saved.locs.reduce(function(a, b) { return a + b; }, 0);
+        } else if (saved && saved.stock) {
+            workingData[k].stock = saved.stock;
+        } else {
+            workingData[k].stock = curStocks[k] || 0;
+        }
+    }
+}
+
+function buildStationFilter() {
+    var stationSet = {};
+    var keys = Object.keys(window.BOS_STAMMDATEN);
+    var i, st;
+    for (i = 0; i < keys.length; i++) {
+        st = window.BOS_STAMMDATEN[keys[i]].station;
+        if (st) stationSet[st] = true;
+    }
+    var stations = ['alle'].concat(Object.keys(stationSet));
+    var wrap = document.getElementById('station-filter');
+    for (i = 0; i < stations.length; i++) {
+        (function(s) {
+            var btn = document.createElement('button');
+            btn.className = 'sf-btn' + (s === activeStation ? ' active' : '');
+            btn.innerText = s === 'alle' ? 'Alle Produkte' : s;
+            btn.onclick = function() {
+                activeStation = s;
+                renderList();
+                var btns = document.querySelectorAll('.sf-btn');
+                for (var j = 0; j < btns.length; j++) btns[j].classList.remove('active');
+                btn.classList.add('active');
+            };
+            wrap.appendChild(btn);
+        })(stations[i]);
+    }
+}
+
+function renderList() {
+    var container = document.getElementById('main-list');
+    container.innerHTML = '';
+    var k, p, d, tsStr, ageH, stale, cardClass, btnLabel, locsHtml, html, card, i;
+
+    for (k in window.BOS_STAMMDATEN) {
+        p = window.BOS_STAMMDATEN[k];
+        if (activeStation !== 'alle' && p.station !== activeStation) continue;
+        d = workingData[k];
+
+        // Timestamp-Anzeige
+        if (d.ts === 0) {
+            tsStr = 'nicht gez&#228;hlt';
+            stale = true;
+        } else {
+            ageH = Math.round((Date.now() - d.ts) / 3600000);
+            stale = ageH >= 24;
+            tsStr = new Date(d.ts).toLocaleString('de-DE', { weekday:'short', hour:'2-digit', minute:'2-digit' });
+            if (stale) tsStr += ' &#9888; ' + ageH + 'h';
+        }
+
+        // Karten-Klasse
+        if (d._fromFile) {
+            cardClass = 'inv-card from-file';
+        } else if (!d.counted) {
+            cardClass = 'inv-card uncounted';
+        } else {
+            cardClass = 'inv-card counted';
+        }
+
+        // ZÄHLEN-Button Text
+        if (d._fromFile) {
+            btnLabel = '&#10003; Aus Datei &#252;bernommen &nbsp;&#183;&nbsp; &#128275; Entsperren';
+        } else if (d.counted) {
+            btnLabel = '&#10003; GEZ&#196;HLT  &#8212;  zur&#252;cksetzen';
+        } else {
+            btnLabel = '&#8594; JETZT Z&#196;HLEN';
+        }
+
+        // Eingabefelder
+        locsHtml = '';
+        for (i = 0; i < 4; i++) {
+            locsHtml += '<div class="loc-wrap">' +
+                '<div class="loc-label">' + (i + 1) + '</div>' +
+                '<input type="number" inputmode="numeric" class="loc-inp"' +
+                ' id="loc_' + k + '_' + i + '"' +
+                ' value="' + (d.locs[i] ? d.locs[i] : '') + '"' +
+                ' placeholder="0"' +
+                (d.counted ? '' : ' disabled') +
+                ' oninput="updateLoc(\'' + k + '\', ' + i + ', this.value)">' +
+                '</div>';
+        }
+
+        html =
+            '<div class="inv-card-header">' +
+                '<div class="inv-name">' + p.name + '</div>' +
+                '<div class="inv-ts"' + (stale ? ' style="color:var(--red);font-weight:800;"' : '') + '>' +
+                    '&#128336; ' + tsStr +
+                '</div>' +
+            '</div>' +
+            '<button class="btn-zaehlen" onclick="toggleCounted(\'' + k + '\')">' +
+                btnLabel +
+            '</button>' +
+            '<div class="inv-inputs">' +
+                locsHtml +
+                '<div class="sum-wrap">' +
+                    '<div class="sum-label">&#8721;</div>' +
+                    '<div class="inv-sum" id="sum_' + k + '">' + d.stock + '</div>' +
+                '</div>' +
+            '</div>';
+
+        card = document.createElement('div');
+        card.className = cardClass;
+        card.id = 'card_' + k;
+        card.innerHTML = html;
+        container.appendChild(card);
+    }
+}
+
+function toggleCounted(k) {
+    var d = workingData[k];
+    if (d._fromFile) {
+        // Entsperren: aus Datei → selbst gezählt
+        d._fromFile = false;
+        d.counted   = true;
+        d.ts        = d.ts || Date.now();
+        rerenderCard(k);
+        return;
+    }
+    if (d.counted) {
+        // Zurücksetzen
+        d.counted = false;
+        d.locs    = [0, 0, 0, 0];
+        d.stock   = 0;
+        d.ts      = 0;
+    } else {
+        // Jetzt zählen → aktivieren, Timestamp setzen
+        d.counted = true;
+        d.ts      = Date.now();
+    }
+    // Karte neu rendern (nur diese eine)
+    rerenderCard(k);
+}
+
+function rerenderCard(k) {
+    // Komplette renderList ist zu teuer → nur diese Karte neu bauen
+    // Einfachster Weg: alten Container merken, renderList, Scroll-Position halten
+    var oldCard = document.getElementById('card_' + k);
+    if (!oldCard) { renderList(); return; }
+    var scrollY = window.scrollY;
+    renderList();
+    window.scrollTo(0, scrollY);
+}
+
+function updateLoc(k, idx, val) {
+    workingData[k].locs[idx] = parseInt(val) || 0;
+    workingData[k].stock = workingData[k].locs.reduce(function(a, b) { return a + b; }, 0);
+    workingData[k].ts = Date.now();
+    document.getElementById('sum_' + k).innerText = workingData[k].stock;
+}
+
+function resetAll() {
+    if (!confirm('Alle Zählungen zurücksetzen?')) return;
+    for (var k in workingData) {
+        workingData[k] = {
+            locs: [0, 0, 0, 0],
+            stock: 0,
+            ts: 0,
+            counted: false,
+            _fromFile: false
+        };
+    }
+    renderList();
+}
+
+function importInventurJS(input) {
+    var file = input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            var script = document.createElement('script');
+            script.textContent = e.target.result;
+            document.head.appendChild(script);
+            document.head.removeChild(script);
+
+            if (!window.BOS_INVENTUR) {
+                alert('Ungueltige Datei - kein BOS_INVENTUR gefunden.');
+                return;
+            }
+
+            var loaded = window.BOS_INVENTUR;
+            var loadedProducts = loaded.products || {};
+            var count = 0;
+            var k, lp;
+            for (k in window.BOS_STAMMDATEN) {
+                lp = loadedProducts[k] || null;
+                if (!lp) continue;
+                // Nur Produkte die noch nicht selbst gezählt wurden
+                if (!workingData[k].counted) {
+                    var importedLocs = lp.locs || [0, 0, 0, 0];
+                    var importedStock = lp.stock || 0;
+                    // Altes Format: nur stock, keine locs → Wert ins erste Feld
+                    var locsSum = importedLocs.reduce(function(a, b) { return a + b; }, 0);
+                    if (locsSum === 0 && importedStock > 0) {
+                        importedLocs = [importedStock, 0, 0, 0];
+                    }
+                    workingData[k] = {
+                        locs:      importedLocs,
+                        stock:     importedLocs.reduce(function(a, b) { return a + b; }, 0),
+                        ts:        lp.ts    || 0,
+                        counted:   false,
+                        _fromFile: true
+                    };
+                    count++;
+                }
+            }
+            renderList();
+            alert(count + ' Produkte aus Datei geladen. Eigene Zaehlungen wurden nicht ueberschrieben.');
+        } catch(err) {
+            alert('Fehler beim Laden: ' + err.message);
+        }
+        input.value = '';
+    };
+    reader.readAsText(file);
+}
+
+function generateInventurJS() {
+    var stocks = {};
+    var cleanProducts = {};
+    var k, d;
+    for (k in workingData) {
+        d = workingData[k];
+        stocks[k] = d.stock;
+        cleanProducts[k] = {
+            locs:  d.locs,
+            stock: d.stock,
+            ts:    d.ts
+        };
+    }
+    var exportObj = { products: cleanProducts, stocks: stocks };
+    var js = 'window.BOS_INVENTUR = ' + JSON.stringify(exportObj, null, 2) + ';';
+    var blob = new Blob([js], { type: 'text/javascript' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'inventurdaten.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+</script>
+</body>
+</html>

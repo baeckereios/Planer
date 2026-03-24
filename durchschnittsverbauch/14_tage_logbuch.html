@@ -50,6 +50,82 @@
             .wert-menge { font-size: 0.85rem; }
             .wert-datum, .wert-sub { font-size: 0.6rem; }
         }
+
+        /* Filter Panel */
+        .filter-panel {
+            background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+            padding: 14px 16px; margin-bottom: 20px;
+        }
+        .filter-titel {
+            font-size: 0.75rem; font-weight: 800; letter-spacing: 1.5px;
+            text-transform: uppercase; color: #6b7280;
+            margin-bottom: 10px; padding-bottom: 8px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .filter-titel-actions { display: flex; gap: 8px; }
+        .filter-btn {
+            font-size: 0.68rem; font-weight: 700; padding: 3px 9px;
+            border-radius: 6px; border: 1px solid #e5e7eb;
+            background: #f9fafb; color: #6b7280; cursor: pointer;
+            letter-spacing: 0.5px;
+        }
+        .filter-btn:hover { border-color: #e67e22; color: #e67e22; }
+        .filter-kat { margin-bottom: 10px; }
+        .filter-kat-name {
+            font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1px; color: #9ca3af; margin-bottom: 6px;
+            display: flex; align-items: center; gap: 8px; cursor: pointer;
+        }
+        .filter-kat-name::after { content: '▸'; font-size: 0.7rem; }
+        .filter-kat.offen .filter-kat-name::after { content: '▾'; }
+        .filter-chips { display: none; flex-wrap: wrap; gap: 6px; }
+        .filter-kat.offen .filter-chips { display: flex; }
+        .filter-chip {
+            font-size: 0.72rem; padding: 4px 10px; border-radius: 20px;
+            border: 1.5px solid #e5e7eb; background: #f9fafb;
+            color: #6b7280; cursor: pointer; user-select: none;
+            transition: all 0.15s; white-space: nowrap;
+        }
+        .filter-chip.aktiv {
+            background: #e67e22; border-color: #e67e22;
+            color: #fff; font-weight: 700;
+        }
+        .filter-hinweis {
+            font-size: 0.75rem; color: #9ca3af; text-align: center;
+            padding: 20px; font-style: italic;
+        }
+        .tages-uebersicht {
+            background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+            padding: 12px 16px; margin-bottom: 20px;
+        }
+        .tages-uebersicht-titel {
+            font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px;
+            text-transform: uppercase; color: #6b7280;
+            margin-bottom: 8px; padding-bottom: 6px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .tages-liste { display: flex; flex-direction: column; gap: 2px; }
+        .tages-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 5px 8px; border-radius: 6px;
+            font-size: 0.78rem; cursor: pointer;
+            transition: background 0.15s;
+        }
+        .tages-item:hover { background: #f9fafb; }
+        .tages-item.offen { background: #fffbeb; }
+        .tages-item-datum { font-weight: 700; color: #374151; min-width: 72px; }
+        .tages-item-sym { font-size: 0.8rem; }
+        .tages-item-info { color: #9ca3af; font-size: 0.72rem; flex: 1; }
+        .tages-item-detail {
+            display: none; padding: 6px 8px 4px 80px;
+            font-size: 0.73rem; color: #374151; line-height: 1.5;
+            border-top: 1px dashed #e5e7eb; margin-top: 2px;
+        }
+        .tages-item.offen + .tages-item-detail { display: block; }
+
+        /* Flag-Symbol in wert-box */
+        .wert-flag { font-size: 0.65rem; line-height: 1; margin-top: 1px; }
     </style>
 </head>
 <body>
@@ -60,111 +136,326 @@
             <p>Vergleich: Vorletzte Woche | Letzte Woche | Diese Woche</p>
         </div>
         <div id="lade-status" style="text-align:center; padding:50px; color:#6b7280;">Lade Backmengen...</div>
+        <div id="filter-panel" style="display:none;" class="filter-panel">
+            <div class="filter-titel">
+                Produkte filtern
+                <div class="filter-titel-actions">
+                    <button class="filter-btn" onclick="alleAbwaehlen()">Alle ab</button>
+                    <button class="filter-btn" onclick="alleAnwaehlen()">Alle an</button>
+                </div>
+            </div>
+            <div id="filter-kategorien"></div>
+            <div class="filter-hinweis" id="filter-hinweis" style="display:none;">
+                Keine Produkte ausgewählt — tippe auf eine Kategorie um Produkte zu wählen.
+            </div>
+        </div>
         <div id="logbuch-inhalt"></div>
     </div>
 
     <script src="../shell.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', ladeHistorie);
+        let aktiveProdukte = new Set(); // leer = nichts anzeigen
 
-        async function ladeHistorie() {
-            const statusDiv = document.getElementById('lade-status');
+        function baueFilter(kategorienMap) {
+            const cont = document.getElementById('filter-kategorien');
+            cont.innerHTML = '';
+            // Gespeicherte Auswahl laden — leer = nichts ausgewählt (gewollt)
+            const gespeichert = localStorage.getItem('BOS_LOGBUCH_FILTER');
+            if (gespeichert !== null) {
+                aktiveProdukte = new Set(JSON.parse(gespeichert));
+            }
+            // aktiveProdukte bleibt leer wenn nichts gespeichert → Hinweis erscheint
+
+            for (const [kat, produkte] of Object.entries(kategorienMap)) {
+                const div = document.createElement('div');
+                div.className = 'filter-kat';
+                div.innerHTML = `<div class="filter-kat-name" onclick="this.parentElement.classList.toggle('offen')">${kat}</div><div class="filter-chips"></div>`;
+                const chips = div.querySelector('.filter-chips');
+                for (const prod of produkte) {
+                    const chip = document.createElement('span');
+                    chip.className = 'filter-chip' + (aktiveProdukte.has(prod) ? ' aktiv' : '');
+                    chip.textContent = prod;
+                    chip.onclick = () => toggleProdukt(prod, chip);
+                    chips.appendChild(chip);
+                }
+                cont.appendChild(div);
+            }
+            document.getElementById('filter-panel').style.display = 'block';
+            aktualisiereHinweis();
+            // Erste Kategorie automatisch aufklappen damit man sieht wie es geht
+            const ersteKat = cont.querySelector('.filter-kat');
+            if (ersteKat && aktiveProdukte.size === 0) ersteKat.classList.add('offen');
+        }
+
+        function toggleProdukt(prod, chip) {
+            if (aktiveProdukte.has(prod)) {
+                aktiveProdukte.delete(prod);
+                chip.classList.remove('aktiv');
+            } else {
+                aktiveProdukte.add(prod);
+                chip.classList.add('aktiv');
+            }
+            localStorage.setItem('BOS_LOGBUCH_FILTER', JSON.stringify([...aktiveProdukte]));
+            aktualisiereHinweis();
+            renderLogbuch();
+        }
+
+        function alleAbwaehlen() {
+            aktiveProdukte.clear();
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('aktiv'));
+            localStorage.setItem('BOS_LOGBUCH_FILTER', JSON.stringify([]));
+            aktualisiereHinweis();
+            renderLogbuch();
+        }
+
+        function alleAnwaehlen() {
+            document.querySelectorAll('.filter-chip').forEach(c => {
+                c.classList.add('aktiv');
+                aktiveProdukte.add(c.textContent);
+            });
+            localStorage.setItem('BOS_LOGBUCH_FILTER', JSON.stringify([...aktiveProdukte]));
+            aktualisiereHinweis();
+            renderLogbuch();
+        }
+
+        function aktualisiereHinweis() {
+            document.getElementById('filter-hinweis').style.display =
+                aktiveProdukte.size === 0 ? 'block' : 'none';
+        }
+
+        // Render-Funktion ausgelagert damit Filter sie aufrufen kann
+        let _renderData = null;
+
+        function renderLogbuch() {
+            if (!_renderData) return;
+            const { dbMap, blecheDbMap, kontextMap, einheitMap,
+                    heute, heuteStr, limit14, orderedDays, dayLabels,
+                    montagDieserWoche, kategorienMap,
+                    FEIERTAGE_NDS, WT_NAMEN, getTagFlags, wetterSymbol } = _renderData;
+
             const inhaltDiv = document.getElementById('logbuch-inhalt');
 
+            if (aktiveProdukte.size === 0) {
+                inhaltDiv.innerHTML = '';
+                return;
+            }
+
+            // Auffällige Tage
+            const alleDaten = new Set();
+            for (let sp = -2; sp <= 0; sp++) {
+                for (let di = 0; di < 7; di++) {
+                    const dayIndex = orderedDays[di];
+                    const d = new Date(montagDieserWoche);
+                    d.setDate(d.getDate() + (dayIndex === 0 ? 6 : dayIndex - 1) + (sp * 7));
+                    if (d <= heute) alleDaten.add(getLocalISO(d));
+                }
+            }
+            const auffaelligeTage = [...alleDaten]
+                .filter(dStr => getTagFlags(dStr).length > 0)
+                .sort((a, b) => b.localeCompare(a));
+
+            let uebersichtHTML = '';
+            if (auffaelligeTage.length > 0) {
+                uebersichtHTML = `<div class="tages-uebersicht">
+                    <div class="tages-uebersicht-titel">⚠️ Auffällige Tage im Zeitraum</div>
+                    <div class="tages-liste">`;
+                auffaelligeTage.forEach(dStr => {
+                    const flags = getTagFlags(dStr);
+                    const d = new Date(dStr + 'T12:00:00');
+                    const datumLabel = `${WT_NAMEN[d.getDay()]}, ${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.`;
+                    const symbole = flags.map(f => f.sym).join('');
+                    const kurzInfo = flags.map(f => f.text).join(' · ');
+                    const details = flags.map(f => `${f.sym} ${f.text}`).join('<br>');
+                    const k = kontextMap[dStr] || {};
+                    const wetterInfo = k.wetter ? `<br>🌤 ${k.wetter}${k.temperatur !== undefined ? ', ' + k.temperatur + '°C' : ''}` : '';
+                    uebersichtHTML += `
+                        <div class="tages-item" onclick="this.classList.toggle('offen');this.nextElementSibling.style.display=this.classList.contains('offen')?'block':'none'">
+                            <span class="tages-item-datum">${datumLabel}</span>
+                            <span class="tages-item-sym">${symbole}</span>
+                            <span class="tages-item-info">${kurzInfo}</span>
+                        </div>
+                        <div class="tages-item-detail" style="display:none">${details}${wetterInfo}</div>`;
+                });
+                uebersichtHTML += `</div></div>`;
+            }
+
+            let finalesHTML = uebersichtHTML;
+
+            for (const [kat, produkte] of Object.entries(kategorienMap)) {
+                const sichtbar = produkte.filter(p => aktiveProdukte.has(p));
+                if (sichtbar.length === 0) continue;
+
+                finalesHTML += `<h2 class="kategorie-titel">${kat}</h2>`;
+
+                sichtbar.forEach(prodKey => {
+                    const anzeigeName = typeof bereinigeAnzeigeName === 'function' ? bereinigeAnzeigeName(prodKey) : prodKey;
+                    const config = produktEinstellungen[prodKey] || {};
+
+                    let akkordeonHTML = `<details class="acc-card"><summary class="acc-summary">${anzeigeName}</summary><div class="acc-body">`;
+
+                    orderedDays.forEach(dayIndex => {
+                        akkordeonHTML += `<div class="wochentag-row"><div class="wochentag-name">${dayLabels[dayIndex]}</div><div class="wochentag-werte">`;
+
+                        for (let spalte = -2; spalte <= 0; spalte++) {
+                            let datumZelle = new Date(montagDieserWoche);
+                            datumZelle.setDate(datumZelle.getDate() + (dayIndex === 0 ? 6 : dayIndex - 1) + (spalte * 7));
+
+                            const dStr = getLocalISO(datumZelle);
+                            const dLabel = `${datumZelle.getDate().toString().padStart(2,'0')}.${(datumZelle.getMonth()+1).toString().padStart(2,'0')}.`;
+
+                            let cssClass = "wert-box";
+                            let inhalt = "-";
+                            let sub = "";
+
+                            if (dStr === heuteStr) cssClass += " is-heute";
+
+                            if (datumZelle > heute) {
+                                cssClass += " zukunft";
+                                inhalt = "geplant";
+                            } else if (datumZelle < limit14) {
+                                cssClass += " alt";
+                                const val = dbMap[dStr] ? parseInt(dbMap[dStr][prodKey]) : 0;
+                                inhalt = val || "0";
+                            } else {
+                                const istBleche = einheitMap[prodKey] === 'bleche';
+                                if (istBleche) {
+                                    const blVal = blecheDbMap[dStr] ? parseFloat(blecheDbMap[dStr][prodKey]) : 0;
+                                    const stVal = dbMap[dStr] ? parseInt(dbMap[dStr][prodKey]) : 0;
+                                    if (blVal > 0) {
+                                        inhalt = blVal.toFixed(1).replace('.0','') + " Bl.";
+                                        sub = stVal > 0 ? `(${stVal} Stk)` : '';
+                                    } else { inhalt = "0"; }
+                                } else {
+                                    const val = dbMap[dStr] ? parseInt(dbMap[dStr][prodKey]) : 0;
+                                    inhalt = val > 0 ? val + " Stk" : "0";
+                                }
+                            }
+
+                            akkordeonHTML += `
+                                <div class="${cssClass}">
+                                    <span class="wert-datum">${dLabel}${wetterSymbol(dStr) ? ' ' + wetterSymbol(dStr) : ''}</span>
+                                    <span class="wert-menge">${inhalt}</span>
+                                    <span class="wert-sub">${sub}</span>
+                                    ${getTagFlags(dStr).length > 0 ? `<span class="wert-flag">${getTagFlags(dStr).map(f=>f.sym).join('')}</span>` : ''}
+                                </div>`;
+                        }
+                        akkordeonHTML += `</div></div>`;
+                    });
+                    akkordeonHTML += `</div></details>`;
+                    finalesHTML += akkordeonHTML;
+                });
+            }
+
+            inhaltDiv.innerHTML = finalesHTML;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (window.BOS_GEHIRN) await window.BOS_GEHIRN.ladeProduktConfig();
+            const einheitMap = {};
+            const kategorienMap = {};
+            const KAT_REIHENFOLGE = ['Brötchen','Brot','Konditorei','Fettgebäck','Snack'];
+            try {
+                const cfgRes = await fetch('../produkt_config.json', { cache: 'no-store' });
+                const cfgData = await cfgRes.json();
+                cfgData.forEach(p => {
+                    einheitMap[p.name] = p.einheit || 'stueck';
+                    const kat = p.kategorie || 'Sonstiges';
+                    if (!kategorienMap[kat]) kategorienMap[kat] = [];
+                    kategorienMap[kat].push(p.name);
+                });
+            } catch(e) {
+                console.warn('produkt_config.json nicht geladen:', e.message);
+            }
+            // Reihenfolge normieren
+            const kategorienMapSortiert = {};
+            KAT_REIHENFOLGE.forEach(kat => {
+                if (kategorienMap[kat]) kategorienMapSortiert[kat] = kategorienMap[kat];
+            });
+            // Restliche Kategorien die nicht in der Reihenfolge stehen
+            Object.keys(kategorienMap).forEach(kat => {
+                if (!kategorienMapSortiert[kat]) kategorienMapSortiert[kat] = kategorienMap[kat];
+            });
+            ladeHistorie(einheitMap, kategorienMapSortiert);
+        });
+
+        async function ladeHistorie(einheitMap = {}, kategorienMap = {}) {
+            const statusDiv = document.getElementById('lade-status');
             try {
                 const response = await fetch('../backmengen_db.json');
                 const db = await response.json();
-                const dbMap = {};
-                db.forEach(e => dbMap[e.datum] = e.produkte);
 
-                const heute = new Date();
-                heute.setHours(0,0,0,0);
+                const dbMap = {}, blecheDbMap = {}, kontextMap = {};
+                db.forEach(e => {
+                    const roh = e.produkte || e;
+                    const normStueck = {}, normBleche = {};
+                    for (const [key, val] of Object.entries(roh)) {
+                        if (key.endsWith('_bleche')) {
+                            const name = window.BOS_GEHIRN ? window.BOS_GEHIRN.normalisiereKey(key.replace('_bleche','_stueck')) : null;
+                            if (name) normBleche[name] = val;
+                        } else {
+                            const name = window.BOS_GEHIRN ? window.BOS_GEHIRN.normalisiereKey(key) : key;
+                            if (name) normStueck[name] = val;
+                        }
+                    }
+                    dbMap[e.datum] = normStueck;
+                    blecheDbMap[e.datum] = normBleche;
+                    if (e.kontext) kontextMap[e.datum] = e.kontext;
+                });
+
+                const heute = new Date(); heute.setHours(0,0,0,0);
                 const heuteStr = getLocalISO(heute);
-
-                // 14-Tage Grenze (für die "Alt"-Markierung)
-                const limit14 = new Date(heute);
-                limit14.setDate(heute.getDate() - 13);
-
-                const dayLabels = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
-                const orderedDays = [1, 2, 3, 4, 5, 6, 0]; 
-
-                // Wir berechnen den Montag der aktuellen Woche als Startpunkt für die rechte Säule
+                const limit14 = new Date(heute); limit14.setDate(heute.getDate() - 13);
+                const dayLabels = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+                const orderedDays = [1,2,3,4,5,6,0];
                 const aktuellerWochentag = heute.getDay();
                 const diffZumMontag = aktuellerWochentag === 0 ? 6 : aktuellerWochentag - 1;
                 const montagDieserWoche = new Date(heute);
                 montagDieserWoche.setDate(heute.getDate() - diffZumMontag);
 
-                let finalesHTML = "";
+                const FEIERTAGE_NDS = [
+                    "2026-01-01","2026-04-03","2026-04-06","2026-05-01","2026-05-14",
+                    "2026-05-25","2026-10-03","2026-10-31","2026-12-25","2026-12-26"
+                ];
+                const WT_NAMEN = ["So","Mo","Di","Mi","Do","Fr","Sa"];
 
-                kategorieReihenfolge.forEach(kat => {
-                    const produkteInKat = erlaubteProdukte.filter(p => (produktKategorien[p] || "sonstiges") === kat);
-                    if (produkteInKat.length === 0) return;
+                function getTagFlags(dStr) {
+                    const k = kontextMap[dStr] || {};
+                    const flags = [];
+                    if (FEIERTAGE_NDS.includes(dStr))   flags.push({ sym:'🌴', text:'Feiertag (Niedersachsen)' });
+                    if (k.feiertag)                      flags.push({ sym:'📅', text:'Als Feiertag markiert' });
+                    if (k.ferien)                        flags.push({ sym:'🏖', text:'Ferienzeit' });
+                    if (k.besonderheit)                  flags.push({ sym:'⚠️', text:'Besonderheit: ' + k.besonderheit });
+                    if (k.ausschluss_sondertag)          flags.push({ sym:'🎉', text:'Sondertag' });
+                    if (k.ausschluss_einschraenkung)     flags.push({ sym:'🔧', text:'Einschränkung' });
+                    return flags;
+                }
 
-                    finalesHTML += `<h2 class="kategorie-titel">${kat}</h2>`;
+                function wetterSymbol(dStr) {
+                    const k = kontextMap[dStr];
+                    if (!k || !k.wetter) return '';
+                    const w = k.wetter.toLowerCase();
+                    if (w.includes('sonn') || w.includes('klar') || w.includes('heiter')) return '☀️';
+                    if (w.includes('regen') || w.includes('schauer') || w.includes('nass')) return '🌧';
+                    if (w.includes('schnee')) return '🌨';
+                    if (w.includes('gewitter')) return '⛈';
+                    if (w.includes('nebel')) return '🌫';
+                    if (w.includes('wolke') || w.includes('bewölkt') || w.includes('bedeckt')) return '☁️';
+                    if (w.includes('überwiegend') && w.includes('sonn')) return '🌤';
+                    return '🌤';
+                }
 
-                    produkteInKat.forEach(prodKey => {
-                        const anzeigeName = typeof bereinigeAnzeigeName === 'function' ? bereinigeAnzeigeName(prodKey) : prodKey;
-                        const config = produktEinstellungen[prodKey] || {};
-                        const teiler = config.stueckProBlech || 1;
-
-                        let akkordeonHTML = `<details class="acc-card"><summary class="acc-summary">${anzeigeName}</summary><div class="acc-body">`;
-
-                        orderedDays.forEach(dayIndex => {
-                            akkordeonHTML += `<div class="wochentag-row"><div class="wochentag-name">${dayLabels[dayIndex]}</div><div class="wochentag-werte">`;
-
-                            // Drei Spalten generieren
-                            for (let spalte = -2; spalte <= 0; spalte++) {
-                                let datumZelle = new Date(montagDieserWoche);
-                                // Montag dieser Woche + Versatz zum Wochentag + (Wochen-Spalte * 7)
-                                datumZelle.setDate(datumZelle.getDate() + (dayIndex === 0 ? 6 : dayIndex - 1) + (spalte * 7));
-                                
-                                const dStr = getLocalISO(datumZelle);
-                                const dLabel = `${datumZelle.getDate().toString().padStart(2,'0')}.${(datumZelle.getMonth()+1).toString().padStart(2,'0')}.`;
-                                
-                                let cssClass = "wert-box";
-                                let inhalt = "-";
-                                let sub = "";
-
-                                if (dStr === heuteStr) cssClass += " is-heute";
-                                
-                                if (datumZelle > heute) {
-                                    cssClass += " zukunft";
-                                    inhalt = "geplant";
-                                } else if (datumZelle < limit14) {
-                                    cssClass += " alt";
-                                    const val = dbMap[dStr] ? parseInt(dbMap[dStr][prodKey]) : 0;
-                                    inhalt = val || "0";
-                                } else {
-                                    const val = dbMap[dStr] ? parseInt(dbMap[dStr][prodKey]) : 0;
-                                    if (val > 0) {
-                                        if (config.einheit === 'blech') {
-                                            inhalt = (val / teiler).toFixed(1).replace('.0','') + " Bl.";
-                                            sub = `(${val} Stk)`;
-                                        } else {
-                                            inhalt = val + " Stk";
-                                        }
-                                    } else {
-                                        inhalt = "0";
-                                    }
-                                }
-
-                                akkordeonHTML += `
-                                    <div class="${cssClass}">
-                                        <span class="wert-datum">${dLabel}</span>
-                                        <span class="wert-menge">${inhalt}</span>
-                                        <span class="wert-sub">${sub}</span>
-                                    </div>`;
-                            }
-                            akkordeonHTML += `</div></div>`;
-                        });
-                        akkordeonHTML += `</div></details>`;
-                        finalesHTML += akkordeonHTML;
-                    });
-                });
+                // Kategorien-Map kommt bereits als Parameter — direkt verwenden
+                // Render-Daten speichern
+                _renderData = { dbMap, blecheDbMap, kontextMap, einheitMap,
+                    heute, heuteStr, limit14, orderedDays, dayLabels,
+                    montagDieserWoche, kategorienMap,
+                    FEIERTAGE_NDS, WT_NAMEN, getTagFlags, wetterSymbol };
 
                 statusDiv.style.display = 'none';
-                inhaltDiv.innerHTML = finalesHTML;
-            } catch (e) { statusDiv.innerHTML = "Fehler beim Laden."; }
+                baueFilter(kategorienMap);
+                renderLogbuch();
+
+            } catch(e) { statusDiv.innerHTML = "⚠ Fehler: " + e.message; console.error(e); }
         }
 
         function getLocalISO(date) {

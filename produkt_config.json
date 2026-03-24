@@ -1,4 +1,4 @@
-const FALLBACK_CONFIG = [
+[
   {
     "artNr": "111000",
     "name": "Schrippen GESAMT",
@@ -29,7 +29,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 20,
     "legacyKey": "hasenberger_stueck",
-    "hinweis": null
+    "hinweis": null,
+    "einheit": "bleche"
   },
   {
     "artNr": "111030",
@@ -37,7 +38,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 20,
     "legacyKey": "kaesebroetchen_stueck",
-    "hinweis": null
+    "hinweis": null,
+    "einheit": "bleche"
   },
   {
     "artNr": "112001",
@@ -45,7 +47,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 25,
     "legacyKey": "kornknacker_stueck",
-    "hinweis": null
+    "hinweis": null,
+    "einheit": "bleche"
   },
   {
     "artNr": "114120",
@@ -53,7 +56,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 25,
     "legacyKey": "dinkel_zwerg_stueck",
-    "hinweis": null
+    "hinweis": null,
+    "einheit": "bleche"
   },
   {
     "artNr": "115001",
@@ -61,7 +65,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 18,
     "legacyKey": "laugenstangen_stueck",
-    "hinweis": null
+    "hinweis": null,
+    "einheit": "bleche"
   },
   {
     "artNr": "115009",
@@ -69,7 +74,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 15,
     "legacyKey": "laugenecken_gesamt_stueck",
-    "hinweis": null
+    "hinweis": null,
+    "einheit": "bleche"
   },
   {
     "artNr": "116001",
@@ -77,7 +83,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 20,
     "legacyKey": "rosinen_hedwig_stueck",
-    "hinweis": null
+    "hinweis": null,
+    "einheit": "bleche"
   },
   {
     "artNr": "116003",
@@ -85,7 +92,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 20,
     "legacyKey": "hasenpfoetchen_stueck",
-    "hinweis": null
+    "hinweis": null,
+    "einheit": "bleche"
   },
   {
     "artNr": "116004",
@@ -93,7 +101,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 12,
     "legacyKey": "rosinen_batzen_stueck",
-    "hinweis": null
+    "hinweis": null,
+    "einheit": "bleche"
   },
   {
     "artNr": "116005",
@@ -101,7 +110,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 12,
     "legacyKey": "schoko_batzen_stueck",
-    "hinweis": null
+    "hinweis": null,
+    "einheit": "bleche"
   },
   {
     "artNr": "116009",
@@ -109,7 +119,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 14,
     "legacyKey": "zimt_woelkchen_stueck",
-    "hinweis": null
+    "hinweis": null,
+    "einheit": "bleche"
   },
   {
     "artNr": "116011",
@@ -117,7 +128,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 16,
     "legacyKey": "butter_croissant_stueck",
-    "hinweis": null
+    "hinweis": null,
+    "einheit": "bleche"
   },
   {
     "artNr": "116012",
@@ -125,7 +137,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 20,
     "legacyKey": "schoko_croissant_stueck",
-    "hinweis": null
+    "hinweis": null,
+    "einheit": "bleche"
   },
   {
     "artNr": "116020",
@@ -133,7 +146,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 30,
     "legacyKey": "mini_croissant_stueck",
-    "hinweis": null
+    "hinweis": null,
+    "einheit": "bleche"
   },
   {
     "artNr": "116022",
@@ -141,7 +155,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 30,
     "legacyKey": "mini_schoko_croissant_stueck",
-    "hinweis": null
+    "hinweis": null,
+    "einheit": "bleche"
   },
   {
     "artNr": null,
@@ -149,7 +164,8 @@ const FALLBACK_CONFIG = [
     "kategorie": "Brötchen",
     "charge": 48,
     "legacyKey": "schlawiner_gesamt_stueck",
-    "hinweis": "ArtNr unbekannt – bitte nachtragen"
+    "hinweis": "ArtNr unbekannt – bitte nachtragen",
+    "einheit": "bleche"
   },
   {
     "artNr": "121001",
@@ -284,7 +300,7 @@ const FALLBACK_CONFIG = [
     "name": "Dinkel-Joghurt-Brot 500g",
     "kategorie": "Brot",
     "charge": 4,
-    "legacyKey": "dinkel_joghurt_brot_stueck",
+    "legacyKey": "dinkel_joghurt_500g_stueck",
     "hinweis": null
   },
   {
@@ -348,7 +364,7 @@ const FALLBACK_CONFIG = [
     "name": "Kastenweißbrot 450g",
     "kategorie": "Brot",
     "charge": 4,
-    "legacyKey": "kastenweissbrot_stueck",
+    "legacyKey": "kastenweissbrot_450g_stueck",
     "hinweis": null
   },
   {
@@ -364,7 +380,7 @@ const FALLBACK_CONFIG = [
     "name": "Carrot Cheesecake (nur Henri)",
     "kategorie": "Konditorei",
     "charge": 20,
-    "legacyKey": null,
+    "legacyKey": "carrot_cheesecake_stueck",
     "hinweis": "nur Henri"
   },
   {
@@ -372,7 +388,7 @@ const FALLBACK_CONFIG = [
     "name": "Bienenstich gefüllt (20er)",
     "kategorie": "Konditorei",
     "charge": 20,
-    "legacyKey": null,
+    "legacyKey": "bienenstich_gefuellt_stueck",
     "hinweis": null
   },
   {
@@ -388,7 +404,7 @@ const FALLBACK_CONFIG = [
     "name": "Oma Herta's Zuckerkuchen Stück 1/6",
     "kategorie": "Konditorei",
     "charge": 6,
-    "legacyKey": "zuckerkuchen_stueck",
+    "legacyKey": "oma_hertas_stueck",
     "hinweis": null
   },
   {
@@ -420,7 +436,7 @@ const FALLBACK_CONFIG = [
     "name": "Brownie",
     "kategorie": "Konditorei",
     "charge": 20,
-    "legacyKey": null,
+    "legacyKey": "brownie_stueck",
     "hinweis": null
   },
   {
@@ -500,7 +516,7 @@ const FALLBACK_CONFIG = [
     "name": "vegange Plunderschiffe",
     "kategorie": "Konditorei",
     "charge": 1,
-    "legacyKey": null,
+    "legacyKey": "plunderschiffe_vegan_stueck",
     "hinweis": null
   },
   {
@@ -524,7 +540,7 @@ const FALLBACK_CONFIG = [
     "name": "Dinkel-Waffel Teig",
     "kategorie": "Konditorei",
     "charge": 1,
-    "legacyKey": null,
+    "legacyKey": "dinkel_waffel_teig_stueck",
     "hinweis": null
   },
   {
@@ -567,219 +583,4 @@ const FALLBACK_CONFIG = [
     "legacyKey": null,
     "hinweis": null
   }
-];
-
-// ============================================================
-//  durchschnittsverbrauch_gehirn.js
-//  BäckereiOS – Durchschnittsverbrauch-Logik
-//
-//  Produktkonfiguration wird zur Laufzeit aus
-//  ../produkt_config.json geladen.
-//
-//  Unterstützt zwei DB-Formate:
-//    - Alt (vor 11.03.2026): snake_case Keys mit _stueck-Suffix
-//    - Neu (ab 11.03.2026):  Klartext-Produktname direkt
-// ============================================================
-
-'use strict';
-
-// ── Konfiguration laden ────────────────────────────────────
-let PRODUKT_CONFIG  = [];   // Array der Einträge aus JSON
-let LEGACY_MAP      = {};   // { legacyKey: klartext_name }
-let ERLAUBTE_KEYS   = new Set();
-let EINSTELLUNGEN   = {};   // { klartext_name: { charge, kategorie } }
-let KATEGORIEN      = {};   // { kategorie: [klartext_name, ...] }
-let configGeladen   = false;
-
-async function ladeProduktConfig() {
-  if (configGeladen) return;
-  try {
-    const res  = await fetch('../produkt_config.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const text = await res.text();
-    if (!text.trim().startsWith('[')) throw new Error('Kein gültiges JSON');
-    const data = JSON.parse(text);
-    PRODUKT_CONFIG = data;
-
-    LEGACY_MAP    = {};
-    ERLAUBTE_KEYS = new Set();
-    EINSTELLUNGEN = {};
-    KATEGORIEN    = {};
-
-    for (const p of data) {
-      const name = p.name;
-      ERLAUBTE_KEYS.add(name);
-      EINSTELLUNGEN[name] = { charge: p.charge, kategorie: p.kategorie };
-
-      if (!KATEGORIEN[p.kategorie]) KATEGORIEN[p.kategorie] = [];
-      KATEGORIEN[p.kategorie].push(name);
-
-      if (p.legacyKey) {
-        LEGACY_MAP[p.legacyKey] = name;
-      }
-    }
-
-    configGeladen = true;
-    _setzeLegacyGlobals();
-  } catch (err) {
-    console.warn('produkt_config.json nicht verfügbar, nutze Fallback:', err.message);
-    // Fallback: eingebettete Konfiguration verwenden
-    PRODUKT_CONFIG = FALLBACK_CONFIG;
-    for (const p of FALLBACK_CONFIG) {
-      const name = p.name;
-      ERLAUBTE_KEYS.add(name);
-      EINSTELLUNGEN[name] = { charge: p.charge, kategorie: p.kategorie };
-      if (!KATEGORIEN[p.kategorie]) KATEGORIEN[p.kategorie] = [];
-      KATEGORIEN[p.kategorie].push(name);
-      if (p.legacyKey) LEGACY_MAP[p.legacyKey] = name;
-    }
-    configGeladen = true;
-    _setzeLegacyGlobals();
-  }
-}
-
-// ── Key-Normalisierung ─────────────────────────────────────
-// Wandelt beliebige DB-Keys in kanonische Klartext-Namen um.
-function normalisiereKey(rawKey) {
-  if (!rawKey || typeof rawKey !== 'string') return null;
-
-  // _bleche-Suffix → ignorieren
-  if (rawKey.endsWith('_bleche')) return null;
-
-  // Schon ein Klartext-Name?
-  if (ERLAUBTE_KEYS.has(rawKey)) return rawKey;
-
-  // Legacy-Mapping versuchen
-  const gemappt = LEGACY_MAP[rawKey];
-  if (gemappt) return gemappt;
-
-  // Altes Format mit _stueck-Suffix ohne Mapping → null (unbekannt)
-  if (rawKey.endsWith('_stueck')) return null;
-
-  // Unbekannter Key → null
-  return null;
-}
-
-// ── Anzeigename ────────────────────────────────────────────
-function bereinigeAnzeigeName(name) {
-  // Neue Keys sind bereits gut lesbar
-  return name;
-}
-
-// ── Daten berechnen ────────────────────────────────────────
-function berechneTagesdurchschnitte(dbEintraege, optionen = {}) {
-  const {
-    maxTage       = 14,
-    nurWochentage = null,   // null = alle, sonst Array [0-6] (0=So)
-  } = optionen;
-
-  // Einträge sortieren und ggf. begrenzen
-  const sortiert = [...dbEintraege].sort((a, b) => b.datum.localeCompare(a.datum));
-  const gefiltert = nurWochentage
-    ? sortiert.filter(e => {
-        const d = new Date(e.datum);
-        return nurWochentage.includes(d.getDay());
-      })
-    : sortiert;
-
-  const begrenzt = maxTage > 0 ? gefiltert.slice(0, maxTage) : gefiltert;
-
-  // Pro Produkt: alle Bleche-Werte sammeln
-  const produktDaten = {};   // { name: { werte: [bleche, ...], tage: n } }
-
-  for (const eintrag of begrenzt) {
-    // Neues DB-Format: Produkte stecken in eintrag.produkte
-    const quell = eintrag.produkte || eintrag;
-    for (const [rawKey, wert] of Object.entries(quell)) {
-      // Nur _stueck-Keys lesen, _bleche überspringen (werden selbst berechnet)
-      if (rawKey.endsWith('_bleche')) continue;
-
-      const name = normalisiereKey(rawKey);
-      if (!name) continue;
-
-      if (!produktDaten[name]) produktDaten[name] = { werte: [], n: 0 };
-      produktDaten[name].werte.push(Number(wert) || 0);
-      produktDaten[name].n++;
-    }
-  }
-
-  // Durchschnitte berechnen
-  const ergebnis = {};
-  for (const [name, data] of Object.entries(produktDaten)) {
-    const summe = data.werte.reduce((s, v) => s + v, 0);
-    ergebnis[name] = {
-      durchschnittBleche: summe / data.n,
-      n:                  data.n,
-      einstellung:        EINSTELLUNGEN[name] || { charge: 1, kategorie: 'Unbekannt' },
-    };
-  }
-
-  return ergebnis;
-}
-
-// ── Pro-Wochentag-Durchschnitte ────────────────────────────
-function berechneWochentagDurchschnitte(dbEintraege, maxTage = 0) {
-  const wochentage = [0, 1, 2, 3, 4, 5, 6]; // So=0 … Sa=6
-  const result = {};
-
-  for (const wt of wochentage) {
-    result[wt] = berechneTagesdurchschnitte(dbEintraege, {
-      maxTage,
-      nurWochentage: [wt],
-    });
-  }
-  return result;
-}
-
-// ── Kategorien-Struktur für Ausgabe ───────────────────────
-function getKategorienStruktur() {
-  return KATEGORIEN;
-}
-
-function getEinstellungen() {
-  return EINSTELLUNGEN;
-}
-
-function getProduktConfig() {
-  return PRODUKT_CONFIG;
-}
-
-// ── Globale Exposition (kein ES6-Modul) ────────────────────
-// Alle Funktionen und Daten sind direkt als window.* verfügbar.
-// Außerdem werden Legacy-kompatible Variablennamen gesetzt sobald
-// ladeProduktConfig() abgeschlossen ist.
-
-window.BOS_GEHIRN = {
-  ladeProduktConfig,
-  normalisiereKey,
-  bereinigeAnzeigeName,
-  berechneTagesdurchschnitte,
-  berechneWochentagDurchschnitte,
-  getKategorienStruktur,
-  getEinstellungen,
-  getProduktConfig,
-};
-
-// Legacy-Variablen für alten Logbuch-Code — werden nach ladeProduktConfig() befüllt
-function _setzeLegacyGlobals() {
-  window.erlaubteProdukte     = [...ERLAUBTE_KEYS];
-  window.produktKategorien    = {};
-  window.produktEinstellungen = {};
-  // Reihenfolge exakt wie in produkt_config.json — Groß/Kleinschreibung muss matchen
-  window.kategorieReihenfolge = ['Brötchen','Brot','Konditorei','Fettgebäck','Snack'];
-
-  for (const [kat, produkte] of Object.entries(KATEGORIEN)) {
-    for (const name of produkte) {
-      window.produktKategorien[name] = kat; // Original-Schreibweise behalten
-    }
-  }
-  for (const [name, einst] of Object.entries(EINSTELLUNGEN)) {
-    window.produktEinstellungen[name] = {
-      stueckProBlech: einst.charge || 1,
-      einheit:        'stueck',
-      kategorie:      einst.kategorie || '',
-    };
-  }
-  // bereinigeAnzeigeName global verfügbar machen
-  window.bereinigeAnzeigeName = bereinigeAnzeigeName;
-}
+]

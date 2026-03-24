@@ -361,7 +361,6 @@ header small { font-size: 11px; color: #64748b; }
       <span>🟡 Besonderheit (auffällig)</span>
       <span>🌴 Feiertag (auto-aus)</span>
     </div>
-    <div id="tagInfo" style="display:none;margin-top:10px;padding:8px 12px;background:#f8fafc;border-left:3px solid var(--orange);border-radius:0 6px 6px 0;font-size:12px;color:#374151;line-height:1.5;"></div>
   </div>
 
   <div class="card">
@@ -377,23 +376,6 @@ header small { font-size: 11px; color: #64748b; }
   </div>
 
   <button class="btn btn-rot btn-full" onclick="weiterZuProdukten()">Weiter → Produkte wählen</button>
-
-  <div class="card" style="margin-top:10px;border:2px solid #e5e7eb;">
-    <div class="card-title">Modus</div>
-    <div style="display:flex;gap:10px;">
-      <button id="btnUpdate"   class="btn btn-full aktiv-modus" onclick="setzeModus(false)"
-        style="flex:1;background:var(--dunkel);color:#fff;border-radius:7px;padding:12px;font-size:13px;font-weight:700;border:none;cursor:pointer;">
-        🔄 Update<br><span style="font-size:10px;font-weight:400;opacity:0.7">bestehende stammdaten.js ergänzen</span>
-      </button>
-      <button id="btnNeustart" class="btn btn-full" onclick="setzeModus(true)"
-        style="flex:1;background:#e5e7eb;color:#374151;border-radius:7px;padding:12px;font-size:13px;font-weight:700;border:none;cursor:pointer;">
-        🧹 Neustart<br><span style="font-size:10px;font-weight:400;opacity:0.7">komplett neu aus produkt_config</span>
-      </button>
-    </div>
-    <div id="modusHinweis" class="hinweis" style="margin-top:10px;margin-bottom:0;">
-      <strong>Update:</strong> Bestehende Einträge (Station, Sonderwerte) bleiben erhalten — neue Produkte werden ergänzt.
-    </div>
-  </div>
 </div>
 </div>
 
@@ -456,6 +438,10 @@ header small { font-size: 11px; color: #64748b; }
     <button class="btn btn-gruen btn-full" onclick="downloadJS()" style="margin-top:10px;font-size:15px;padding:14px;">
       ⬇ stammdaten.js herunterladen
     </button>
+    <button class="btn btn-rot btn-full" onclick="downloadConfig()" style="margin-top:8px;font-size:14px;padding:12px;"
+      id="btnDlConfig">
+      ⬇ produkt_config.json herunterladen <span style="font-size:11px;opacity:0.8">(nur bei Charge-Änderungen)</span>
+    </button>
     <div class="card-title" style="margin-top:16px;">Vorschau</div>
     <textarea class="code-box" id="codeBox" readonly></textarea>
   </div>
@@ -495,7 +481,6 @@ let dbWerte       = {};      // produktName → [Mo..So] Bleche
 let auswahl       = [];      // ausgewählte Produkt-Namen
 let tagePool          = [];
 let dbWerteRohStueck  = {};  // Name → [Mo..So] Ø Stück (charge-unabhängig)
-let neustartModus     = false; // true = blanko, false = bestehende stammdaten.js mergen
 
 // ════════════════════════════════════════════════════════
 // INIT
@@ -551,10 +536,7 @@ function kalenderNeubauen() {
     const istFeiertag   = FEIERTAGE_NDS.includes(e.datum);
     const k             = e.kontext || {};
     const hatBesonderh  = !!(k.besonderheit && k.besonderheit.trim());
-    const istVerdaechtig = k.feiertag || k.ferien || hatBesonderh
-                        || k.ausschluss_sondertag || k.ausschluss_einschraenkung;
-    const autoAusschluss = k.ausschluss_sondertag || k.ausschluss_einschraenkung
-                        || istFeiertag;
+    const istVerdaechtig = k.feiertag || k.ferien || hatBesonderh;
 
     return {
       datumStr:     e.datum,
@@ -569,12 +551,11 @@ function kalenderNeubauen() {
     };
   });
 
-  // Auto-Ausschluss: NDS-Feiertage + explizit gesetzte Flags
+  // Feiertage und Bereiche auto-ausschließen (aber nicht manuell gesetzte wiederherstellen)
   for (const tag of tagePool) {
-    const e = db.find(x => x.datum === tag.datumStr);
-    const k = e?.kontext || {};
-    const sollAus = tag.istFeiertag || k.ausschluss_sondertag || k.ausschluss_einschraenkung;
-    if (sollAus) ausgeschl.add(tag.datumStr);
+    if (tag.istFeiertag && !ausgeschl.has(tag.datumStr + '_manuell_ein')) {
+      ausgeschl.add(tag.datumStr);
+    }
   }
   // Bereiche anwenden
   for (const b of bereiche) {
@@ -600,14 +581,10 @@ function zeichneKalender() {
     else if (tag.istVerdaechtig) { cls += ' warn-tag'; autoWarnCount++; }
     if (tag.istFeiertag) cls += ' feiertag';
 
-    const e2 = db.find(x => x.datum === tag.datumStr);
-    const k2 = e2?.kontext || {};
     const flags = [];
-    if (tag.istFeiertDB)              flags.push('📅');
-    if (tag.istFerienDB)              flags.push('🏖');
-    if (tag.besonderheit)             flags.push('⚠️');
-    if (k2.ausschluss_sondertag)      flags.push('🎉');
-    if (k2.ausschluss_einschraenkung) flags.push('🔧');
+    if (tag.istFeiertDB)   flags.push('📅');
+    if (tag.istFerienDB)   flags.push('🏖');
+    if (tag.besonderheit)  flags.push('⚠️');
 
     const div = document.createElement('div');
     div.className = cls;
@@ -622,17 +599,6 @@ function zeichneKalender() {
       zeichneKalender();
       updateZeitraumInfo();
     };
-    div.addEventListener('contextmenu', e => {
-      e.preventDefault();
-      zeigeTagInfo(tag, e2);
-    });
-    if (tag.istVerdaechtig || tag.istFeiertag) {
-      div.addEventListener('touchstart', () => {
-        _tagInfoTimer = setTimeout(() => zeigeTagInfo(tag, e2), 400);
-      }, { passive: true });
-      div.addEventListener('touchend', () => clearTimeout(_tagInfoTimer));
-      div.addEventListener('touchmove', () => clearTimeout(_tagInfoTimer));
-    }
     grid.appendChild(div);
   }
 
@@ -640,7 +606,7 @@ function zeichneKalender() {
   const hint = document.getElementById('autoHinweis');
   if (autoWarnCount > 0) {
     hint.style.display = 'block';
-    hint.textContent = `⚠ ${autoWarnCount} auffällige Tage erkannt (Besonderheit/Ferien/Feiertag-Flag aus DB). Gelb markiert — tippen zum Ausschließen. Tage mit 🎉 oder 🔧 sind bereits automatisch ausgeschlossen.`;
+    hint.textContent = `⚠ ${autoWarnCount} auffällige Tage erkannt (Besonderheit/Ferien/Feiertag-Flag aus DB). Gelb markiert — tippen zum Ausschließen.`;
   } else {
     hint.style.display = 'none';
   }
@@ -653,53 +619,6 @@ function updateZeitraumInfo() {
     `${aktiv} von ${total} Tagen aktiv`;
   document.getElementById('zeitraumInfo').textContent =
     tagePool.length ? tagePool[tagePool.length-1].datumStr + ' – ' + tagePool[0].datumStr : '';
-}
-
-let _tagInfoTimer = null;
-
-function zeigeTagInfo(tag, eintrag) {
-  const box = document.getElementById('tagInfo');
-  const k = eintrag?.kontext || {};
-  const zeilen = [];
-  const wtNamen = ['So','Mo','Di','Mi','Do','Fr','Sa'];
-  const d = new Date(tag.datumStr + 'T12:00:00');
-  const datum = `${wtNamen[d.getDay()]}, ${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()}`;
-
-  zeilen.push(`<strong>${datum}</strong>`);
-  if (tag.istFeiertag)        zeilen.push('🌴 Feiertag (Niedersachsen) — automatisch ausgeschlossen');
-  if (k.feiertag)             zeilen.push('📅 Als Feiertag in DB markiert');
-  if (k.ferien)               zeilen.push('🏖 Ferienzeit');
-  if (k.besonderheit)         zeilen.push('⚠️ Besonderheit: <em>' + k.besonderheit + '</em>');
-  if (k.ausschluss_sondertag) zeilen.push('🎉 Sondertag — automatisch ausgeschlossen');
-  if (k.ausschluss_einschraenkung) zeilen.push('🔧 Einschränkung — automatisch ausgeschlossen');
-  if (k.wetter)               zeilen.push(`🌤 Wetter: ${k.wetter}${k.temperatur !== undefined ? ', ' + k.temperatur + '°C' : ''}`);
-
-  if (zeilen.length === 1) zeilen.push('Kein Grund hinterlegt.');
-
-  box.innerHTML = zeilen.join('<br>');
-  box.style.display = 'block';
-  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-// ════════════════════════════════════════════════════════
-// MODUS-UMSCHALTER
-// ════════════════════════════════════════════════════════
-function setzeModus(neustart) {
-  neustartModus = neustart;
-  const btnN = document.getElementById('btnNeustart');
-  const btnU = document.getElementById('btnUpdate');
-  const hint = document.getElementById('modusHinweis');
-  if (neustart) {
-    btnN.style.background = '#c0392b'; btnN.style.color = '#fff';
-    btnU.style.background = '#e5e7eb'; btnU.style.color = '#374151';
-    hint.className = 'hinweis warn';
-    hint.innerHTML = '<strong>Neustart:</strong> Bestehende stammdaten.js wird <u>vollständig ersetzt</u>. Alle Produkte kommen aus der produkt_config.json — Station, sun und batchSize musst du neu vergeben.';
-  } else {
-    btnU.style.background = '#0f172a'; btnU.style.color = '#fff';
-    btnN.style.background = '#e5e7eb'; btnN.style.color = '#374151';
-    hint.className = 'hinweis';
-    hint.innerHTML = '<strong>Update:</strong> Bestehende Einträge (Station, Sonderwerte) bleiben erhalten — neue Produkte werden ergänzt.';
-  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -812,67 +731,41 @@ function renderProduktListe() {
   listNeu.innerHTML = '';
 
   const aktiv = tagePool.filter(t => !ausgeschl.has(t.datumStr)).length;
-  document.getElementById('aktiveTageInfo').textContent = `Basis: ${aktiv} Tage`;
+  document.getElementById('aktiveTageInfo').textContent =
+    `Basis: ${aktiv} Tage`;
 
   const gemerkteHaken = new Set(auswahl);
 
-  if (neustartModus) {
-    // ── Neustart: Produktliste aus produkt_config, alle vorausgewählt ──
-    document.getElementById('hinweisBekannt').innerHTML =
-      '🧹 <strong>Neustart-Modus:</strong> Alle Produkte aus der produkt_config.json — vorausgewählt. Abwählen was nicht gebraucht wird.';
-    document.querySelector('.sektion-label.bekannt').textContent = '📋 Alle Produkte aus produkt_config';
-    document.querySelector('.sektion-label.neu').style.display = 'none';
+  for (const [name, needs] of Object.entries(dbWerte)) {
+    const istBekannt = stammNamen.has(name.toLowerCase());
+    const istGewählt = gemerkteHaken.size > 0 ? gemerkteHaken.has(name) : istBekannt;
+    const spitze     = Math.max(...needs);
+    const charge      = getCharge(name);
 
-    for (const p of produktConfig) {
-      const name    = p.name;
-      const needs   = dbWerte[name] || [0,0,0,0,0,0,0];
-      const spitze  = Math.max(...needs);
-      const charge  = p.charge || 1;
-      const hatDB   = spitze > 0;
-
-      const label = document.createElement('label');
-      label.className = 'prod-label';
-      label.innerHTML = `
-        <input type="checkbox" value="${name}" checked>
-        <div class="prod-karte">
-          <div class="prod-check">✓</div>
-          <div class="prod-info">
-            <div class="prod-name">${name}</div>
-            <div class="prod-badge" id="badge-${CSS.escape(name)}">
-              ${hatDB ? `Ø max ${spitze} Bl · charge=${charge}` : `⚠ noch keine DB-Daten · charge=${charge}`}
-            </div>
+    const label = document.createElement('label');
+    label.className = 'prod-label';
+    label.innerHTML = `
+      <input type="checkbox" value="${name}" ${istGewählt ? 'checked' : ''}>
+      <div class="prod-karte">
+        <div class="prod-check">✓</div>
+        <div class="prod-info">
+          <div class="prod-name">${name}</div>
+          <div class="prod-badge" id="badge-${CSS.escape(name)}">
+            Ø max ${spitze} Bl · charge=${charge}
           </div>
-        </div>`;
-      listBek.appendChild(label);
-    }
-  } else {
-    // ── Update: wie bisher, aus dbWerte ──
-    document.getElementById('hinweisBekannt').innerHTML =
-      'Produkte die bereits in deiner <strong>stammdaten.js</strong> stehen sind vorausgewählt. Grün markierte sind neu in der DB.';
-    document.querySelector('.sektion-label.bekannt').textContent = '🔄 Bereits in Stammdaten';
-    document.querySelector('.sektion-label.neu').style.display = '';
+        </div>
+      </div>`;
+    (istBekannt ? listBek : listNeu).appendChild(label);
+  }
 
-    for (const [name, needs] of Object.entries(dbWerte)) {
-      const istBekannt = stammNamen.has(name.toLowerCase());
-      const istGewählt = gemerkteHaken.size > 0 ? gemerkteHaken.has(name) : istBekannt;
-      const spitze     = Math.max(...needs);
-      const charge     = getCharge(name);
-
-      const label = document.createElement('label');
-      label.className = 'prod-label';
-      label.innerHTML = `
-        <input type="checkbox" value="${name}" ${istGewählt ? 'checked' : ''}>
-        <div class="prod-karte">
-          <div class="prod-check">✓</div>
-          <div class="prod-info">
-            <div class="prod-name">${name}</div>
-            <div class="prod-badge" id="badge-${CSS.escape(name)}">
-              Ø max ${spitze} Bl · charge=${charge}
-            </div>
-          </div>
-        </div>`;
-      (istBekannt ? listBek : listNeu).appendChild(label);
-    }
+  // Badges flashen wenn Neuberechnung
+  if (gemerkteHaken.size > 0) {
+    setTimeout(() => {
+      document.querySelectorAll('.prod-badge').forEach(b => {
+        b.classList.add('flash');
+        setTimeout(() => b.classList.remove('flash'), 500);
+      });
+    }, 50);
   }
 }
 
@@ -947,19 +840,24 @@ function baueAkkordeon() {
         <div class="einst-grid">
           <div class="einst-feld"><label>Station</label><select id="st-${idx}">${sOpts}</select></div>
           <div class="einst-feld"><label>Zähleinheit</label><select id="un-${idx}">${uOpts}</select></div>
-          <div class="einst-feld">
-            <label>Gebinde (Bl)</label>
-            <input type="number" min="1" id="ba-${idx}" value="${batchV}">
-            <span style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.4;">
-              Produktionsschritte — die Planung rundet auf das nächste Vielfache auf.
-            </span>
-          </div>
+          <div class="einst-feld"><label>Gebinde (Bl)</label><input type="number" min="1" id="ba-${idx}" value="${batchV}"></div>
           <div class="einst-feld"><label>☀ Grill-Extra</label><input type="number" min="0" id="su-${idx}" value="${sunV}"></div>
           <div class="einst-feld" style="border-top:1px dashed #e5e7eb;padding-top:10px;grid-column:1/-1">
-            <label style="color:var(--muted)">Charge (Stk/Einheit)</label>
-            <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
-              <span style="font-size:20px;font-weight:900;color:var(--dunkel);padding:8px 14px;background:#f3f4f6;border-radius:8px;border:2px solid #e5e7eb;">${charge}</span>
-              <span style="font-size:11px;color:var(--muted);line-height:1.5;">Aus <strong>produkt_config.json</strong><br>Ändern → <a href="../admin/produkt_config_editor.html" style="color:var(--blau);">Config-Editor</a></span>
+            <label style="color:var(--rot)">⚡ Charge korrigieren (Stk/Einheit)</label>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+              <input type="number" min="1" id="ch-${idx}" value="${charge}"
+                style="width:90px;font-weight:700;border-color:var(--rot)"
+                oninput="chargeGeaendert(${idx}, '${name}')">
+              <span style="font-size:11px;color:var(--muted)" id="ch-info-${idx}">
+                Original aus Config: ${charge}
+              </span>
+              <button onclick="chargeReset(${idx},'${name}',${charge})"
+                style="font-size:11px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;color:var(--muted)">
+                ↺ Reset
+              </button>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px" id="ch-hint-${idx}">
+              Änderung rechnet alle 7 Tageswerte automatisch neu (aus Roh-Stück).
             </div>
           </div>
         </div>
@@ -984,6 +882,67 @@ function waehlStation(idx, val, btn) {
   btn.closest('.btn-auswahl').querySelectorAll('.btn-wahl').forEach(b => b.classList.remove('aktiv'));
   btn.classList.add('aktiv');
 }
+function waehlUnit(idx, val, btn) {
+  document.getElementById(`un-${idx}`).value = val;
+  btn.closest('.btn-auswahl').querySelectorAll('.btn-wahl').forEach(b => b.classList.remove('aktiv'));
+  btn.classList.add('aktiv');
+}
+
+// ════════════════════════════════════════════════════════
+// CHARGE-OVERRIDE & LIVE-NEUBERECHNUNG
+// ════════════════════════════════════════════════════════
+function chargeGeaendert(idx, name) {
+  const inp = document.getElementById(`ch-${idx}`);
+  const neueCharge = parseInt(inp.value) || 1;
+  chargeOverrides[name] = neueCharge;
+
+  // Tageswerte neu aus Roh-Stück berechnen
+  const rohStueck = dbWerteRohStueck[name] || [0,0,0,0,0,0,0];
+  for (let t = 0; t < 7; t++) {
+    const neuerBl = neueCharge > 1
+      ? Math.round(rohStueck[t] / neueCharge)
+      : rohStueck[t];
+    const dInp = document.getElementById(`d${t}-${idx}`);
+    dInp.value = neuerBl;
+    dInp.classList.add('auto');
+    const st = Math.round(neuerBl * neueCharge);
+    document.getElementById(`sub${t}-${idx}`).textContent = neuerBl > 0 ? st + ' Stk' : '—';
+  }
+
+  // Header und Info aktualisieren
+  const originalCharge = getOriginalCharge(name);
+  const info = document.getElementById(`ch-info-${idx}`);
+  if (neueCharge !== originalCharge) {
+    info.textContent = `⚡ Überschrieben (Config: ${originalCharge})`;
+    info.className = 'charge-override-info chip-orange';
+  } else {
+    info.textContent = `✓ Aus Config (${originalCharge})`;
+    info.className = 'charge-override-info chip-gruen';
+  }
+
+  document.getElementById(`tage-header-${idx}`).textContent =
+    `Ø ${neueCharge > 1 ? 'Bleche' : 'Stück'} Mo–So (÷ charge=${neueCharge}${neueCharge > 1 ? '' : ' → Stück direkt'}):`;
+
+  document.getElementById(`ch-hint-${idx}`).textContent =
+    neueCharge !== originalCharge
+      ? `⚡ Überschrieben (war ${originalCharge}) — alle Werte neu berechnet aus Roh-Stück.`
+      : 'Änderung rechnet alle 7 Tageswerte automatisch neu (aus Roh-Stück).';
+}
+
+function chargeReset(idx, name, originalCharge) {
+  delete chargeOverrides[name];
+  document.getElementById(`ch-${idx}`).value = originalCharge;
+  chargeGeaendert(idx, name);
+}
+
+function getOriginalCharge(name) {
+  const k = name.toLowerCase().replace(/\s+/g,'');
+  if (chargeMap[k]) return chargeMap[k];
+  for (const p of produktConfig) {
+    if (p.name.toLowerCase().replace(/\s+/g,'') === k) return p.charge;
+  }
+  return 1;
+}
 
 // ════════════════════════════════════════════════════════
 // SCREEN 3: GENERIEREN & DOWNLOAD
@@ -997,8 +956,7 @@ function zeige(nr) {
 
 function generiere() {
   const stamm    = window.BOS_STAMMDATEN || {};
-  // Neustart: blanko starten; Update: bestehende Einträge übernehmen
-  const finalData = neustartModus ? {} : { ...stamm };
+  const finalData = { ...stamm };
 
   auswahl.forEach((_, idx) => {
     const id   = document.getElementById(`id-${idx}`).value;
@@ -1035,6 +993,16 @@ function generiere() {
   document.getElementById('downloadInfo').textContent =
     `${Object.keys(finalData).length} Produkte · ${auswahl.length} aktualisiert · Basis: ${aktTage} Tage`;
   window._stammdatenOutput = output;
+
+  // Config-Button nur zeigen wenn Charge-Overrides vorhanden
+  const anzOverrides = Object.keys(chargeOverrides).length;
+  const cfgBtn = document.getElementById('btnDlConfig');
+  if (anzOverrides > 0) {
+    cfgBtn.textContent = `⬇ produkt_config.json herunterladen (${anzOverrides} Charge-Korrekturen)`;
+    cfgBtn.style.opacity = '1';
+  } else {
+    cfgBtn.style.opacity = '0.35';
+  }
 }
 
 function downloadJS() {
@@ -1043,6 +1011,26 @@ function downloadJS() {
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href = url; a.download = 'stammdaten.js'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function downloadConfig() {
+  if (!Object.keys(chargeOverrides).length) {
+    alert('Keine Charge-Änderungen vorhanden — produkt_config.json ist unverändert.');
+    return;
+  }
+  // produkt_config mit Overrides zusammenbauen
+  const updated = produktConfig.map(p => {
+    if (chargeOverrides[p.name] !== undefined) {
+      return { ...p, charge: chargeOverrides[p.name] };
+    }
+    return p;
+  });
+  const json = JSON.stringify(updated, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'produkt_config.json'; a.click();
   URL.revokeObjectURL(url);
 }
 

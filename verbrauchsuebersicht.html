@@ -5,103 +5,211 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BäckereiOS - Mengenübersicht</title>
     <link rel="stylesheet" href="systemdesign.css">
-    
-    <script src="stammdaten.js"></script>
     <script src="shell.js" defer></script>
-    
     <style>
-        body { background: var(--bg); color: var(--text); padding-bottom: 90px; }
-        .container { max-width: 900px; margin: 30px auto; padding: 0 15px; }
-        
-        .page-header { margin-bottom: 25px; }
-        .page-title { font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 900; color: var(--amber); margin: 0; }
-        .page-sub { font-size: 0.9rem; color: var(--dim); margin-top: 5px; font-weight: 500; }
-
-        /* Tabellen-Design */
-        .table-card { background: var(--surface); border-radius: 16px; border: 1.5px solid var(--border); overflow: hidden; box-shadow: 0 4px 15px var(--shadow); }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        
-        thead th { background: var(--surface2); color: var(--dim); font-family: 'Barlow Condensed'; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; padding: 12px 8px; text-align: center; border-bottom: 2px solid var(--border-s); font-size: 0.7rem; }
-        thead th.col-prod { text-align: left; padding-left: 20px; font-size: 0.75rem; }
-        
-        tbody td { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: center; font-weight: 700; color: var(--text); }
-        tbody td.col-prod { text-align: left; padding-left: 20px; color: var(--text); font-weight: 800; }
-        tbody tr:nth-child(even) { background: rgba(0,0,0,0.02); }
-        
-        .sun-val { color: var(--amber); }
-        .zero-val { color: var(--dim); opacity: 0.4; font-weight: 400; }
-
-        .info-footer { margin-top: 20px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 15px; font-size: 0.8rem; color: var(--dim); line-height: 1.4; }
-        .info-footer strong { color: var(--amber); }
+        body { background: var(--background, #f8f6f2); color: var(--text-primary, #1a1a1a); padding-bottom: 90px; }
+        .container { max-width: 900px; margin: 0 auto; padding: 16px 12px; }
+        .page-title { font-size: 1.4rem; font-weight: 900; color: var(--amber, #e67e22); margin: 0 0 4px; }
+        .page-sub { font-size: 0.8rem; color: var(--dim, #6b7280); margin: 0 0 14px; }
+        .info-banner { background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8); border-left: 4px solid var(--amber,#e67e22); border-radius: 0 10px 10px 0; padding: 10px 14px; font-size: 0.78rem; color: var(--dim,#6b7280); line-height: 1.5; margin-bottom: 14px; }
+        .info-banner strong { color: var(--text-primary,#1a1a1a); }
+        .zeitraum-wrap { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+        .zt-label { font-size: 0.75rem; font-weight: 700; color: var(--dim,#6b7280); }
+        .zt-btn { font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 5px 11px; border-radius: 20px; border: 1.5px solid var(--border-color,#e5e0d8); background: var(--card-bg,#fff); color: var(--dim,#6b7280); cursor: pointer; }
+        .zt-btn.aktiv { background: var(--amber,#e67e22); border-color: var(--amber,#e67e22); color: #fff; }
+        .table-card { background: var(--card-bg,#fff); border-radius: 14px; border: 1px solid var(--border-color,#e5e0d8); overflow: hidden; margin-bottom: 14px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        thead th { background: var(--surface2,#f3f4f6); color: var(--dim,#6b7280); font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; padding: 10px 6px; text-align: center; border-bottom: 2px solid var(--border-color,#e5e0d8); font-size: 0.65rem; white-space: nowrap; }
+        thead th.col-prod { text-align: left; padding-left: 14px; font-size: 0.7rem; min-width: 130px; }
+        thead th.col-station { text-align: left; font-size: 0.65rem; min-width: 90px; }
+        tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border-color,#e5e0d8); text-align: center; font-weight: 700; }
+        tbody td.col-prod { text-align: left; padding-left: 14px; font-weight: 800; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        tbody td.col-station { text-align: left; font-size: 0.7rem; font-weight: 600; color: var(--dim,#6b7280); }
+        tbody tr:nth-child(even) { background: rgba(0,0,0,0.015); }
+        .zero-val { color: var(--dim,#6b7280); opacity: 0.3; font-weight: 400; }
+        .kein-backtag { color: var(--dim,#6b7280); opacity: 0.2; font-weight: 400; font-size: 0.7rem; }
+        .basis-info { font-size: 0.72rem; color: var(--dim,#6b7280); text-align: right; padding: 8px 14px; border-top: 1px solid var(--border-color,#e5e0d8); }
+        .lade-info { text-align: center; padding: 40px; color: var(--dim,#6b7280); }
+        @media (max-width: 600px) { thead th, tbody td { padding: 7px 3px; font-size: 0.72rem; } .col-station { display: none; } }
     </style>
 </head>
 <body>
+<div class="container">
+    <h1 class="page-title">📊 Mengenübersicht</h1>
+    <p class="page-sub">Aktuelle Berechnungsgrundlage · Schnellrechner &amp; Planer</p>
 
-    <div class="container">
-        <div class="page-header">
-            <h1 class="page-title">Tages-Bedarf</h1>
-            <p class="page-sub">Übersicht der hinterlegten Soll-Mengen pro Wochentag.</p>
-        </div>
-
-        <div class="table-card">
-            <table>
-                <thead>
-                    <tr>
-                        <th class="col-prod">PRODUKT</th>
-                        <th>MO</th>
-                        <th>DI</th>
-                        <th>MI</th>
-                        <th>DO</th>
-                        <th>FR</th>
-                        <th>SA</th>
-                        <th>SO</th>
-                        <th>☀️</th>
-                    </tr>
-                </thead>
-                <tbody id="overview-body">
-                    </tbody>
-            </table>
-        </div>
-
-        <div class="info-footer">
-            <strong>Hinweis zum Grillwetter (☀️):</strong><br>
-            Die angezeigte Menge in der Spalte "☀️" wird bei aktiviertem Grillwetter automatisch zum normalen Tagesbedarf addiert.
-        </div>
+    <div class="info-banner">
+        <strong>Was du hier siehst:</strong> Die Ø-Bedarfswerte die Schnellrechner und Planer aktuell verwenden —
+        live berechnet aus den letzten <span id="zeitraumLabel">14</span> Tagen der Backmengen-Datenbank.
+        Feiertage und markierte Sondertage werden automatisch ausgeschlossen laut
+        <strong style="color:var(--amber,#e67e22);">taeglicher_verbrauch.json</strong>.
+        Grau = kein BackTag für diesen Wochentag.
     </div>
 
-    <script>
-        function initTable() {
-            document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light');
-            
-            const tbody = document.getElementById('overview-body');
-            const data = window.BOS_STAMMDATEN;
+    <div class="zeitraum-wrap">
+        <span class="zt-label">Basis:</span>
+        <button class="zt-btn" onclick="setZeitraum(7,this)">7 Tage</button>
+        <button class="zt-btn aktiv" onclick="setZeitraum(14,this)">14 Tage</button>
+        <button class="zt-btn" onclick="setZeitraum(28,this)">28 Tage</button>
+        <button class="zt-btn" onclick="setZeitraum(0,this)">Alle</button>
+        <span style="width:1px;height:20px;background:var(--border-color,#e5e0d8);margin:0 4px;"></span>
+        <span class="zt-label">Einheit:</span>
+        <button class="zt-btn aktiv" id="btn-stueck" onclick="setEinheit('stueck',this)">Stück</button>
+        <button class="zt-btn" id="btn-bleche" onclick="setEinheit('bleche',this)">Bleche</button>
+    </div>
 
-            if(!data) {
-                tbody.innerHTML = '<tr><td colspan="9" style="padding:40px;">⚠️ Fehler: stammdaten.js nicht gefunden!</td></tr>';
-                return;
-            }
+    <div id="inhalt"><div class="lade-info">Lade Daten…</div></div>
+</div>
+<script>
+const WT_NAMEN = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+const JS_ZU_BOS = [6,0,1,2,3,4,5];
+const FEIERTAGE_NDS = [
+    '2026-01-01','2026-04-03','2026-04-06','2026-05-01','2026-05-14',
+    '2026-05-25','2026-10-03','2026-10-31','2026-12-25','2026-12-26',
+    '2025-01-01','2025-04-18','2025-04-21','2025-05-01','2025-05-29',
+    '2025-06-09','2025-10-03','2025-10-31','2025-12-25','2025-12-26'
+];
 
-            const sortedKeys = Object.keys(data).sort((a, b) => data[a].name.localeCompare(data[b].name));
+let db=[], config=[], verbrauchConfig=null;
+let zeitraumTage=14, anzeigeEinheit="stueck";
 
-            sortedKeys.forEach(id => {
-                const p = data[id];
-                const tr = document.createElement('tr');
-                
-                let html = `<td class="col-prod">${p.name}</td>`;
-                p.needs.forEach(val => {
-                    html += `<td class="${val === 0 ? 'zero-val' : ''}">${val}</td>`;
-                });
-                
-                const sunVal = p.sun || 0;
-                html += `<td class="sun-val ${sunVal === 0 ? 'zero-val' : ''}">${sunVal > 0 ? '+' + sunVal : 0}</td>`;
-                
-                tr.innerHTML = html;
-                tbody.appendChild(tr);
+async function init() {
+    try {
+        const [r1,r2,r3] = await Promise.all([
+            fetch('backmengen_db.json',{cache:'no-store'}),
+            fetch('produkt_config.json',{cache:'no-store'}),
+            fetch('taeglicher_verbrauch.json',{cache:'no-store'}).catch(()=>null)
+        ]);
+        db=await r1.json();
+        config=await r2.json();
+        if(r3 && r3.ok) {
+            verbrauchConfig = await r3.json();
+            // Zeitraum aus Config übernehmen
+            zeitraumTage = verbrauchConfig.zeitraum_tage ?? 14;
+            // Zeitraum-Buttons aktualisieren
+            document.getElementById('zeitraumLabel').textContent =
+                zeitraumTage===0?'allen':zeitraumTage;
+            document.querySelectorAll('.zt-btn').forEach(b=>{
+                const t = parseInt(b.getAttribute('onclick')?.match(/\d+/)?.[0]??-1);
+                b.classList.toggle('aktiv', t===zeitraumTage);
             });
         }
+    } catch(e) {
+        document.getElementById('inhalt').innerHTML=`<div class="lade-info">Fehler: ${e.message}</div>`;
+        return;
+    }
+    render();
+}
 
-        // Sicherer Weg, um zu warten, bis das HTML geladen ist
-        document.addEventListener('DOMContentLoaded', initTable);
-    </script>
+function setEinheit(e,btn) {
+    anzeigeEinheit=e;
+    document.getElementById('btn-stueck').classList.toggle('aktiv',e==='stueck');
+    document.getElementById('btn-bleche').classList.toggle('aktiv',e==='bleche');
+    render();
+}
+
+function setZeitraum(tage,btn) {
+    zeitraumTage=tage;
+    document.querySelectorAll('.zt-btn').forEach(b=>b.classList.remove('aktiv'));
+    if(btn) btn.classList.add('aktiv');
+    document.getElementById('zeitraumLabel').textContent=tage===0?'allen':tage;
+    render();
+}
+
+function istAusgeschlossen(eintrag) {
+    if(!verbrauchConfig) return false;
+    const datum = eintrag.datum;
+    const k = eintrag.kontext || {};
+    // Manuell ausgeschlossene Tage
+    if((verbrauchConfig.ausgeschlossene_tage||[]).some(t=>t.datum===datum)) return true;
+    // Feiertage
+    if(verbrauchConfig.feiertage_ausschliessen &&
+       (FEIERTAGE_NDS.includes(datum) || k.feiertag)) return true;
+    // Sondertage (komplett — filialeProdukt-Logik kommt ins Gehirn)
+    if(verbrauchConfig.sondertage_ausschliessen &&
+       (k.ausschluss_sondertag || k.ausschluss_einschraenkung)) return true;
+    return false;
+}
+
+function berechneAvg() {
+    const sortiert=[...db].sort((a,b)=>b.datum.localeCompare(a.datum));
+    const begrenzt=zeitraumTage>0?sortiert.slice(0,zeitraumTage):sortiert;
+    // Ausgeschlossene Tage rausfiltern
+    const gefiltert=begrenzt.filter(e=>!istAusgeschlossen(e));
+    const ausgeschlossen=begrenzt.length-gefiltert.length;
+    const sammlung={};
+    gefiltert.forEach(e=>{
+        const bosWT=JS_ZU_BOS[new Date(e.datum+'T12:00:00').getDay()];
+        const prod=e.produkte||e;
+        for(const [key,val] of Object.entries(prod)){
+            if(key.endsWith('_bleche')) continue;
+            const v=parseFloat(val); if(!v||v<=0) continue;
+            if(!sammlung[key]) sammlung[key]=[[],[],[],[],[],[],[]];
+            sammlung[key][bosWT].push(v);
+        }
+    });
+    const avg={};
+    for(const [key,wts] of Object.entries(sammlung)){
+        avg[key]=wts.map(arr=>arr.length?Math.round(arr.reduce((s,v)=>s+v,0)/arr.length):null);
+    }
+    return {avg, anzahl:gefiltert.length, ausgeschlossen};
+}
+
+function render() {
+    const {avg,anzahl,ausgeschlossen}=berechneAvg();
+    const cont=document.getElementById('inhalt');
+    cont.innerHTML='';
+    const KAT=['Brötchen','Brot','Konditorei','Fettgebäck','Snack'];
+    const gruppen={};
+    config.forEach(p=>{ if(!p.legacyKey) return; const k=p.kategorie||'Sonstiges'; if(!gruppen[k]) gruppen[k]=[]; gruppen[k].push(p); });
+    const kats=[...KAT.filter(k=>gruppen[k]),...Object.keys(gruppen).filter(k=>!KAT.includes(k))];
+
+    kats.forEach(kat=>{
+        const mitDaten=(gruppen[kat]||[]).filter(p=>avg[p.legacyKey]);
+        if(!mitDaten.length) return;
+        const block=document.createElement('div'); block.className='table-card';
+        const tbl=document.createElement('table');
+        tbl.innerHTML=`<thead><tr><th class="col-prod">${kat}</th><th class="col-station">Station</th>${WT_NAMEN.map(w=>`<th>${w}</th>`).join('')}<th title="BackTage">📅</th></tr></thead>`;
+        const tbody=document.createElement('tbody');
+        mitDaten.forEach(p=>{
+            const werte=avg[p.legacyKey]||Array(7).fill(null);
+            const backTage=Array.isArray(p.backTage)&&p.backTage.length>0?p.backTage:null;
+            const charge=p.charge||1;
+            const tr=document.createElement('tr');
+            let html=`<td class="col-prod" title="${p.name}">${p.name}</td><td class="col-station">${p.station||'–'}</td>`;
+            WT_NAMEN.forEach((_,bosIdx)=>{
+                const jsDay=bosIdx===6?0:bosIdx+1;
+                const istBackTag=!backTage||backTage.includes(jsDay);
+                const stueck=werte[bosIdx];
+                if(!istBackTag) html+=`<td class="kein-backtag">–</td>`;
+                else if(!stueck) html+=`<td class="zero-val">0</td>`;
+                else {
+                    let anzeige, suffix;
+                    if(anzeigeEinheit==='bleche' && charge>1){
+                        anzeige=(stueck/charge).toFixed(1).replace('.0','');
+                        suffix=' Bl';
+                    } else {
+                        anzeige=stueck;
+                        suffix=' Stk';
+                    }
+                    html+=`<td>${anzeige}${suffix}</td>`;
+                }
+            });
+            const btLabel=backTage?backTage.map(d=>WT_NAMEN[d===0?6:d-1]).join(''):'alle';
+            html+=`<td style="font-size:0.65rem;color:var(--dim);font-weight:600;">${btLabel}</td>`;
+            tr.innerHTML=html; tbody.appendChild(tr);
+        });
+        tbl.appendChild(tbody); block.appendChild(tbl);
+        const basis=document.createElement('div'); basis.className='basis-info';
+        basis.textContent=`Basis: ${anzahl} Erfassungstage${ausgeschlossen>0?' · '+ausgeschlossen+' ausgeschlossen':''}`;
+        block.appendChild(basis); cont.appendChild(block);
+    });
+
+    if(!cont.children.length)
+        cont.innerHTML='<div class="lade-info">Noch keine Daten — Backmengen erfassen um hier Werte zu sehen.</div>';
+}
+
+document.addEventListener('DOMContentLoaded',init);
+</script>
 </body>
 </html>

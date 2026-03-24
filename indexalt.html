@@ -609,18 +609,11 @@
           <div class="folder-arrow">▸</div>
         </div>
         <div class="folder-children" id="folder-planung-children">
-          <a href="durchschnittsverbauch/verlauf.html" class="tool-link tool-child">
-            <div class="tool-icon">📈</div>
+          <a href="Backplan_Aktuell.html" class="tool-link tool-child">
+            <div class="tool-icon">🌤️</div>
             <div>
-              <div class="tool-name">Produktverlauf</div>
-              <div class="tool-sub">Rohdaten-Diagramm · bis zu 5 Produkte vergleichen</div>
-            </div>
-          </a>
-          <a href="durchschnittsverbauch/wetter_planung.html" class="tool-link tool-child">
-            <div class="tool-icon">🌤</div>
-            <div>
-              <div class="tool-name">Wettervorschau</div>
-              <div class="tool-sub">7 Tage voraus · Was sollte ich morgen backen?</div>
+              <div class="tool-name">WetterAussicht</div>
+              <div class="tool-sub">Wettervorschau &amp; Wochenstrategie</div>
             </div>
           </a>
           <a href="durchschnittsverbauch/schablone.html" class="tool-link tool-child">
@@ -633,7 +626,7 @@
           <a href="durchschnittsverbauch/wetter_analyse.html" class="tool-link tool-child">
             <div class="tool-icon">🌤️</div>
             <div>
-              <div class="tool-name">Wetterrückblick</div>
+              <div class="tool-name">Wetteranalyse</div>
               <div class="tool-sub">Regentag vs. Sonnentag · Differenz pro Produkt</div>
             </div>
           </a>
@@ -675,7 +668,40 @@
         </div>
       </div>
 
-      <!-- 5.
+      <!-- 4. MARKT & NEWS -->
+      <div class="tool-folder" id="folder-markt">
+        <div class="tool-link tool-folder-toggle" onclick="toggleFolder('folder-markt')">
+          <div class="tool-icon">📈</div>
+          <div>
+            <div class="tool-name">Markt &amp; News</div>
+            <div class="tool-sub">Der Blick nach draußen</div>
+          </div>
+          <div class="folder-arrow">▸</div>
+        </div>
+        <div class="folder-children" id="folder-markt-children">
+          <a href="news_rohstoffe/rohstoff_fakten.html" class="tool-link tool-child">
+            <div class="tool-icon">📊</div>
+            <div>
+              <div class="tool-name">RohstoffFakten</div>
+              <div class="tool-sub">Preise &amp; Marktanalyse</div>
+            </div>
+          </a>
+          <a href="news_rohstoffe/das_magazin.html" class="tool-link tool-child">
+            <div class="tool-icon">📰</div>
+            <div>
+              <div class="tool-name">Das Magazin</div>
+              <div class="tool-sub">Trends &amp; Inspiration</div>
+            </div>
+          </a>
+          <a href="news_rohstoffe/geschichte.html" class="tool-link tool-child">
+            <div class="tool-icon">📜</div>
+            <div>
+              <div class="tool-name">Leitartikel</div>
+              <div class="tool-sub">Geschichte &amp; Handwerk</div>
+            </div>
+          </a>
+        </div>
+      </div>
 
       <!-- 5. INTERNES -->
       <div class="tool-folder" id="folder-internes">
@@ -693,6 +719,13 @@
             <div>
               <div class="tool-name">Teamordner</div>
               <div class="tool-sub">Geteilte Dokumente</div>
+            </div>
+          </a>
+          <a href="games/games.html" class="tool-link tool-child">
+            <div class="tool-icon">🎮</div>
+            <div>
+              <div class="tool-name">BäckerSpiele</div>
+              <div class="tool-sub">Spieleauswahl</div>
             </div>
           </a>
           <a href="azubi_meisterhaft/wissen_start.html" class="tool-link tool-child">
@@ -812,29 +845,10 @@
         <div class="einfach-name">14-Tage Logbuch</div>
         <div class="einfach-sub">Backmengen im Überblick</div>
       </a>
-      <a href="durchschnittsverbauch/wetter_planung.html" class="einfach-kachel">
-        <div class="einfach-icon">🌤</div>
-        <div class="einfach-name">Wettervorschau</div>
-        <div class="einfach-sub">7 Tage voraus · Was sollte ich morgen backen?</div>
-      </a>
       <a href="https://my.hidrive.com/share/0a5xcrfaf8" target="_blank" class="einfach-kachel">
         <div class="einfach-icon">🗂️</div>
         <div class="einfach-name">Teamordner</div>
         <div class="einfach-sub">Geteilte Dokumente</div>
-      </a>
-      <a href="verbrauchsuebersicht.html" class="einfach-kachel" style="grid-column: 1 / -1; flex-direction: row; padding: 12px 16px; gap: 12px; justify-content: flex-start;">
-        <div class="einfach-icon" style="font-size:1.2rem;">📊</div>
-        <div style="text-align:left;">
-          <div class="einfach-name" style="font-size:0.8rem;">Mengenübersicht</div>
-          <div class="einfach-sub">Aktuelle Berechnungsgrundlage · nur Info</div>
-        </div>
-      </a>
-      <a href="inventur_dateneingabe.html" class="einfach-kachel" style="grid-column: 1 / -1; flex-direction: row; padding: 12px 16px; gap: 12px; justify-content: flex-start;">
-        <div class="einfach-icon" style="font-size:1.2rem;">📦</div>
-        <div style="text-align:left;">
-          <div class="einfach-name" style="font-size:0.8rem;">Inventur-Eingabe</div>
-          <div class="einfach-sub">Bestände erfassen · Lager aktualisieren</div>
-        </div>
       </a>
       <div class="einfach-kachel admin-kachel" onclick="openAdminGate()" style="grid-column: 1 / -1;">
         <div class="einfach-icon">⚙️</div>

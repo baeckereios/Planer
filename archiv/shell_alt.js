@@ -10,7 +10,6 @@
         'setup.html':                { title: 'PlanungsAssistent',  mode: 'minimal'                  },
         'schnellrechner.html':       { title: 'Schnellrechner',     mode: 'full', tab: 'rechner'    },
         'frosterliste.html':         { title: 'Frosterliste',       mode: 'full', tab: 'mehr'       },
-        'frosterliste_wochentag.html': { title: 'Frosterliste · Wochentag', mode: 'full', tab: 'mehr'  },
         'ofenangriff.html':          { title: 'Ofenangriff',        mode: 'full', tab: 'mehr'       },
         'pausenraum.html':           { title: 'Pausenraum',         mode: 'full', tab: 'mehr'       },
         'bestandsuebersicht.html':   { title: 'Bestände',           mode: 'full', tab: 'mehr'       },
@@ -18,25 +17,30 @@
         'lager_inventur.html':       { title: 'BÄKO Lager',         mode: 'full', tab: 'mehr'       },
         'lager_auswertung.html':     { title: 'Lager-Auswertung',   mode: 'full', tab: 'mehr'       },
         'baeko_lager_analyse_klon.html': { title: 'Lager-Analyse',    mode: 'full', tab: 'mehr'       },
-        'schablone.html':            { title: 'Verbrauchsschablone', mode: 'full', tab: 'mehr'      },
-        'wetter_analyse.html':       { title: 'Wetterrückblick',    mode: 'full', tab: 'mehr'       },
-        'wetter_planung.html':       { title: 'Wettervorschau',     mode: 'full', tab: 'mehr'       },
-        'verlauf.html':              { title: 'Produktverlauf',     mode: 'full', tab: 'mehr'       },
-        'durchschnittsrechner.html': { title: 'Durchschnittsrechner', mode: 'full', tab: 'mehr'     },
-        '14_tage_logbuch.html':      { title: '14-Tage Logbuch',    mode: 'full', tab: 'mehr'       },
         'blechrechner.html':         { title: 'BlechRechner',       mode: 'full', tab: 'mehr'       },
+        'Backplan_Aktuell.html':     { title: 'WetterAussicht',         mode: 'full', tab: 'mehr'       },
+        'rohstoff_fakten.html':      { title: 'RohstoffFakten',     mode: 'full', tab: 'mehr'       },
+        'das_magazin.html':          { title: 'Das Magazin',         mode: 'full', tab: 'mehr'       },
+        'geschichte.html':           { title: 'Leitartikel',         mode: 'full', tab: 'mehr'       },
+        'wissen_start.html':         { title: 'Azubi & Meisterhaft',mode: 'full', tab: 'mehr'       },
+        'azubi_meisterhaft.html':    { title: 'Azubi & Meisterhaft',mode: 'full', tab: 'mehr'       },
+        'history.html':              { title: 'Geschichte',         mode: 'full', tab: 'mehr'       },
+        'mythen.html':               { title: 'Mythen & Fakten',    mode: 'full', tab: 'mehr'       },
+        'pausen_snacks.html':        { title: 'Pausen-Snacks',      mode: 'full', tab: 'mehr'       },
         'brot_historie.html':        { title: 'Backmengen-Historie', mode: 'full', tab: 'mehr'       },
         'hilfe.html':                { title: 'Hilfe',              mode: 'full', tab: 'mehr'       },
         'changelog.html':            { title: 'Changelog',          mode: 'full', tab: 'mehr'       },
+        'backspiel.html':            { title: 'BäckerRun',          mode: 'full', tab: 'mehr'       },
         'brot_rechner.html':         { title: 'BrotRechner',        mode: 'full', tab: 'mehr'       },
         'sauerteig_rechner.html':    { title: 'Sauerteig & Vortag', mode: 'full', tab: 'mehr'       },
+        'games.html':                { title: 'BäckerSpiele',       mode: 'full', tab: 'mehr'       },
     };
 
     const filename = window.location.pathname.split('/').pop() || 'index.html';
     const config   = PAGE_CONFIG[filename] || { title: '', mode: 'full', tab: 'mehr' };
 
     // NEU: Die intelligente Ordner-Erkennung
-    const isSubfolder = window.location.href.includes('/baeko_bestellung/') || window.location.href.includes('/news_rohstoffe/') || window.location.href.includes('/azubi_meisterhaft/') || window.location.href.includes('/games/') || window.location.href.includes('/nachtschicht/') || window.location.href.includes('/durchschnittsverbauch/') || window.location.href.includes('/organisation/');
+    const isSubfolder = window.location.href.includes('/baeko_bestellung/') || window.location.href.includes('/news_rohstoffe/') || window.location.href.includes('/azubi_meisterhaft/') || window.location.href.includes('/games/') || window.location.href.includes('/nachtschicht/');
     const base = isSubfolder ? '../' : '';
 
     const isMinimal = config.mode === 'minimal';

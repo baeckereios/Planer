@@ -1,6 +1,6 @@
 /* =========================================================
    BÄCKEREIOS - TAGES-ASSISTENT KONFIGURATION
-   Generiert am: 9.3.2026, 03:14:09
+   Generiert am: 12.3.2026, 15:50:55
    ========================================================= */
 
 window.BOS_ASSISTENT_PLAN = [
@@ -8,13 +8,13 @@ window.BOS_ASSISTENT_PLAN = [
         "titel": "Backzettel Datenbank Aufbau",
         "datei": "datenbank_manager.html",
         "tage": {
-            "Montag": true,
-            "Dienstag": true,
-            "Mittwoch": true,
-            "Donnerstag": true,
-            "Freitag": true,
-            "Samstag": true,
-            "Sonntag": true
+            "Montag": false,
+            "Dienstag": false,
+            "Mittwoch": false,
+            "Donnerstag": false,
+            "Freitag": false,
+            "Samstag": false,
+            "Sonntag": false
         }
     },
     {

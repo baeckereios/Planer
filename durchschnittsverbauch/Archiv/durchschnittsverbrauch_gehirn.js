@@ -36,7 +36,7 @@ const FALLBACK_CONFIG = [
     "name": "Käsebrötchen",
     "kategorie": "Brötchen",
     "charge": 20,
-    "legacyKey": "kaesebroetchen_stueck",
+    "legacyKey": "kasebroetchen_stueck",
     "hinweis": null
   },
   {
@@ -52,7 +52,7 @@ const FALLBACK_CONFIG = [
     "name": "Dinkel-Zwerg süß",
     "kategorie": "Brötchen",
     "charge": 25,
-    "legacyKey": "dinkel_zwerg_stueck",
+    "legacyKey": "dinkel_zwerg_sus_stueck",
     "hinweis": null
   },
   {
@@ -436,7 +436,7 @@ const FALLBACK_CONFIG = [
     "name": "Dinkel-Rüblikuchen",
     "kategorie": "Konditorei",
     "charge": 20,
-    "legacyKey": "dinkel_rueblikuchen_stueck",
+    "legacyKey": "dinkel_rublikuchen_stueck",
     "hinweis": null
   },
   {
@@ -620,7 +620,6 @@ async function ladeProduktConfig() {
     }
 
     configGeladen = true;
-    _setzeLegacyGlobals();
   } catch (err) {
     console.warn('produkt_config.json nicht verfügbar, nutze Fallback:', err.message);
     // Fallback: eingebettete Konfiguration verwenden
@@ -634,7 +633,6 @@ async function ladeProduktConfig() {
       if (p.legacyKey) LEGACY_MAP[p.legacyKey] = name;
     }
     configGeladen = true;
-    _setzeLegacyGlobals();
   }
 }
 
@@ -744,12 +742,8 @@ function getProduktConfig() {
   return PRODUKT_CONFIG;
 }
 
-// ── Globale Exposition (kein ES6-Modul) ────────────────────
-// Alle Funktionen und Daten sind direkt als window.* verfügbar.
-// Außerdem werden Legacy-kompatible Variablennamen gesetzt sobald
-// ladeProduktConfig() abgeschlossen ist.
-
-window.BOS_GEHIRN = {
+// ── Exports ────────────────────────────────────────────────
+export {
   ladeProduktConfig,
   normalisiereKey,
   bereinigeAnzeigeName,
@@ -759,27 +753,3 @@ window.BOS_GEHIRN = {
   getEinstellungen,
   getProduktConfig,
 };
-
-// Legacy-Variablen für alten Logbuch-Code — werden nach ladeProduktConfig() befüllt
-function _setzeLegacyGlobals() {
-  window.erlaubteProdukte     = [...ERLAUBTE_KEYS];
-  window.produktKategorien    = {};
-  window.produktEinstellungen = {};
-  // Reihenfolge exakt wie in produkt_config.json — Groß/Kleinschreibung muss matchen
-  window.kategorieReihenfolge = ['Brötchen','Brot','Konditorei','Fettgebäck','Snack'];
-
-  for (const [kat, produkte] of Object.entries(KATEGORIEN)) {
-    for (const name of produkte) {
-      window.produktKategorien[name] = kat; // Original-Schreibweise behalten
-    }
-  }
-  for (const [name, einst] of Object.entries(EINSTELLUNGEN)) {
-    window.produktEinstellungen[name] = {
-      stueckProBlech: einst.charge || 1,
-      einheit:        'stueck',
-      kategorie:      einst.kategorie || '',
-    };
-  }
-  // bereinigeAnzeigeName global verfügbar machen
-  window.bereinigeAnzeigeName = bereinigeAnzeigeName;
-}

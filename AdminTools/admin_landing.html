@@ -23,7 +23,6 @@
             padding-bottom: 5px;
         }
 
-        /* Spezial-Highlight für den Assistenten */
         .assistant-card {
             background: linear-gradient(135deg, #0f172a, #1e293b);
             color: white !important;
@@ -52,6 +51,18 @@
         .acc-arrow.open { transform: rotate(90deg); }
         .acc-body { display: none; padding-top: 4px; }
         .acc-body.open { display: block; }
+
+        /* OFFENE SEKTION — kein Akkordeon */
+        .open-section-header {
+            color: #065f46;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin: 35px 0 10px 0;
+            border-bottom: 2px solid #6ee7b7;
+            padding-bottom: 5px;
+        }
 
         /* HELP ACCORDION */
         .help-acc-header {
@@ -89,13 +100,14 @@
         </div>
     </a>
 
+    <!-- GEFÜHRTE KONFIGURATION -->
     <h3 class="group-header" style="color: #0f172a; border-color: #0f172a;">🧭 Geführte Konfiguration</h3>
 
-    <a href="stammdaten_assistent.html" class="admin-card assistant-card">
-        <div class="admin-icon">🗂️</div>
+    <a href="stammdaten_autosync.html" class="admin-card assistant-card">
+        <div class="admin-icon">⚙️</div>
         <div>
-            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Produkt-Stammdaten</strong>
-            <small>Manuell pflegen oder per Kassen-AutoSync überschreiben</small>
+            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Stammdaten AutoSync</strong>
+            <small>Backmengen-Durchschnitt berechnen → stammdaten.js aktualisieren · Ausreißer filtern, Charge korrigieren</small>
         </div>
     </a>
 
@@ -103,7 +115,7 @@
         <div class="admin-icon">🏢</div>
         <div>
             <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">BÄKO Konfiguration</strong>
-            <small>Soll-Bestände &amp; Produktkatalog — Schritt für Schritt</small>
+            <small>Soll-Bestände & Produktkatalog — Schritt für Schritt</small>
         </div>
     </a>
 
@@ -111,7 +123,7 @@
         <div class="admin-icon">🔥</div>
         <div>
             <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Ofenangriff-Pflege</strong>
-            <small>Backprogramme &amp; Notizen — Schritt für Schritt</small>
+            <small>Backprogramme & Notizen — Schritt für Schritt</small>
         </div>
     </a>
 
@@ -119,106 +131,144 @@
         <div class="admin-icon">🍞</div>
         <div>
             <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Rezept-Tresor</strong>
-            <small>Sammelteige &amp; 100 kg Basis — Schritt für Schritt</small>
+            <small>Sammelteige & 100 kg Basis — Schritt für Schritt</small>
         </div>
     </a>
 
+    <!-- BACKZETTEL — IMMER OFFEN -->
+    <h3 class="open-section-header">📋 Backzettel erfassen, bearbeiten und auswerten</h3>
 
+    <a href="datenbank_manager.html" class="admin-card" style="border-left: 4px solid #059669;">
+        <div class="admin-icon">📸</div>
+        <div>
+            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Backmengen täglich einlesen</strong>
+            <small>Backzettel-Fotos per KI einlesen · Ausreißer prüfen · Sondertag oder Anlagenausfall markieren · in Datenbank speichern</small>
+        </div>
+    </a>
+
+    <a href="flag_statistik.html" class="admin-card" style="border-left: 4px solid #059669;">
+        <div class="admin-icon">🚩</div>
+        <div>
+            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Tippfehler & Ausreißer-Protokoll</strong>
+            <small>Welche Backmengen wurden beim Einlesen als verdächtig markiert — und wie oft · hilft Erfassungsfehler aufzudecken</small>
+        </div>
+    </a>
+
+    <a href="produkt_config_editor.html" class="admin-card" style="border-left: 4px solid #059669;">
+        <div class="admin-icon">⚙</div>
+        <div>
+            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Produkt-Config Editor</strong>
+            <small>Produktliste bearbeiten — Artikel, Kategorien, Charge & Legacy-Keys · JSON direkt speichern</small>
+        </div>
+    </a>
+
+    <!-- BÄKO MANAGEMENT -->
     <div class="acc-header" onclick="toggleAcc('baeko')" style="color:#0369a1; border-color:#bae6fd;">
         🛒 BÄKO Management
         <span class="acc-arrow" id="arrow-baeko">▶</span>
     </div>
     <div class="acc-body" id="acc-baeko">
-        <a href="lager_admin.html" class="admin-card" style="border-left: 4px solid #94a3b8; margin-top:8px;">
+        <a href="lager_inventur.html" class="admin-card" style="border-left: 4px solid #10b981; margin-top:8px;">
+            <div class="admin-icon">📱</div>
+            <div>
+                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Lager zählen (Mitarbeiter)</strong>
+                <small>Mi & Fr: Bestände eingeben + Lieferung · Feiertag-Haken erhöht Soll automatisch · Weiter zur Auswertung</small>
+            </div>
+        </a>
+        <a href="lager_auswertung.html" class="admin-card" style="border-left: 4px solid #10b981;">
+            <div class="admin-icon">📋</div>
+            <div>
+                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Bestellvorschlag & WhatsApp</strong>
+                <small>Zeigt was bestellt werden muss · Bestellung per WhatsApp an Chef senden (mit verstecktem BOS-SNAP Code)</small>
+            </div>
+        </a>
+        <a href="lager_admin.html" class="admin-card" style="border-left: 4px solid #94a3b8; margin-top:4px;">
             <div class="admin-icon">🏢</div>
             <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">1. BÄKO Katalog</strong>
-                <small>Sollmengen &amp; Artikel anlegen (Schablone)</small>
+                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">BÄKO Katalog pflegen</strong>
+                <small>Sollmengen & Artikel anlegen — selten, nur bei Sortimentsänderungen</small>
             </div>
         </a>
         <a href="baeko_historie_import.html" class="admin-card" style="border-left: 4px solid #0ea5e9;">
             <div class="admin-icon">📥</div>
             <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">2. Daten-Import</strong>
-                <small>WhatsApp-Zählung einlesen (Gehirn füttern)</small>
+                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">WhatsApp-Bestellung importieren</strong>
+                <small>Komplette WhatsApp-Nachricht einfügen · BOS-SNAP Code wird extrahiert · baeko_historie.js herunterladen & hochladen</small>
             </div>
         </a>
         <a href="baeko_lager_analyse.html" class="admin-card" style="border-left: 4px solid #10b981;">
             <div class="admin-icon">📈</div>
             <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">3. Verbrauchsanalyse</strong>
-                <small>Verbrauch vs. Soll auswerten &amp; optimieren</small>
+                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Verbrauchsanalyse</strong>
+                <small>Verbrauch vs. Soll über Zeit · braucht mindestens 2 Zählungen · wird mit jeder Woche wertvoller</small>
+            </div>
+        </a>
+        <a href="lager_system.html" class="admin-card" style="border-left: 4px solid #94a3b8; opacity:0.7;">
+            <div class="admin-icon">🗺️</div>
+            <div>
+                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Systemübersicht Lagerverwaltung</strong>
+                <small>Welche Datei macht was · Zusammenhänge · Ablauf von Zählung bis Analyse</small>
             </div>
         </a>
     </div>
 
-
+    <!-- PRODUKTION & STAMMDATEN -->
     <div class="acc-header" onclick="toggleAcc('stamm')">
         ⚙️ Produktion &amp; Stammdaten <span style="font-size:0.7rem; font-weight:600; letter-spacing:1px; opacity:0.6; margin-left:6px;">EXPERTEN</span>
         <span class="acc-arrow" id="arrow-stamm">▶</span>
     </div>
     <div class="acc-body" id="acc-stamm">
-        
         <a href="stammdaten_autosync.html" class="admin-card" style="border-left: 4px solid #10b981; margin-top:8px;">
-            <div class="admin-icon">📊</div>
+            <div class="admin-icon">⚙️</div>
             <div>
                 <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Stammdaten AutoSync</strong>
-                <small>Maschinenraum: Kassen-Schnitt in echte Planung (stammdaten.js) übernehmen</small>
+                <small>Backmengen-DB → Durchschnitt berechnen → stammdaten.js generieren · Ausreißer filtern · Charge korrigieren · alle paar Wochen</small>
             </div>
         </a>
-
-        <a href="Konfiguration_Durchschnitt_Produkte.html" class="admin-card" style="border-left: 4px solid #3b82f6;">
-            <div class="admin-icon">📱</div>
+        <a href="system_uebersicht.html" class="admin-card" style="border-left: 4px solid #94a3b8; opacity:0.7;">
+            <div class="admin-icon">🗺️</div>
             <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Dashboard-Gehirn (Schaufenster)</strong>
-                <small>Konfiguriert die reine Tablet-Ansicht (Produkte, Einheit in Stück/Blech)</small>
+                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Systemübersicht AdminTools</strong>
+                <small>Datenpipeline vom Backzettel bis zur stammdaten.js · welches Tool wann benutzt wird</small>
             </div>
         </a>
         <a href="brot_admin.html" class="admin-card">
             <div class="admin-icon">🍞</div>
             <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Brot- &amp; Rezept-Tresor</strong>
-                <small>Sammelteige, Zutaten &amp; Endprodukte verwalten</small>
+                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Brot- & Rezept-Tresor</strong>
+                <small>Sammelteige, Zutaten & Endprodukte verwalten</small>
             </div>
         </a>
         <a href="inventur_dateneingabe.html" class="admin-card">
             <div class="admin-icon">📦</div>
             <div>
                 <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Froster-Inventur</strong>
-                <small>Bestände manuell zählen &amp; JS exportieren</small>
+                <small>Bestände manuell zählen & JS exportieren</small>
             </div>
         </a>
         <a href="verbrauchsdaten_admin.html" class="admin-card">
             <div class="admin-icon">📊</div>
             <div>
                 <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Verbrauchs-Master</strong>
-                <small>Produkte, Tagesbedarfe &amp; Stationen pflegen</small>
+                <small>Produkte, Tagesbedarfe & Stationen pflegen</small>
             </div>
         </a>
         <a href="ofenangriff_datenpflege.html" class="admin-card">
             <div class="admin-icon">🔥</div>
             <div>
                 <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Ofenangriff-Master</strong>
-                <small>Backprogramme &amp; Backplan verwalten</small>
+                <small>Backprogramme & Backplan verwalten</small>
             </div>
         </a>
+    </div>
 
-    </div><!-- /acc-body stamm -->
-
-
+    <!-- TICKER & KI -->
     <div class="acc-header" onclick="toggleAcc('ticker')" style="color:#7c3aed; border-color:#ddd6fe;">
         📢 Ticker &amp; KI-Analysen
         <span class="acc-arrow" id="arrow-ticker">▶</span>
     </div>
     <div class="acc-body" id="acc-ticker">
-        <a href="datenbank_manager.html" class="admin-card" style="border-left: 4px solid #7c3aed; margin-top:8px;">
-            <div class="admin-icon">🗄️</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Datenbank-Manager</strong>
-                <small>Backmengen-DB einsehen, bereinigen &amp; exportieren</small>
-            </div>
-        </a>
-        <a href="shoutbox_meldungen.html" class="admin-card" style="border-left: 4px solid #f59e0b;">
+        <a href="shoutbox_meldungen.html" class="admin-card" style="border-left: 4px solid #f59e0b; margin-top:8px;">
             <div class="admin-icon">📢</div>
             <div>
                 <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Shoutbox</strong>
@@ -232,23 +282,16 @@
                 <small>KI-Prompt für Wochenprognose generieren</small>
             </div>
         </a>
-        <a href="Datenerfassungs_Prompt.html" class="admin-card" style="border-left: 4px solid #06b6d4;">
-            <div class="admin-icon">📋</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Datenerfassungs-Prompt</strong>
-                <small>KI-Prompt für Backmengen-Erfassung generieren</small>
-            </div>
-        </a>
         <a href="markt_prompt.html" class="admin-card" style="border-left: 4px solid #06b6d4;">
             <div class="admin-icon">📰</div>
             <div>
                 <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Markt-Radar-Prompt</strong>
-                <small>KI-Prompt für Markt- &amp; Rohstoffanalyse generieren</small>
+                <small>KI-Prompt für Markt- & Rohstoffanalyse generieren</small>
             </div>
         </a>
     </div>
 
-
+    <!-- SYSTEM-WARTUNG -->
     <div class="acc-header" onclick="toggleAcc('wartung')" style="color:#dc2626; border-color:#fecaca;">
         ⚡ System-Wartung
         <span class="acc-arrow" id="arrow-wartung">▶</span>
@@ -263,7 +306,7 @@
         </a>
     </div>
 
-
+    <!-- HILFE -->
     <div class="acc-header" onclick="toggleAcc('hilfe')">
         📖 System-Architektur &amp; Hilfe
         <span class="acc-arrow" id="arrow-hilfe">▶</span>
@@ -273,16 +316,18 @@
             <ul class="info-list" style="margin-top: 8px;">
                 <li><strong>Tages-Assistent:</strong> Führt dich durch deine hinterlegten Tagesroutinen — bündelt Inventur, Ticker und BÄKO in einem geführten Workflow.</li>
                 <li><strong>Wochenaufgaben konfigurieren:</strong> Hier legst du fest welche Routinen der Tages-Assistent an welchen Wochentagen anzeigt — ohne Programmieren.</li>
-                <li><strong>Geführte Konfiguration:</strong> Die vier Stammdaten-Assistenten führen Schritt für Schritt durch alle Einstellungen und erzeugen am Ende eine fertige JS-Datei zum Hochladen. Ideal wenn jemand anderes Änderungen vornehmen soll.</li>
-                <li><strong>BÄKO Management:</strong> Der klassische Drei-Schritt-Workflow: Katalog anlegen (Schablone) → WhatsApp-Daten importieren (Gehirn füttern) → Verbrauch analysieren.</li>
-                <li><strong>Produktion &amp; Stammdaten (Experten):</strong> Direkter Zugriff auf alle Admin-Editoren ohne Assistenten-Führung. Für schnelle Korrekturen wenn man weiß was man tut.</li>
-                <li><strong>Ticker &amp; KI-Analysen:</strong> Schwarzes Brett für das Team aktualisieren, KI-Prompts für Wochenprognosen und Markt-Radar generieren.</li>
+                <li><strong>Geführte Konfiguration:</strong> Die vier Stammdaten-Assistenten führen Schritt für Schritt durch alle Einstellungen und erzeugen am Ende eine fertige JS-Datei zum Hochladen.</li>
+                <li><strong>Backzettel erfassen, bearbeiten und auswerten:</strong> Die vier Tools rund um die Backmengen-Datenbank — täglich einlesen, Dashboard-Sichtbarkeit konfigurieren, Fehler protokollieren, und die Produktliste (produkt_config.json) direkt im Browser bearbeiten & als Datei speichern.</li>
+                <li><strong>BÄKO Management:</strong> Der klassische Drei-Schritt-Workflow: Katalog anlegen → WhatsApp-Daten importieren → Verbrauch analysieren.</li>
+                <li><strong>Produktion & Stammdaten (Experten):</strong> Direkter Zugriff auf alle Admin-Editoren ohne Assistenten-Führung. Für schnelle Korrekturen wenn man weiß was man tut.</li>
+                <li><strong>Ticker & KI-Analysen:</strong> Schwarzes Brett für das Team aktualisieren, KI-Prompts für Wochenprognosen und Markt-Radar generieren.</li>
                 <li><strong>Update-Assistent:</strong> Zwingt Browser-Caches zur Erneuerung — wichtig nach Datei-Updates damit alle Geräte die neue Version laden.</li>
                 <li><strong>Wie werden Änderungen wirksam?</strong> Alle Assistenten erzeugen eine JS-Datei. Diese auf GitHub hochladen → nach 1–2 Minuten sind die Änderungen auf allen Geräten live.</li>
                 <li><strong>Was tun bei Fehlern?</strong> Erst Update-Assistent → Cache leeren → Seite neu laden. Wenn das nicht hilft: Letzte funktionierende JS-Datei aus dem GitHub-Verlauf wiederherstellen.</li>
             </ul>
         </div>
     </div>
+
     <script>
         function toggleAcc(id) {
             const body = document.getElementById('acc-' + id);
