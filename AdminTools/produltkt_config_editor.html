@@ -639,10 +639,8 @@ function render() {
         trD.id = 'detail_' + idx;
         const colCount = 9;
 
-        const stationVal = p.station || '';
-        const stOpts = '<option value="">— Station wählen —</option><option>Brötchenstraße</option><option>Nachtschicht</option><option>Frühschicht</option><option>Rondo</option><option>Konditorei</option><option>Versand</option>'.replace(
-            stationVal ? '<option>' + stationVal + '</option>' : 'value=""',
-            stationVal ? '<option selected>' + stationVal + '</option>' : 'value="" selected');
+        const stOpts = '<option>Brötchenstraße</option><option>Nachtschicht</option><option>Frühschicht</option><option>Rondo</option><option>Konditorei</option><option>Versand</option>'.replace('<option>' + (p.station||'Brötchenstraße') + '</option>',
+            '<option selected>' + (p.station||'Brötchenstraße') + '</option>');
         const uOpts = '<option value="0">🫓 Bleche</option><option value="1">🌽 Pressen (KK)</option><option value="2">🔧 Pressen (HB)</option><option value="3">☕ Brühstücke</option>'.replace('value="' + (p.unit??0) + '"',
             'value="' + (p.unit??0) + '" selected');
 

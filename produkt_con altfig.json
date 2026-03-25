@@ -5,8 +5,7 @@
     "kategorie": "Brötchen",
     "charge": 28,
     "legacyKey": "schrippen_gesamt_stueck",
-    "hinweis": null,
-    "station": "Brötchenstraße"
+    "hinweis": null
   },
   {
     "artNr": "111002",
@@ -14,8 +13,7 @@
     "kategorie": "Brötchen",
     "charge": 16,
     "legacyKey": "schrippen_teiglinge_stueck",
-    "hinweis": null,
-    "station": "Brötchenstraße"
+    "hinweis": null
   },
   {
     "artNr": "111003",
@@ -23,8 +21,7 @@
     "kategorie": "Brötchen",
     "charge": 16,
     "legacyKey": "schrippen_teiglinge_gefroren_stueck",
-    "hinweis": null,
-    "station": "Brötchenstraße"
+    "hinweis": null
   },
   {
     "artNr": "111010",
@@ -44,7 +41,7 @@
       6
     ],
     "inventurRelevant": true,
-    "station": "Brötchenstraße"
+    "station": "Frühschicht"
   },
   {
     "artNr": "111030",
@@ -64,8 +61,7 @@
       6
     ],
     "inventurRelevant": true,
-    "filialeProdukt": true,
-    "station": "Brötchenstraße"
+    "filialeProdukt": true
   },
   {
     "artNr": "112001",
@@ -75,7 +71,7 @@
     "legacyKey": "kornknacker_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Brötchenstraße",
+    "station": "Frühschicht",
     "backTage": [
       0,
       1,
@@ -95,7 +91,7 @@
     "legacyKey": "dinkel_zwerg_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Brötchenstraße",
+    "station": "Frühschicht",
     "backTage": [
       0,
       1,
@@ -124,8 +120,7 @@
       5,
       6
     ],
-    "inventurRelevant": true,
-    "station": "Brötchenstraße"
+    "inventurRelevant": true
   },
   {
     "artNr": "115009",
@@ -135,7 +130,7 @@
     "legacyKey": "laugenecken_gesamt_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Brötchenstraße",
+    "station": "Frühschicht",
     "backTage": [
       0,
       1,
@@ -164,8 +159,7 @@
       5,
       6
     ],
-    "inventurRelevant": true,
-    "station": "Brötchenstraße"
+    "inventurRelevant": true
   },
   {
     "artNr": "116003",
@@ -185,8 +179,7 @@
       6
     ],
     "batchSize": 12,
-    "inventurRelevant": true,
-    "station": "Brötchenstraße"
+    "inventurRelevant": true
   },
   {
     "artNr": "116004",
@@ -196,7 +189,7 @@
     "legacyKey": "rosinen_batzen_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Brötchenstraße",
+    "station": "Frühschicht",
     "backTage": [
       0,
       1,
@@ -216,7 +209,7 @@
     "legacyKey": "schoko_batzen_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Brötchenstraße",
+    "station": "Frühschicht",
     "backTage": [
       0,
       1,
@@ -245,8 +238,7 @@
       5,
       6
     ],
-    "inventurRelevant": true,
-    "station": "Brötchenstraße"
+    "inventurRelevant": true
   },
   {
     "artNr": "116011",
@@ -256,7 +248,7 @@
     "legacyKey": "butter_croissant_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Brötchenstraße",
+    "station": "Frühschicht",
     "backTage": [
       0,
       1,
@@ -286,7 +278,7 @@
       6
     ],
     "inventurRelevant": false,
-    "station": "Brötchenstraße"
+    "station": "Frühschicht"
   },
   {
     "artNr": "116020",
@@ -296,7 +288,7 @@
     "legacyKey": "mini_croissant_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Brötchenstraße",
+    "station": "Frühschicht",
     "filialeProdukt": true,
     "backTage": [
       0,
@@ -316,7 +308,7 @@
     "legacyKey": "mini_schoko_croissant_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Brötchenstraße",
+    "station": "Frühschicht",
     "backTage": [
       0,
       1,
@@ -336,7 +328,7 @@
     "legacyKey": "schlawiner_gesamt_stueck",
     "hinweis": "ArtNr unbekannt – bitte nachtragen",
     "einheit": "bleche",
-    "station": "Brötchenstraße",
+    "station": "Frühschicht",
     "backTage": [
       0,
       1,

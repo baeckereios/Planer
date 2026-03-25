@@ -41,16 +41,20 @@ const GEHIRN = {
     _fehler:   null,
 
     // ── INIT ──────────────────────────────────────────────
-    async init() {
+    async init(basePath) {
         this._bereit = false;
         this._fehler = null;
+
+        // Basis-Pfad automatisch ermitteln wenn nicht angegeben
+        // Erkennt ob die Seite aus einem Unterordner aufgerufen wird
+        const base = basePath || this._autoBasePath();
 
         try {
             // Alle drei Dateien parallel laden
             const [r1, r2, r3] = await Promise.all([
-                fetch('backmengen_db.json',       { cache: 'no-store' }),
-                fetch('produkt_config.json',      { cache: 'no-store' }),
-                fetch('taeglicher_verbrauch.json',{ cache: 'no-store' }).catch(() => null)
+                fetch(base + 'backmengen_db.json',       { cache: 'no-store' }),
+                fetch(base + 'produkt_config.json',      { cache: 'no-store' }),
+                fetch(base + 'taeglicher_verbrauch.json',{ cache: 'no-store' }).catch(() => null)
             ]);
 
             if (!r1.ok) throw new Error('backmengen_db.json nicht erreichbar');
@@ -179,6 +183,19 @@ const GEHIRN = {
         });
 
         window.BOS_STAMMDATEN = stammdaten;
+    },
+
+    // ── BASIS-PFAD ERKENNUNG ──────────────────────────────
+    _autoBasePath() {
+        // Pfad aus dem eigenen Script-Tag lesen — zuverlässigste Methode
+        const scripts = document.querySelectorAll('script[src*="produktions_gehirn.js"]');
+        if (scripts.length > 0) {
+            const src = scripts[0].getAttribute('src');
+            // Alles vor "produktions_gehirn.js" ist der Basis-Pfad
+            const base = src.replace('produktions_gehirn.js', '');
+            return base;
+        }
+        return '';
     },
 
     // ── FAIL FAST FEHLERANZEIGE ───────────────────────────

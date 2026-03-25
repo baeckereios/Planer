@@ -5,8 +5,7 @@
     "kategorie": "Brötchen",
     "charge": 28,
     "legacyKey": "schrippen_gesamt_stueck",
-    "hinweis": null,
-    "station": "Brötchenstraße"
+    "hinweis": null
   },
   {
     "artNr": "111002",
@@ -14,8 +13,7 @@
     "kategorie": "Brötchen",
     "charge": 16,
     "legacyKey": "schrippen_teiglinge_stueck",
-    "hinweis": null,
-    "station": "Brötchenstraße"
+    "hinweis": null
   },
   {
     "artNr": "111003",
@@ -23,8 +21,7 @@
     "kategorie": "Brötchen",
     "charge": 16,
     "legacyKey": "schrippen_teiglinge_gefroren_stueck",
-    "hinweis": null,
-    "station": "Brötchenstraße"
+    "hinweis": null
   },
   {
     "artNr": "111010",
@@ -33,18 +30,7 @@
     "charge": 20,
     "legacyKey": "hasenberger_stueck",
     "hinweis": null,
-    "einheit": "bleche",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true,
-    "station": "Brötchenstraße"
+    "einheit": "bleche"
   },
   {
     "artNr": "111030",
@@ -53,19 +39,7 @@
     "charge": 20,
     "legacyKey": "kaesebroetchen_stueck",
     "hinweis": null,
-    "einheit": "bleche",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true,
-    "filialeProdukt": true,
-    "station": "Brötchenstraße"
+    "einheit": "bleche"
   },
   {
     "artNr": "112001",
@@ -74,18 +48,7 @@
     "charge": 25,
     "legacyKey": "kornknacker_stueck",
     "hinweis": null,
-    "einheit": "bleche",
-    "station": "Brötchenstraße",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true
+    "einheit": "bleche"
   },
   {
     "artNr": "114120",
@@ -94,18 +57,7 @@
     "charge": 25,
     "legacyKey": "dinkel_zwerg_stueck",
     "hinweis": null,
-    "einheit": "bleche",
-    "station": "Brötchenstraße",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true
+    "einheit": "bleche"
   },
   {
     "artNr": "115001",
@@ -114,18 +66,7 @@
     "charge": 18,
     "legacyKey": "laugenstangen_stueck",
     "hinweis": null,
-    "einheit": "bleche",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true,
-    "station": "Brötchenstraße"
+    "einheit": "bleche"
   },
   {
     "artNr": "115009",
@@ -134,18 +75,7 @@
     "charge": 15,
     "legacyKey": "laugenecken_gesamt_stueck",
     "hinweis": null,
-    "einheit": "bleche",
-    "station": "Brötchenstraße",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "filialeProdukt": true
+    "einheit": "bleche"
   },
   {
     "artNr": "116001",
@@ -154,18 +84,7 @@
     "charge": 20,
     "legacyKey": "rosinen_hedwig_stueck",
     "hinweis": null,
-    "einheit": "bleche",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true,
-    "station": "Brötchenstraße"
+    "einheit": "bleche"
   },
   {
     "artNr": "116003",
@@ -174,19 +93,7 @@
     "charge": 20,
     "legacyKey": "hasenpfoetchen_stueck",
     "hinweis": null,
-    "einheit": "bleche",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "batchSize": 12,
-    "inventurRelevant": true,
-    "station": "Brötchenstraße"
+    "einheit": "bleche"
   },
   {
     "artNr": "116004",
@@ -195,18 +102,7 @@
     "charge": 12,
     "legacyKey": "rosinen_batzen_stueck",
     "hinweis": null,
-    "einheit": "bleche",
-    "station": "Brötchenstraße",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true
+    "einheit": "bleche"
   },
   {
     "artNr": "116005",
@@ -215,18 +111,7 @@
     "charge": 12,
     "legacyKey": "schoko_batzen_stueck",
     "hinweis": null,
-    "einheit": "bleche",
-    "station": "Brötchenstraße",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true
+    "einheit": "bleche"
   },
   {
     "artNr": "116009",
@@ -235,18 +120,7 @@
     "charge": 14,
     "legacyKey": "zimt_woelkchen_stueck",
     "hinweis": null,
-    "einheit": "bleche",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true,
-    "station": "Brötchenstraße"
+    "einheit": "bleche"
   },
   {
     "artNr": "116011",
@@ -255,18 +129,7 @@
     "charge": 16,
     "legacyKey": "butter_croissant_stueck",
     "hinweis": null,
-    "einheit": "bleche",
-    "station": "Brötchenstraße",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "filialeProdukt": true
+    "einheit": "bleche"
   },
   {
     "artNr": "116012",
@@ -275,18 +138,7 @@
     "charge": 20,
     "legacyKey": "schoko_croissant_stueck",
     "hinweis": null,
-    "einheit": "bleche",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": false,
-    "station": "Brötchenstraße"
+    "einheit": "bleche"
   },
   {
     "artNr": "116020",
@@ -295,18 +147,7 @@
     "charge": 30,
     "legacyKey": "mini_croissant_stueck",
     "hinweis": null,
-    "einheit": "bleche",
-    "station": "Brötchenstraße",
-    "filialeProdukt": true,
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ]
+    "einheit": "bleche"
   },
   {
     "artNr": "116022",
@@ -315,18 +156,7 @@
     "charge": 30,
     "legacyKey": "mini_schoko_croissant_stueck",
     "hinweis": null,
-    "einheit": "bleche",
-    "station": "Brötchenstraße",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "filialeProdukt": true
+    "einheit": "bleche"
   },
   {
     "artNr": null,
@@ -335,19 +165,7 @@
     "charge": 48,
     "legacyKey": "schlawiner_gesamt_stueck",
     "hinweis": "ArtNr unbekannt – bitte nachtragen",
-    "einheit": "bleche",
-    "station": "Brötchenstraße",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "filialeProdukt": true,
-    "inventurRelevant": true
+    "einheit": "bleche"
   },
   {
     "artNr": "121001",
@@ -355,16 +173,7 @@
     "kategorie": "Brot",
     "charge": 15,
     "legacyKey": "korbgerster_1250g_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ]
+    "hinweis": null
   },
   {
     "artNr": "121002",
@@ -372,16 +181,7 @@
     "kategorie": "Brot",
     "charge": 18,
     "legacyKey": "korbgerster_750g_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ]
+    "hinweis": null
   },
   {
     "artNr": "121005",
@@ -389,16 +189,7 @@
     "kategorie": "Brot",
     "charge": 4,
     "legacyKey": "gersterbrot_1250g_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ]
+    "hinweis": null
   },
   {
     "artNr": "121010",
@@ -406,13 +197,7 @@
     "kategorie": "Brot",
     "charge": 12,
     "legacyKey": "bergsteiger_750g_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      3,
-      5,
-      6
-    ]
+    "hinweis": null
   },
   {
     "artNr": "121011",
@@ -420,16 +205,7 @@
     "kategorie": "Brot",
     "charge": 20,
     "legacyKey": "findling_500g_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ]
+    "hinweis": null
   },
   {
     "artNr": "121012",
@@ -437,16 +213,7 @@
     "kategorie": "Brot",
     "charge": 25,
     "legacyKey": "findling_250g_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ]
+    "hinweis": null
   },
   {
     "artNr": "121015",
@@ -454,16 +221,7 @@
     "kategorie": "Brot",
     "charge": 15,
     "legacyKey": "krosses_herri_750g_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ]
+    "hinweis": null
   },
   {
     "artNr": "121020",
@@ -471,12 +229,7 @@
     "kategorie": "Brot",
     "charge": 15,
     "legacyKey": null,
-    "hinweis": "nur Samstag",
-    "station": "Nachtschicht",
-    "backTage": [
-      2,
-      6
-    ]
+    "hinweis": "nur Samstag"
   },
   {
     "artNr": "121030",
@@ -484,13 +237,7 @@
     "kategorie": "Brot",
     "charge": 3,
     "legacyKey": "schwarzbrot_750g_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      1,
-      4,
-      6
-    ]
+    "hinweis": null
   },
   {
     "artNr": "121060",
@@ -498,16 +245,7 @@
     "kategorie": "Brot",
     "charge": 1,
     "legacyKey": "zwiebelbrot_500g_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ]
+    "hinweis": null
   },
   {
     "artNr": "122001",
@@ -515,12 +253,7 @@
     "kategorie": "Brot",
     "charge": 3,
     "legacyKey": "sovitalbrot_500g_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      2,
-      6
-    ]
+    "hinweis": null
   },
   {
     "artNr": "122004",
@@ -528,11 +261,7 @@
     "kategorie": "Brot",
     "charge": 5,
     "legacyKey": null,
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      3
-    ]
+    "hinweis": null
   },
   {
     "artNr": "122005",
@@ -540,11 +269,7 @@
     "kategorie": "Brot",
     "charge": 4,
     "legacyKey": "vollkornbrot_750g_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      3
-    ]
+    "hinweis": null
   },
   {
     "artNr": "122006",
@@ -552,12 +277,7 @@
     "kategorie": "Brot",
     "charge": 8,
     "legacyKey": null,
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      2,
-      5
-    ]
+    "hinweis": null
   },
   {
     "artNr": "124001",
@@ -565,13 +285,7 @@
     "kategorie": "Brot",
     "charge": 8,
     "legacyKey": null,
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      1,
-      3,
-      5
-    ]
+    "hinweis": null
   },
   {
     "artNr": "124002",
@@ -579,16 +293,7 @@
     "kategorie": "Brot",
     "charge": 4,
     "legacyKey": "dinkel_gerster_750g_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ]
+    "hinweis": null
   },
   {
     "artNr": "124003",
@@ -596,13 +301,7 @@
     "kategorie": "Brot",
     "charge": 4,
     "legacyKey": "dinkel_joghurt_500g_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      2,
-      4,
-      6
-    ]
+    "hinweis": null
   },
   {
     "artNr": "124005",
@@ -610,15 +309,7 @@
     "kategorie": "Brot",
     "charge": 4,
     "legacyKey": "kamut_kruste_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      2,
-      3,
-      4,
-      5,
-      6
-    ]
+    "hinweis": null
   },
   {
     "artNr": "126000",
@@ -626,19 +317,7 @@
     "kategorie": "Brot",
     "charge": 6,
     "legacyKey": "stangen_gesamt_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "filialeProdukt": true,
-    "inventurRelevant": true
+    "hinweis": null
   },
   {
     "artNr": "126002",
@@ -646,19 +325,7 @@
     "kategorie": "Brot",
     "charge": 3,
     "legacyKey": "baguettestange_teig_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true,
-    "filialeProdukt": true
+    "hinweis": null
   },
   {
     "artNr": "126006",
@@ -666,19 +333,7 @@
     "kategorie": "Brot",
     "charge": 6,
     "legacyKey": "lamourette_250g_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true,
-    "filialeProdukt": true
+    "hinweis": null
   },
   {
     "artNr": "126008",
@@ -694,19 +349,7 @@
     "kategorie": "Brot",
     "charge": 6,
     "legacyKey": "zwiebelstange_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true,
-    "filialeProdukt": true
+    "hinweis": null
   },
   {
     "artNr": "126011",
@@ -714,19 +357,7 @@
     "kategorie": "Brot",
     "charge": 3,
     "legacyKey": "zwiebelstange_teig_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true,
-    "filialeProdukt": true
+    "hinweis": null
   },
   {
     "artNr": "126050",
@@ -734,16 +365,7 @@
     "kategorie": "Brot",
     "charge": 4,
     "legacyKey": "kastenweissbrot_450g_stueck",
-    "hinweis": null,
-    "station": "Nachtschicht",
-    "backTage": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ]
+    "hinweis": null
   },
   {
     "artNr": "131001",
@@ -863,17 +485,7 @@
     "kategorie": "Konditorei",
     "charge": 14,
     "legacyKey": "schnecken_stueck",
-    "hinweis": null,
-    "station": "Rondo",
-    "backTage": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true
+    "hinweis": null
   },
   {
     "artNr": "134001",
@@ -889,17 +501,7 @@
     "kategorie": "Konditorei",
     "charge": 16,
     "legacyKey": "plunderstreifen_stueck",
-    "hinweis": null,
-    "station": "Rondo",
-    "backTage": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true
+    "hinweis": null
   },
   {
     "artNr": "134006",
@@ -907,14 +509,7 @@
     "kategorie": "Konditorei",
     "charge": 16,
     "legacyKey": "puddingbrezel_stueck",
-    "hinweis": null,
-    "station": "Rondo",
-    "backTage": [
-      1,
-      3,
-      5
-    ],
-    "inventurRelevant": true
+    "hinweis": null
   },
   {
     "artNr": "134035",
@@ -922,17 +517,7 @@
     "kategorie": "Konditorei",
     "charge": 1,
     "legacyKey": "plunderschiffe_vegan_stueck",
-    "hinweis": null,
-    "station": "Rondo",
-    "backTage": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ],
-    "inventurRelevant": true
+    "hinweis": null
   },
   {
     "artNr": "134041",
@@ -940,14 +525,7 @@
     "kategorie": "Konditorei",
     "charge": 1,
     "legacyKey": "eiszapfen_stueck",
-    "hinweis": "alle 2 Tage",
-    "station": "Rondo",
-    "backTage": [
-      2,
-      4,
-      6
-    ],
-    "inventurRelevant": false
+    "hinweis": "alle 2 Tage"
   },
   {
     "artNr": "137031",

@@ -157,31 +157,6 @@ tr.station-header td:first-child { padding-left: 8px; }
 .notes-line {
   height: 18px; border-bottom: 1px solid #e2e8f0;
 }
-/* Filter Panel */
-.filter-panel {
-  margin: 16px; padding: 12px 14px;
-  background: var(--card-bg, #fff);
-  border: 1px solid var(--border-color, #e5e0d8);
-  border-radius: 12px;
-}
-.filter-toggle {
-  font-size: 0.75rem; font-weight: 800; letter-spacing: 1px;
-  text-transform: uppercase; color: var(--text-muted, #6b7280);
-  cursor: pointer; display: flex; justify-content: space-between;
-  align-items: center; user-select: none;
-}
-.filter-body { display: none; margin-top: 10px; flex-wrap: wrap; gap: 6px; }
-.filter-body.open { display: flex; }
-.filter-chip {
-  font-size: 0.72rem; font-weight: 700; padding: 4px 10px;
-  border-radius: 20px; border: 1.5px solid var(--border-color, #e5e0d8);
-  background: var(--card-bg, #fff); cursor: pointer;
-  color: var(--text-primary, #1a1a1a); transition: all 0.15s;
-}
-.filter-chip.versteckt {
-  background: #fee2e2; border-color: #fca5a5; color: #991b1b;
-  text-decoration: line-through; opacity: 0.7;
-}
 </style>
 </head>
 <body>
@@ -254,15 +229,6 @@ tr.station-header td:first-child { padding-left: 8px; }
       <div class="notes-line"></div>
     </div>
   </div>
-
-  <!-- Filter Panel -->
-  <div class="filter-panel no-print">
-    <div class="filter-toggle" onclick="toggleFilterPanel()">
-      <span>🔽 Produkte ein-/ausblenden</span>
-      <span id="filter-arrow">▼</span>
-    </div>
-    <div class="filter-body" id="filter-body"></div>
-  </div>
 </div>
 
 <script src="../produktions_gehirn.js"></script>
@@ -271,38 +237,6 @@ const TAGNAMEN = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag
 const TAGKURZ  = ['Mo','Di','Mi','Do','Fr','Sa','So'];
 
 let aktiverTag = 0;
-let versteckteProdukte = new Set(JSON.parse(localStorage.getItem('BOS_FL_VERSTECKT') || '[]'));
-
-function toggleFilterPanel() {
-  const body = document.getElementById('filter-body');
-  const arrow = document.getElementById('filter-arrow');
-  body.classList.toggle('open');
-  arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
-}
-
-function baueFilterChips() {
-  const body = document.getElementById('filter-body');
-  body.innerHTML = '';
-  Object.entries(window.BOS_STAMMDATEN || {}).forEach(([id, p]) => {
-    const chip = document.createElement('button');
-    chip.className = 'filter-chip' + (versteckteProdukte.has(id) ? ' versteckt' : '');
-    chip.textContent = p.name;
-    chip.dataset.id = id;
-    chip.addEventListener('click', function() {
-      const pid = this.dataset.id;
-      if (versteckteProdukte.has(pid)) {
-        versteckteProdukte.delete(pid);
-        this.classList.remove('versteckt');
-      } else {
-        versteckteProdukte.add(pid);
-        this.classList.add('versteckt');
-      }
-      localStorage.setItem('BOS_FL_VERSTECKT', JSON.stringify([...versteckteProdukte]));
-      rendereTabelle(aktiverTag);
-    });
-    body.appendChild(chip);
-  });
-}
 
 // Boot: Gehirn laden dann initialisieren
 (async function() {
@@ -320,7 +254,6 @@ function baueFilterChips() {
         `📅 Ø-Werte aus DB &nbsp;·&nbsp; ${fmt(von)} – ${fmt(bis)} &nbsp;·&nbsp; ${anzahl} Tage`;
     }
     setTag(heuteIdx());
-    baueFilterChips();
   }
 })();
 
@@ -361,8 +294,7 @@ function rendereTabelle(tagIdx) {
     return;
   }
 
-  const produkte = Object.entries(window.BOS_STAMMDATEN)
-    .filter(([id]) => !versteckteProdukte.has(id));
+  const produkte = Object.entries(window.BOS_STAMMDATEN);
 
   let html = '';
   let nr = 1;
@@ -371,7 +303,7 @@ function rendereTabelle(tagIdx) {
     const soll = p.needs?.[tagIdx] ?? 0;
     const sollKlasse = soll === 0 ? 'soll-0' : '';
     const sollText = soll === 0 ? '—' : soll;
-    const einheit = (p.unit === undefined || p.unit === 0) ? 'Bl.' : 'St.';
+    const einheit = (p.unit === 0) ? 'Bl.' : 'St.';
 
     html += `<tr>
       <td class="col-nr">${nr++}</td>

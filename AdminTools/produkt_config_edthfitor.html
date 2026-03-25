@@ -639,10 +639,8 @@ function render() {
         trD.id = 'detail_' + idx;
         const colCount = 9;
 
-        const stationVal = p.station || '';
-        const stOpts = '<option value="">— Station wählen —</option><option>Brötchenstraße</option><option>Nachtschicht</option><option>Frühschicht</option><option>Rondo</option><option>Konditorei</option><option>Versand</option>'.replace(
-            stationVal ? '<option>' + stationVal + '</option>' : 'value=""',
-            stationVal ? '<option selected>' + stationVal + '</option>' : 'value="" selected');
+        const stOpts = '<option>Brötchenstraße</option><option>Nachtschicht</option><option>Frühschicht</option><option>Rondo</option><option>Konditorei</option><option>Versand</option>'.replace('<option>' + (p.station||'Brötchenstraße') + '</option>',
+            '<option selected>' + (p.station||'Brötchenstraße') + '</option>');
         const uOpts = '<option value="0">🫓 Bleche</option><option value="1">🌽 Pressen (KK)</option><option value="2">🔧 Pressen (HB)</option><option value="3">☕ Brühstücke</option>'.replace('value="' + (p.unit??0) + '"',
             'value="' + (p.unit??0) + '" selected');
 
@@ -676,24 +674,24 @@ function render() {
               <div class="backtage-buttons">${btHTML}</div>
             </div>
             <div class="detail-feld" style="min-width:160px;">
-              <label>Wichtig für Frosterzählung?</label>
+              <label>Bei Inventur mitzählen?</label>
               <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
                 <input type="checkbox" id="inv_${idx}" ${p.inventurRelevant?'checked':''}
                   onchange="aendere(${idx},'inventurRelevant',this.checked)"
                   style="width:16px;height:16px;accent-color:var(--akzent);cursor:pointer;">
                 <label for="inv_${idx}" id="inv_lbl_${idx}" style="font-size:11px;color:${p.inventurRelevant?'var(--akzent)':'#666'};cursor:pointer;text-transform:none;letter-spacing:0;">
-                  
+                  ${p.inventurRelevant?'✓ Ja — wird bei Inventur gezählt':'Nein — wird übersprungen'}
                 </label>
               </div>
             </div>
             <div class="detail-feld" style="min-width:160px;">
-              <label>Kann in Filiale gebacken werden?</label>
+              <label>Kommt als TK/Teigling aus Filiale?</label>
               <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
                 <input type="checkbox" id="fil_${idx}" ${p.filialeProdukt?'checked':''}
                   onchange="aendere(${idx},'filialeProdukt',this.checked)"
                   style="width:16px;height:16px;accent-color:#3b82f6;cursor:pointer;">
                 <label for="fil_${idx}" id="fil_lbl_${idx}" style="font-size:11px;color:${p.filialeProdukt?'#3b82f6':'#666'};cursor:pointer;text-transform:none;letter-spacing:0;">
-                  
+                  ${p.filialeProdukt?'✓ Ja — TK/Teigling aus Filiale':'Nein — wird in Backstube hergestellt'}
                 </label>
               </div>
             </div>
@@ -753,13 +751,15 @@ function aendere(idx, feld, wert) {
   if (feld === 'inventurRelevant') {
     const lbl = document.getElementById('inv_lbl_' + idx);
     if (lbl) {
-      
+      lbl.textContent = wert ? '✓ Ja — wird bei Inventur gezählt' : 'Nein — wird übersprungen';
+      lbl.style.color = wert ? 'var(--akzent)' : '#666';
     }
   }
   if (feld === 'filialeProdukt') {
     const lbl = document.getElementById('fil_lbl_' + idx);
     if (lbl) {
-      
+      lbl.textContent = wert ? '✓ Ja — TK/Teigling aus Filiale' : 'Nein — wird in Backstube hergestellt';
+      lbl.style.color = wert ? '#3b82f6' : '#666';
     }
   }
 }

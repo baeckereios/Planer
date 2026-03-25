@@ -220,12 +220,11 @@ window.onload = async function() {
             '<div style="text-align:center;padding:30px;color:#ef4444;font-weight:700;">⚠️ ' + e.message + '</div>';
         return;
     }
-    // inventurdaten.js nachladen falls noch nicht da
     if (!window.BOS_INVENTUR) {
         var s = document.createElement('script');
         s.src = 'inventurdaten.js?t=' + Date.now();
         s.onload = function() { initApp(); };
-        s.onerror = function() { initApp(); }; // auch ohne alte Inventur starten
+        s.onerror = function() { initApp(); };
         document.head.appendChild(s);
     } else { initApp(); }
 };
@@ -550,8 +549,7 @@ function decoderVerarbeiten() {
     var marker = '---PRODUKTIONSDATEN---';
     var idx = text.indexOf(marker);
     if (idx === -1) { alert('Kein ---PRODUKTIONSDATEN--- Block gefunden.'); return; }
-    var b64 = text.substring(idx + marker.length).trim().split('
-')[0].trim();
+    var b64 = text.substring(idx + marker.length).trim().split('\n')[0].trim();
     var daten;
     try { daten = JSON.parse(decodeURIComponent(escape(atob(b64)))); }
     catch(e) { alert('Fehler beim Lesen: ' + e.message); return; }

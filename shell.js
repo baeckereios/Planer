@@ -10,7 +10,7 @@
         'setup.html':                { title: 'PlanungsAssistent',  mode: 'minimal'                  },
         'schnellrechner.html':       { title: 'Schnellrechner',     mode: 'full', tab: 'rechner'    },
         'frosterliste.html':         { title: 'Frosterliste',       mode: 'full', tab: 'mehr'       },
-        'frosterliste_wochentag.html': { title: 'Frosterliste · Wochentag', mode: 'full', tab: 'mehr'  },
+        'frosterliste_wochentag.html': { title: 'Frosterliste\nWochentag', mode: 'full', tab: 'mehr'  },
         'ofenangriff.html':          { title: 'Ofenangriff',        mode: 'full', tab: 'mehr'       },
         'pausenraum.html':           { title: 'Pausenraum',         mode: 'full', tab: 'mehr'       },
         'bestandsuebersicht.html':   { title: 'Bestände',           mode: 'full', tab: 'mehr'       },
@@ -52,7 +52,7 @@
         .bos-back-btn:hover { border-color: var(--amber); color: var(--amber); }
         .bos-shell-logo { font-family: 'Fraunces', serif; font-weight: 900; font-size: 1.5rem; color: var(--text); line-height: 1; text-decoration: none; letter-spacing: -0.5px; }
         .bos-shell-logo span { color: var(--amber); font-style: italic; }
-        .bos-page-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; color: var(--amber); text-align: right; min-width: 80px; }
+        .bos-page-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; color: var(--amber); text-align: right; min-width: 80px; white-space: pre-line; line-height: 1.3; }
         .bos-shell-bottom { position: fixed; bottom: 0; left: 0; right: 0; z-index: 500; }
         .bos-status-strip { background: var(--surface2); border-top: 1px solid var(--border); padding: 5px 16px; display: flex; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-size: 0.67rem; font-weight: 700; letter-spacing: 0.8px; color: var(--dim); }
         .bos-status-item { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
@@ -102,7 +102,7 @@
                 const dateStr = pad(inv.getDate()) + '.' + pad(inv.getMonth() + 1) + '.' + inv.getFullYear();
                 
                 invDot  = diffH > 24 ? 'warn' : 'ok';
-                invText = 'Inventur: ' + timeStr + ', ' + dateStr + (diffH > 24 ? ' 🔴' : '');
+                invText = 'Inventur: ' + timeStr + ', ' + dateStr;
             } else {
                 invDot = 'warn'; 
                 invText = 'Inventur: Nicht erfasst';
