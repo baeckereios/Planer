@@ -14,6 +14,8 @@
         'ofenangriff.html':          { title: 'Ofenangriff',        mode: 'full', tab: 'mehr'       },
         'pausenraum.html':           { title: 'Pausenraum',         mode: 'full', tab: 'mehr'       },
         'bestandsuebersicht.html':   { title: 'Bestände',           mode: 'full', tab: 'mehr'       },
+        'inventur_dateneingabe.html':{ title: 'Inventur',           mode: 'full', tab: 'mehr'       },
+        'produktion_melden.html':   { title: 'Produktion melden',  mode: 'full', tab: 'mehr'       },
         'verbrauchsuebersicht.html': { title: 'Mengenangaben',      mode: 'full', tab: 'mehr'       },
         'lager_inventur.html':       { title: 'BÄKO Lager',         mode: 'full', tab: 'mehr'       },
         'lager_auswertung.html':     { title: 'Lager-Auswertung',   mode: 'full', tab: 'mehr'       },

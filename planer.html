@@ -459,7 +459,7 @@
         </div>
     </div>
 
-        <script src="stammdaten.js"></script>
+        <script src="produktions_gehirn.js"></script>
     <script src="froster_gehirn.js"></script>
     <script src="export.js"></script>
     <script>
@@ -709,11 +709,9 @@
         }
 
         // Robuster Init: Abhängigkeiten prüfen bevor init() läuft
-        function _bosBootstrap() {
-            if (!window.BOS_STAMMDATEN || !window.BOS_BRAIN) {
-                setTimeout(_bosBootstrap, 30);
-                return;
-            }
+        async function _bosBootstrap() {
+            const ok = await window.BOS_GEHIRN.init();
+            if (!ok) return;
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {

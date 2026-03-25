@@ -146,17 +146,41 @@
     <!-- base64 Akkordeon -->
     <div class="akk-wrap">
         <div class="akk-header" onclick="toggleAkk()">
-            <span>📤 Daten per Text übertragen (für Urlaub)</span>
+            <span>📤 Produktionsmeldung vom Kollegen verarbeiten</span>
             <span id="akk-arrow">▼</span>
         </div>
         <div class="akk-body" id="akk-body">
             <div class="akk-hinweis">
-                <strong>Für Kollegen ohne GitHub-Zugang:</strong> Inventur eingeben → "Als Text exportieren" → Text per WhatsApp schicken → Chef fügt Text hier ein → Download der fertigen Datei.
+                <strong>Ablauf:</strong> Erst die aktuelle inventurdaten.js laden, dann die WhatsApp-Nachricht einfügen. Das System liest den Daten-Block und aktualisiert die Bestände — aktuellstes Datum gewinnt.
             </div>
-            <textarea class="b64-area" id="b64-area" placeholder="Text hier einfügen um zu importieren..."></textarea>
-            <div class="akk-btns">
-                <button class="akk-btn" onclick="b64Export()">📋 Als Text exportieren</button>
-                <button class="akk-btn primary" onclick="b64Import()">⬇️ Importieren</button>
+
+            <!-- Schritt 1: Basis laden -->
+            <div style="font-size:0.75rem;font-weight:800;color:var(--text-primary,var(--text-primary,#1a1a1a));margin-bottom:6px;">
+                Schritt 1 — Aktuelle inventurdaten.js laden:
+            </div>
+            <label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--background,#f8f6f2);border:1.5px solid var(--border-color,#e5e0d8);border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;margin-bottom:12px;">
+                📂 inventurdaten.js wählen
+                <input type="file" accept=".js" id="decoder-basis-file" style="display:none;" onchange="decoderBasisLaden(this)">
+            </label>
+            <div id="decoder-basis-status" style="font-size:0.72rem;color:var(--dim,#6b7280);margin-bottom:12px;display:none;"></div>
+
+            <!-- Schritt 2: Nachricht einfügen -->
+            <div style="font-size:0.75rem;font-weight:800;color:var(--text-primary,#1a1a1a);margin-bottom:6px;">
+                Schritt 2 — WhatsApp-Nachricht einfügen:
+            </div>
+            <textarea class="b64-area" id="decoder-nachricht"
+                placeholder="Gesamte Nachricht vom Kollegen hier einfügen (inkl. ---PRODUKTIONSDATEN--- Block)..."></textarea>
+
+            <button class="akk-btn primary" style="width:100%;margin-top:8px;" onclick="decoderVerarbeiten()">
+                ⚙ Verarbeiten &amp; neue inventurdaten.js downloaden
+            </button>
+            <div id="decoder-ergebnis" style="display:none;margin-top:10px;font-size:0.78rem;line-height:1.6;"></div>
+
+            <div style="border-top:1px solid var(--border-color,#e5e0d8);margin-top:14px;padding-top:12px;">
+                <div style="font-size:0.72rem;font-weight:800;color:var(--dim,#6b7280);margin-bottom:6px;">Eigene Inventur als Text exportieren (für Übergabe):</div>
+                <div class="akk-btns">
+                    <button class="akk-btn" onclick="b64Export()">📋 Exportieren</button>
+                </div>
             </div>
         </div>
     </div>
@@ -494,6 +518,75 @@ function toggleAkk() {
     arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
 }
 
+// Basis-Datei laden
+var decoderBasis = null;
+
+function decoderBasisLaden(input) {
+    var file = input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            var script = document.createElement('script');
+            script.textContent = e.target.result;
+            document.head.appendChild(script);
+            document.head.removeChild(script);
+            if (!window.BOS_INVENTUR) { alert('Ungültige Datei.'); return; }
+            decoderBasis = JSON.parse(JSON.stringify(window.BOS_INVENTUR));
+            var anzahl = Object.keys(decoderBasis.products || {}).length;
+            var status = document.getElementById('decoder-basis-status');
+            status.style.display = 'block';
+            status.style.color = '#10b981';
+            status.textContent = '✓ Basis geladen: ' + anzahl + ' Produkte';
+        } catch(e) { alert('Fehler: ' + e.message); }
+        input.value = '';
+    };
+    reader.readAsText(file);
+}
+
+function decoderVerarbeiten() {
+    var text = document.getElementById('decoder-nachricht').value.trim();
+    if (!text) { alert('Bitte Nachricht einfügen.'); return; }
+    var marker = '---PRODUKTIONSDATEN---';
+    var idx = text.indexOf(marker);
+    if (idx === -1) { alert('Kein ---PRODUKTIONSDATEN--- Block gefunden.'); return; }
+    var b64 = text.substring(idx + marker.length).trim().split('
+')[0].trim();
+    var daten;
+    try { daten = JSON.parse(decodeURIComponent(escape(atob(b64)))); }
+    catch(e) { alert('Fehler beim Lesen: ' + e.message); return; }
+
+    var basis = decoderBasis ? JSON.parse(JSON.stringify(decoderBasis)) : { products: {}, stocks: {} };
+    if (!basis.products) basis.products = {};
+    if (!basis.stocks) basis.stocks = {};
+
+    var aktualisiert = 0, uebersprungen = 0;
+    Object.entries(daten.produkte || {}).forEach(function(entry) {
+        var key = entry[0], neu = entry[1];
+        var bestehend = basis.products[key];
+        if (bestehend && bestehend.ts && bestehend.ts > neu.ts) { uebersprungen++; return; }
+        basis.products[key] = { locs: neu.locs || [neu.stock||0,0,0,0], stock: neu.stock||0, ts: neu.ts };
+        basis.stocks[key] = neu.stock || 0;
+        aktualisiert++;
+    });
+
+    var js = 'window.BOS_INVENTUR = ' + JSON.stringify(basis, null, 2) + ';';
+    var blob = new Blob([js], { type: 'text/javascript' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'inventurdaten.js';
+    a.click();
+    URL.revokeObjectURL(a.href);
+
+    var ergebnis = document.getElementById('decoder-ergebnis');
+    ergebnis.style.cssText = 'display:block;background:#f0fdf4;border:1px solid #10b981;border-radius:8px;padding:10px 12px;color:#065f46;font-size:0.78rem;line-height:1.6;margin-top:10px;';
+    ergebnis.innerHTML = '<strong>✓ Verarbeitet!</strong><br>' +
+        'Von: ' + (daten.wochentag||'') + ' ' + (daten.datum||'') + '<br>' +
+        aktualisiert + ' Produkte aktualisiert' +
+        (uebersprungen > 0 ? ' · ' + uebersprungen + ' übersprungen (neuere Daten)' : '') + '<br>' +
+        '<small>inventurdaten.js downloaden → auf GitHub hochladen</small>';
+}
+
 function b64Export() {
     var stocks = {}, cleanProducts = {};
     (window.BOS_INVENTUR_PRODUKTE||[]).forEach(function(p) {
@@ -505,24 +598,14 @@ function b64Export() {
     });
     var js = 'window.BOS_INVENTUR = ' + JSON.stringify({products:cleanProducts, stocks:stocks}, null, 2) + ';';
     var b64 = btoa(unescape(encodeURIComponent(js)));
-    var area = document.getElementById('b64-area');
-    area.value = b64;
-    area.select();
-    try { document.execCommand('copy'); alert('Text kopiert — per WhatsApp senden.'); } catch(e) {}
-}
-
-function b64Import() {
-    var b64 = document.getElementById('b64-area').value.trim();
-    if (!b64) { alert('Bitte zuerst den Text einfügen.'); return; }
-    try {
-        var js = decodeURIComponent(escape(atob(b64)));
-        var blob = new Blob([js], {type:'text/javascript'});
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'inventurdaten.js';
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        alert('inventurdaten.js heruntergeladen — auf GitHub hochladen.');
-    } catch(e) { alert('Ungültiger Text: ' + e.message); }
+    navigator.clipboard.writeText(b64).then(function() {
+        alert('Text kopiert.');
+    }).catch(function() {
+        var area = document.createElement('textarea');
+        area.value = b64; document.body.appendChild(area);
+        area.select(); document.execCommand('copy');
+        document.body.removeChild(area); alert('Text kopiert.');
+    });
 }
 </script>
 </body>

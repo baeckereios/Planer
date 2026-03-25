@@ -25,7 +25,7 @@ window.BOS_LANG = {
         calcSelect: "-- Produkt --",
         calcFrosterDone: "FROSTER FERTIG",
         calcFrosterNo: "NOCH NICHT",
-        calcExtras: "⚙️ Feiertage & Grillwetter",
+        calcExtras: "⚙️ Feiertage & besondere Tage",
         calcMissing: "Fehlmenge Morgen ⚠️",
         
         // Buttons & Navigation
@@ -54,7 +54,7 @@ window.BOS_LANG = {
         calcSelect: "-- Product --",
         calcFrosterDone: "FREEZER DONE",
         calcFrosterNo: "NOT YET",
-        calcExtras: "⚙️ Holidays & BBQ",
+        calcExtras: "⚙️ Holidays & special days",
         calcMissing: "Shortage Tomorrow ⚠️",
 
         back: "← COCKPIT",
@@ -82,11 +82,39 @@ window.BOS_LANG = {
         calcSelect: "-- Sản phẩm --",
         calcFrosterDone: "KHO ĐÔNG XONG",
         calcFrosterNo: "CHƯA XONG",
-        calcExtras: "⚙️ Ngày lễ & BBQ",
+        calcExtras: "⚙️ Ngày lễ & ngày đặc biệt",
         calcMissing: "Thiếu hụt ngày mai ⚠️",
 
         back: "← COCKPIT",
         next: "Tiếp tục →",
         openPlaner: "🏁 MỞ KẾ HOẠCH"
+    },
+    ar: {
+        badge: "إدارتك الرقمية",
+        slogan: ""احنا نجهز الفطور لكم."",
+        quickAccess: "وصول سريع",
+        apps: "أدوات العمل",
+        startSetup: "المساعد",
+        startSetupSub: "ابدأ التخطيط",
+        workplan: "جدول العمل",
+        frosterlist: "قائمة الفريزر",
+        quickCalc: "الحاسبة السريعة",
+
+        calcTitle: "الحاسبة السريعة",
+        calcToday: "اليوم هو:",
+        calcStock: "المخزون",
+        calcStatus: "حالة باجر:",
+        calcReach: "يكفي لحد:",
+        calcResult: "الإنتاج المطلوب:",
+        calcProduce: "احسب",
+        calcSelect: "-- المنتج --",
+        calcFrosterDone: "الفريزر جاهز ❄️",
+        calcFrosterNo: "بعد ❌",
+        calcExtras: "⚙️ أيام الإجازات وأيام خاصة",
+        calcMissing: "نقص باجر ⚠️",
+
+        back: "← كوكبيت",
+        next: "التالي →",
+        openPlaner: "🏁 افتح المخطط"
     }
 };
