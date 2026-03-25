@@ -1024,7 +1024,7 @@
           dotInv.classList.toggle('warn', !ok);
           lblInv.textContent = 'Inventur: ' + pad(inv.getHours()) + ':' + pad(inv.getMinutes()) + ' Uhr, '
             + pad(inv.getDate()) + '.' + pad(inv.getMonth() + 1) + '.' + inv.getFullYear()
-            + '';
+            + (ok ? '' : ' 🔴');
         } else {
           dotInv.classList.add('warn');
           lblInv.textContent = 'Inventur: Nicht erfasst';

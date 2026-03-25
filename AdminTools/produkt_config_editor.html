@@ -687,6 +687,14 @@ function render() {
               </div>
             </div>
             <div class="detail-feld" style="min-width:160px;">
+              <label>Im Schnellrechner anzeigen?</label>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+                <input type="checkbox" id="sr_${idx}" ${p.schnellrechnerRelevant?'checked':''}
+                  onchange="aendere(${idx},'schnellrechnerRelevant',this.checked)"
+                  style="width:16px;height:16px;accent-color:#10b981;cursor:pointer;">
+              </div>
+            </div>
+            <div class="detail-feld" style="min-width:160px;">
               <label>Kann in Filiale gebacken werden?</label>
               <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
                 <input type="checkbox" id="fil_${idx}" ${p.filialeProdukt?'checked':''}
@@ -778,6 +786,7 @@ function neuesProdukt() {
     batchSize:  1,
     backTage:   [],
     inventurRelevant: false,
+    schnellrechnerRelevant: false,
     filialeProdukt: false,
     legacyKey:  null,
     hinweis:    null,

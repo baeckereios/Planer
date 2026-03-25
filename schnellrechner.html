@@ -181,7 +181,10 @@
             if (!window.BOS_STAMMDATEN) return;
             const sel = document.getElementById('prod-select');
             Object.keys(window.BOS_STAMMDATEN).forEach(id => {
-                const opt = document.createElement('option'); opt.value = id; opt.innerText = window.BOS_STAMMDATEN[id].name;
+                const p = window.BOS_STAMMDATEN[id];
+                // Nur anzeigen wenn schnellrechnerRelevant=true (oder nicht gesetzt = alle anzeigen für Rückwärtskompatibilität)
+                if (p.schnellrechnerRelevant === false) return;
+                const opt = document.createElement('option'); opt.value = id; opt.innerText = p.name;
                 sel.appendChild(opt);
             });
         }

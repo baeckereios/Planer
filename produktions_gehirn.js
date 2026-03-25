@@ -150,9 +150,10 @@ const GEHIRN = {
             });
 
             // Durchschnitt pro Wochentag → needs Array
-            // Wenn einheit='bleche': durch Charge teilen → Bleche statt Stück
+            // Durch Charge teilen wenn charge > 1 — DB speichert immer Stück
+            // Schnellrechner und Planer erwarten immer Bleche/Container-Einheiten
             const charge = prod.charge || 1;
-            const alsBlech = prod.einheit === 'bleche' && charge > 1;
+            const alsBlech = charge > 1; // immer teilen wenn Charge gesetzt
 
             const needs = sammlung.map(arr => {
                 if (!arr.length) return 0;
