@@ -348,8 +348,16 @@
             inp.style.borderColor = '';
             inp.placeholder = 'Ist';
             document.getElementById('inventur-warn').style.display = 'none';
-            if (window.BOS_INVENTUR?.stocks?.[id] !== undefined)
-                inp.value = window.BOS_INVENTUR.stocks[id];
+            // Bestand aus Inventur laden — mit legacyKey
+            const legacyKey2 = window.BOS_STAMMDATEN?.[id]?.legacyKey;
+            if (legacyKey2 && window.BOS_INVENTUR?.products?.[legacyKey2]) {
+                const prod = window.BOS_INVENTUR.products[legacyKey2];
+                const bestand = prod.stock !== undefined ? prod.stock
+                    : (prod.locs ? prod.locs.reduce((a,b) => a+b, 0) : 0);
+                inp.value = bestand;
+            } else if (window.BOS_INVENTUR?.stocks?.[legacyKey2] !== undefined) {
+                inp.value = window.BOS_INVENTUR.stocks[legacyKey2];
+            }
             calculate();
         }
         window.onload = async function() {

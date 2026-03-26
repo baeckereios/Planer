@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BäckereiOS — Stangenrechner</title>
+<link rel="stylesheet" href="systemdesign.css">
+<script src="inventurdaten.js"></script>
+<script src="produktions_gehirn.js"></script>
+<script src="shell.js" defer></script>
+<style>
+body { background: var(--background,#f8f6f2); color: var(--text-primary,#1a1a1a); padding-bottom: 100px; }
+.container { max-width: 680px; margin: 0 auto; padding: 14px 12px; }
+h1 { font-size: 1.3rem; font-weight: 900; color: var(--amber,#e67e22); margin: 0 0 4px; }
+.sub { font-size: 0.8rem; color: var(--dim,#6b7280); margin: 0 0 16px; }
+
+.card { background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+.card-titel { font-size: 0.68rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim,#6b7280); margin-bottom: 12px; }
+.card-titel.baguette { color: #b45309; }
+.card-titel.zwiebel { color: #6d28d9; }
+
+/* Zieldatum */
+.ziel-wrap { display: flex; gap: 8px; margin-bottom: 14px; }
+.ziel-btn { flex: 1; font-family: inherit; font-size: 0.85rem; font-weight: 800;
+    padding: 10px; border-radius: 10px; border: 2px solid var(--border-color,#e5e0d8);
+    background: var(--card-bg,#fff); color: var(--dim,#6b7280); cursor: pointer; }
+.ziel-btn.aktiv { background: #1e293b; border-color: #1e293b; color: #fff; }
+
+/* Bestand-Eingabe */
+.bestand-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.inp-gruppe { display: flex; flex-direction: column; gap: 4px; }
+.inp-label { font-size: 0.7rem; font-weight: 800; color: var(--dim,#6b7280);
+    text-transform: uppercase; letter-spacing: 0.5px; }
+.inp-sub { font-size: 0.62rem; color: #94a3b8; }
+.inp-feld { font-family: inherit; font-size: 1.1rem; font-weight: 700; text-align: center;
+    padding: 12px 8px; border: 2px solid var(--border-color,#e5e0d8);
+    border-radius: 10px; background: var(--card-bg,#fff);
+    color: var(--text-primary,#1a1a1a); width: 100%; box-sizing: border-box; }
+.inp-feld:focus { outline: none; border-color: var(--amber,#e67e22); }
+
+/* Bedarf-Zeile */
+.bedarf-info { font-size: 0.75rem; color: var(--dim,#6b7280); margin-bottom: 14px;
+    padding: 8px 10px; background: var(--surface2,#f3f4f6); border-radius: 8px; }
+.bedarf-info span { font-weight: 700; color: var(--text-primary,#1a1a1a); }
+
+/* Ergebnis */
+.ergebnis-wrap { margin-top: 4px; }
+.teigling-gesamt {
+    text-align: center; padding: 16px;
+    background: #1e293b; border-radius: 12px; margin-bottom: 10px; color: #fff;
+}
+.teigling-zahl { font-size: 2.5rem; font-weight: 900; line-height: 1; }
+.teigling-label { font-size: 0.72rem; letter-spacing: 1px; text-transform: uppercase;
+    color: #94a3b8; margin-top: 4px; }
+.aufteilung { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.auf-box { text-align: center; padding: 12px; border-radius: 10px;
+    border: 2px solid var(--border-color,#e5e0d8); }
+.auf-box.baguette { border-color: #b45309; background: #fffbeb; }
+.auf-box.zwiebel  { border-color: #6d28d9; background: #f5f3ff; }
+.auf-zahl { font-size: 1.6rem; font-weight: 900; }
+.auf-zahl.baguette { color: #b45309; }
+.auf-zahl.zwiebel  { color: #6d28d9; }
+.auf-name { font-size: 0.7rem; color: var(--dim,#6b7280); font-weight: 700; margin-top: 2px; }
+.auf-einheit { font-size: 0.65rem; color: #94a3b8; }
+
+/* Tag-Tabelle */
+.tage-akk { margin-top: 10px; border-top: 1px solid var(--border-color,#e5e0d8); }
+.tage-akk-header { display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; cursor: pointer; user-select: none; font-size: 0.72rem;
+    font-weight: 800; color: var(--dim,#6b7280); letter-spacing: 0.5px; }
+.tage-akk-body { display: none; }
+.tage-akk-body.open { display: block; }
+.modus-toggle { display: flex; gap: 4px; margin-bottom: 8px; }
+.modus-btn { font-family: inherit; font-size: 0.68rem; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px; border: 1.5px solid var(--border-color,#e5e0d8);
+    background: var(--card-bg,#fff); color: var(--dim,#6b7280); cursor: pointer; }
+.modus-btn.aktiv { background: #1e293b; border-color: #1e293b; color: #fff; }
+.tag-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.tag-table td { padding: 6px 4px; border-bottom: 1px solid var(--border-color,#e5e0d8); }
+.tag-table td:first-child { font-weight: 700; color: var(--text-primary,#1a1a1a); }
+.tag-table td:last-child { text-align: right; font-weight: 800; }
+.tag-table tr:last-child td { border-bottom: none; }
+.tag-auto { color: var(--dim,#6b7280); font-size: 0.72rem; }
+.tag-manual-inp { font-family: inherit; font-size: 0.8rem; font-weight: 800;
+    text-align: right; width: 60px; padding: 2px 6px;
+    border: 1.5px solid var(--amber,#e67e22); border-radius: 6px;
+    background: #fffbf5; color: var(--text-primary,#1a1a1a); }
+.tag-table tr.heute-row td:first-child { color: var(--amber,#e67e22); }
+
+.kein-bedarf { text-align: center; padding: 20px; color: var(--dim,#6b7280); font-size: 0.85rem; }
+
+/* Basis-Info */
+.basis-banner { font-size: 0.72rem; color: var(--dim,#6b7280); margin-bottom: 14px;
+    padding: 7px 12px; background: var(--card-bg,#fff);
+    border: 1px solid var(--border-color,#e5e0d8); border-radius: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>🥖 Stangenrechner</h1>
+    <p class="sub">Baguette & Zwiebelstangen — Teigling-Bedarf berechnen</p>
+
+    <!-- Basis-Info -->
+    <div class="basis-banner" id="basis-banner">Lade Daten…</div>
+
+    <!-- Inventur-Warnung -->
+    <div id="inv-warn" style="display:none;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:0.78rem;font-weight:700;color:#991b1b;">
+        ⚠ Inventur älter als 24 Std. — Bestände bitte manuell eintragen
+    </div>
+
+    <!-- Zieldatum -->
+    <div class="card">
+        <div class="card-titel">Soll reichen bis einschl.</div>
+        <div class="ziel-wrap">
+            <button class="ziel-btn aktiv" id="ziel-mo" onclick="setZiel('mo')">Montag</button>
+            <button class="ziel-btn" id="ziel-di" onclick="setZiel('di')">Dienstag</button>
+        </div>
+    </div>
+
+    <!-- BAGUETTE -->
+    <div class="card">
+        <div class="card-titel baguette">🥖 Baguette</div>
+        <div class="bedarf-info" id="bedarf-baguette">Lade…</div>
+        <div class="bestand-row">
+            <div class="inp-gruppe">
+                <div class="inp-label">Stangen Gesamt</div>
+                <div class="inp-sub" id="sub-stangen">Bestand in Bleche</div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <input type="number" inputmode="numeric" class="inp-feld" id="bestand-stangen"
+                        placeholder="0" oninput="berechne()" style="flex:1;">
+                    <span style="font-size:0.75rem;font-weight:700;color:var(--dim,#6b7280);">Bl.</span>
+                </div>
+            </div>
+            <div class="inp-gruppe">
+                <div class="inp-label">Baguette Teig</div>
+                <div class="inp-sub" id="sub-baguette-teig">Bestand in Dielen</div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <input type="number" inputmode="numeric" class="inp-feld" id="bestand-baguette-teig"
+                        placeholder="0" oninput="berechne()" style="flex:1;">
+                    <span style="font-size:0.75rem;font-weight:700;color:var(--dim,#6b7280);">Dl.</span>
+                </div>
+            </div>
+        </div>
+        <div class="ergebnis-wrap" id="ergebnis-baguette">
+            <div class="teigling-gesamt" id="tgesamt-baguette">
+                <div class="teigling-zahl" id="teigling-baguette">—</div>
+                <div class="teigling-label" id="tlabel-baguette">Teiglinge zu produzieren</div>
+            </div>
+            <div class="aufteilung">
+                <div class="auf-box baguette">
+                    <div class="auf-zahl baguette" id="prod-stangen">—</div>
+                    <div class="auf-name">Stangen Gesamt</div>
+                    <div class="auf-einheit" id="einheit-stangen">Bleche (à 6 Stk)</div>
+                </div>
+                <div class="auf-box baguette">
+                    <div class="auf-zahl baguette" id="prod-baguette-teig">—</div>
+                    <div class="auf-name">Baguette Teig</div>
+                    <div class="auf-einheit" id="einheit-baguette-teig">Dielen (à 3 Stk)</div>
+                </div>
+            </div>
+        <!-- Tage-Akkordeon Baguette -->
+        <div class="tage-akk" id="akk-baguette">
+            <div class="tage-akk-header" onclick="toggleTageAkk('baguette')">
+                <span>📋 Tageswerte</span><span id="akk-arrow-baguette">▼</span>
+            </div>
+            <div class="tage-akk-body" id="akk-body-baguette">
+                <div class="modus-toggle">
+                    <button class="modus-btn aktiv" id="modus-auto-stangen" onclick="setModus('stangen','auto')">Automatisch</button>
+                    <button class="modus-btn" id="modus-man-stangen" onclick="setModus('stangen','manuell')">Manuell</button>
+                </div>
+                <table class="tag-table" id="table-stangen"></table>
+                <div style="height:8px;"></div>
+                <div class="modus-toggle">
+                    <button class="modus-btn aktiv" id="modus-auto-bagteig" onclick="setModus('bagteig','auto')">Automatisch</button>
+                    <button class="modus-btn" id="modus-man-bagteig" onclick="setModus('bagteig','manuell')">Manuell</button>
+                </div>
+                <table class="tag-table" id="table-bagteig"></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ZWIEBEL -->
+    <div class="card">
+        <div class="card-titel zwiebel">🧅 Zwiebelstangen</div>
+        <div class="bedarf-info" id="bedarf-zwiebel">Lade…</div>
+        <div class="bestand-row">
+            <div class="inp-gruppe">
+                <div class="inp-label">Zwiebelstange</div>
+                <div class="inp-sub" id="sub-zwiebel">Bestand in Bleche</div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <input type="number" inputmode="numeric" class="inp-feld" id="bestand-zwiebel"
+                        placeholder="0" oninput="berechne()" style="flex:1;">
+                    <span style="font-size:0.75rem;font-weight:700;color:var(--dim,#6b7280);">Bl.</span>
+                </div>
+            </div>
+            <div class="inp-gruppe">
+                <div class="inp-label">Zwiebel Teig</div>
+                <div class="inp-sub" id="sub-zwiebel-teig">Bestand in Dielen</div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <input type="number" inputmode="numeric" class="inp-feld" id="bestand-zwiebel-teig"
+                        placeholder="0" oninput="berechne()" style="flex:1;">
+                    <span style="font-size:0.75rem;font-weight:700;color:var(--dim,#6b7280);">Dl.</span>
+                </div>
+            </div>
+        </div>
+        <div class="ergebnis-wrap" id="ergebnis-zwiebel">
+            <div class="teigling-gesamt" id="tgesamt-zwiebel">
+                <div class="teigling-zahl" id="teigling-zwiebel">—</div>
+                <div class="teigling-label" id="tlabel-zwiebel">Teiglinge zu produzieren</div>
+            </div>
+            <div class="aufteilung">
+                <div class="auf-box zwiebel">
+                    <div class="auf-zahl zwiebel" id="prod-zwiebel">—</div>
+                    <div class="auf-name">Zwiebelstange</div>
+                    <div class="auf-einheit" id="einheit-zwiebel">Bleche (à 6 Stk)</div>
+                </div>
+                <div class="auf-box zwiebel">
+                    <div class="auf-zahl zwiebel" id="prod-zwiebel-teig">—</div>
+                    <div class="auf-name">Zwiebel Teig</div>
+                    <div class="auf-einheit" id="einheit-zwiebel-teig">Dielen (à 3 Stk)</div>
+                </div>
+            </div>
+        <!-- Tage-Akkordeon Zwiebel -->
+        <div class="tage-akk" id="akk-zwiebel">
+            <div class="tage-akk-header" onclick="toggleTageAkk('zwiebel')">
+                <span>📋 Tageswerte</span><span id="akk-arrow-zwiebel">▼</span>
+            </div>
+            <div class="tage-akk-body" id="akk-body-zwiebel">
+                <div class="modus-toggle">
+                    <button class="modus-btn aktiv" id="modus-auto-zwiebel" onclick="setModus('zwiebel','auto')">Automatisch</button>
+                    <button class="modus-btn" id="modus-man-zwiebel" onclick="setModus('zwiebel','manuell')">Manuell</button>
+                </div>
+                <table class="tag-table" id="table-zwiebel"></table>
+                <div style="height:8px;"></div>
+                <div class="modus-toggle">
+                    <button class="modus-btn aktiv" id="modus-auto-zwiebelteig" onclick="setModus('zwiebelteig','auto')">Automatisch</button>
+                    <button class="modus-btn" id="modus-man-zwiebelteig" onclick="setModus('zwiebelteig','manuell')">Manuell</button>
+                </div>
+                <table class="tag-table" id="table-zwiebelteig"></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Produkt-Keys
+const BOS_NAMEN = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+
+// Modus & manuelle Werte (localStorage)
+const MODUS_KEY = 'BOS_BAG_MODUS';
+const MANUELL_KEY = 'BOS_BAG_MANUELL';
+let modus = JSON.parse(localStorage.getItem(MODUS_KEY) || '{"stangen":"auto","bagteig":"auto","zwiebel":"auto","zwiebelteig":"auto"}');
+let manuellWerte = JSON.parse(localStorage.getItem(MANUELL_KEY) || '{}');
+function speichereModus() { localStorage.setItem(MODUS_KEY, JSON.stringify(modus)); }
+function speichereManuell() { localStorage.setItem(MANUELL_KEY, JSON.stringify(manuellWerte)); }
+
+function setModus(prod, m) {
+    modus[prod] = m;
+    speichereModus();
+    document.getElementById('modus-auto-' + prod).classList.toggle('aktiv', m === 'auto');
+    document.getElementById('modus-man-'  + prod).classList.toggle('aktiv', m === 'manuell');
+    aktualisiereTagTabelle(prod);
+    berechne();
+}
+function toggleTageAkk(id) {
+    const body  = document.getElementById('akk-body-' + id);
+    const arrow = document.getElementById('akk-arrow-' + id);
+    body.classList.toggle('open');
+    arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+function getNeedsEffektiv(legacyKey, prodKey) {
+    const bosId = window.BOS_GEHIRN?.bosIdFuerKey(legacyKey);
+    const autoNeeds = (bosId && stammdaten?.[bosId]?.needs) || [0,0,0,0,0,0,0];
+    if (modus[prodKey] === 'manuell' && manuellWerte[prodKey]) {
+        return autoNeeds.map((v, i) => {
+            const m = manuellWerte[prodKey][i];
+            return (m !== undefined && m !== null && m !== '') ? parseFloat(m) : v;
+        });
+    }
+    return autoNeeds;
+}
+function tagesBedarfEffektiv(legacyKey, prodKey, zielBos) {
+    const needs = getNeedsEffektiv(legacyKey, prodKey);
+    const heute = heuteBos();
+    let total = 0, tag = (heute + 1) % 7, schritte = 0;
+    while (schritte < 14) {
+        total += (needs[tag] || 0);
+        if (tag === (window._zielBos ?? 0)) break;
+        tag = (tag + 1) % 7;
+        schritte++;
+    }
+    return total;
+}
+function aktualisiereTagTabelle(prodKey) {
+    const MAP = {
+        stangen:     { legacy: 'stangen_gesamt_stueck',       label: 'Stangen Gesamt', einheit: 'Bl.' },
+        bagteig:     { legacy: 'baguettestange_teig_stueck',  label: 'Baguette Teig',  einheit: 'Dl.' },
+        zwiebel:     { legacy: 'zwiebelstange_stueck',        label: 'Zwiebelstange',  einheit: 'Bl.' },
+        zwiebelteig: { legacy: 'zwiebelstange_teig_stueck',   label: 'Zwiebel Teig',   einheit: 'Dl.' }
+    };
+    const info = MAP[prodKey];
+    if (!info || !stammdaten) return;
+    const bosId = window.BOS_GEHIRN?.bosIdFuerKey(info.legacy);
+    const autoNeeds = (bosId && stammdaten[bosId]?.needs) || [0,0,0,0,0,0,0];
+    const heute = heuteBos();
+    const istManuell = modus[prodKey] === 'manuell';
+    if (!manuellWerte[prodKey]) manuellWerte[prodKey] = {};
+    const table = document.getElementById('table-' + prodKey);
+    if (!table) return;
+    let html = `<tr><td colspan="3" style="font-size:0.65rem;font-weight:800;color:var(--dim,#6b7280);padding-bottom:4px;text-transform:uppercase;letter-spacing:1px;">${info.label}</td></tr>`;
+    for (let bos = 0; bos < 7; bos++) {
+        const istHeute = bos === heute;
+        const autoVal = autoNeeds[bos] || 0;
+        const manVal  = manuellWerte[prodKey][bos] !== undefined ? manuellWerte[prodKey][bos] : '';
+        const anzeigeAuto = autoVal > 0 ? autoVal + ' ' + info.einheit : '—';
+        html += `<tr${istHeute ? ' class="heute-row"' : ''}>
+            <td>${BOS_NAMEN[bos]}${istHeute ? ' ●' : ''}</td>
+            <td class="tag-auto">${istManuell ? '(Auto: ' + anzeigeAuto + ')' : anzeigeAuto}</td>
+            <td>${istManuell ? `<input class="tag-manual-inp" type="number" inputmode="numeric" value="${manVal}" placeholder="${autoVal}" data-prod="${prodKey}" data-bos="${bos}" oninput="updateManuell(this)">` : ''}</td>
+        </tr>`;
+    }
+    table.innerHTML = html;
+}
+function updateManuell(inp) {
+    const prod = inp.dataset.prod, bos = parseInt(inp.dataset.bos);
+    if (!manuellWerte[prod]) manuellWerte[prod] = {};
+    manuellWerte[prod][bos] = inp.value !== '' ? parseFloat(inp.value) : '';
+    speichereManuell();
+    berechne();
+}
+function alleTabellen() {
+    ['stangen','bagteig','zwiebel','zwiebelteig'].forEach(p => {
+        aktualisiereTagTabelle(p);
+        const m = modus[p] || 'auto';
+        const a = document.getElementById('modus-auto-' + p);
+        const b = document.getElementById('modus-man-'  + p);
+        if (a) a.classList.toggle('aktiv', m === 'auto');
+        if (b) b.classList.toggle('aktiv', m === 'manuell');
+    });
+}
+
+const PRODUKTE = {
+    stangen:       'stangen_gesamt_stueck',
+    bagTeig:       'baguettestange_teig_stueck',
+    zwiebel:       'zwiebelstange_stueck',
+    zwiebelTeig:   'zwiebelstange_teig_stueck'
+};
+
+let ziel = 'mo'; // 'mo' oder 'di'
+let stammdaten = null;
+
+// Wochentag-Hilfsfunktionen (BOS: Mo=0..So=6)
+const JS_ZU_BOS = [6,0,1,2,3,4,5];
+function heuteBos() { return JS_ZU_BOS[new Date().getDay()]; }
+
+// Tage bis zum Ziel (Mo oder Di der Folgwoche)
+function tagesBedarf(legacyKey, zielBos) {
+    if (!stammdaten) return 0;
+    // bosId für legacyKey finden
+    const bosId = window.BOS_GEHIRN.bosIdFuerKey(legacyKey);
+    if (!bosId || !stammdaten[bosId]) return 0;
+    const needs = stammdaten[bosId].needs;
+
+    const heute = heuteBos();
+    // Tage von morgen bis Ziel (inkl. Wochenwende)
+    let total = 0;
+    let tag = (heute + 1) % 7;
+    let schritte = 0;
+    while (schritte < 14) {
+        total += (needs[tag] || 0);
+        if (tag === (window._zielBos ?? 0)) break;
+        tag = (tag + 1) % 7;
+        schritte++;
+    }
+    return total; // in Stück
+}
+
+function setZiel(z) {
+    ziel = z;
+    document.getElementById('ziel-mo').classList.toggle('aktiv', z === 'mo');
+    document.getElementById('ziel-di').classList.toggle('aktiv', z === 'di');
+    berechne();
+}
+
+function berechne() {
+    if (!stammdaten) return;
+
+    const zielBos = ziel === 'mo' ? 0 : 1; // Mo=0, Di=1
+    window._zielBos = zielBos;
+
+    // ── BAGUETTE ──────────────────────────────────────────
+    const bedarfStangen  = tagesBedarfEffektiv(PRODUKTE.stangen,  'stangen',     zielBos);
+    const bedarfBagTeig  = tagesBedarfEffektiv(PRODUKTE.bagTeig,   'bagteig',     zielBos);
+
+    const chargeStangen  = getCharge(PRODUKTE.stangen);
+    const chargeBagTeig  = getCharge(PRODUKTE.bagTeig);
+
+    const bestandStangen  = parseFloat(document.getElementById('bestand-stangen').value) || 0;
+    const bestandBagTeig  = parseFloat(document.getElementById('bestand-baguette-teig').value) || 0;
+
+    // Jedes Produkt unabhängig — kein Mischen zwischen Blechen und Dielen
+    const prodStangenBleche = Math.max(0, Math.ceil(bedarfStangen - bestandStangen));
+    const prodBagTeigDielen = Math.max(0, Math.ceil(bedarfBagTeig  - bestandBagTeig));
+
+    // Teiglinge gesamt = Summe beider Differenzen in Stück (für Teigansatz)
+    const fehlenBag = prodStangenBleche * chargeStangen + prodBagTeigDielen * chargeBagTeig;
+
+    zeigeBaguette(bedarfStangen, bedarfBagTeig, chargeStangen, chargeBagTeig,
+        fehlenBag, prodStangenBleche, prodBagTeigDielen, bestandStangen, bestandBagTeig);
+
+    // ── ZWIEBEL ───────────────────────────────────────────
+    const bedarfZwiebel     = tagesBedarfEffektiv(PRODUKTE.zwiebel,     'zwiebel',     zielBos);
+    const bedarfZwiebelTeig = tagesBedarfEffektiv(PRODUKTE.zwiebelTeig, 'zwiebelteig', zielBos);
+
+    const chargeZwiebel     = getCharge(PRODUKTE.zwiebel);
+    const chargeZwiebelTeig = getCharge(PRODUKTE.zwiebelTeig);
+
+    const bestandZwiebel     = parseFloat(document.getElementById('bestand-zwiebel').value) || 0;
+    const bestandZwiebelTeig = parseFloat(document.getElementById('bestand-zwiebel-teig').value) || 0;
+
+    // Jedes Produkt unabhängig
+    const prodZwiebelBleche     = Math.max(0, Math.ceil(bedarfZwiebel     - bestandZwiebel));
+    const prodZwiebelTeigDielen = Math.max(0, Math.ceil(bedarfZwiebelTeig - bestandZwiebelTeig));
+
+    // Teiglinge gesamt
+    const fehlenZw = prodZwiebelBleche * chargeZwiebel + prodZwiebelTeigDielen * chargeZwiebelTeig;
+
+    zeigeZwiebel(bedarfZwiebel, bedarfZwiebelTeig, chargeZwiebel, chargeZwiebelTeig,
+        fehlenZw, prodZwiebelBleche, prodZwiebelTeigDielen, bestandZwiebel, bestandZwiebelTeig);
+}
+
+function getCharge(legacyKey) {
+    const bosId = window.BOS_GEHIRN?.bosIdFuerKey(legacyKey);
+    if (!bosId || !stammdaten?.[bosId]) return 1;
+    return stammdaten[bosId].charge || 1;
+}
+
+function zeigeBaguette(bedarfStangen, bedarfBagTeig, chargeStangen, chargeBagTeig,
+    fehlen, prodStangen, prodBagTeig, bestandStangen, bestandBagTeig) {
+
+    const fmt = n => n === 0 ? '—' : n;
+    const bagBedarfStr = bedarfStangen === 0 && bedarfBagTeig === 0
+        ? '<span style="color:#ef4444;">⚠ Keine DB-Daten — Tageswerte manuell setzen</span>'
+        : `Stangen Gesamt: <span>${Math.round(bedarfStangen)} Bl.</span> &nbsp;·&nbsp; ` +
+          `Baguette Teig: <span>${Math.round(bedarfBagTeig)} Dielen</span>`;
+    document.getElementById('bedarf-baguette').innerHTML = bagBedarfStr + ` (bis ${ziel === 'mo' ? 'Montag' : 'Dienstag'})`;
+
+    const wrap = document.getElementById('ergebnis-baguette');
+    wrap.style.display = 'block';
+    const tBox = document.getElementById('teigling-baguette');
+    if (fehlen === 0) {
+        tBox.textContent = '✓';
+        tBox.style.fontSize = '2rem';
+        const rb1 = reichtBis(bestandStangen, PRODUKTE.stangen, 'stangen') + ' · ' + reichtBis(bestandBagTeig, PRODUKTE.bagTeig, 'bagteig');
+        document.getElementById('tlabel-baguette').innerHTML = 'Genügend produziert<br><span style="font-size:0.65rem;color:#86efac;font-weight:400;">' + rb1 + '</span>';
+        document.getElementById('tgesamt-baguette').style.background = '#166534';
+    } else {
+        tBox.textContent = fehlen;
+        tBox.style.fontSize = '2.5rem';
+        document.getElementById('tlabel-baguette').textContent = 'Teiglinge zu produzieren';
+        document.getElementById('tgesamt-baguette').style.background = '#1e293b';
+    }
+    document.getElementById('prod-stangen').textContent = fehlen === 0 ? '✓' : fmt(prodStangen);
+    document.getElementById('prod-baguette-teig').textContent = fehlen === 0 ? '✓' : fmt(prodBagTeig);
+    document.getElementById('einheit-stangen').textContent = fehlen === 0 ? 'Genügend' : `Bleche (à ${chargeStangen} Stk)`;
+    document.getElementById('einheit-baguette-teig').textContent = fehlen === 0 ? 'Genügend' : `Dielen (à ${chargeBagTeig} Stk)`;
+}
+
+function zeigeZwiebel(bedarfZwiebel, bedarfZwTeig, chargeZw, chargeZwTeig,
+    fehlen, prodZwiebel, prodZwTeig, bestandZwiebel, bestandZwiebelTeig) {
+
+    const fmt = n => n === 0 ? '—' : n;
+    const zwBedarfStr = bedarfZwiebel === 0 && bedarfZwTeig === 0
+        ? '<span style="color:#ef4444;">⚠ Keine DB-Daten — Tageswerte manuell setzen</span>'
+        : `Zwiebelstange: <span>${Math.round(bedarfZwiebel)} Bl.</span> &nbsp;·&nbsp; ` +
+          `Zwiebel Teig: <span>${Math.round(bedarfZwTeig)} Dielen</span>`;
+    document.getElementById('bedarf-zwiebel').innerHTML = zwBedarfStr + ` (bis ${ziel === 'mo' ? 'Montag' : 'Dienstag'})`;
+
+    const wrap = document.getElementById('ergebnis-zwiebel');
+    wrap.style.display = 'block';
+    const tBoxZ = document.getElementById('teigling-zwiebel');
+    if (fehlen === 0) {
+        tBoxZ.textContent = '✓';
+        tBoxZ.style.fontSize = '2rem';
+        const rb2 = reichtBis(bestandZwiebel, PRODUKTE.zwiebel, 'zwiebel') + ' · ' + reichtBis(bestandZwiebelTeig, PRODUKTE.zwiebelTeig, 'zwiebelteig');
+        document.getElementById('tlabel-zwiebel').innerHTML = 'Genügend produziert<br><span style="font-size:0.65rem;color:#86efac;font-weight:400;">' + rb2 + '</span>';
+        document.getElementById('tgesamt-zwiebel').style.background = '#166534';
+    } else {
+        tBoxZ.textContent = fehlen;
+        tBoxZ.style.fontSize = '2.5rem';
+        document.getElementById('tlabel-zwiebel').textContent = 'Teiglinge zu produzieren';
+        document.getElementById('tgesamt-zwiebel').style.background = '#1e293b';
+    }
+    document.getElementById('prod-zwiebel').textContent = fehlen === 0 ? '✓' : fmt(prodZwiebel);
+    document.getElementById('prod-zwiebel-teig').textContent = fehlen === 0 ? '✓' : fmt(prodZwTeig);
+    document.getElementById('einheit-zwiebel').textContent = fehlen === 0 ? 'Genügend' : `Bleche (à ${chargeZw} Stk)`;
+    document.getElementById('einheit-zwiebel-teig').textContent = fehlen === 0 ? 'Genügend' : `Dielen (à ${chargeZwTeig} Stk)`;
+}
+
+// Init
+// Berechnet bis wann der Bestand reicht
+function reichtBis(bestand, legacyKey, prodKey) {
+    const needs = getNeedsEffektiv(legacyKey, prodKey);
+    const heute = heuteBos();
+    let rest = bestand;
+    let tag = (heute + 1) % 7;
+    let tage = 0;
+    const WT = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+    const WT_LANG = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+    const zielBos = window._zielBos ?? 0;
+    while (tage < 14) {
+        const verbrauch = needs[tag] || 0;
+        if (verbrauch > 0 && rest - verbrauch < 0) {
+            // Reicht nicht bis zu diesem Tag
+            return tage === 0 ? 'Reicht nicht bis morgen' : 'Reicht bis ' + WT_LANG[(tag + 6) % 7];
+        }
+        rest -= verbrauch;
+        if (tag === (window._zielBos ?? 0)) break;
+        tag = (tag + 1) % 7;
+        tage++;
+    }
+    return 'Reicht über ' + (ziel === 'mo' ? 'Montag' : 'Dienstag') + ' hinaus';
+}
+
+function ladeInventur() {
+    if (!window.BOS_INVENTUR || !window.BOS_STAMMDATEN) return;
+
+    // Neuesten Timestamp prüfen
+    const prods = window.BOS_INVENTUR.products || {};
+    let neuestesTs = 0;
+    Object.values(prods).forEach(function(p) {
+        if (p.ts && p.ts > neuestesTs) neuestesTs = p.ts;
+    });
+
+    const aeltH = neuestesTs > 0 ? (Date.now() - neuestesTs) / 3600000 : 999;
+    const warn = document.getElementById('inv-warn');
+
+    if (aeltH > 24) {
+        if (warn) warn.style.display = 'block';
+        return; // Kein Auto-Fill
+    }
+
+    // Auto-Fill für alle 4 Produkte
+    const FELDER = {
+        'stangen_gesamt_stueck':       'bestand-stangen',
+        'baguettestange_teig_stueck':  'bestand-baguette-teig',
+        'zwiebelstange_stueck':        'bestand-zwiebel',
+        'zwiebelstange_teig_stueck':   'bestand-zwiebel-teig'
+    };
+
+    Object.entries(FELDER).forEach(function(entry) {
+        var legacy = entry[0], feldId = entry[1];
+        var invProd = prods[legacy];
+        if (!invProd) return;
+        var bestand = invProd.stock !== undefined ? invProd.stock
+            : (invProd.locs ? invProd.locs.reduce(function(a,b){return a+b;},0) : 0);
+        // Inventur speichert bereits in Blechen/Dielen — keine Umrechnung nötig
+        var inp = document.getElementById(feldId);
+        if (inp && bestand > 0) inp.value = bestand;
+    });
+
+    if (warn) warn.style.display = 'none';
+    berechne();
+}
+
+window.addEventListener('DOMContentLoaded', async function() {
+    const ok = await window.BOS_GEHIRN.init();
+    if (!ok) return;
+
+    stammdaten = window.BOS_STAMMDATEN;
+
+    // Charges in Subtitles
+    document.getElementById('sub-stangen').textContent =
+        `Charge: ${getCharge(PRODUKTE.stangen)} Stk/Blech`;
+    document.getElementById('sub-baguette-teig').textContent =
+        `Charge: ${getCharge(PRODUKTE.bagTeig)} Stk/Diele`;
+    document.getElementById('sub-zwiebel').textContent =
+        `Charge: ${getCharge(PRODUKTE.zwiebel)} Stk/Blech`;
+    document.getElementById('sub-zwiebel-teig').textContent =
+        `Charge: ${getCharge(PRODUKTE.zwiebelTeig)} Stk/Diele`;
+
+    // Basis-Banner
+    const db = window.BOS_GEHIRN._db || [];
+    if (db.length) {
+        const s = [...db].sort((a,b) => a.datum.localeCompare(b.datum));
+        const fmt = d => { const p=d.split('-'); return p[2]+'.'+p[1]+'.'+p[0].slice(2); };
+        document.getElementById('basis-banner').innerHTML =
+            `📅 Ø-Werte aus DB &nbsp;·&nbsp; ${fmt(s[0].datum)} – ${fmt(s[s.length-1].datum)} &nbsp;·&nbsp; ${db.length} Tage`;
+    }
+
+    alleTabellen();
+    ladeInventur();
+    berechne();
+});
+</script>
+</body>
+</html>

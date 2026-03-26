@@ -52,23 +52,23 @@ window.BOS_INVENTUR = {
     },
     "rosinen_hedwig_stueck": {
       "locs": [
-        16,
+        41,
         0,
         0,
         0
       ],
-      "stock": 16,
-      "ts": 1774493722066
+      "stock": 41,
+      "ts": 1774509416292
     },
     "hasenpfoetchen_stueck": {
       "locs": [
-        36,
+        85,
         0,
         0,
         0
       ],
-      "stock": 36,
-      "ts": 1774493733199
+      "stock": 85,
+      "ts": 1774509416292
     },
     "rosinen_batzen_stueck": {
       "locs": [
@@ -92,13 +92,13 @@ window.BOS_INVENTUR = {
     },
     "zimt_woelkchen_stueck": {
       "locs": [
-        0,
+        69,
         0,
         0,
         0
       ],
-      "stock": 0,
-      "ts": 1774493759720
+      "stock": 69,
+      "ts": 1774509416292
     },
     "schlawiner_gesamt_stueck": {
       "locs": [
@@ -207,11 +207,11 @@ window.BOS_INVENTUR = {
     "kornknacker_stueck": 103,
     "dinkel_zwerg_stueck": 4,
     "laugenstangen_stueck": 24,
-    "rosinen_hedwig_stueck": 16,
-    "hasenpfoetchen_stueck": 36,
+    "rosinen_hedwig_stueck": 41,
+    "hasenpfoetchen_stueck": 85,
     "rosinen_batzen_stueck": 12,
     "schoko_batzen_stueck": 8,
-    "zimt_woelkchen_stueck": 0,
+    "zimt_woelkchen_stueck": 69,
     "schlawiner_gesamt_stueck": 0,
     "stangen_gesamt_stueck": 72,
     "baguettestange_teig_stueck": 130,

@@ -488,7 +488,10 @@ function importInventurJS(input) {
 
 function generateInventurJS() {
     if (!isFrosterChecked) { alert('Bitte zuerst den Froster-Status bestätigen.'); return; }
-    var stocks = {}, cleanProducts = {};
+    // Bestehende Daten als Basis – nur gezählte Produkte werden überschrieben
+    var existing = window.BOS_INVENTUR || {};
+    var stocks = Object.assign({}, existing.stocks || {});
+    var cleanProducts = Object.assign({}, existing.products || {});
     (window.BOS_INVENTUR_PRODUKTE||[]).forEach(function(p) {
         var k = p.legacyKey;
         var d = workingData[k];
@@ -562,9 +565,18 @@ function decoderVerarbeiten() {
     Object.entries(daten.produkte || {}).forEach(function(entry) {
         var key = entry[0], neu = entry[1];
         var bestehend = basis.products[key];
-        if (bestehend && bestehend.ts && bestehend.ts > neu.ts) { uebersprungen++; return; }
-        basis.products[key] = { locs: neu.locs || [neu.stock||0,0,0,0], stock: neu.stock||0, ts: neu.ts };
-        basis.stocks[key] = neu.stock || 0;
+        var neuLocs = neu.locs || [neu.stock||0,0,0,0];
+        if (bestehend) {
+            // Bestände addieren (Kollege zählt zusätzlich zum eigenen Bestand)
+            var altLocs = bestehend.locs || [0,0,0,0];
+            var combinedLocs = [0,1,2,3].map(function(i){ return (altLocs[i]||0) + (neuLocs[i]||0); });
+            var combinedStock = combinedLocs.reduce(function(a,b){return a+b;},0);
+            basis.products[key] = { locs: combinedLocs, stock: combinedStock, ts: Math.max(bestehend.ts||0, neu.ts||0) };
+            basis.stocks[key] = combinedStock;
+        } else {
+            basis.products[key] = { locs: neuLocs, stock: neu.stock||0, ts: neu.ts };
+            basis.stocks[key] = neu.stock||0;
+        }
         aktualisiert++;
     });
 
@@ -580,13 +592,14 @@ function decoderVerarbeiten() {
     ergebnis.style.cssText = 'display:block;background:#f0fdf4;border:1px solid #10b981;border-radius:8px;padding:10px 12px;color:#065f46;font-size:0.78rem;line-height:1.6;margin-top:10px;';
     ergebnis.innerHTML = '<strong>✓ Verarbeitet!</strong><br>' +
         'Von: ' + (daten.wochentag||'') + ' ' + (daten.datum||'') + '<br>' +
-        aktualisiert + ' Produkte aktualisiert' +
-        (uebersprungen > 0 ? ' · ' + uebersprungen + ' übersprungen (neuere Daten)' : '') + '<br>' +
+        aktualisiert + ' Produkte aufaddiert' + '<br>' +
         '<small>inventurdaten.js downloaden → auf GitHub hochladen</small>';
 }
 
 function b64Export() {
-    var stocks = {}, cleanProducts = {};
+    var existing = window.BOS_INVENTUR || {};
+    var stocks = Object.assign({}, existing.stocks || {});
+    var cleanProducts = Object.assign({}, existing.products || {});
     (window.BOS_INVENTUR_PRODUKTE||[]).forEach(function(p) {
         var k = p.legacyKey;
         var d = workingData[k];
