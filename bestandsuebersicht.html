@@ -12,7 +12,7 @@
     </script>
     <link rel="stylesheet" href="systemdesign.css">
     
-    <script src="stammdaten.js" defer></script>
+    <script src="produktions_gehirn.js"></script>
     <script src="inventurdaten.js" defer></script>
     
     <style>
@@ -566,15 +566,19 @@ function calcReachDate(prodId, stock) {
 function getStock(prodId) {
     if (!window.BOS_INVENTUR) return null;
     var inv = window.BOS_INVENTUR;
-    if (inv.products && inv.products[prodId]) {
-        var prod = inv.products[prodId];
+    // Neue Inventur: legacyKey als Schlüssel
+    var legacyKey = window.BOS_STAMMDATEN && window.BOS_STAMMDATEN[prodId]
+        ? window.BOS_STAMMDATEN[prodId].legacyKey : null;
+    var lookupKey = legacyKey || prodId;
+    if (inv.products && inv.products[lookupKey]) {
+        var prod = inv.products[lookupKey];
         if (prod.ts && prod.ts > 0) {
-            return prod.stock || 0;
+            return prod.stock || (prod.locs ? prod.locs.reduce(function(a,b){return a+b;},0) : 0);
         }
         return null;
     }
-    if (inv.stocks && inv.stocks[prodId] !== undefined) {
-        return inv.stocks[prodId];
+    if (inv.stocks && inv.stocks[lookupKey] !== undefined) {
+        return inv.stocks[lookupKey];
     }
     return null;
 }
@@ -674,7 +678,10 @@ function buildCard(k, name, stock, need, pct, colorClass, statusText, reachStr) 
     return card;
 }
 
-document.addEventListener('DOMContentLoaded', initApp);
+document.addEventListener('DOMContentLoaded', async function() {
+    const ok = await window.BOS_GEHIRN.init();
+    if (ok) initApp();
+});
 window.addEventListener('load', initApp); 
 </script>
 <script src="shell.js" defer></script>
