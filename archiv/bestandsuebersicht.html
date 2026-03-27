@@ -269,26 +269,9 @@
 <script>
 var activeStation = 'alle';
 var latestInvTsGlobal = 0;
-var anchorDate = new Date();
+var anchorDate = new Date(); // Der magische Start-Tag
 var isInitialized = false;
 var retryCount = 0;
-var nurInvRelevant = true;
-var inventurRelevantKeys = new Set(); // legacyKeys mit inventurRelevant:true
-
-function toggleInvFilter() {
-    nurInvRelevant = !nurInvRelevant;
-    var btn = document.getElementById('btn-inv-filter');
-    if (nurInvRelevant) {
-        btn.style.background = '#e67e22';
-        btn.style.borderColor = '#e67e22';
-        btn.style.color = '#fff';
-    } else {
-        btn.style.background = 'var(--surface,#fff)';
-        btn.style.borderColor = 'var(--border,#e5e0d8)';
-        btn.style.color = 'var(--text,#1a1a1a)';
-    }
-    renderGrid();
-}
 
 function initApp() {
     if (isInitialized) return;
@@ -311,20 +294,9 @@ function initApp() {
     }
 
     isInitialized = true;
-    // produkt_config laden
-    fetch('produkt_config.json', { cache: 'no-store' })
-        .then(function(r) { return r.json(); })
-        .then(function(cfg) {
-            cfg.forEach(function(p) {
-                if (p.inventurRelevant && p.legacyKey) inventurRelevantKeys.add(p.legacyKey);
-            });
-            renderGrid(); // erst nach dem Laden rendern
-        })
-        .catch(function() {
-            renderGrid(); // im Fehlerfall trotzdem rendern
-        });
     setupTimeLogic(); 
     buildStationFilter();
+    renderGrid();
 }
 
 // ── DIE NEUE "EISERNE FROSTER-REGEL" (01:30 bis 20:00 Uhr) ──
@@ -646,26 +618,15 @@ function renderGrid() {
     var keys = Object.keys(window.BOS_STAMMDATEN);
     var i, k, p, stock, need, pct, colorClass, statusText, card, reachStr;
 
-    // Median-Timestamp berechnen — alles was >5 Min neuer ist = vom Kollegen
-    var prods = window.BOS_INVENTUR ? (window.BOS_INVENTUR.products || {}) : {};
-    var allTs = Object.values(prods).map(function(p) { return p.ts || 0; }).filter(function(t) { return t > 0; }).sort(function(a,b){return a-b;});
-    var medianTs = allTs.length ? allTs[Math.floor(allTs.length / 2)] : 0;
-    var KOLLEGEN_SCHWELLE = 5 * 60 * 1000; // 5 Minuten
-
     for (i = 0; i < keys.length; i++) {
         k = keys[i];
         p = window.BOS_STAMMDATEN[k];
 
         if (activeStation !== 'alle' && p.station !== activeStation) continue;
-        if (nurInvRelevant && !inventurRelevantKeys.has(p.legacyKey)) continue;
 
-        stock = getStock(k);
+        stock = getStock(k);   
         need  = calcRawNeed(k);
         reachStr = '';
-
-        // Kollegen-Badge prüfen
-        var prodTs = p.legacyKey && prods[p.legacyKey] ? (prods[p.legacyKey].ts || 0) : 0;
-        var vonKollegen = medianTs > 0 && prodTs > 0 && (prodTs - medianTs) > KOLLEGEN_SCHWELLE;
 
         if (stock === null) {
             colorClass  = 'grey';
@@ -676,24 +637,21 @@ function renderGrid() {
             if (pct >= 0.8)       { colorClass = 'green';  statusText = 'Gut versorgt'; }
             else if (pct >= 0.4)  { colorClass = 'yellow'; statusText = 'Im Auge behalten'; }
             else                  { colorClass = 'red';    statusText = 'Kritisch'; }
+            
             reachStr = calcReachDate(k, stock);
         }
 
-        card = buildCard(k, p.name, stock, need, pct, colorClass, statusText, reachStr, vonKollegen);
+        card = buildCard(k, p.name, stock, need, pct, colorClass, statusText, reachStr);
         grid.appendChild(card);
     }
 }
 
-function buildCard(k, name, stock, need, pct, colorClass, statusText, reachStr, vonKollegen) {
+function buildCard(k, name, stock, need, pct, colorClass, statusText, reachStr) {
     var card = document.createElement('div');
     card.className = 'prod-card' + (stock === null ? ' no-data' : '');
 
     var strokeOffset = CIRCUMFERENCE * (1 - pct);
     var stockDisplay = (stock === null) ? '?' : stock;
-
-    var kollegenBadge = vonKollegen
-        ? '<div style="position:absolute;top:6px;right:6px;width:18px;height:18px;background:#10b981;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:900;color:#fff;box-shadow:0 1px 4px rgba(16,185,129,0.4);">+</div>'
-        : '';
 
     var svgHtml =
         '<div class="circle-wrap">' +
@@ -711,9 +669,7 @@ function buildCard(k, name, stock, need, pct, colorClass, statusText, reachStr, 
             '</div>' +
         '</div>';
 
-    card.style.position = 'relative';
     card.innerHTML =
-        kollegenBadge +
         '<div class="prod-name">' + name + '</div>' +
         svgHtml +
         '<div class="status-badge ' + colorClass + '">' + statusText + '</div>' +

@@ -6,9 +6,7 @@
     "charge": 28,
     "legacyKey": "schrippen_gesamt_stueck",
     "hinweis": null,
-    "station": "Brötchenstraße",
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "station": "Brötchenstraße"
   },
   {
     "artNr": "111002",
@@ -17,9 +15,7 @@
     "charge": 16,
     "legacyKey": "schrippen_teiglinge_stueck",
     "hinweis": null,
-    "station": "Brötchenstraße",
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "station": "Brötchenstraße"
   },
   {
     "artNr": "111003",
@@ -28,9 +24,7 @@
     "charge": 16,
     "legacyKey": "schrippen_teiglinge_gefroren_stueck",
     "hinweis": null,
-    "station": "Brötchenstraße",
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "station": "Brötchenstraße"
   },
   {
     "artNr": "111010",
@@ -50,9 +44,7 @@
       6
     ],
     "inventurRelevant": true,
-    "station": "Brötchenstraße",
-    "pressenGroesse": 30,
-    "teiggewichtAufschlag": null
+    "station": "Brötchenstraße"
   },
   {
     "artNr": "111030",
@@ -73,9 +65,7 @@
     ],
     "inventurRelevant": true,
     "filialeProdukt": true,
-    "station": "Brötchenstraße",
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "station": "Brötchenstraße"
   },
   {
     "artNr": "112001",
@@ -95,9 +85,7 @@
       5,
       6
     ],
-    "inventurRelevant": true,
-    "pressenGroesse": 30,
-    "teiggewichtAufschlag": 1.06
+    "inventurRelevant": true
   },
   {
     "artNr": "114120",
@@ -117,9 +105,7 @@
       5,
       6
     ],
-    "inventurRelevant": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "inventurRelevant": true
   },
   {
     "artNr": "115001",
@@ -139,9 +125,7 @@
       6
     ],
     "inventurRelevant": true,
-    "station": "Brötchenstraße",
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "station": "Brötchenstraße"
   },
   {
     "artNr": "115009",
@@ -161,9 +145,7 @@
       5,
       6
     ],
-    "filialeProdukt": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "filialeProdukt": true
   },
   {
     "artNr": "116001",
@@ -183,9 +165,7 @@
       6
     ],
     "inventurRelevant": true,
-    "station": "Brötchenstraße",
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "station": "Brötchenstraße"
   },
   {
     "artNr": "116003",
@@ -206,9 +186,7 @@
     ],
     "batchSize": 12,
     "inventurRelevant": true,
-    "station": "Brötchenstraße",
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "station": "Brötchenstraße"
   },
   {
     "artNr": "116004",
@@ -228,9 +206,7 @@
       5,
       6
     ],
-    "inventurRelevant": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "inventurRelevant": true
   },
   {
     "artNr": "116005",
@@ -250,9 +226,7 @@
       5,
       6
     ],
-    "inventurRelevant": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "inventurRelevant": true
   },
   {
     "artNr": "116009",
@@ -272,9 +246,7 @@
       6
     ],
     "inventurRelevant": true,
-    "station": "Brötchenstraße",
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "station": "Brötchenstraße"
   },
   {
     "artNr": "116011",
@@ -294,9 +266,7 @@
       5,
       6
     ],
-    "filialeProdukt": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "filialeProdukt": true
   },
   {
     "artNr": "116012",
@@ -316,9 +286,7 @@
       6
     ],
     "inventurRelevant": false,
-    "station": "Brötchenstraße",
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "station": "Brötchenstraße"
   },
   {
     "artNr": "116020",
@@ -338,9 +306,7 @@
       4,
       5,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "116022",
@@ -360,9 +326,7 @@
       5,
       6
     ],
-    "filialeProdukt": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "filialeProdukt": true
   },
   {
     "artNr": null,
@@ -383,9 +347,7 @@
       6
     ],
     "filialeProdukt": true,
-    "inventurRelevant": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "inventurRelevant": true
   },
   {
     "artNr": "121001",
@@ -402,9 +364,7 @@
       4,
       5,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "121002",
@@ -421,9 +381,7 @@
       4,
       5,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "121005",
@@ -440,9 +398,7 @@
       4,
       5,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "121010",
@@ -456,9 +412,7 @@
       3,
       5,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "121011",
@@ -475,9 +429,7 @@
       4,
       5,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "121012",
@@ -494,9 +446,7 @@
       4,
       5,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "121015",
@@ -513,9 +463,7 @@
       4,
       5,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "121020",
@@ -528,9 +476,7 @@
     "backTage": [
       2,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "121030",
@@ -544,9 +490,7 @@
       1,
       4,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "121060",
@@ -563,9 +507,7 @@
       4,
       5,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "122001",
@@ -578,9 +520,7 @@
     "backTage": [
       2,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "122004",
@@ -592,9 +532,7 @@
     "station": "Nachtschicht",
     "backTage": [
       3
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "122005",
@@ -606,9 +544,7 @@
     "station": "Nachtschicht",
     "backTage": [
       3
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "122006",
@@ -621,9 +557,7 @@
     "backTage": [
       2,
       5
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "124001",
@@ -637,9 +571,7 @@
       1,
       3,
       5
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "124002",
@@ -656,9 +588,7 @@
       4,
       5,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "124003",
@@ -672,9 +602,7 @@
       2,
       4,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "124005",
@@ -690,9 +618,7 @@
       4,
       5,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "126000",
@@ -712,9 +638,7 @@
       6
     ],
     "filialeProdukt": true,
-    "inventurRelevant": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "inventurRelevant": true
   },
   {
     "artNr": "126002",
@@ -734,9 +658,7 @@
       6
     ],
     "inventurRelevant": true,
-    "filialeProdukt": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "filialeProdukt": true
   },
   {
     "artNr": "126006",
@@ -756,9 +678,7 @@
       6
     ],
     "inventurRelevant": true,
-    "filialeProdukt": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "filialeProdukt": true
   },
   {
     "artNr": "126008",
@@ -766,9 +686,7 @@
     "kategorie": "Brot",
     "charge": 1,
     "legacyKey": null,
-    "hinweis": "Kundenbestellung Henri 2",
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": "Kundenbestellung Henri 2"
   },
   {
     "artNr": "126010",
@@ -788,9 +706,7 @@
       6
     ],
     "inventurRelevant": true,
-    "filialeProdukt": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "filialeProdukt": true
   },
   {
     "artNr": "126011",
@@ -810,9 +726,7 @@
       6
     ],
     "inventurRelevant": true,
-    "filialeProdukt": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "filialeProdukt": true
   },
   {
     "artNr": "126050",
@@ -829,9 +743,7 @@
       4,
       5,
       6
-    ],
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    ]
   },
   {
     "artNr": "131001",
@@ -839,9 +751,7 @@
     "kategorie": "Konditorei",
     "charge": 20,
     "legacyKey": "kaesekuchen_stueck",
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "131005",
@@ -849,9 +759,7 @@
     "kategorie": "Konditorei",
     "charge": 20,
     "legacyKey": "carrot_cheesecake_stueck",
-    "hinweis": "nur Henri",
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": "nur Henri"
   },
   {
     "artNr": "131113",
@@ -859,9 +767,7 @@
     "kategorie": "Konditorei",
     "charge": 20,
     "legacyKey": "bienenstich_gefuellt_stueck",
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "131200",
@@ -869,9 +775,7 @@
     "kategorie": "Konditorei",
     "charge": 20,
     "legacyKey": null,
-    "hinweis": "nur Samstag",
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": "nur Samstag"
   },
   {
     "artNr": "133001",
@@ -879,9 +783,7 @@
     "kategorie": "Konditorei",
     "charge": 6,
     "legacyKey": "oma_hertas_stueck",
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "133006",
@@ -889,9 +791,7 @@
     "kategorie": "Konditorei",
     "charge": 6,
     "legacyKey": "streuselkuchen_stueck",
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "133010",
@@ -899,9 +799,7 @@
     "kategorie": "Konditorei",
     "charge": 6,
     "legacyKey": null,
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "133112",
@@ -909,9 +807,7 @@
     "kategorie": "Konditorei",
     "charge": 12,
     "legacyKey": null,
-    "hinweis": "saisonal",
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": "saisonal"
   },
   {
     "artNr": "133150",
@@ -919,9 +815,7 @@
     "kategorie": "Konditorei",
     "charge": 20,
     "legacyKey": "brownie_stueck",
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "133200",
@@ -929,9 +823,7 @@
     "kategorie": "Konditorei",
     "charge": 20,
     "legacyKey": "dinkel_apfelkuchen_stueck",
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "133202",
@@ -939,9 +831,7 @@
     "kategorie": "Konditorei",
     "charge": 20,
     "legacyKey": "dinkel_rueblikuchen_stueck",
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "133211",
@@ -949,9 +839,7 @@
     "kategorie": "Konditorei",
     "charge": 20,
     "legacyKey": "veganer_himbeerkuchen_stueck",
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "133212",
@@ -959,9 +847,7 @@
     "kategorie": "Konditorei",
     "charge": 20,
     "legacyKey": null,
-    "hinweis": "nur Henri",
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": "nur Henri"
   },
   {
     "artNr": "133250",
@@ -969,9 +855,7 @@
     "kategorie": "Konditorei",
     "charge": 1,
     "legacyKey": null,
-    "hinweis": "wechselnde Frucht, nur Fr",
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": "wechselnde Frucht, nur Fr"
   },
   {
     "artNr": "133300",
@@ -989,9 +873,7 @@
       5,
       6
     ],
-    "inventurRelevant": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "inventurRelevant": true
   },
   {
     "artNr": "134001",
@@ -999,9 +881,7 @@
     "kategorie": "Konditorei",
     "charge": 20,
     "legacyKey": "amis_stueck",
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "134002",
@@ -1019,9 +899,7 @@
       5,
       6
     ],
-    "inventurRelevant": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "inventurRelevant": true
   },
   {
     "artNr": "134006",
@@ -1036,9 +914,7 @@
       3,
       5
     ],
-    "inventurRelevant": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "inventurRelevant": true
   },
   {
     "artNr": "134035",
@@ -1056,9 +932,7 @@
       5,
       6
     ],
-    "inventurRelevant": true,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "inventurRelevant": true
   },
   {
     "artNr": "134041",
@@ -1073,9 +947,7 @@
       4,
       6
     ],
-    "inventurRelevant": false,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "inventurRelevant": false
   },
   {
     "artNr": "137031",
@@ -1083,9 +955,7 @@
     "kategorie": "Konditorei",
     "charge": 12,
     "legacyKey": "kaese_mohn_to_stueck",
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "360005",
@@ -1093,9 +963,7 @@
     "kategorie": "Konditorei",
     "charge": 1,
     "legacyKey": "dinkel_waffel_teig_stueck",
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "135001",
@@ -1103,9 +971,7 @@
     "kategorie": "Fettgebäck",
     "charge": 1,
     "legacyKey": "donuts_stueck",
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "135009",
@@ -1113,9 +979,7 @@
     "kategorie": "Fettgebäck",
     "charge": 48,
     "legacyKey": "krapfen_gesamt_stueck",
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "135030",
@@ -1123,9 +987,7 @@
     "kategorie": "Fettgebäck",
     "charge": 1,
     "legacyKey": "quarkinis_stueck",
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "151035",
@@ -1133,9 +995,7 @@
     "kategorie": "Snack",
     "charge": 1,
     "legacyKey": null,
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   },
   {
     "artNr": "151036",
@@ -1143,8 +1003,6 @@
     "kategorie": "Snack",
     "charge": 1,
     "legacyKey": null,
-    "hinweis": null,
-    "pressenGroesse": null,
-    "teiggewichtAufschlag": null
+    "hinweis": null
   }
 ]

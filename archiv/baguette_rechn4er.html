@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BäckereiOS — Stangenrechner</title>
+<link rel="stylesheet" href="systemdesign.css">
+<script src="produktions_gehirn.js"></script>
+<script src="shell.js" defer></script>
+<style>
+body { background: var(--background,#f8f6f2); color: var(--text-primary,#1a1a1a); padding-bottom: 100px; }
+.container { max-width: 680px; margin: 0 auto; padding: 14px 12px; }
+h1 { font-size: 1.3rem; font-weight: 900; color: var(--amber,#e67e22); margin: 0 0 4px; }
+.sub { font-size: 0.8rem; color: var(--dim,#6b7280); margin: 0 0 16px; }
+
+.card { background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+.card-titel { font-size: 0.68rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim,#6b7280); margin-bottom: 12px; }
+.card-titel.baguette { color: #b45309; }
+.card-titel.zwiebel { color: #6d28d9; }
+
+/* Zieldatum */
+.ziel-wrap { display: flex; gap: 8px; margin-bottom: 14px; }
+.ziel-btn { flex: 1; font-family: inherit; font-size: 0.85rem; font-weight: 800;
+    padding: 10px; border-radius: 10px; border: 2px solid var(--border-color,#e5e0d8);
+    background: var(--card-bg,#fff); color: var(--dim,#6b7280); cursor: pointer; }
+.ziel-btn.aktiv { background: #1e293b; border-color: #1e293b; color: #fff; }
+
+/* Bestand-Eingabe */
+.bestand-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.inp-gruppe { display: flex; flex-direction: column; gap: 4px; }
+.inp-label { font-size: 0.7rem; font-weight: 800; color: var(--dim,#6b7280);
+    text-transform: uppercase; letter-spacing: 0.5px; }
+.inp-sub { font-size: 0.62rem; color: #94a3b8; }
+.inp-feld { font-family: inherit; font-size: 1.1rem; font-weight: 700; text-align: center;
+    padding: 12px 8px; border: 2px solid var(--border-color,#e5e0d8);
+    border-radius: 10px; background: var(--card-bg,#fff);
+    color: var(--text-primary,#1a1a1a); width: 100%; box-sizing: border-box; }
+.inp-feld:focus { outline: none; border-color: var(--amber,#e67e22); }
+
+/* Bedarf-Zeile */
+.bedarf-info { font-size: 0.75rem; color: var(--dim,#6b7280); margin-bottom: 14px;
+    padding: 8px 10px; background: var(--surface2,#f3f4f6); border-radius: 8px; }
+.bedarf-info span { font-weight: 700; color: var(--text-primary,#1a1a1a); }
+
+/* Ergebnis */
+.ergebnis-wrap { margin-top: 4px; }
+.teigling-gesamt {
+    text-align: center; padding: 16px;
+    background: #1e293b; border-radius: 12px; margin-bottom: 10px; color: #fff;
+}
+.teigling-zahl { font-size: 2.5rem; font-weight: 900; line-height: 1; }
+.teigling-label { font-size: 0.72rem; letter-spacing: 1px; text-transform: uppercase;
+    color: #94a3b8; margin-top: 4px; }
+.aufteilung { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.auf-box { text-align: center; padding: 12px; border-radius: 10px;
+    border: 2px solid var(--border-color,#e5e0d8); }
+.auf-box.baguette { border-color: #b45309; background: #fffbeb; }
+.auf-box.zwiebel  { border-color: #6d28d9; background: #f5f3ff; }
+.auf-zahl { font-size: 1.6rem; font-weight: 900; }
+.auf-zahl.baguette { color: #b45309; }
+.auf-zahl.zwiebel  { color: #6d28d9; }
+.auf-name { font-size: 0.7rem; color: var(--dim,#6b7280); font-weight: 700; margin-top: 2px; }
+.auf-einheit { font-size: 0.65rem; color: #94a3b8; }
+
+.kein-bedarf { text-align: center; padding: 20px; color: var(--dim,#6b7280); font-size: 0.85rem; }
+
+/* Basis-Info */
+.basis-banner { font-size: 0.72rem; color: var(--dim,#6b7280); margin-bottom: 14px;
+    padding: 7px 12px; background: var(--card-bg,#fff);
+    border: 1px solid var(--border-color,#e5e0d8); border-radius: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>🥖 Stangenrechner</h1>
+    <p class="sub">Baguette & Zwiebelstangen — Teigling-Bedarf berechnen</p>
+
+    <!-- Basis-Info -->
+    <div class="basis-banner" id="basis-banner">Lade Daten…</div>
+
+    <!-- Zieldatum -->
+    <div class="card">
+        <div class="card-titel">Soll reichen bis einschl.</div>
+        <div class="ziel-wrap">
+            <button class="ziel-btn aktiv" id="ziel-mo" onclick="setZiel('mo')">Montag</button>
+            <button class="ziel-btn" id="ziel-di" onclick="setZiel('di')">Dienstag</button>
+        </div>
+    </div>
+
+    <!-- BAGUETTE -->
+    <div class="card">
+        <div class="card-titel baguette">🥖 Baguette</div>
+        <div class="bedarf-info" id="bedarf-baguette">Lade…</div>
+        <div class="bestand-row">
+            <div class="inp-gruppe">
+                <div class="inp-label">Stangen Gesamt</div>
+                <div class="inp-sub" id="sub-stangen">Charge: 6 Stk/Blech</div>
+                <input type="number" inputmode="numeric" class="inp-feld" id="bestand-stangen"
+                    placeholder="0" oninput="berechne()">
+            </div>
+            <div class="inp-gruppe">
+                <div class="inp-label">Baguette Teig</div>
+                <div class="inp-sub" id="sub-baguette-teig">Charge: 3 Stk/Diele</div>
+                <input type="number" inputmode="numeric" class="inp-feld" id="bestand-baguette-teig"
+                    placeholder="0" oninput="berechne()">
+            </div>
+        </div>
+        <div class="ergebnis-wrap" id="ergebnis-baguette" style="display:none;">
+            <div class="teigling-gesamt">
+                <div class="teigling-zahl" id="teigling-baguette">—</div>
+                <div class="teigling-label">Teiglinge zu produzieren</div>
+            </div>
+            <div class="aufteilung">
+                <div class="auf-box baguette">
+                    <div class="auf-zahl baguette" id="prod-stangen">—</div>
+                    <div class="auf-name">Stangen Gesamt</div>
+                    <div class="auf-einheit" id="einheit-stangen">Bleche (à 6 Stk)</div>
+                </div>
+                <div class="auf-box baguette">
+                    <div class="auf-zahl baguette" id="prod-baguette-teig">—</div>
+                    <div class="auf-name">Baguette Teig</div>
+                    <div class="auf-einheit" id="einheit-baguette-teig">Dielen (à 3 Stk)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ZWIEBEL -->
+    <div class="card">
+        <div class="card-titel zwiebel">🧅 Zwiebelstangen</div>
+        <div class="bedarf-info" id="bedarf-zwiebel">Lade…</div>
+        <div class="bestand-row">
+            <div class="inp-gruppe">
+                <div class="inp-label">Zwiebelstange</div>
+                <div class="inp-sub" id="sub-zwiebel">Charge: 6 Stk/Blech</div>
+                <input type="number" inputmode="numeric" class="inp-feld" id="bestand-zwiebel"
+                    placeholder="0" oninput="berechne()">
+            </div>
+            <div class="inp-gruppe">
+                <div class="inp-label">Zwiebel Teig</div>
+                <div class="inp-sub" id="sub-zwiebel-teig">Charge: 3 Stk/Diele</div>
+                <input type="number" inputmode="numeric" class="inp-feld" id="bestand-zwiebel-teig"
+                    placeholder="0" oninput="berechne()">
+            </div>
+        </div>
+        <div class="ergebnis-wrap" id="ergebnis-zwiebel" style="display:none;">
+            <div class="teigling-gesamt">
+                <div class="teigling-zahl" id="teigling-zwiebel">—</div>
+                <div class="teigling-label">Teiglinge zu produzieren</div>
+            </div>
+            <div class="aufteilung">
+                <div class="auf-box zwiebel">
+                    <div class="auf-zahl zwiebel" id="prod-zwiebel">—</div>
+                    <div class="auf-name">Zwiebelstange</div>
+                    <div class="auf-einheit" id="einheit-zwiebel">Bleche (à 6 Stk)</div>
+                </div>
+                <div class="auf-box zwiebel">
+                    <div class="auf-zahl zwiebel" id="prod-zwiebel-teig">—</div>
+                    <div class="auf-name">Zwiebel Teig</div>
+                    <div class="auf-einheit" id="einheit-zwiebel-teig">Dielen (à 3 Stk)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Produkt-Keys
+const PRODUKTE = {
+    stangen:       'stangen_gesamt_stueck',
+    bagTeig:       'baguettestange_teig_stueck',
+    zwiebel:       'zwiebelstange_stueck',
+    zwiebelTeig:   'zwiebelstange_teig_stueck'
+};
+
+let ziel = 'mo'; // 'mo' oder 'di'
+let stammdaten = null;
+
+// Wochentag-Hilfsfunktionen (BOS: Mo=0..So=6)
+const JS_ZU_BOS = [6,0,1,2,3,4,5];
+function heuteBos() { return JS_ZU_BOS[new Date().getDay()]; }
+
+// Tage bis zum Ziel (Mo oder Di der Folgwoche)
+function tagesBedarf(legacyKey, zielBos) {
+    if (!stammdaten) return 0;
+    // bosId für legacyKey finden
+    const bosId = window.BOS_GEHIRN.bosIdFuerKey(legacyKey);
+    if (!bosId || !stammdaten[bosId]) return 0;
+    const needs = stammdaten[bosId].needs;
+
+    const heute = heuteBos();
+    // Tage von morgen bis Ziel (inkl. Wochenwende)
+    let total = 0;
+    let tag = (heute + 1) % 7;
+    let schritte = 0;
+    while (schritte < 14) {
+        total += (needs[tag] || 0);
+        if (tag === zielBos) break;
+        tag = (tag + 1) % 7;
+        schritte++;
+    }
+    return total; // in Stück
+}
+
+function setZiel(z) {
+    ziel = z;
+    document.getElementById('ziel-mo').classList.toggle('aktiv', z === 'mo');
+    document.getElementById('ziel-di').classList.toggle('aktiv', z === 'di');
+    berechne();
+}
+
+function berechne() {
+    if (!stammdaten) return;
+
+    const zielBos = ziel === 'mo' ? 0 : 1; // Mo=0, Di=1
+
+    // ── BAGUETTE ──────────────────────────────────────────
+    const bedarfStangen  = tagesBedarf(PRODUKTE.stangen, zielBos);
+    const bedarfBagTeig  = tagesBedarf(PRODUKTE.bagTeig, zielBos);
+
+    const chargeStangen  = getCharge(PRODUKTE.stangen);
+    const chargeBagTeig  = getCharge(PRODUKTE.bagTeig);
+
+    const bestandStangen  = parseFloat(document.getElementById('bestand-stangen').value) || 0;
+    const bestandBagTeig  = parseFloat(document.getElementById('bestand-baguette-teig').value) || 0;
+
+    // Alles in Teiglinge
+    const bedarfBagGesamt   = bedarfStangen + bedarfBagTeig;
+    const bestandBagGesamt  = bestandStangen * chargeStangen + bestandBagTeig * chargeBagTeig;
+    const fehlenBag         = Math.max(0, bedarfBagGesamt - bestandBagGesamt);
+
+    // Aufteilen proportional nach Bedarf
+    const ratioStangen = bedarfBagGesamt > 0 ? bedarfStangen / bedarfBagGesamt : 0.5;
+    const prodStangenTeig   = Math.round(fehlenBag * ratioStangen);
+    const prodBagTeigTeig   = fehlenBag - prodStangenTeig;
+    const prodStangenBleche = Math.ceil(prodStangenTeig / chargeStangen);
+    const prodBagTeigDielen = Math.ceil(prodBagTeigTeig / chargeBagTeig);
+
+    zeigeBaguette(bedarfStangen, bedarfBagTeig, chargeStangen, chargeBagTeig,
+        fehlenBag, prodStangenBleche, prodBagTeigDielen);
+
+    // ── ZWIEBEL ───────────────────────────────────────────
+    const bedarfZwiebel     = tagesBedarf(PRODUKTE.zwiebel, zielBos);
+    const bedarfZwiebelTeig = tagesBedarf(PRODUKTE.zwiebelTeig, zielBos);
+
+    const chargeZwiebel     = getCharge(PRODUKTE.zwiebel);
+    const chargeZwiebelTeig = getCharge(PRODUKTE.zwiebelTeig);
+
+    const bestandZwiebel     = parseFloat(document.getElementById('bestand-zwiebel').value) || 0;
+    const bestandZwiebelTeig = parseFloat(document.getElementById('bestand-zwiebel-teig').value) || 0;
+
+    const bedarfZwGesamt    = bedarfZwiebel + bedarfZwiebelTeig;
+    const bestandZwGesamt   = bestandZwiebel * chargeZwiebel + bestandZwiebelTeig * chargeZwiebelTeig;
+    const fehlenZw          = Math.max(0, bedarfZwGesamt - bestandZwGesamt);
+
+    const ratioZwiebel = bedarfZwGesamt > 0 ? bedarfZwiebel / bedarfZwGesamt : 0.5;
+    const prodZwiebelTeig      = Math.round(fehlenZw * ratioZwiebel);
+    const prodZwiebelTeigTeig  = fehlenZw - prodZwiebelTeig;
+    const prodZwiebelBleche    = Math.ceil(prodZwiebelTeig / chargeZwiebel);
+    const prodZwiebelTeigDielen = Math.ceil(prodZwiebelTeigTeig / chargeZwiebelTeig);
+
+    zeigeZwiebel(bedarfZwiebel, bedarfZwiebelTeig, chargeZwiebel, chargeZwiebelTeig,
+        fehlenZw, prodZwiebelBleche, prodZwiebelTeigDielen);
+}
+
+function getCharge(legacyKey) {
+    const bosId = window.BOS_GEHIRN?.bosIdFuerKey(legacyKey);
+    if (!bosId || !stammdaten?.[bosId]) return 1;
+    return stammdaten[bosId].charge || 1;
+}
+
+function zeigeBaguette(bedarfStangen, bedarfBagTeig, chargeStangen, chargeBagTeig,
+    fehlen, prodStangen, prodBagTeig) {
+
+    const fmt = n => n === 0 ? '—' : n;
+    document.getElementById('bedarf-baguette').innerHTML =
+        `Stangen Gesamt: <span>${Math.round(bedarfStangen / chargeStangen)} Bl.</span> &nbsp;·&nbsp; ` +
+        `Baguette Teig: <span>${Math.round(bedarfBagTeig / chargeBagTeig)} Dielen</span> (bis ${ziel === 'mo' ? 'Montag' : 'Dienstag'})`;
+
+    const wrap = document.getElementById('ergebnis-baguette');
+    if (fehlen === 0) {
+        wrap.style.display = 'none';
+    } else {
+        wrap.style.display = 'block';
+        document.getElementById('teigling-baguette').textContent = fehlen;
+        document.getElementById('prod-stangen').textContent = fmt(prodStangen);
+        document.getElementById('prod-baguette-teig').textContent = fmt(prodBagTeig);
+        document.getElementById('einheit-stangen').textContent = `Bleche (à ${chargeStangen} Stk)`;
+        document.getElementById('einheit-baguette-teig').textContent = `Dielen (à ${chargeBagTeig} Stk)`;
+    }
+}
+
+function zeigeZwiebel(bedarfZwiebel, bedarfZwTeig, chargeZw, chargeZwTeig,
+    fehlen, prodZwiebel, prodZwTeig) {
+
+    const fmt = n => n === 0 ? '—' : n;
+    document.getElementById('bedarf-zwiebel').innerHTML =
+        `Zwiebelstange: <span>${Math.round(bedarfZwiebel / chargeZw)} Bl.</span> &nbsp;·&nbsp; ` +
+        `Zwiebel Teig: <span>${Math.round(bedarfZwTeig / chargeZwTeig)} Dielen</span> (bis ${ziel === 'mo' ? 'Montag' : 'Dienstag'})`;
+
+    const wrap = document.getElementById('ergebnis-zwiebel');
+    if (fehlen === 0) {
+        wrap.style.display = 'none';
+    } else {
+        wrap.style.display = 'block';
+        document.getElementById('teigling-zwiebel').textContent = fehlen;
+        document.getElementById('prod-zwiebel').textContent = fmt(prodZwiebel);
+        document.getElementById('prod-zwiebel-teig').textContent = fmt(prodZwTeig);
+        document.getElementById('einheit-zwiebel').textContent = `Bleche (à ${chargeZw} Stk)`;
+        document.getElementById('einheit-zwiebel-teig').textContent = `Dielen (à ${chargeZwTeig} Stk)`;
+    }
+}
+
+// Init
+window.addEventListener('DOMContentLoaded', async function() {
+    const ok = await window.BOS_GEHIRN.init();
+    if (!ok) return;
+
+    stammdaten = window.BOS_STAMMDATEN;
+
+    // Charges in Subtitles
+    document.getElementById('sub-stangen').textContent =
+        `Charge: ${getCharge(PRODUKTE.stangen)} Stk/Blech`;
+    document.getElementById('sub-baguette-teig').textContent =
+        `Charge: ${getCharge(PRODUKTE.bagTeig)} Stk/Diele`;
+    document.getElementById('sub-zwiebel').textContent =
+        `Charge: ${getCharge(PRODUKTE.zwiebel)} Stk/Blech`;
+    document.getElementById('sub-zwiebel-teig').textContent =
+        `Charge: ${getCharge(PRODUKTE.zwiebelTeig)} Stk/Diele`;
+
+    // Basis-Banner
+    const db = window.BOS_GEHIRN._db || [];
+    if (db.length) {
+        const s = [...db].sort((a,b) => a.datum.localeCompare(b.datum));
+        const fmt = d => { const p=d.split('-'); return p[2]+'.'+p[1]+'.'+p[0].slice(2); };
+        document.getElementById('basis-banner').innerHTML =
+            `📅 Ø-Werte aus DB &nbsp;·&nbsp; ${fmt(s[0].datum)} – ${fmt(s[s.length-1].datum)} &nbsp;·&nbsp; ${db.length} Tage`;
+    }
+
+    berechne();
+});
+</script>
+</body>
+</html>

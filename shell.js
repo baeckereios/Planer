@@ -47,6 +47,7 @@
 
     const style = document.createElement('style');
     style.textContent = `
+        @import url('https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.css');
         .bos-shell-header { position: fixed; top: 0; left: 0; right: 0; z-index: 500; background: var(--surface); border-bottom: 1.5px solid var(--border); box-shadow: 0 2px 10px var(--shadow); }
         .bos-shell-topbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; height: 52px; }
         .bos-back-btn { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); text-decoration: none; display: flex; align-items: center; gap: 5px; padding: 6px 10px; border: 1.5px solid var(--border-s); border-radius: 8px; background: var(--surface2); transition: border-color 0.15s, color 0.15s; white-space: nowrap; }
@@ -84,7 +85,7 @@
     }
 
     function getStatusHTML() {
-        let invDot = '', invText = 'Inventur: Lade...';
+        let invDot = '', invText = '–';
         
         if (typeof window.BOS_INVENTUR !== 'undefined' && window.BOS_INVENTUR.products) {
             let latestTs = 0;
@@ -98,38 +99,72 @@
                 const inv = new Date(latestTs);
                 const pad = x => String(x).padStart(2, '0');
                 const diffH = (Date.now() - latestTs) / 3600000;
-                
-                const timeStr = pad(inv.getHours()) + ':' + pad(inv.getMinutes()) + ' Uhr';
-                const dateStr = pad(inv.getDate()) + '.' + pad(inv.getMonth() + 1) + '.' + inv.getFullYear();
-                
                 invDot  = diffH > 24 ? 'warn' : 'ok';
-                invText = 'Inventur: ' + timeStr + ', ' + dateStr;
+                invText = pad(inv.getDate()) + '.' + pad(inv.getMonth() + 1) + '. ' + pad(inv.getHours()) + ':' + pad(inv.getMinutes());
             } else {
-                invDot = 'warn'; 
-                invText = 'Inventur: Nicht erfasst';
+                invDot = 'warn'; invText = 'Nicht erfasst';
             }
         } else {
-            invDot = 'warn'; 
-            invText = 'Fehler: Keine Daten';
+            invDot = 'warn'; invText = 'Keine Daten';
         }
 
-        return `<div class="bos-status-item"><div class="bos-dot ${invDot}"></div><span>${invText}</span></div>`;
+        // Dot und Text separat setzen
+        const dot = document.getElementById('bos-dot-inv');
+        const lbl = document.getElementById('bos-label-inv');
+        if (dot) { dot.className = 'bos-dot ' + invDot; }
+        if (lbl) lbl.textContent = invText;
     }
 
     function buildBottomNav() {
+        // Phosphor Icons laden falls noch nicht vorhanden
+        if (!document.querySelector('script[src*="phosphor-icons"]')) {
+            const ph = document.createElement('script');
+            ph.src = 'https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js';
+            document.head.appendChild(ph);
+        }
+
         const tabs = [
-            { id: 'start',     icon: '🏠', label: 'Start',     href: base + 'index.html'          },
-            { id: 'rechner',   icon: '🧮', label: 'Rechner',   href: base + 'schnellrechner.html' },
-            { id: 'assistent', icon: '🚀', label: 'Assistent', href: base + 'setup.html'           },
-            { id: 'mehr',      icon: '☰',  label: 'Mehr',      href: base + 'index.html#mehr'      },
+            { id: 'start',   icon: 'ph ph-bread',            iconActive: 'ph-duotone ph-bread',            label: 'Start',     href: base + 'index.html'          },
+            { id: 'rechner', icon: 'ph ph-calculator',        iconActive: 'ph-duotone ph-calculator',        label: 'Rechner',   href: base + 'schnellrechner.html' },
+            { id: 'brett',   icon: 'ph ph-chat-circle-dots',  iconActive: 'ph-duotone ph-chat-circle-dots',  label: 'Brett',     href: base + 'index.html#brett'    },
+            { id: 'mehr',    icon: 'ph ph-squares-four',      iconActive: 'ph-duotone ph-squares-four',      label: 'Mehr',      href: base + 'index.html#mehr'     },
         ];
 
-        const tabsHTML = tabs.map(t => `<a href="${t.href}" class="bos-tab-btn ${t.id === activeTab ? 'active' : ''}"><span class="bos-tab-icon">${t.icon}</span><span class="bos-tab-label">${t.label}</span></a>`).join('');
+        const tabsHTML = tabs.map(t => {
+            const isActive = t.id === activeTab;
+            const iconClass = isActive ? t.iconActive : t.icon;
+            return `<a href="${t.href}" class="bos-tab-btn ${isActive ? 'active' : ''}"><span class="bos-tab-icon"><i class="${iconClass}"></i></span><span class="bos-tab-label">${t.label}</span></a>`;
+        }).join('');
 
         const nav = document.createElement('div');
         nav.className = 'bos-shell-bottom';
-        nav.innerHTML = `<div class="bos-status-strip"><div class="bos-status-item"><div class="bos-dot"></div><span>Inventur: Lade...</span></div></div><div class="bos-tab-bar">${tabsHTML}</div>`;
+        nav.innerHTML = `<div class="bos-status-strip">
+            <div class="bos-status-item" style="flex-direction:column;align-items:flex-start;gap:1px;">
+                <span style="font-size:0.58rem;text-transform:uppercase;letter-spacing:0.8px;color:var(--dim,#6b7280);opacity:0.7;">Datensatz bis</span>
+                <span id="bos-label-datum" style="font-weight:800;font-size:0.68rem;">–</span>
+            </div>
+            <div class="bos-status-item"><div class="bos-dot"></div><span>Inventur: Lade...</span></div>
+            <div class="bos-status-item" style="flex-direction:column;align-items:flex-end;gap:1px;">
+                <span style="font-size:0.58rem;text-transform:uppercase;letter-spacing:0.8px;color:var(--dim,#6b7280);opacity:0.7;display:flex;align-items:center;gap:4px;"><span class="bos-dot" id="bos-dot-inv"></span>Inventur von</span>
+                <span id="bos-label-inv" style="font-weight:800;font-size:0.68rem;">–</span>
+            </div>
+        </div><div class="bos-tab-bar">${tabsHTML}</div>`;
         document.body.appendChild(nav);
+
+        // DB-Datum laden
+        fetch(base + 'backmengen_db.json', { cache: 'no-store' })
+            .then(r => r.json())
+            .then(db => {
+                if (Array.isArray(db) && db.length) {
+                    const latest = [...db].sort((a, b) => b.datum.localeCompare(a.datum))[0].datum;
+                    const p = latest.split('-');
+                    const el = document.getElementById('bos-label-datum');
+                    if (el) el.textContent = p[2] + '.' + p[1] + '.' + p[0].slice(2);
+                }
+            }).catch(() => {
+                const el = document.getElementById('bos-label-datum');
+                if (el) el.textContent = '?';
+            });
     }
 
     function adjustBodyPadding() {
@@ -151,14 +186,8 @@
         // Hier greift jetzt der intelligente Pfad!
         script.src = base + 'inventurdaten.js?v=' + Date.now(); 
         
-        script.onload = function() {
-            const strip = document.querySelector('.bos-status-strip');
-            if (strip) strip.innerHTML = getStatusHTML();
-        };
-        script.onerror = function() {
-            const strip = document.querySelector('.bos-status-strip');
-            if (strip) strip.innerHTML = getStatusHTML();
-        };
+        script.onload = function() { getStatusHTML(); };
+        script.onerror = function() { getStatusHTML(); };
         
         document.head.appendChild(script);
     }

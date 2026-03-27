@@ -322,6 +322,84 @@
     .status-dot.ok   { background: #2ecc71; }
     .status-dot.warn { background: #e74c3c; }
 
+    /* ── Einfach-Modus Toggle ── */
+    .status-strip {
+      justify-content: space-between;
+    }
+    #btn-einfach {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.68rem; font-weight: 800;
+      letter-spacing: 0.8px; text-transform: uppercase;
+      background: none; border: 1px solid var(--border);
+      border-radius: 6px; padding: 2px 8px;
+      color: var(--dim); cursor: pointer;
+      transition: all 0.2s;
+    }
+    #btn-einfach.aktiv {
+      background: var(--amber); border-color: var(--amber);
+      color: #fff;
+    }
+
+    /* ── Einfach-Modus Grid ── */
+    #tab-einfach {
+      display: none;
+      padding: 20px 16px 24px;
+    }
+    #tab-einfach.aktiv { display: block; }
+    .einfach-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .einfach-kachel {
+      position: relative; overflow: hidden;
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.75);
+      border-radius: 20px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+      padding: 20px 14px 18px;
+      text-align: center;
+      text-decoration: none;
+      color: var(--text);
+      transition: transform 0.15s, box-shadow 0.15s;
+      cursor: pointer;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 8px;
+    }
+    .einfach-kachel:active { transform: scale(0.96); }
+    .einfach-kachel::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 40%;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.6), transparent);
+      border-radius: 20px 20px 0 0; pointer-events: none;
+    }
+    .einfach-icon { font-size: 2rem; line-height: 1; }
+    .einfach-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800; font-size: 0.85rem;
+      letter-spacing: 0.5px; line-height: 1.2;
+      color: var(--text);
+    }
+    .einfach-sub {
+      font-size: 0.68rem; color: var(--dim); line-height: 1.3;
+    }
+    /* Admin-Kachel etwas anders */
+    .einfach-kachel.admin-kachel {
+      background: rgba(230,126,34,0.08);
+      border-color: rgba(230,126,34,0.25);
+    }
+    /* Dark mode Anpassung */
+    [data-theme="dark"] .einfach-kachel {
+      background: rgba(40,40,50,0.7);
+      border-color: rgba(255,255,255,0.1);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    [data-theme="dark"] .einfach-kachel::before {
+      background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent);
+    }
+
     /* Tab Bar */
     .tab-bar {
       background: var(--surface);
@@ -531,11 +609,25 @@
           <div class="folder-arrow">▸</div>
         </div>
         <div class="folder-children" id="folder-planung-children">
-          <a href="Backplan_Aktuell.html" class="tool-link tool-child">
-            <div class="tool-icon">🌤️</div>
+          <a href="produktion_melden.html" class="tool-link tool-child">
+            <div class="tool-icon">📋</div>
             <div>
-              <div class="tool-name">WetterAussicht</div>
-              <div class="tool-sub">Wettervorschau &amp; Wochenstrategie</div>
+              <div class="tool-name">Produktion melden</div>
+              <div class="tool-sub">Was kam heute in den Froster?</div>
+            </div>
+          </a>
+          <a href="durchschnittsverbauch/verlauf.html" class="tool-link tool-child">
+            <div class="tool-icon">📈</div>
+            <div>
+              <div class="tool-name">Produktverlauf</div>
+              <div class="tool-sub">Rohdaten-Diagramm · bis zu 5 Produkte vergleichen</div>
+            </div>
+          </a>
+          <a href="durchschnittsverbauch/wetter_planung.html" class="tool-link tool-child">
+            <div class="tool-icon">🌤</div>
+            <div>
+              <div class="tool-name">Wettervorschau</div>
+              <div class="tool-sub">7 Tage voraus · Was sollte ich morgen backen?</div>
             </div>
           </a>
           <a href="durchschnittsverbauch/schablone.html" class="tool-link tool-child">
@@ -548,7 +640,7 @@
           <a href="durchschnittsverbauch/wetter_analyse.html" class="tool-link tool-child">
             <div class="tool-icon">🌤️</div>
             <div>
-              <div class="tool-name">Wetteranalyse</div>
+              <div class="tool-name">Wetterrückblick</div>
               <div class="tool-sub">Regentag vs. Sonnentag · Differenz pro Produkt</div>
             </div>
           </a>
@@ -590,40 +682,7 @@
         </div>
       </div>
 
-      <!-- 4. MARKT & NEWS -->
-      <div class="tool-folder" id="folder-markt">
-        <div class="tool-link tool-folder-toggle" onclick="toggleFolder('folder-markt')">
-          <div class="tool-icon">📈</div>
-          <div>
-            <div class="tool-name">Markt &amp; News</div>
-            <div class="tool-sub">Der Blick nach draußen</div>
-          </div>
-          <div class="folder-arrow">▸</div>
-        </div>
-        <div class="folder-children" id="folder-markt-children">
-          <a href="news_rohstoffe/rohstoff_fakten.html" class="tool-link tool-child">
-            <div class="tool-icon">📊</div>
-            <div>
-              <div class="tool-name">RohstoffFakten</div>
-              <div class="tool-sub">Preise &amp; Marktanalyse</div>
-            </div>
-          </a>
-          <a href="news_rohstoffe/das_magazin.html" class="tool-link tool-child">
-            <div class="tool-icon">📰</div>
-            <div>
-              <div class="tool-name">Das Magazin</div>
-              <div class="tool-sub">Trends &amp; Inspiration</div>
-            </div>
-          </a>
-          <a href="news_rohstoffe/geschichte.html" class="tool-link tool-child">
-            <div class="tool-icon">📜</div>
-            <div>
-              <div class="tool-name">Leitartikel</div>
-              <div class="tool-sub">Geschichte &amp; Handwerk</div>
-            </div>
-          </a>
-        </div>
-      </div>
+      <!-- 5.
 
       <!-- 5. INTERNES -->
       <div class="tool-folder" id="folder-internes">
@@ -641,13 +700,6 @@
             <div>
               <div class="tool-name">Teamordner</div>
               <div class="tool-sub">Geteilte Dokumente</div>
-            </div>
-          </a>
-          <a href="games/games.html" class="tool-link tool-child">
-            <div class="tool-icon">🎮</div>
-            <div>
-              <div class="tool-name">BäckerSpiele</div>
-              <div class="tool-sub">Spieleauswahl</div>
             </div>
           </a>
           <a href="azubi_meisterhaft/wissen_start.html" class="tool-link tool-child">
@@ -720,22 +772,88 @@
         <a href="hilfe.html" class="ctrl-btn" style="flex:0; padding:0 16px; text-decoration:none; display:flex; align-items:center; justify-content:center;" title="Hilfe">❓</a>
       </div>
 
-      <!-- Admin-Passwort Modal -->
-      <div id="admin-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:none; align-items:center; justify-content:center;">
-        <div style="background:var(--surface); border-radius:20px; padding:28px 24px; width:min(340px, 90vw); box-shadow:0 20px 60px rgba(0,0,0,0.4);">
-          <div style="font-family:'Barlow Condensed'; font-weight:900; font-size:1.1rem; letter-spacing:1px; text-transform:uppercase; color:var(--amber); margin-bottom:6px;">⚙️ Admin-Bereich</div>
-          <div style="font-size:0.82rem; color:var(--dim); margin-bottom:18px;">Zugang nur für berechtigte Nutzer.</div>
-          <input type="password" id="admin-pw-input" placeholder="Passwort" autocomplete="off"
-            style="width:100%; padding:14px; border-radius:12px; border:2px solid var(--border); font-size:1rem; font-weight:800; background:var(--surface); color:var(--text); box-sizing:border-box; margin-bottom:10px;"
-            onkeydown="if(event.key==='Enter') checkAdminPw()">
-          <div id="admin-pw-error" style="display:none; color:var(--red); font-size:0.8rem; font-weight:800; margin-bottom:10px;">❌ Falsches Passwort</div>
-          <div style="display:flex; gap:10px;">
-            <button onclick="closeAdminGate()" style="flex:1; padding:12px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface2); font-weight:800; cursor:pointer; color:var(--dim);">Abbrechen</button>
-            <button onclick="checkAdminPw()" style="flex:1; padding:12px; border-radius:10px; border:none; background:var(--amber); color:white; font-weight:900; cursor:pointer;">Weiter →</button>
-          </div>
-        </div>
-      </div>
+    </div>
+  </div>
 
+  <!-- Admin-Passwort Modal (global, außerhalb aller Tabs) -->
+  <div id="admin-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:var(--surface); border-radius:20px; padding:28px 24px; width:min(340px, 90vw); box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+      <div style="font-family:'Barlow Condensed'; font-weight:900; font-size:1.1rem; letter-spacing:1px; text-transform:uppercase; color:var(--amber); margin-bottom:6px;">⚙️ Admin-Bereich</div>
+      <div style="font-size:0.82rem; color:var(--dim); margin-bottom:18px;">Zugang nur für berechtigte Nutzer.</div>
+      <input type="password" id="admin-pw-input" placeholder="Passwort" autocomplete="off"
+        style="width:100%; padding:14px; border-radius:12px; border:2px solid var(--border); font-size:1rem; font-weight:800; background:var(--surface); color:var(--text); box-sizing:border-box; margin-bottom:10px;"
+        onkeydown="if(event.key==='Enter') checkAdminPw()">
+      <div id="admin-pw-error" style="display:none; color:var(--red); font-size:0.8rem; font-weight:800; margin-bottom:10px;">❌ Falsches Passwort</div>
+      <div style="display:flex; gap:10px;">
+        <button onclick="closeAdminGate()" style="flex:1; padding:12px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface2); font-weight:800; cursor:pointer; color:var(--dim);">Abbrechen</button>
+        <button onclick="checkAdminPw()" style="flex:1; padding:12px; border-radius:10px; border:none; background:var(--amber); color:white; font-weight:900; cursor:pointer;">Weiter →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EINFACH-MODUS TAB -->
+  <div id="tab-einfach">
+    <div class="einfach-grid">
+      <a href="schnellrechner.html" class="einfach-kachel">
+        <div class="einfach-icon">🧮</div>
+        <div class="einfach-name">Schnellrechner</div>
+        <div class="einfach-sub">Produktionsmenge berechnen</div>
+      </a>
+      <a href="setup.html" class="einfach-kachel">
+        <div class="einfach-icon">🎯</div>
+        <div class="einfach-name">Produktionsplaner</div>
+        <div class="einfach-sub">Schicht vorbereiten</div>
+      </a>
+      <a href="baeko_bestellung/lager_inventur.html" class="einfach-kachel">
+        <div class="einfach-icon">📋</div>
+        <div class="einfach-name">BÄKO Inventur</div>
+        <div class="einfach-sub">Lager &amp; Bestellung</div>
+      </a>
+      <a href="bestandsuebersicht.html" class="einfach-kachel">
+        <div class="einfach-icon">❄️</div>
+        <div class="einfach-name">Bestände</div>
+        <div class="einfach-sub">Was ist im Froster?</div>
+      </a>
+      <a href="durchschnittsverbauch/14_tage_logbuch.html" class="einfach-kachel">
+        <div class="einfach-icon">📖</div>
+        <div class="einfach-name">14-Tage Logbuch</div>
+        <div class="einfach-sub">Backmengen im Überblick</div>
+      </a>
+      <a href="durchschnittsverbauch/wetter_planung.html" class="einfach-kachel">
+        <div class="einfach-icon">🌤</div>
+        <div class="einfach-name">Wettervorschau</div>
+        <div class="einfach-sub">7 Tage voraus · Was sollte ich morgen backen?</div>
+      </a>
+      <a href="https://my.hidrive.com/share/0a5xcrfaf8" target="_blank" class="einfach-kachel">
+        <div class="einfach-icon">🗂️</div>
+        <div class="einfach-name">Teamordner</div>
+        <div class="einfach-sub">Geteilte Dokumente</div>
+      </a>
+      <a href="produktion_melden.html" class="einfach-kachel">
+        <div class="einfach-icon">📋</div>
+        <div class="einfach-name">Produktion melden</div>
+        <div class="einfach-sub">Was kam heute in den Froster?</div>
+      </a>
+      <a href="verbrauchsuebersicht.html" class="einfach-kachel" style="grid-column: 1 / -1; flex-direction: row; padding: 12px 16px; gap: 12px; justify-content: flex-start;">
+        <div class="einfach-icon" style="font-size:1.2rem;">📊</div>
+        <div style="text-align:left;">
+          <div class="einfach-name" style="font-size:0.8rem;">Mengenübersicht</div>
+          <div class="einfach-sub">Aktuelle Berechnungsgrundlage · nur Info</div>
+        </div>
+      </a>
+      <a href="inventur_dateneingabe.html" class="einfach-kachel" style="grid-column: 1 / -1; flex-direction: row; padding: 12px 16px; gap: 12px; justify-content: flex-start;">
+        <div class="einfach-icon" style="font-size:1.2rem;">📦</div>
+        <div style="text-align:left;">
+          <div class="einfach-name" style="font-size:0.8rem;">Inventur-Eingabe</div>
+          <div class="einfach-sub">Bestände erfassen · Lager aktualisieren</div>
+        </div>
+      </a>
+
+      <div class="einfach-kachel admin-kachel" onclick="openAdminGate()" style="grid-column: 1 / -1;">
+        <div class="einfach-icon">⚙️</div>
+        <div class="einfach-name">Admin</div>
+        <div class="einfach-sub">Einstellungen &amp; Verwaltung</div>
+      </div>
     </div>
   </div>
 
@@ -748,6 +866,7 @@
         <div class="status-dot" id="dot-inventur"></div>
         <span id="label-inventur">Inventur: –</span>
       </div>
+      <button id="btn-einfach" onclick="toggleEinfachModus()" title="Ansicht wechseln">☰ Einfach</button>
     </div>
 
     <!-- Tab Bar -->
@@ -787,6 +906,47 @@
       // Rechner und Assistent: direkt weiterleiten
       if (name === 'rechner')   { window.location.href = 'schnellrechner.html'; return; }
       if (name === 'assistent') { window.location.href = 'setup.html'; return; }
+    }
+
+    /* ── EINFACH-MODUS ── */
+    function toggleEinfachModus() {
+      const aktiv = localStorage.getItem('BOS_EINFACH') === '1';
+      localStorage.setItem('BOS_EINFACH', aktiv ? '0' : '1');
+      applyEinfachModus(!aktiv);
+    }
+
+    function applyEinfachModus(aktiv) {
+      const einfach = document.getElementById('tab-einfach');
+      const btn     = document.getElementById('btn-einfach');
+      const tabs    = document.querySelector('.tab-bar');
+      const allTabs = document.querySelectorAll('.tab-view');
+
+      if (aktiv) {
+        allTabs.forEach(t => t.classList.remove('active'));
+        einfach.classList.add('aktiv');
+        btn.classList.add('aktiv');
+        btn.textContent = '✦ Einfach';
+        tabs.style.opacity = '0.5';
+      } else {
+        einfach.classList.remove('aktiv');
+        btn.classList.remove('aktiv');
+        btn.textContent = '☰ Einfach';
+        tabs.style.opacity = '';
+        // Aktiven Tab wiederherstellen
+        const aktTab = document.querySelector('.tab-btn.active');
+        if (aktTab) {
+          const name = aktTab.dataset.tab;
+          document.getElementById('tab-' + name)?.classList.add('active');
+        } else {
+          document.getElementById('tab-start').classList.add('active');
+          document.querySelector('[data-tab="start"]').classList.add('active');
+        }
+      }
+    }
+
+    // Init: Einfach-Modus aus localStorage
+    if (localStorage.getItem('BOS_EINFACH') === '1') {
+      applyEinfachModus(true);
     }
 
     /* ── THEME ── */

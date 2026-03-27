@@ -102,12 +102,12 @@
                 </select>
                 <input type="number" id="stock-input" placeholder="Ist" oninput="calculate()" style="padding:15px; border-radius:12px; border:2px solid var(--border-s); text-align:center; font-weight:800; background:var(--surface); color:var(--text); min-width:0; width:100%; box-sizing:border-box;">
             </div>
-            <div id="inventur-warn" style="display:none; background:rgba(224,92,92,0.1); border:1.5px solid var(--red); border-radius:12px; padding:10px 14px; margin-top:-10px; margin-bottom:14px; font-size:0.82rem; font-weight:800; color:var(--red); text-align:center;"><i class="ph ph-warning" style="margin-right:4px;"></i>Inventur älter als 24 Std. — Bestand bitte manuell eintragen</div>
+            <div id="inventur-warn" style="display:none; background:rgba(224,92,92,0.1); border:1.5px solid var(--red); border-radius:12px; padding:10px 14px; margin-top:-10px; margin-bottom:14px; font-size:0.82rem; font-weight:800; color:var(--red); text-align:center;">⚠️ Inventur älter als 24 Std. — Bestand bitte manuell eintragen</div>
 
             <div class="label" id="lang-calcStatus">Status für Morgen:</div>
             <div class="froster-group">
-                <button class="f-btn yes" id="f-yes" onclick="setFroster(true)"><i class="ph ph-snowflake" style="margin-right:6px;"></i><span id="lang-calcFrosterDone">FERTIG</span></button>
-                <button class="f-btn no" id="f-no" onclick="setFroster(false)"><i class="ph ph-x-circle" style="margin-right:6px;"></i><span id="lang-calcFrosterNo">NOCH NICHT</span></button>
+                <button class="f-btn yes" id="f-yes" onclick="setFroster(true)">❄️ <span id="lang-calcFrosterDone">FERTIG</span></button>
+                <button class="f-btn no" id="f-no" onclick="setFroster(false)">❌ <span id="lang-calcFrosterNo">NOCH NICHT</span></button>
             </div>
 
             <div id="missing-tomorrow-area" style="display:none; margin-bottom:15px; border:2.5px solid rgba(224,92,92,0.3); padding:15px; border-radius:16px;">
@@ -118,7 +118,7 @@
             <div class="label" id="lang-calcReach">Reicht bis einschl.:</div>
             <div id="strip-target" class="strip"></div>
 
-            <button class="btn-toggle-extras" onclick="toggleExtras()" id="lang-calcExtras"><i class="ph ph-gear" style="margin-right:6px;"></i>Feiertage & besondere Tage</button>
+            <button class="btn-toggle-extras" onclick="toggleExtras()" id="lang-calcExtras">⚙️ Feiertage & besondere Tage</button>
             <div class="extras-area" id="extras-area">
                 <div id="sandbox-grid"></div>
                 <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border-s);">
@@ -172,21 +172,21 @@
                 <span id="hilfe-arrow" style="font-size:0.85rem; color:var(--amber); transition:transform 0.25s;">▾</span>
             </div>
 
-            <div id="hilfe-body" style="display:none; margin-top:14px; flex-direction:column; gap:10px; font-size:0.88rem; color:var(--dim); font-weight:700; line-height:1.5;">
+            <div id="hilfe-body" style="display:none; margin-top:14px; display:flex; flex-direction:column; gap:10px; font-size:0.88rem; color:var(--dim); font-weight:700; line-height:1.5;">
 
                 <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
-                    <span style="color:var(--text);"><i class="ph ph-calendar" style="margin-right:4px;"></i>Heute & Reicht bis</span><br>
+                    <span style="color:var(--text);">📅 Heute & Reicht bis</span><br>
                     Wähle den aktuellen Wochentag. Dann wählst du, bis einschließlich welchem Tag die Ware reichen soll — maximal bis Dienstag der Folgewoche.
                 </div>
 
                 <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
-                    <span style="color:var(--text);"><i class="ph ph-snowflake" style="margin-right:4px;"></i>Froster-Status</span><br>
+                    <span style="color:var(--text);">❄️ Froster-Status</span><br>
                     <b style="color:var(--green);">FERTIG</b> = Froster ist bereits aufgetaut → Produktion beginnt übermorgen.<br>
                     <b style="color:var(--red);">NOCH NICHT</b> = Froster läuft noch heute Nacht → Produktion beginnt morgen.
                 </div>
 
                 <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
-                    <span style="color:var(--text);"><i class="ph ph-smiley" style="margin-right:4px;"></i>Hamster-Modus</span><br>
+                    <span style="color:var(--text);">🐹 Hamster-Modus</span><br>
                     Aktivierbar pro Tag in den Feiertags-Einstellungen.<br>
                     <b>🐹 Einfach</b> = Mittelwert aus Samstagsmenge und normaler Tagesmenge<br>
                     <b>🐹🐹 Ultra</b> = volle Samstagsmenge — maximale Produktion<br>
@@ -194,7 +194,7 @@
                 </div>
 
                 <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
-                    <span style="color:var(--text);"><i class="ph ph-warning" style="margin-right:4px;"></i>Alte Inventur</span><br>
+                    <span style="color:var(--text);">⚠️ Alte Inventur</span><br>
                     Liegt die letzte Inventur mehr als 24 Stunden zurück, wird der Bestand nicht automatisch eingetragen — bitte manuell zählen und eintragen.
                 </div>
 
@@ -368,7 +368,7 @@
                 let dIdx = (todayIdx + i) % 7;
                 const row = document.createElement('div'); row.className = 'wg-row';
                 row.innerHTML = `<div class="wg-day">${dayNames[dIdx].substring(0,2)}</div>
-                    <button class="wg-ctrl ${simClosed[i]?'is-zu':''}" onclick="simClosed[${i}]=!simClosed[${i}]; buildSandbox(); renderTarget(); calculate();">${simClosed[i]?'<i class="ph ph-lock-simple"></i> ZU':'AUF'}</button>
+                    <button class="wg-ctrl ${simClosed[i]?'is-zu':''}" onclick="simClosed[${i}]=!simClosed[${i}]; buildSandbox(); renderTarget(); calculate();">${simClosed[i]?'🔒 ZU':'AUF'}</button>
                     <button class="wg-ctrl ${(simHamster[i]||0)>0?'active':''}" onclick="simHamster[${i}]=((simHamster[${i}]||0)+1)%3; buildSandbox(); calculate();">${simHamster[i]===2?HAMSTER_ICON_DOUBLE:(simHamster[i]===1?HAMSTER_ICON_SINGLE:'· Kein')}</button>`;
                 grid.appendChild(row);
             }
@@ -406,7 +406,7 @@
             for(let i = offset; i <= targetSteps; i++) {
                 const dIdx = (todayIdx + i) % 7;
                 let need = simClosed[i] ? 0 : p.needs[dIdx];
-                let icon = simClosed[i] ? ' <i class="ph ph-lock-simple"></i>' : '';
+                let icon = simClosed[i] ? ' 🔒' : '';
                 if(!simClosed[i]) {
                     const satNeed = p.needs[5];
                     if(simHamster[i] === 1) { need = Math.ceil((satNeed + need) / 2); icon = ' ' + HAMSTER_ICON_SINGLE; }

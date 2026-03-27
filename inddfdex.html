@@ -12,6 +12,7 @@
   <title>BäckereiOS – Cockpit</title>
 
   <link rel="stylesheet" href="systemdesign.css">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
   <script src="zitate.js"></script>
   <script src="translations.js"></script>
   <script src="info_ticker.js"></script>
@@ -322,6 +323,94 @@
     .status-dot.ok   { background: #2ecc71; }
     .status-dot.warn { background: #e74c3c; }
 
+    /* ── Einfach-Modus Toggle ── */
+    .status-strip {
+      justify-content: space-between;
+    }
+    #btn-einfach {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.68rem; font-weight: 800;
+      letter-spacing: 0.8px; text-transform: uppercase;
+      background: none; border: 1px solid var(--border);
+      border-radius: 6px; padding: 2px 8px;
+      color: var(--dim); cursor: pointer;
+      transition: all 0.2s;
+    }
+    #btn-einfach.aktiv {
+      background: var(--amber); border-color: var(--amber);
+      color: #fff;
+    }
+
+    /* ── Einfach-Modus Grid ── */
+    #tab-einfach {
+      display: none;
+      padding: 20px 16px 24px;
+    }
+    #tab-einfach.aktiv { display: block; }
+    .einfach-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+    .einfach-kachel {
+      position: relative; overflow: hidden;
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.85);
+      border-radius: 18px;
+      padding: 16px 8px 12px;
+      text-align: center;
+      text-decoration: none;
+      color: var(--text);
+      transition: transform 0.15s, box-shadow 0.15s;
+      cursor: pointer;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 5px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+    .einfach-kachel:active { transform: scale(0.96); }
+    .einfach-kachel::after {
+      content: ''; position: absolute; bottom: 0; left: 20%; right: 20%;
+      height: 3px; border-radius: 2px 2px 0 0;
+      background: var(--kachel-color, var(--amber,#c07a10));
+    }
+    .einfach-kachel::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 40%;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
+      border-radius: 18px 18px 0 0; pointer-events: none;
+    }
+    .einfach-icon { font-size: 2rem; line-height: 1; color: var(--kachel-color, var(--amber,#c07a10)); }
+    .einfach-icon i { font-size: 2rem; color: var(--kachel-color, var(--amber,#c07a10)); }
+    .einfach-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800; font-size: 0.78rem;
+      letter-spacing: 0.3px; line-height: 1.2;
+      color: var(--text);
+    }
+    .einfach-sub { font-size: 0.6rem; color: var(--dim); line-height: 1.3; }
+
+    /* Breite Kacheln (grid-column: 1/-1) — G-Stil horizontal */
+    .einfach-kachel.wide {
+      flex-direction: row; padding: 13px 16px; gap: 14px;
+      justify-content: flex-start; text-align: left;
+    }
+    .einfach-kachel.wide::after { left: 0; right: 0; width: 3px; height: auto; top: 20%; bottom: 20%; border-radius: 0 2px 2px 0; left: 0; right: auto; }
+    .einfach-kachel.wide .einfach-icon i { font-size: 1.6rem; }
+    .einfach-kachel.wide .einfach-name { font-size: 0.82rem; }
+
+    /* Admin */
+    .einfach-kachel.admin-kachel { --kachel-color: #e67e22; }
+
+    [data-theme="dark"] .einfach-kachel {
+      background: rgba(40,40,50,0.75);
+      border-color: rgba(255,255,255,0.08);
+    }
+    [data-theme="dark"] .einfach-kachel::before {
+      background: linear-gradient(to bottom, rgba(255,255,255,0.04), transparent);
+    }
+
     /* Tab Bar */
     .tab-bar {
       background: var(--surface);
@@ -415,18 +504,81 @@
     <div class="brand-slogan">Dein digitaler Backstuben-Manager</div>
   </div>
 
-  <!-- TAB: START -->
+  <!-- TAB: START (Einfach-Ansicht) -->
   <div class="tab-view active" id="tab-start">
-    <div class="container">
-
-      <div class="brett-header">
-        <span class="brett-title">💬 Schwarzes Brett</span>
+    <div style="padding: 16px 16px 8px;">
+      <div class="einfach-grid" id="einfach-grid-main">
+      <a href="schnellrechner.html" class="einfach-kachel" style="--kachel-color:#c07a10;">
+        <div class="einfach-icon"><i class="ph-duotone ph-calculator"></i></div>
+        <div class="einfach-name">Schnellrechner</div>
+        <div class="einfach-sub">Produktionsmenge</div>
+      </a>
+      <a href="baguette_rechner.html" class="einfach-kachel" style="--kachel-color:#92400e;">
+        <div class="einfach-icon"><i class="ph-duotone ph-bread"></i></div>
+        <div class="einfach-name">Stangenrechner</div>
+        <div class="einfach-sub">Baguette &amp; Zwiebel</div>
+      </a>
+      <a href="setup.html" class="einfach-kachel" style="--kachel-color:#1d4ed8;">
+        <div class="einfach-icon"><i class="ph-duotone ph-clipboard-text"></i></div>
+        <div class="einfach-name">Produktionsplaner</div>
+        <div class="einfach-sub">Schicht vorbereiten</div>
+      </a>
+      <a href="baeko_bestellung/lager_inventur.html" class="einfach-kachel" style="--kachel-color:#065f46;">
+        <div class="einfach-icon"><i class="ph-duotone ph-package"></i></div>
+        <div class="einfach-name">BÄKO Inventur</div>
+        <div class="einfach-sub">Lager &amp; Bestellung</div>
+      </a>
+      <a href="bestandsuebersicht.html" class="einfach-kachel" style="--kachel-color:#1e40af;">
+        <div class="einfach-icon"><i class="ph-duotone ph-snowflake"></i></div>
+        <div class="einfach-name">Bestände</div>
+        <div class="einfach-sub">Was ist im Froster?</div>
+      </a>
+      <a href="durchschnittsverbauch/14_tage_logbuch.html" class="einfach-kachel" style="--kachel-color:#7e22ce;">
+        <div class="einfach-icon"><i class="ph-duotone ph-calendar-dots"></i></div>
+        <div class="einfach-name">14-Tage Logbuch</div>
+        <div class="einfach-sub">Backmengen</div>
+      </a>
+      <a href="durchschnittsverbauch/wetter_planung.html" class="einfach-kachel" style="--kachel-color:#0369a1;">
+        <div class="einfach-icon"><i class="ph-duotone ph-cloud-sun"></i></div>
+        <div class="einfach-name">Wettervorschau</div>
+        <div class="einfach-sub">7 Tage voraus</div>
+      </a>
+      <a href="https://my.hidrive.com/share/0a5xcrfaf8" target="_blank" class="einfach-kachel" style="--kachel-color:#854d0e;">
+        <div class="einfach-icon"><i class="ph-duotone ph-folder-open"></i></div>
+        <div class="einfach-name">Teamordner</div>
+        <div class="einfach-sub">Geteilte Dokumente</div>
+      </a>
+      <a href="produktion_melden.html" class="einfach-kachel" style="--kachel-color:#9f1239;">
+        <div class="einfach-icon"><i class="ph-duotone ph-megaphone"></i></div>
+        <div class="einfach-name">Produktion melden</div>
+        <div class="einfach-sub">Was kam rein?</div>
+      </a>
+      <a href="verbrauchsuebersicht.html" class="einfach-kachel wide" style="grid-column: 1 / -1; --kachel-color:#475569;">
+        <div class="einfach-icon"><i class="ph-duotone ph-chart-line"></i></div>
+        <div style="text-align:left;"><div class="einfach-name">Mengenübersicht</div><div class="einfach-sub">Aktuelle Berechnungsgrundlage · nur Info</div></div>
+      </a>
+      <a href="inventur_dateneingabe.html" class="einfach-kachel wide" style="grid-column: 1 / -1; --kachel-color:#065f46;">
+        <div class="einfach-icon"><i class="ph-duotone ph-archive-box"></i></div>
+        <div style="text-align:left;"><div class="einfach-name">Inventur-Eingabe</div><div class="einfach-sub">Bestände erfassen · Lager aktualisieren</div></div>
+      </a>
+      <div class="einfach-kachel wide admin-kachel" onclick="openAdminGate()" style="grid-column: 1 / -1; --kachel-color:#e67e22;">
+        <div class="einfach-icon"><i class="ph-duotone ph-gear-six"></i></div>
+        <div style="text-align:left;"><div class="einfach-name">Admin</div><div class="einfach-sub">Einstellungen &amp; Verwaltung</div></div>
       </div>
+      </div>
+    </div>
+  </div>
 
+  <!-- TAB: BRETT -->
+  <div class="tab-view" id="tab-brett">
+    <div class="container">
+      <div class="brett-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="brett-title">💬 Schwarzes Brett</span>
+        <a href="AdminTools/shoutbox_meldungen.html" style="font-size:1.1rem;color:var(--dim);text-decoration:none;padding:4px 8px;border-radius:8px;transition:color 0.15s;" title="Eintrag hinzufügen">＋</a>
+      </div>
       <div id="brett-content">
         <div class="brett-empty">Lade Infos...</div>
       </div>
-
     </div>
   </div>
 
@@ -435,14 +587,6 @@
     <div class="tab-direct-hint">
       <div>Direkt weiter zum</div>
       <a href="schnellrechner.html">🧮 Schnellrechner</a>
-    </div>
-  </div>
-
-  <!-- TAB: ASSISTENT -->
-  <div class="tab-view" id="tab-assistent">
-    <div class="tab-direct-hint">
-      <div>Schichtplanung starten mit dem</div>
-      <a href="setup.html">🚀 PlanungsAssistent</a>
     </div>
   </div>
 
@@ -489,6 +633,13 @@
               <div class="tool-sub">Produktionsmenge berechnen</div>
             </div>
           </a>
+          <a href="baguette_rechner.html" class="tool-link tool-child">
+            <div class="tool-icon">🥖</div>
+            <div>
+              <div class="tool-name">Stangenrechner</div>
+              <div class="tool-sub">Baguette &amp; Zwiebelstangen · Teigling-Bedarf</div>
+            </div>
+          </a>
         </div>
       </div>
 
@@ -531,11 +682,25 @@
           <div class="folder-arrow">▸</div>
         </div>
         <div class="folder-children" id="folder-planung-children">
-          <a href="Backplan_Aktuell.html" class="tool-link tool-child">
-            <div class="tool-icon">🌤️</div>
+          <a href="produktion_melden.html" class="tool-link tool-child">
+            <div class="tool-icon">📋</div>
             <div>
-              <div class="tool-name">WetterAussicht</div>
-              <div class="tool-sub">Wettervorschau &amp; Wochenstrategie</div>
+              <div class="tool-name">Produktion melden</div>
+              <div class="tool-sub">Was kam heute in den Froster?</div>
+            </div>
+          </a>
+          <a href="durchschnittsverbauch/verlauf.html" class="tool-link tool-child">
+            <div class="tool-icon">📈</div>
+            <div>
+              <div class="tool-name">Produktverlauf</div>
+              <div class="tool-sub">Rohdaten-Diagramm · bis zu 5 Produkte vergleichen</div>
+            </div>
+          </a>
+          <a href="durchschnittsverbauch/wetter_planung.html" class="tool-link tool-child">
+            <div class="tool-icon">🌤</div>
+            <div>
+              <div class="tool-name">Wettervorschau</div>
+              <div class="tool-sub">7 Tage voraus · Was sollte ich morgen backen?</div>
             </div>
           </a>
           <a href="durchschnittsverbauch/schablone.html" class="tool-link tool-child">
@@ -548,7 +713,7 @@
           <a href="durchschnittsverbauch/wetter_analyse.html" class="tool-link tool-child">
             <div class="tool-icon">🌤️</div>
             <div>
-              <div class="tool-name">Wetteranalyse</div>
+              <div class="tool-name">Wetterrückblick</div>
               <div class="tool-sub">Regentag vs. Sonnentag · Differenz pro Produkt</div>
             </div>
           </a>
@@ -590,40 +755,7 @@
         </div>
       </div>
 
-      <!-- 4. MARKT & NEWS -->
-      <div class="tool-folder" id="folder-markt">
-        <div class="tool-link tool-folder-toggle" onclick="toggleFolder('folder-markt')">
-          <div class="tool-icon">📈</div>
-          <div>
-            <div class="tool-name">Markt &amp; News</div>
-            <div class="tool-sub">Der Blick nach draußen</div>
-          </div>
-          <div class="folder-arrow">▸</div>
-        </div>
-        <div class="folder-children" id="folder-markt-children">
-          <a href="news_rohstoffe/rohstoff_fakten.html" class="tool-link tool-child">
-            <div class="tool-icon">📊</div>
-            <div>
-              <div class="tool-name">RohstoffFakten</div>
-              <div class="tool-sub">Preise &amp; Marktanalyse</div>
-            </div>
-          </a>
-          <a href="news_rohstoffe/das_magazin.html" class="tool-link tool-child">
-            <div class="tool-icon">📰</div>
-            <div>
-              <div class="tool-name">Das Magazin</div>
-              <div class="tool-sub">Trends &amp; Inspiration</div>
-            </div>
-          </a>
-          <a href="news_rohstoffe/geschichte.html" class="tool-link tool-child">
-            <div class="tool-icon">📜</div>
-            <div>
-              <div class="tool-name">Leitartikel</div>
-              <div class="tool-sub">Geschichte &amp; Handwerk</div>
-            </div>
-          </a>
-        </div>
-      </div>
+      <!-- 5.
 
       <!-- 5. INTERNES -->
       <div class="tool-folder" id="folder-internes">
@@ -641,13 +773,6 @@
             <div>
               <div class="tool-name">Teamordner</div>
               <div class="tool-sub">Geteilte Dokumente</div>
-            </div>
-          </a>
-          <a href="games/games.html" class="tool-link tool-child">
-            <div class="tool-icon">🎮</div>
-            <div>
-              <div class="tool-name">BäckerSpiele</div>
-              <div class="tool-sub">Spieleauswahl</div>
             </div>
           </a>
           <a href="azubi_meisterhaft/wissen_start.html" class="tool-link tool-child">
@@ -720,22 +845,22 @@
         <a href="hilfe.html" class="ctrl-btn" style="flex:0; padding:0 16px; text-decoration:none; display:flex; align-items:center; justify-content:center;" title="Hilfe">❓</a>
       </div>
 
-      <!-- Admin-Passwort Modal -->
-      <div id="admin-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:none; align-items:center; justify-content:center;">
-        <div style="background:var(--surface); border-radius:20px; padding:28px 24px; width:min(340px, 90vw); box-shadow:0 20px 60px rgba(0,0,0,0.4);">
-          <div style="font-family:'Barlow Condensed'; font-weight:900; font-size:1.1rem; letter-spacing:1px; text-transform:uppercase; color:var(--amber); margin-bottom:6px;">⚙️ Admin-Bereich</div>
-          <div style="font-size:0.82rem; color:var(--dim); margin-bottom:18px;">Zugang nur für berechtigte Nutzer.</div>
-          <input type="password" id="admin-pw-input" placeholder="Passwort" autocomplete="off"
-            style="width:100%; padding:14px; border-radius:12px; border:2px solid var(--border); font-size:1rem; font-weight:800; background:var(--surface); color:var(--text); box-sizing:border-box; margin-bottom:10px;"
-            onkeydown="if(event.key==='Enter') checkAdminPw()">
-          <div id="admin-pw-error" style="display:none; color:var(--red); font-size:0.8rem; font-weight:800; margin-bottom:10px;">❌ Falsches Passwort</div>
-          <div style="display:flex; gap:10px;">
-            <button onclick="closeAdminGate()" style="flex:1; padding:12px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface2); font-weight:800; cursor:pointer; color:var(--dim);">Abbrechen</button>
-            <button onclick="checkAdminPw()" style="flex:1; padding:12px; border-radius:10px; border:none; background:var(--amber); color:white; font-weight:900; cursor:pointer;">Weiter →</button>
-          </div>
-        </div>
-      </div>
+    </div>
+  </div>
 
+  <!-- Admin-Passwort Modal (global, außerhalb aller Tabs) -->
+  <div id="admin-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:var(--surface); border-radius:20px; padding:28px 24px; width:min(340px, 90vw); box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+      <div style="font-family:'Barlow Condensed'; font-weight:900; font-size:1.1rem; letter-spacing:1px; text-transform:uppercase; color:var(--amber); margin-bottom:6px;">⚙️ Admin-Bereich</div>
+      <div style="font-size:0.82rem; color:var(--dim); margin-bottom:18px;">Zugang nur für berechtigte Nutzer.</div>
+      <input type="password" id="admin-pw-input" placeholder="Passwort" autocomplete="off"
+        style="width:100%; padding:14px; border-radius:12px; border:2px solid var(--border); font-size:1rem; font-weight:800; background:var(--surface); color:var(--text); box-sizing:border-box; margin-bottom:10px;"
+        onkeydown="if(event.key==='Enter') checkAdminPw()">
+      <div id="admin-pw-error" style="display:none; color:var(--red); font-size:0.8rem; font-weight:800; margin-bottom:10px;">❌ Falsches Passwort</div>
+      <div style="display:flex; gap:10px;">
+        <button onclick="closeAdminGate()" style="flex:1; padding:12px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface2); font-weight:800; cursor:pointer; color:var(--dim);">Abbrechen</button>
+        <button onclick="checkAdminPw()" style="flex:1; padding:12px; border-radius:10px; border:none; background:var(--amber); color:white; font-weight:900; cursor:pointer;">Weiter →</button>
+      </div>
     </div>
   </div>
 
@@ -744,28 +869,36 @@
 
     <!-- Statusstreifen -->
     <div class="status-strip">
-      <div class="status-item">
-        <div class="status-dot" id="dot-inventur"></div>
-        <span id="label-inventur">Inventur: –</span>
+      <div class="status-item" style="flex-direction:column; align-items:flex-start; gap:1px;">
+        <span style="font-size:0.58rem; text-transform:uppercase; letter-spacing:0.8px; color:var(--dim); opacity:0.7;">Datensatz bis</span>
+        <span id="label-datum" style="font-weight:800; color:var(--text);">–</span>
+      </div>
+      <button id="btn-einfach" style="display:none;"></button>
+      <div class="status-item" style="flex-direction:column; align-items:flex-end; gap:1px;">
+        <span style="font-size:0.58rem; text-transform:uppercase; letter-spacing:0.8px; color:var(--dim); opacity:0.7; display:flex; align-items:center; gap:4px;"><span class="status-dot" id="dot-inventur"></span>Inventur von</span>
+        <span id="label-inventur" style="font-weight:800; color:var(--text);">–</span>
       </div>
     </div>
 
     <!-- Tab Bar -->
     <div class="tab-bar">
       <button class="tab-btn active" data-tab="start" onclick="switchTab('start', this)">
-        <span class="tab-icon">🏠</span>
+        <span class="tab-icon"><i class="ph-duotone ph-bread"></i></span>
         <span class="tab-label">Start</span>
       </button>
       <button class="tab-btn" data-tab="rechner" onclick="switchTab('rechner', this)">
-        <span class="tab-icon">🧮</span>
+        <span class="tab-icon"><i class="ph ph-calculator"></i></span>
         <span class="tab-label">Rechner</span>
       </button>
-      <button class="tab-btn" data-tab="assistent" onclick="switchTab('assistent', this)">
-        <span class="tab-icon">🚀</span>
-        <span class="tab-label">Assistent</span>
+      <button class="tab-btn" data-tab="brett" onclick="switchTab('brett', this); clearBrettBadge();" style="position:relative;">
+        <span class="tab-icon" style="position:relative; display:inline-block;">
+          <i class="ph ph-chat-circle-dots"></i>
+          <span id="brett-badge" style="display:none; position:absolute; top:-4px; right:-6px; width:9px; height:9px; background:#ef4444; border-radius:50%; border:2px solid var(--surface);"></span>
+        </span>
+        <span class="tab-label">Brett</span>
       </button>
       <button class="tab-btn" data-tab="mehr" onclick="switchTab('mehr', this)">
-        <span class="tab-icon">☰</span>
+        <span class="tab-icon"><i class="ph ph-squares-four"></i></span>
         <span class="tab-label">Mehr</span>
       </button>
     </div>
@@ -784,9 +917,81 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById('tab-' + name).classList.add('active');
       btn.classList.add('active');
-      // Rechner und Assistent: direkt weiterleiten
-      if (name === 'rechner')   { window.location.href = 'schnellrechner.html'; return; }
-      if (name === 'assistent') { window.location.href = 'setup.html'; return; }
+
+      // Phosphor: aktiver Tab = duotone, inaktive = regular
+      const iconMap = {
+        start:  { active: 'ph-duotone ph-bread',         inactive: 'ph ph-bread' },
+        rechner:{ active: 'ph-duotone ph-calculator',    inactive: 'ph ph-calculator' },
+        brett:  { active: 'ph-duotone ph-chat-circle-dots', inactive: 'ph ph-chat-circle-dots' },
+        mehr:   { active: 'ph-duotone ph-squares-four',  inactive: 'ph ph-squares-four' }
+      };
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        const t = b.dataset.tab;
+        const i = b.querySelector('i');
+        if (i && iconMap[t]) i.className = (b.classList.contains('active') ? iconMap[t].active : iconMap[t].inactive);
+      });
+
+      if (name === 'rechner') { window.location.href = 'schnellrechner.html'; return; }
+      if (name === '#mehr') { history.replaceState(null, '', window.location.pathname); }
+    }
+
+    // ── BRETT BADGE ─────────────────────────────────────────
+    function checkBrettBadge() {
+      if (typeof tickerData === 'undefined' || !tickerData.length) return;
+      const neuestesItem = tickerData.reduce((a, b) => {
+        return new Date(a.datum + ' ' + (a.uhrzeit||'00:00')) > new Date(b.datum + ' ' + (b.uhrzeit||'00:00')) ? a : b;
+      });
+      const neuesteTs = new Date(neuestesItem.datum + ' ' + (neuestesItem.uhrzeit || '00:00')).getTime();
+      const letzterBesuch = parseInt(localStorage.getItem('BOS_BRETT_GELESEN') || '0');
+      const badge = document.getElementById('brett-badge');
+      if (badge) badge.style.display = neuesteTs > letzterBesuch ? 'block' : 'none';
+    }
+
+    function clearBrettBadge() {
+      localStorage.setItem('BOS_BRETT_GELESEN', Date.now().toString());
+      const badge = document.getElementById('brett-badge');
+      if (badge) badge.style.display = 'none';
+    }
+
+    /* ── EINFACH-MODUS ── */
+    function toggleEinfachModus() {
+      const aktiv = localStorage.getItem('BOS_EINFACH') === '1';
+      localStorage.setItem('BOS_EINFACH', aktiv ? '0' : '1');
+      applyEinfachModus(!aktiv);
+    }
+
+    function applyEinfachModus(aktiv) {
+      const einfach = document.getElementById('tab-einfach');
+      const btn     = document.getElementById('btn-einfach');
+      const tabs    = document.querySelector('.tab-bar');
+      const allTabs = document.querySelectorAll('.tab-view');
+
+      if (aktiv) {
+        allTabs.forEach(t => t.classList.remove('active'));
+        einfach.classList.add('aktiv');
+        btn.classList.add('aktiv');
+        btn.textContent = '✦ Einfach';
+        tabs.style.opacity = '0.5';
+      } else {
+        einfach.classList.remove('aktiv');
+        btn.classList.remove('aktiv');
+        btn.textContent = '☰ Einfach';
+        tabs.style.opacity = '';
+        // Aktiven Tab wiederherstellen
+        const aktTab = document.querySelector('.tab-btn.active');
+        if (aktTab) {
+          const name = aktTab.dataset.tab;
+          document.getElementById('tab-' + name)?.classList.add('active');
+        } else {
+          document.getElementById('tab-start').classList.add('active');
+          document.querySelector('[data-tab="start"]').classList.add('active');
+        }
+      }
+    }
+
+    // Init: Einfach-Modus aus localStorage
+    if (localStorage.getItem('BOS_EINFACH') === '1') {
+      applyEinfachModus(true);
     }
 
     /* ── THEME ── */
@@ -847,7 +1052,20 @@
     function buildStatus() {
       const pad = x => String(x).padStart(2, '0');
 
-      // Inventur — aus inventurdaten.js (BOS_INVENTUR)
+      // Datensatz-Datum aus backmengen_db.json
+      fetch('backmengen_db.json', { cache: 'no-store' })
+        .then(r => r.json())
+        .then(db => {
+          if (Array.isArray(db) && db.length) {
+            const latest = [...db].sort((a, b) => b.datum.localeCompare(a.datum))[0].datum;
+            // Format: YYYY-MM-DD → DD.MM.YY
+            const p = latest.split('-');
+            document.getElementById('label-datum').textContent = p[2] + '.' + p[1] + '.' + p[0].slice(2);
+          }
+        })
+        .catch(() => { document.getElementById('label-datum').textContent = '?'; });
+
+      // Inventur
       const dotInv = document.getElementById('dot-inventur');
       const lblInv = document.getElementById('label-inventur');
       if (typeof window.BOS_INVENTUR !== 'undefined' && window.BOS_INVENTUR.products) {
@@ -862,26 +1080,28 @@
           const ok = diffH <= 24;
           dotInv.classList.toggle('ok', ok);
           dotInv.classList.toggle('warn', !ok);
-          lblInv.textContent = 'Inventur: ' + pad(inv.getHours()) + ':' + pad(inv.getMinutes()) + ' Uhr, '
-            + pad(inv.getDate()) + '.' + pad(inv.getMonth() + 1) + '.' + inv.getFullYear()
-            + (ok ? '' : ' 🔴');
+          lblInv.textContent = pad(inv.getDate()) + '.' + pad(inv.getMonth()+1) + '. ' + pad(inv.getHours()) + ':' + pad(inv.getMinutes());
         } else {
           dotInv.classList.add('warn');
-          lblInv.textContent = 'Inventur: Nicht erfasst';
+          lblInv.textContent = 'Nicht erfasst';
         }
       } else {
         dotInv.classList.add('warn');
-        lblInv.textContent = 'Inventur: Keine Daten';
+        lblInv.textContent = 'Keine Daten';
       }
-
     }
 
     /* ── INIT ── */
     // #mehr Anker: direkt den Mehr-Tab öffnen wenn von Unterseite zurück
     function checkHashTab() {
-        if (window.location.hash === '#mehr') {
-            const btn = document.querySelector('[data-tab="mehr"]');
-            if (btn) switchTab('mehr', btn);
+        const hash = window.location.hash;
+        if (hash === '#mehr' || hash === '#brett') {
+            const tabName = hash.replace('#', '');
+            const btn = document.querySelector(`[data-tab="${tabName}"]`);
+            if (btn) {
+                switchTab(tabName, btn);
+                if (tabName === 'brett') clearBrettBadge();
+            }
             history.replaceState(null, '', window.location.pathname);
         }
     }
@@ -930,6 +1150,7 @@
       buildBrett();
       buildStatus();
       checkHashTab();
+      checkBrettBadge();
     };
   </script>
 

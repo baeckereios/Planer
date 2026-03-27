@@ -5,31 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BOS - Schnellrechner</title>
     <link rel="stylesheet" href="systemdesign.css">
-    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
     <script src="produktions_gehirn.js"></script>
     <script src="inventurdaten.js"></script>
     <script src="translations.js"></script>
-    <script src="baeko_bestand.js"></script>
-    <script src="baeko_bestellung/lager_gehirn.js"></script>
     <style>
-        /* Tab-Umschalter */
-        .sr-tabs { display: flex; gap: 8px; max-width: 600px; margin: 12px auto 0; padding: 0 20px; }
-        .sr-tab-btn { flex: 1; font-family: inherit; font-size: 0.85rem; font-weight: 800; padding: 10px; border-radius: 12px; border: 2px solid var(--border-s); background: var(--surface); color: var(--dim); cursor: pointer; transition: 0.2s; }
-        .sr-tab-btn.aktiv { background: #1e293b; border-color: #1e293b; color: #fff; }
-        .sr-tab-view { display: none; }
-        .sr-tab-view.aktiv { display: block; }
-        /* Pressen-Box */
-        .pressen-box { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border: 1.5px solid var(--border-s); border-radius: 14px; padding: 14px 18px; margin-top: 16px; }
-        .pressen-label { font-size: 0.75rem; font-weight: 700; color: var(--dim); }
-        .pressen-formel { font-size: 0.65rem; color: var(--dim); opacity: 0.7; margin-top: 2px; }
-        .pressen-zahl { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 900; color: var(--text); }
-        .pressen-einheit { font-size: 0.75rem; font-weight: 700; color: var(--dim); }
-        /* Kreuz & Quer */
-        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
-        .cr-input { width: 100%; padding: 15px; border: 2px solid var(--border-s); border-radius: 12px; font-family: inherit; font-weight: 800; font-size: 1.2rem; text-align: center; background: var(--surface); color: var(--text); box-sizing: border-box; }
-        .cr-input:focus { border-color: var(--amber); outline: none; }
-        .cr-hint { font-size: 0.7rem; color: var(--dim); margin-top: 8px; display: block; }
-        .special-section { border-left: 6px solid var(--text); background: var(--surface2); }
         body { margin: 0; padding-bottom: 50px; background: var(--bg); transition: 0.3s; }
         .brand-header { background: var(--surface); text-align: center; padding-top: 15px; box-shadow: 0 4px 10px var(--shadow); position: sticky; top: 0; z-index: 100; }
         .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; margin-bottom: 5px; }
@@ -84,30 +63,23 @@
         <div class="slogan-bar" id="lang-slogan">"WE MAKE BREAKFAST POSSIBLE IN THE FIRST PLACE."</div>
     </div>
 
-    <div class="sr-tabs">
-        <button class="sr-tab-btn aktiv" id="sr-btn-schnell" onclick="srSetTab('schnell')"><i class="ph-duotone ph-calculator" style="margin-right:6px;"></i>Schnellrechner</button>
-        <button class="sr-tab-btn" id="sr-btn-pressen" onclick="srSetTab('pressen')"><i class="ph ph-arrows-left-right" style="margin-right:6px;"></i>PressenRechner</button>
-    </div>
-
-    <!-- ── TAB: SCHNELLRECHNER ── -->
-    <div class="sr-tab-view aktiv" id="sr-tab-schnell">
     <div class="container">
         <div class="card">
             <div class="label" id="lang-calcToday">Heute ist:</div>
             <div id="strip-today" class="strip-today"></div>
 
-            <div style="display:grid; grid-template-columns: 1fr 80px; gap:10px; margin-bottom:20px; width:100%; overflow:hidden;">
-                <select id="prod-select" onchange="syncStock()" style="padding:15px; border-radius:12px; border:2px solid var(--border-s); font-weight:800; font-family:inherit; background:var(--surface); color:var(--text); min-width:0;">
+            <div style="display:grid; grid-template-columns: 1fr 90px; gap:10px; margin-bottom:20px; align-items:stretch;">
+                <select id="prod-select" onchange="syncStock()" style="padding:15px; border-radius:12px; border:2px solid var(--border-s); font-weight:800; font-family:inherit; background:var(--surface); color:var(--text);">
                     <option value="" id="lang-calcSelect">-- Produkt --</option>
                 </select>
-                <input type="number" id="stock-input" placeholder="Ist" oninput="calculate()" style="padding:15px; border-radius:12px; border:2px solid var(--border-s); text-align:center; font-weight:800; background:var(--surface); color:var(--text); min-width:0; width:100%; box-sizing:border-box;">
+                <input type="number" id="stock-input" placeholder="Ist" oninput="calculate()" style="padding:15px; border-radius:12px; border:2px solid var(--border-s); text-align:center; font-weight:800; background:var(--surface); color:var(--text);">
             </div>
-            <div id="inventur-warn" style="display:none; background:rgba(224,92,92,0.1); border:1.5px solid var(--red); border-radius:12px; padding:10px 14px; margin-top:-10px; margin-bottom:14px; font-size:0.82rem; font-weight:800; color:var(--red); text-align:center;"><i class="ph ph-warning" style="margin-right:4px;"></i>Inventur älter als 24 Std. — Bestand bitte manuell eintragen</div>
+            <div id="inventur-warn" style="display:none; background:rgba(224,92,92,0.1); border:1.5px solid var(--red); border-radius:12px; padding:10px 14px; margin-top:-10px; margin-bottom:14px; font-size:0.82rem; font-weight:800; color:var(--red); text-align:center;">⚠️ Inventur älter als 24 Std. — Bestand bitte manuell eintragen</div>
 
             <div class="label" id="lang-calcStatus">Status für Morgen:</div>
             <div class="froster-group">
-                <button class="f-btn yes" id="f-yes" onclick="setFroster(true)"><i class="ph ph-snowflake" style="margin-right:6px;"></i><span id="lang-calcFrosterDone">FERTIG</span></button>
-                <button class="f-btn no" id="f-no" onclick="setFroster(false)"><i class="ph ph-x-circle" style="margin-right:6px;"></i><span id="lang-calcFrosterNo">NOCH NICHT</span></button>
+                <button class="f-btn yes" id="f-yes" onclick="setFroster(true)">❄️ <span id="lang-calcFrosterDone">FERTIG</span></button>
+                <button class="f-btn no" id="f-no" onclick="setFroster(false)">❌ <span id="lang-calcFrosterNo">NOCH NICHT</span></button>
             </div>
 
             <div id="missing-tomorrow-area" style="display:none; margin-bottom:15px; border:2.5px solid rgba(224,92,92,0.3); padding:15px; border-radius:16px;">
@@ -118,11 +90,11 @@
             <div class="label" id="lang-calcReach">Reicht bis einschl.:</div>
             <div id="strip-target" class="strip"></div>
 
-            <button class="btn-toggle-extras" onclick="toggleExtras()" id="lang-calcExtras"><i class="ph ph-gear" style="margin-right:6px;"></i>Feiertage & besondere Tage</button>
+            <button class="btn-toggle-extras" onclick="toggleExtras()" id="lang-calcExtras">⚙️ Feiertage & besondere Tage</button>
             <div class="extras-area" id="extras-area">
                 <div id="sandbox-grid"></div>
                 <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border-s);">
-                    <div class="label" style="margin-bottom:8px;">KUNDENBESTELLUNG (+ BLECHE):</div>
+                    <div class="label" style="margin-bottom:8px;">KUNDENBESTELLUNG / FROSTERFEHLMENGEN (+ BLECHE):</div>
                     <input type="number" id="extra-order-input" placeholder="0" oninput="calculate()"
                         style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--border-s); text-align:center; font-weight:800; font-size:1.1rem; background:var(--surface); color:var(--text);">
                 </div>
@@ -137,56 +109,30 @@
                 <div class="res-val" id="res-val">0</div>
                 <div style="font-weight:900; font-size:1.1rem; color:var(--dim); margin-bottom:20px;" id="res-unit">BLECHE</div>
                 <table class="calc-table" id="calc-table"></table>
-                <!-- Pressen-Umrechnung (erscheint wenn pressenGroesse gesetzt) -->
-                <div class="pressen-box" id="pressen-box" style="display:none;">
-                    <div>
-                        <div class="pressen-label">→ Umrechnung in Pressen</div>
-                        <div class="pressen-formel" id="pressen-formel"></div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div class="pressen-zahl" id="pressen-zahl">—</div>
-                        <div class="pressen-einheit">Pressen</div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
-    </div>
 
-    <!-- ── TAB: PRESSENRECHNER ── -->
-    <div class="sr-tab-view" id="sr-tab-pressen">
-    <div class="container">
-        <div style="font-size:0.85rem; color:var(--dim); line-height:1.6; margin-bottom:16px;">
-            Pressen und Bleche lassen sich in beide Richtungen umrechnen. Die Schlüsselzahl beim KornKnacker erhöht das Stückgewicht — aus 90 Pressen werden deshalb weniger Bleche als ohne Korrektur.
-        </div>
-        <div id="cr-specialList"></div>
-    </div>
-    </div>
-
-    <div class="sr-tab-view aktiv" id="sr-tab-schnell-hilfe">
     <!-- HILFE -->
     <div style="max-width:600px; margin: 0 auto 40px; padding: 0 20px;">
-        <div style="border-top: 2px dashed var(--border); padding-top: 16px;">
-            <div onclick="toggleHilfe()" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; margin-bottom:0;">
-                <div style="font-family:'Barlow Condensed'; font-weight:900; font-size:0.75rem; letter-spacing:1.5px; color:var(--amber); text-transform:uppercase;">❓ Kurzanleitung</div>
-                <span id="hilfe-arrow" style="font-size:0.85rem; color:var(--amber); transition:transform 0.25s;">▾</span>
-            </div>
+        <div style="border-top: 2px dashed var(--border); padding-top: 20px;">
+            <div style="font-family:'Barlow Condensed'; font-weight:900; font-size:0.75rem; letter-spacing:1.5px; color:var(--amber); text-transform:uppercase; margin-bottom:14px;">❓ Kurzanleitung</div>
 
-            <div id="hilfe-body" style="display:none; margin-top:14px; flex-direction:column; gap:10px; font-size:0.88rem; color:var(--dim); font-weight:700; line-height:1.5;">
+            <div style="display:flex; flex-direction:column; gap:10px; font-size:0.88rem; color:var(--dim); font-weight:700; line-height:1.5;">
 
                 <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
-                    <span style="color:var(--text);"><i class="ph ph-calendar" style="margin-right:4px;"></i>Heute & Reicht bis</span><br>
+                    <span style="color:var(--text);">📅 Heute & Reicht bis</span><br>
                     Wähle den aktuellen Wochentag. Dann wählst du, bis einschließlich welchem Tag die Ware reichen soll — maximal bis Dienstag der Folgewoche.
                 </div>
 
                 <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
-                    <span style="color:var(--text);"><i class="ph ph-snowflake" style="margin-right:4px;"></i>Froster-Status</span><br>
+                    <span style="color:var(--text);">❄️ Froster-Status</span><br>
                     <b style="color:var(--green);">FERTIG</b> = Froster ist bereits aufgetaut → Produktion beginnt übermorgen.<br>
                     <b style="color:var(--red);">NOCH NICHT</b> = Froster läuft noch heute Nacht → Produktion beginnt morgen.
                 </div>
 
                 <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
-                    <span style="color:var(--text);"><i class="ph ph-smiley" style="margin-right:4px;"></i>Hamster-Modus</span><br>
+                    <span style="color:var(--text);">🐹 Hamster-Modus</span><br>
                     Aktivierbar pro Tag in den Feiertags-Einstellungen.<br>
                     <b>🐹 Einfach</b> = Mittelwert aus Samstagsmenge und normaler Tagesmenge<br>
                     <b>🐹🐹 Ultra</b> = volle Samstagsmenge — maximale Produktion<br>
@@ -194,78 +140,26 @@
                 </div>
 
                 <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
-                    <span style="color:var(--text);"><i class="ph ph-warning" style="margin-right:4px;"></i>Alte Inventur</span><br>
+
+                </div>
+
+                <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
+                    <span style="color:var(--text);">⚠️ Alte Inventur</span><br>
                     Liegt die letzte Inventur mehr als 24 Stunden zurück, wird der Bestand nicht automatisch eingetragen — bitte manuell zählen und eintragen.
                 </div>
 
             </div>
         </div>
     </div>
-    </div><!-- end sr-tab-schnell-hilfe -->
 
     <script>
-        // ── TAB-UMSCHALTER ───────────────────────────────────
-        function srSetTab(tab) {
-            ['schnell','pressen'].forEach(function(t) {
-                document.getElementById('sr-tab-' + t).classList.toggle('aktiv', t === tab);
-                document.getElementById('sr-btn-' + t).classList.toggle('aktiv', t === tab);
-            });
-            // Icons updaten
-            const btnS = document.getElementById('sr-btn-schnell');
-            const btnP = document.getElementById('sr-btn-pressen');
-            btnS.querySelector('i').className = tab === 'schnell' ? 'ph-duotone ph-calculator' : 'ph ph-calculator';
-            btnP.querySelector('i').className = tab === 'pressen' ? 'ph-duotone ph-arrows-left-right' : 'ph ph-arrows-left-right';
-            const hilfe = document.getElementById('sr-tab-schnell-hilfe');
-            if (hilfe) hilfe.classList.toggle('aktiv', tab === 'schnell');
-            if (tab === 'pressen') renderCross();
-        }
-
-        function toggleHilfe() {
-            const body = document.getElementById('hilfe-body');
-            const arrow = document.getElementById('hilfe-arrow');
-            const open = body.style.display !== 'none' && body.style.display !== '';
-            body.style.display = open ? 'none' : 'flex';
-            arrow.style.transform = open ? '' : 'rotate(180deg)';
-        }
-
-        // ── KREUZ & QUER ─────────────────────────────────────
-        function renderCross() {
-            const list = document.getElementById('cr-specialList');
-            if (!window.BOS_BAEKO_CONFIG) { list.innerHTML = '<p style="color:#94a3b8;font-size:0.82rem;">baeko_bestand.js nicht geladen.</p>'; return; }
-            const products = window.BOS_BAEKO_CONFIG.products;
-            list.innerHTML = '';
-            for (const id in products) {
-                const p = products[id];
-                if (!p.show_in_calc || p.type !== 'cross') continue;
-                const card = document.createElement('div');
-                card.className = 'card special-section';
-                const hintHtml = p.factor ? `<span class="cr-hint">ℹ️ Schlüsselzahl ${p.factor} wird in beide Richtungen angewendet</span>` : '';
-                card.innerHTML =
-                    `<h2 style="margin:0;font-family:'Fraunces',serif;font-weight:900;">${p.name}</h2>
-                    <div style="display:flex;justify-content:flex-end;font-size:0.75rem;font-weight:700;color:var(--dim);margin-top:10px;font-family:'Barlow Condensed';text-transform:uppercase;"><span>1 ${p.unit_alt} = ${p.val_alt} Stk.</span></div>
-                    <div class="input-row">
-                        <div><div class="label" style="text-align:center;">${p.unit_alt}</div><input type="number" class="cr-input" id="cr_${id}_alt" oninput="runCross('${id}','alt')" placeholder="0"></div>
-                        <div><div class="label" style="text-align:center;">Bleche</div><input type="number" class="cr-input" id="cr_${id}_blech" oninput="runCross('${id}','blech')" placeholder="0"></div>
-                    </div>${hintHtml}`;
-                list.appendChild(card);
-            }
-        }
-
-        function runCross(id, source) {
-            const val = parseFloat(document.getElementById(`cr_${id}_${source}`).value || 0);
-            const target = document.getElementById(`cr_${id}_${source === 'alt' ? 'blech' : 'alt'}`);
-            if (val === 0) { target.value = ''; return; }
-            target.value = Math.round(window.BOS_LAGER_BRAIN.convertCross(id, val, source) * 100) / 100;
-        }
-
         let todayIdx = (new Date().getDay() === 0) ? 6 : new Date().getDay() - 1;
         let targetIdx = null;
         let targetOffset = null;
         let frosterDone = null;
-        let simClosed = {}, simHamster = {};
+        let simClosed = {}, simHamster = {}, simSun = {};
         const HAMSTER_ICON_SINGLE = '🐹';
         const HAMSTER_ICON_DOUBLE = '🐹<span style="font-size:1.25em; margin-left:-2px;">🐹</span>';
-        let produktConfigMap = {}; // legacyKey → {pressenGroesse, teiggewichtAufschlag}
 
         // DIE VERMISSTE FUNKTION
         function applyLang() {
@@ -284,24 +178,10 @@
             applyLang();
             renderToday();
             buildSandbox();
-            // produkt_config.json laden für pressenGroesse/teiggewichtAufschlag
-            fetch('produkt_config.json', { cache: 'no-store' })
-                .then(r => r.json())
-                .then(cfg => {
-                    cfg.forEach(p => {
-                        if (p.legacyKey) produktConfigMap[p.legacyKey] = {
-                            pressenGroesse: p.pressenGroesse || null,
-                            teiggewichtAufschlag: p.teiggewichtAufschlag || null
-                        };
-                    });
-                }).catch(() => {});
             if (!window.BOS_STAMMDATEN) return;
             const sel = document.getElementById('prod-select');
             Object.keys(window.BOS_STAMMDATEN).forEach(id => {
-                const p = window.BOS_STAMMDATEN[id];
-                // Nur anzeigen wenn schnellrechnerRelevant=true (oder nicht gesetzt = alle anzeigen für Rückwärtskompatibilität)
-                if (p.schnellrechnerRelevant === false) return;
-                const opt = document.createElement('option'); opt.value = id; opt.innerText = p.name;
+                const opt = document.createElement('option'); opt.value = id; opt.innerText = window.BOS_STAMMDATEN[id].name;
                 sel.appendChild(opt);
             });
         }
@@ -368,8 +248,9 @@
                 let dIdx = (todayIdx + i) % 7;
                 const row = document.createElement('div'); row.className = 'wg-row';
                 row.innerHTML = `<div class="wg-day">${dayNames[dIdx].substring(0,2)}</div>
-                    <button class="wg-ctrl ${simClosed[i]?'is-zu':''}" onclick="simClosed[${i}]=!simClosed[${i}]; buildSandbox(); renderTarget(); calculate();">${simClosed[i]?'<i class="ph ph-lock-simple"></i> ZU':'AUF'}</button>
-                    <button class="wg-ctrl ${(simHamster[i]||0)>0?'active':''}" onclick="simHamster[${i}]=((simHamster[${i}]||0)+1)%3; buildSandbox(); calculate();">${simHamster[i]===2?HAMSTER_ICON_DOUBLE:(simHamster[i]===1?HAMSTER_ICON_SINGLE:'· Kein')}</button>`;
+                    <button class="wg-ctrl ${simClosed[i]?'is-zu':''}" onclick="simClosed[${i}]=!simClosed[${i}]; buildSandbox(); renderTarget(); calculate();">${simClosed[i]?'🔒 ZU':'AUF'}</button>
+                    <button class="wg-ctrl ${(simHamster[i]||0)>0?'active':''}" onclick="simHamster[${i}]=((simHamster[${i}]||0)+1)%3; buildSandbox(); calculate();">${simHamster[i]===2?HAMSTER_ICON_DOUBLE:(simHamster[i]===1?HAMSTER_ICON_SINGLE:'· Kein')}</button>
+                    <button class="wg-ctrl ${simSun[i]?'active':''}" onclick="simSun[${i}]=!simSun[${i}]; buildSandbox(); calculate();">☀️ ${simSun[i]?'An':'Aus'}</button>`;
                 grid.appendChild(row);
             }
         }
@@ -406,7 +287,7 @@
             for(let i = offset; i <= targetSteps; i++) {
                 const dIdx = (todayIdx + i) % 7;
                 let need = simClosed[i] ? 0 : p.needs[dIdx];
-                let icon = simClosed[i] ? ' <i class="ph ph-lock-simple"></i>' : '';
+                let icon = simClosed[i] ? ' 🔒' : '';
                 if(!simClosed[i]) {
                     const satNeed = p.needs[5];
                     if(simHamster[i] === 1) { need = Math.ceil((satNeed + need) / 2); icon = ' ' + HAMSTER_ICON_SINGLE; }
@@ -425,28 +306,10 @@
             rowsHtml += `<tr class="row-total"><td>Gesamtbedarf</td><td style="text-align:right;">${totalNeed}</td></tr><tr class="row-stock"><td>- Bestand</td><td style="text-align:right;">-${stock}</td></tr>`;
             document.getElementById('calc-table').innerHTML = rowsHtml;
 
-            // Einheit & Pressenumrechnung aus Config
-            const legacyKey = p.legacyKey;
-            const cfg = produktConfigMap[legacyKey] || {};
-            const pressenGroesse = cfg.pressenGroesse || null;
-            const aufschlag = cfg.teiggewichtAufschlag || 1;
-
             let displayVal = rawNeeded, unit = "BLECHE";
-            // Pressen-Box
-            const pressenBox = document.getElementById('pressen-box');
-            if (pressenGroesse && rawNeeded > 0) {
-                const charge = p.charge || 1;
-                const pressen = (rawNeeded * charge / pressenGroesse) * aufschlag;
-                const pressenGer = Math.ceil(pressen * 10) / 10;
-                const formel = aufschlag !== 1
-                    ? `${rawNeeded} Bl. × ${charge} ÷ ${pressenGroesse} × ${aufschlag} (Teiggewicht-Aufschlag)`
-                    : `${rawNeeded} Bl. × ${charge} ÷ ${pressenGroesse}`;
-                document.getElementById('pressen-zahl').innerText = pressenGer % 1 === 0 ? pressenGer : pressenGer.toFixed(1).replace('.', ',');
-                document.getElementById('pressen-formel').innerText = formel;
-                pressenBox.style.display = 'flex';
-            } else {
-                pressenBox.style.display = 'none';
-            }
+            if(p.unit === 1) { displayVal = (rawNeeded * 25/30) * 1.06; unit = "PRESSEN"; }
+            else if(p.unit === 2) { displayVal = rawNeeded * 20/30; unit = "PRESSEN"; }
+            else if(p.unit === 3) { displayVal = rawNeeded / 9; unit = "BRÜHST."; }
             document.getElementById('res-val').innerText = displayVal % 1 !== 0 ? displayVal.toFixed(1).replace('.', ',') : displayVal;
             document.getElementById('res-unit').innerText = unit;
             document.getElementById('result').style.display = 'block';
@@ -459,19 +322,12 @@
             const inp = document.getElementById('stock-input');
             // Inventur-Alter prüfen
             if (window.BOS_INVENTUR?.products) {
+                // Pro Produkt prüfen — nicht global
                 const legacyKey = window.BOS_STAMMDATEN?.[id]?.legacyKey;
-                // Erst produktspezifischen ts prüfen, sonst globalen neuesten
-                let checkTs = 0;
-                if (legacyKey && window.BOS_INVENTUR.products[legacyKey]?.ts) {
-                    checkTs = window.BOS_INVENTUR.products[legacyKey].ts;
-                } else {
-                    // Kein produktspezifischer ts → globalen neuesten nehmen
-                    for (const key in window.BOS_INVENTUR.products) {
-                        const ts = window.BOS_INVENTUR.products[key]?.ts || 0;
-                        if (ts > checkTs) checkTs = ts;
-                    }
-                }
-                if (checkTs > 0 && (Date.now() - checkTs) / 3600000 > 24) {
+                const prodTs = legacyKey
+                    ? (window.BOS_INVENTUR.products[legacyKey]?.ts || 0)
+                    : 0;
+                if (prodTs > 0 && (Date.now() - prodTs) / 3600000 > 24) {
                     inp.value = '';
                     inp.placeholder = '0';
                     inp.style.borderColor = 'var(--red)';
@@ -483,16 +339,8 @@
             inp.style.borderColor = '';
             inp.placeholder = 'Ist';
             document.getElementById('inventur-warn').style.display = 'none';
-            // Bestand aus Inventur laden — mit legacyKey
-            const legacyKey2 = window.BOS_STAMMDATEN?.[id]?.legacyKey;
-            if (legacyKey2 && window.BOS_INVENTUR?.products?.[legacyKey2]) {
-                const prod = window.BOS_INVENTUR.products[legacyKey2];
-                const bestand = prod.stock !== undefined ? prod.stock
-                    : (prod.locs ? prod.locs.reduce((a,b) => a+b, 0) : 0);
-                inp.value = bestand;
-            } else if (window.BOS_INVENTUR?.stocks?.[legacyKey2] !== undefined) {
-                inp.value = window.BOS_INVENTUR.stocks[legacyKey2];
-            }
+            if (window.BOS_INVENTUR?.stocks?.[id] !== undefined)
+                inp.value = window.BOS_INVENTUR.stocks[id];
             calculate();
         }
         window.onload = async function() {
@@ -500,9 +348,7 @@
             if (ok) init();
         };
     </script>
-  <script src="shell.js"></script>
-  <script>
-const SR_HILFE_TEXTE = {
+  <script src="shell.js">const SR_HILFE_TEXTE = {
   "de": {
     dir: "ltr",
     titel: "B\u00e4ckereiOS \u2013 Anleitung Schnellrechner",
@@ -596,7 +442,7 @@ function srRenderHilfe() {
 </div>
 
 <!-- Hilfe Button -->
-<button onclick="srOeffneHilfe()" style="position:fixed;bottom:130px;right:14px;width:36px;height:36px;border-radius:50%;background:#d49a36;color:#fff;font-size:1rem;font-weight:900;border:none;cursor:pointer;z-index:100;box-shadow:0 2px 8px rgba(212,154,54,0.4);">?</button>
+<button onclick="srOeffneHilfe()" style="position:fixed;bottom:74px;right:14px;width:36px;height:36px;border-radius:50%;background:#d49a36;color:#fff;font-size:1rem;font-weight:900;border:none;cursor:pointer;z-index:100;box-shadow:0 2px 8px rgba(212,154,54,0.4);">?</button>
 
 <style>
 .sr-lng { font-size:1.1rem;background:none;border:1.5px solid #e0d8c3;border-radius:6px;padding:3px 7px;cursor:pointer; }
