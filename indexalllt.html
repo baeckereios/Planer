@@ -874,15 +874,11 @@
 
     <!-- Statusstreifen -->
     <div class="status-strip">
-      <div class="status-item" style="flex-direction:column; align-items:flex-start; gap:1px;">
-        <span style="font-size:0.58rem; text-transform:uppercase; letter-spacing:0.8px; color:var(--dim); opacity:0.7;">Datensatz bis</span>
-        <span id="label-datum" style="font-weight:800; color:var(--text);">–</span>
+      <div class="status-item">
+        <div class="status-dot" id="dot-inventur"></div>
+        <span id="label-inventur">Inventur: –</span>
       </div>
       <button id="btn-einfach" onclick="toggleEinfachModus()" title="Ansicht wechseln">☰ Einfach</button>
-      <div class="status-item" style="flex-direction:column; align-items:flex-end; gap:1px;">
-        <span style="font-size:0.58rem; text-transform:uppercase; letter-spacing:0.8px; color:var(--dim); opacity:0.7; display:flex; align-items:center; gap:4px;"><span class="status-dot" id="dot-inventur"></span>Inventur von</span>
-        <span id="label-inventur" style="font-weight:800; color:var(--text);">–</span>
-      </div>
     </div>
 
     <!-- Tab Bar -->
@@ -1023,20 +1019,7 @@
     function buildStatus() {
       const pad = x => String(x).padStart(2, '0');
 
-      // Datensatz-Datum aus backmengen_db.json
-      fetch('backmengen_db.json', { cache: 'no-store' })
-        .then(r => r.json())
-        .then(db => {
-          if (Array.isArray(db) && db.length) {
-            const latest = [...db].sort((a, b) => b.datum.localeCompare(a.datum))[0].datum;
-            // Format: YYYY-MM-DD → DD.MM.YY
-            const p = latest.split('-');
-            document.getElementById('label-datum').textContent = p[2] + '.' + p[1] + '.' + p[0].slice(2);
-          }
-        })
-        .catch(() => { document.getElementById('label-datum').textContent = '?'; });
-
-      // Inventur
+      // Inventur — aus inventurdaten.js (BOS_INVENTUR)
       const dotInv = document.getElementById('dot-inventur');
       const lblInv = document.getElementById('label-inventur');
       if (typeof window.BOS_INVENTUR !== 'undefined' && window.BOS_INVENTUR.products) {
@@ -1051,15 +1034,18 @@
           const ok = diffH <= 24;
           dotInv.classList.toggle('ok', ok);
           dotInv.classList.toggle('warn', !ok);
-          lblInv.textContent = pad(inv.getDate()) + '.' + pad(inv.getMonth()+1) + '. ' + pad(inv.getHours()) + ':' + pad(inv.getMinutes());
+          lblInv.textContent = 'Inventur: ' + pad(inv.getHours()) + ':' + pad(inv.getMinutes()) + ' Uhr, '
+            + pad(inv.getDate()) + '.' + pad(inv.getMonth() + 1) + '.' + inv.getFullYear()
+            + '';
         } else {
           dotInv.classList.add('warn');
-          lblInv.textContent = 'Nicht erfasst';
+          lblInv.textContent = 'Inventur: Nicht erfasst';
         }
       } else {
         dotInv.classList.add('warn');
-        lblInv.textContent = 'Keine Daten';
+        lblInv.textContent = 'Inventur: Keine Daten';
       }
+
     }
 
     /* ── INIT ── */

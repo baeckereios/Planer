@@ -277,6 +277,13 @@ Format: {"produkte":{"schlawiner_gesamt_stueck":7968,"schlawiner_gesamt_bleche":
     <!-- ⑧ SPEICHERN -->
     <div class="card">
         <h2>⑦ Zusammenführen &amp; Speichern</h2>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.88rem;font-weight:700;padding:10px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:10px;">
+            <input type="checkbox" id="chk-erfassung" style="width:18px;height:18px;cursor:pointer;accent-color:#c07a10;">
+            <span>
+                📋 <strong>Erfassungskontrolle</strong>
+                <span style="display:block;font-size:0.75rem;font-weight:600;color:var(--text-muted,#64748b);">Zusätzlich eine HTML-Übersicht aller erfassten Produkte herunterladen</span>
+            </span>
+        </label>
         <button class="btn-merge" id="btnMerge" onclick="merge()" disabled>⬇️ Zusammenführen &amp; Herunterladen</button>
         <div class="summary" id="summary"></div>
     </div>
@@ -795,6 +802,97 @@ function merge() {
     a.href=url; a.download='backmengen_db.json';
     document.body.appendChild(a); a.click();
     document.body.removeChild(a); URL.revokeObjectURL(url);
+
+    // ── Erfassungskontrolle HTML ──────────────────────────
+    if (document.getElementById('chk-erfassung').checked) {
+        const quellen = [
+            { id: 'broetchen',  label: '🥐 Brötchen-Zettel',   prod: R.broetchen  },
+            { id: 'schlawiner', label: '🥖 Schlawiner-Liste',   prod: R.schlawiner },
+            { id: 'brot',       label: '🍞 Brot-Zettel',        prod: R.brot       },
+            { id: 'konditorei', label: '🍰 Konditorei-Zettel',  prod: R.konditorei },
+        ];
+
+        const fmtKey = k => k.replace(/_stueck$/,'').replace(/_bleche$/,' (Bl.)').replace(/_/g,' ');
+        const fmtVal = v => v === null ? '<span style="color:#ef4444;">ausgeschlossen</span>' : '<strong>' + v + '</strong>';
+
+        let sektionen = '';
+        quellen.forEach(q => {
+            if (!q.prod || uebersprungen.has(q.id)) {
+                sektionen += `<div class="sektion uebersprungen"><div class="sek-titel">${q.label}</div><div class="sek-leer">⏭ Übersprungen</div></div>`;
+                return;
+            }
+            const eintraege = Object.entries(q.prod);
+            if (!eintraege.length) {
+                sektionen += `<div class="sektion uebersprungen"><div class="sek-titel">${q.label}</div><div class="sek-leer">Keine Produkte</div></div>`;
+                return;
+            }
+            let zeilen = '';
+            eintraege.forEach(([k, v]) => {
+                const flag = flags[k];
+                let flagBadge = '';
+                if (flag) {
+                    if (flag.type === 'outlier_corrected') flagBadge = '<span class="badge badge-korr">korrigiert ' + flag.original + '→' + flag.corrected + '</span>';
+                    else if (flag.type === 'outlier_excluded') flagBadge = '<span class="badge badge-excl">ausgeschlossen</span>';
+                    else if (flag.type === 'outlier_accepted') flagBadge = '<span class="badge badge-ok">Ausreißer akzeptiert</span>';
+                }
+                zeilen += `<tr><td class="td-name">${fmtKey(k)}</td><td class="td-val">${fmtVal(v)}</td><td>${flagBadge}</td></tr>`;
+            });
+            sektionen += `<div class="sektion"><div class="sek-titel">${q.label} <span class="anzahl">${eintraege.length} Einträge</span></div><table class="prod-table"><tbody>${zeilen}</tbody></table></div>`;
+        });
+
+        const ausschlussFlags = [];
+        if (document.getElementById('flag_sondertag').checked) ausschlussFlags.push('🎉 Sondertag');
+        if (document.getElementById('flag_einschraenkung').checked) ausschlussFlags.push('🔧 Anlagenausfall');
+
+        const kontrollHTML = `<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Erfassungskontrolle · ${ctx.datum}</title>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; color: #1a1a1a; padding: 20px; max-width: 700px; margin: 0 auto; }
+  h1 { font-size: 1.3rem; font-weight: 800; margin: 0 0 4px; }
+  .meta { font-size: 0.82rem; color: #64748b; margin-bottom: 20px; }
+  .ausschluss { background: #fff8f0; border-left: 4px solid #e67e22; border-radius: 0 8px 8px 0; padding: 8px 14px; margin-bottom: 16px; font-size: 0.82rem; font-weight: 700; color: #92400e; }
+  .sektion { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  .sektion.uebersprungen { opacity: 0.5; }
+  .sek-titel { font-weight: 800; font-size: 0.92rem; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+  .anzahl { font-size: 0.72rem; font-weight: 600; background: #e2e8f0; border-radius: 20px; padding: 2px 9px; color: #475569; }
+  .sek-leer { color: #94a3b8; font-size: 0.82rem; font-style: italic; }
+  .prod-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .prod-table tr:not(:last-child) td { border-bottom: 1px solid #f1f5f9; }
+  .td-name { padding: 6px 4px; color: #475569; }
+  .td-val { padding: 6px 8px; text-align: right; font-weight: 700; min-width: 60px; }
+  .badge { font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
+  .badge-korr { background: #dbeafe; color: #1d4ed8; }
+  .badge-excl { background: #fee2e2; color: #991b1b; }
+  .badge-ok   { background: #dcfce7; color: #166534; }
+  .gesamt { background: #1e293b; color: #fff; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .gesamt-zahl { font-size: 1.8rem; font-weight: 900; color: #fbbf24; }
+  .gesamt-label { font-size: 0.75rem; color: #94a3b8; }
+  @media print { body { padding: 0; } }
+</style>
+</head>
+<body>
+<h1>📋 Erfassungskontrolle</h1>
+<div class="meta">${ctx.wochentag}, ${ctx.datum} · ${ctx.kontext.wetter || ''} ${ctx.kontext.temperatur ? ctx.kontext.temperatur + '°C' : ''}</div>
+${ausschlussFlags.length ? '<div class="ausschluss">⚠ ' + ausschlussFlags.join(' · ') + ' — Tag vom Durchschnitt ausgeschlossen</div>' : ''}
+<div class="gesamt">
+  <div><div class="gesamt-label">Erfasste Produkte gesamt</div><div class="gesamt-zahl">${Object.keys(prod).length}</div></div>
+  <div style="text-align:right;"><div class="gesamt-label">Datenbank nach Speicherung</div><div style="font-weight:800;font-size:1rem;">${db.length} Tage</div></div>
+</div>
+${sektionen}
+<div style="font-size:0.72rem;color:#94a3b8;margin-top:20px;text-align:center;">Generiert: ${new Date().toLocaleString('de-DE')}</div>
+</body></html>`;
+
+        const blobH = new Blob([kontrollHTML], {type:'text/html'});
+        const aH = document.createElement('a');
+        aH.href = URL.createObjectURL(blobH);
+        aH.download = 'erfassungskontrolle_' + ctx.datum + '.html';
+        document.body.appendChild(aH); aH.click();
+        document.body.removeChild(aH); URL.revokeObjectURL(aH.href);
+    }
 
     // Flagging-Statistik
     const flagCount = Object.keys(flags).length;
