@@ -837,7 +837,7 @@
         <span class="tab-icon"><i class="ph ph-calculator"></i></span>
         <span class="tab-label">Rechner</span>
       </button>
-      <button class="tab-btn" data-tab="brett" onclick="switchTab('brett', this); clearBrettBadge();" style="position:relative;">
+      <button class="tab-btn" data-tab="brett" onclick="switchTab('brett', this); clearBrettBadge(); buildBrett();" style="position:relative;">
         <span class="tab-icon" style="position:relative; display:inline-block;">
           <i class="ph ph-chat-circle-dots"></i>
           <span id="brett-badge" style="display:none; position:absolute; top:-4px; right:-6px; width:9px; height:9px; background:#ef4444; border-radius:50%; border:2px solid var(--surface);"></span>
@@ -966,10 +966,7 @@
       }
     }
 
-    // Init: Einfach-Modus aus localStorage
-    if (localStorage.getItem('BOS_EINFACH') === '1') {
-      applyEinfachModus(true);
-    }
+    // (Einfach-Modus wurde entfernt — ist jetzt die Standard-Startseite)
 
     /* ── THEME ── */
     function toggleTheme() {
@@ -1119,6 +1116,9 @@
     }
 
     window.onload = () => {
+      // Alten Einfach-Modus aus localStorage entfernen — nicht mehr gebraucht
+      localStorage.removeItem('BOS_EINFACH');
+
       const theme = localStorage.getItem('BOS_THEME') || 'light';
       document.documentElement.setAttribute('data-theme', theme);
       document.getElementById('theme-btn').innerText = theme === 'dark' ? '☀️ Hell' : '🌙 Dark';
