@@ -1,0 +1,87 @@
+[
+  {
+    "id": "buttercroissant_tk",
+    "name": "Butter-Croissant",
+    "lagertyp": "tk",
+    "lieferant": "BÄKO",
+    "bestelltage": [2, 4],
+    "gebinde": {
+      "form": "karton",
+      "inhalt_stueck": 60,
+      "inhalt_einheit": "Stück"
+    },
+    "soll_bestand": 5,
+    "soll_einheit": "karton",
+    "wird_produziert": true,
+    "produkt_config_key": "buttercroissant_stueck",
+    "hinweis": ""
+  },
+  {
+    "id": "schokocroissant_tk",
+    "name": "Schoko-Croissant",
+    "lagertyp": "tk",
+    "lieferant": "BÄKO",
+    "bestelltage": [2, 4],
+    "gebinde": {
+      "form": "karton",
+      "inhalt_stueck": 48,
+      "inhalt_einheit": "Stück"
+    },
+    "soll_bestand": 3,
+    "soll_einheit": "karton",
+    "wird_produziert": true,
+    "produkt_config_key": "",
+    "hinweis": ""
+  },
+  {
+    "id": "vollei_kuehl",
+    "name": "Vollei flüssig",
+    "lagertyp": "kuehl",
+    "lieferant": "",
+    "bestelltage": [1, 4],
+    "gebinde": {
+      "form": "eimer",
+      "inhalt_stueck": 10,
+      "inhalt_einheit": "kg"
+    },
+    "soll_bestand": 4,
+    "soll_einheit": "eimer",
+    "wird_produziert": false,
+    "produkt_config_key": "",
+    "hinweis": "Lieferant wechselt nach Preis"
+  },
+  {
+    "id": "weizenmehl_550",
+    "name": "Weizenmehl Type 550",
+    "lagertyp": "trocken",
+    "lieferant": "BÄKO",
+    "bestelltage": [2],
+    "gebinde": {
+      "form": "sack",
+      "inhalt_stueck": 25,
+      "inhalt_einheit": "kg"
+    },
+    "soll_bestand": 10,
+    "soll_einheit": "sack",
+    "wird_produziert": false,
+    "produkt_config_key": "",
+    "hinweis": ""
+  },
+  {
+    "id": "butter_kuehl",
+    "name": "Butter",
+    "lagertyp": "kuehl",
+    "lieferant": "BÄKO",
+    "bestelltage": [1, 3, 5],
+    "gebinde": {
+      "form": "karton",
+      "inhalt_stueck": 25,
+      "inhalt_einheit": "kg"
+    },
+    "soll_bestand": 3,
+    "soll_einheit": "karton",
+    "wird_produziert": false,
+    "produkt_config_key": "",
+    "hinweis": ""
+  }
+]

@@ -311,6 +311,15 @@ let uebersprungen = new Set();
 let outlierDecisions = {};
 let outlierKeys = [];
 let unbekannteProdukte = []; // { artNr, name, quelle }
+let produktConfig = []; // Global — sammelt alle Änderungen auf
+
+// produkt_config.json einmalig laden
+(async function() {
+    try {
+        const r = await fetch('../produkt_config.json', { cache: 'no-store' });
+        if (r.ok) produktConfig = await r.json();
+    } catch(e) { console.warn('produkt_config nicht geladen:', e.message); }
+})();
 
 // ── UNBEKANNTE PRODUKTE PANEL ─────────────────────────────
 function renderUnbekanntePanel() {
@@ -426,11 +435,13 @@ function skipBereich(b) {
 
 // ── PROMPT DYNAMISCH AUFBAUEN ─────────────────────────────
 async function buildPrompts() {
-    let config = [];
-    try {
-        const r = await fetch('../produkt_config.json', { cache: 'no-store' });
-        if (r.ok) config = await r.json();
-    } catch(e) { console.warn('Config nicht geladen:', e.message); return; }
+    let config = produktConfig.length ? produktConfig : [];
+    if (!config.length) {
+        try {
+            const r = await fetch('../produkt_config.json', { cache: 'no-store' });
+            if (r.ok) { config = await r.json(); produktConfig = config; }
+        } catch(e) { console.warn('Config nicht geladen:', e.message); return; }
+    }
 
     const AUSSCHLUSS = ['Schrippen GESAMT','Schrippen Teiglinge','Schrippen Teiglinge gefroren','Schlawiner GESAMT'];
 
@@ -900,6 +911,23 @@ ${sektionen}
     const exclCount = Object.values(flags).filter(f=>f.type==='outlier_excluded').length;
     const acptCount = Object.values(flags).filter(f=>f.type==='outlier_accepted').length;
 
+    // Neue Produkte in Config? Dann mitherunterladen
+    const neueProdukte = unbekannteProdukte.filter(function(u) {
+        return produktConfig.some(function(p) {
+            return p.name === u.name || (p.legacyKey && p.legacyKey.includes(
+                u.name.toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'')
+            ));
+        });
+    });
+    if (neueProdukte.length > 0) {
+        const blobC = new Blob([JSON.stringify(produktConfig, null, 2)], {type:'application/json'});
+        const aC = document.createElement('a');
+        aC.href = URL.createObjectURL(blobC);
+        aC.download = 'produkt_config.json';
+        document.body.appendChild(aC); aC.click();
+        document.body.removeChild(aC); URL.revokeObjectURL(aC.href);
+    }
+
     const s = document.getElementById('summary');
     s.className = 'summary show';
     s.innerHTML =
@@ -912,6 +940,7 @@ ${sektionen}
             : '✅ Keine Ausreißer — sauberer Datensatz<br>'
         ) +
         'Datenbank: <strong>' + db.length + ' Tage</strong><br>' +
+        (neueProdukte.length > 0 ? '📦 <strong>' + neueProdukte.length + ' neue Produkte</strong> → produkt_config.json ebenfalls hochladen!<br>' : '') +
         '<span style="color:#16a34a;font-size:0.8rem;">→ backmengen_db.json in den Stammordner hochladen!</span>';
 
 }
