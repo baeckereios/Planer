@@ -143,7 +143,6 @@
                 <span style="font-size:0.58rem;text-transform:uppercase;letter-spacing:0.8px;color:var(--dim,#6b7280);opacity:0.7;">Datensatz bis</span>
                 <span id="bos-label-datum" style="font-weight:800;font-size:0.68rem;">–</span>
             </div>
-            <div class="bos-status-item"><div class="bos-dot"></div><span>Inventur: Lade...</span></div>
             <div class="bos-status-item" style="flex-direction:column;align-items:flex-end;gap:1px;">
                 <span style="font-size:0.58rem;text-transform:uppercase;letter-spacing:0.8px;color:var(--dim,#6b7280);opacity:0.7;display:flex;align-items:center;gap:4px;"><span class="bos-dot" id="bos-dot-inv"></span>Inventur von</span>
                 <span id="bos-label-inv" style="font-weight:800;font-size:0.68rem;">–</span>

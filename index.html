@@ -431,6 +431,26 @@
     .einfach-kachel.wide .einfach-icon i { font-size: 1.6rem; }
     .einfach-kachel.wide .einfach-name { font-size: 0.82rem; }
 
+    /* Herzstück-Kachel */
+    @keyframes herz-pulse {
+      0%, 100% { box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 0 0 0 rgba(192,122,16,0); }
+      50%       { box-shadow: 0 8px 32px rgba(192,122,16,0.2), 0 0 0 7px rgba(192,122,16,0.13); }
+    }
+    .einfach-kachel.herzstueck {
+      border-color: rgba(192,122,16,0.35) !important;
+      background: rgba(255,250,240,0.95) !important;
+      animation: herz-pulse 3s ease-in-out infinite;
+      transform: scale(1.04);
+      z-index: 1;
+    }
+    [data-theme="dark"] .einfach-kachel.herzstueck {
+      background: rgba(60,45,20,0.75) !important;
+    }
+    .einfach-kachel.herzstueck .einfach-icon i { font-size: 2.4rem; }
+    .einfach-kachel.herzstueck .einfach-name { font-size: 0.82rem; }
+    .einfach-kachel.satellit { opacity: 0.75; }
+    .einfach-kachel.satellit:active { opacity: 1; transform: scale(0.96); }
+
     /* Admin */
     .einfach-kachel.admin-kachel { --kachel-color: #e67e22; }
 
@@ -539,47 +559,47 @@
   <div class="tab-view active" id="tab-start">
     <div style="padding: 16px 16px 8px;">
       <div class="einfach-grid" id="einfach-grid-main">
-      <a href="schnellrechner.html" class="einfach-kachel" style="--kachel-color:#c07a10;">
-        <div class="einfach-icon"><i class="ph-duotone ph-calculator"></i></div>
-        <div class="einfach-name">Schnellrechner</div>
-        <div class="einfach-sub">Produktionsmenge</div>
-      </a>
-      <a href="baguette_rechner.html" class="einfach-kachel" style="--kachel-color:#92400e;">
+      <a href="baguette_rechner.html" class="einfach-kachel satellit" style="--kachel-color:#92400e;">
         <div class="einfach-icon"><i class="ph-duotone ph-bread"></i></div>
         <div class="einfach-name">Stangenrechner</div>
         <div class="einfach-sub">Baguette &amp; Zwiebel</div>
       </a>
-      <a href="setup.html" class="einfach-kachel" style="--kachel-color:#1d4ed8;">
+      <a href="setup.html" class="einfach-kachel satellit" style="--kachel-color:#1d4ed8;">
         <div class="einfach-icon"><i class="ph-duotone ph-clipboard-text"></i></div>
         <div class="einfach-name">Produktionsplaner</div>
         <div class="einfach-sub">Schicht vorbereiten</div>
       </a>
-      <a href="baeko_bestellung/lager_inventur.html" class="einfach-kachel" style="--kachel-color:#065f46;">
+      <a href="baeko_bestellung/lager_inventur.html" class="einfach-kachel satellit" style="--kachel-color:#065f46;">
         <div class="einfach-icon"><i class="ph-duotone ph-package"></i></div>
         <div class="einfach-name">BÄKO Inventur</div>
         <div class="einfach-sub">Lager &amp; Bestellung</div>
       </a>
-      <a href="bestandsuebersicht.html" class="einfach-kachel" style="--kachel-color:#1e40af;">
-        <div class="einfach-icon"><i class="ph-duotone ph-snowflake"></i></div>
-        <div class="einfach-name">Bestände</div>
-        <div class="einfach-sub">Was ist im Froster?</div>
-      </a>
-      <a href="durchschnittsverbauch/14_tage_logbuch.html" class="einfach-kachel" style="--kachel-color:#7e22ce;">
-        <div class="einfach-icon"><i class="ph-duotone ph-calendar-dots"></i></div>
-        <div class="einfach-name">14-Tage Logbuch</div>
-        <div class="einfach-sub">Backmengen</div>
-      </a>
-      <a href="durchschnittsverbauch/wetter_planung.html" class="einfach-kachel" style="--kachel-color:#0369a1;">
+      <a href="durchschnittsverbauch/wetter_planung.html" class="einfach-kachel satellit" style="--kachel-color:#0369a1;">
         <div class="einfach-icon"><i class="ph-duotone ph-cloud-sun"></i></div>
         <div class="einfach-name">Wettervorschau</div>
         <div class="einfach-sub">7 Tage voraus</div>
       </a>
-      <a href="https://my.hidrive.com/share/0a5xcrfaf8" target="_blank" class="einfach-kachel" style="--kachel-color:#854d0e;">
+      <a href="schnellrechner.html" class="einfach-kachel herzstueck" style="--kachel-color:#c07a10;">
+        <div class="einfach-icon"><i class="ph-duotone ph-calculator"></i></div>
+        <div class="einfach-name">Schnellrechner</div>
+        <div class="einfach-sub">Produktionsmenge</div>
+      </a>
+      <a href="bestandsuebersicht.html" class="einfach-kachel satellit" style="--kachel-color:#1e40af;">
+        <div class="einfach-icon"><i class="ph-duotone ph-snowflake"></i></div>
+        <div class="einfach-name">Bestände</div>
+        <div class="einfach-sub">Was ist im Froster?</div>
+      </a>
+      <a href="durchschnittsverbauch/14_tage_logbuch.html" class="einfach-kachel satellit" style="--kachel-color:#7e22ce;">
+        <div class="einfach-icon"><i class="ph-duotone ph-calendar-dots"></i></div>
+        <div class="einfach-name">14-Tage Logbuch</div>
+        <div class="einfach-sub">Backmengen</div>
+      </a>
+      <a href="https://my.hidrive.com/share/0a5xcrfaf8" target="_blank" class="einfach-kachel satellit" style="--kachel-color:#854d0e;">
         <div class="einfach-icon"><i class="ph-duotone ph-folder-open"></i></div>
         <div class="einfach-name">Teamordner</div>
         <div class="einfach-sub">Geteilte Dokumente</div>
       </a>
-      <a href="produktion_melden.html" class="einfach-kachel" style="--kachel-color:#9f1239;">
+      <a href="produktion_melden.html" class="einfach-kachel satellit" style="--kachel-color:#9f1239;">
         <div class="einfach-icon"><i class="ph-duotone ph-megaphone"></i></div>
         <div class="einfach-name">Produktion melden</div>
         <div class="einfach-sub">Was kam rein?</div>

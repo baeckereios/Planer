@@ -1,6 +1,7 @@
 /**
- * BÄCKEREIOS - ZENTRALES FROSTER-GEHIRN V120
- * Revision: Container-Logik (Batch Size), Glättung und Frische-Wächter.
+ * BÄCKEREIOS - ZENTRALES FROSTER-GEHIRN V122
+ * Revision: Container-Logik (Batch Size), Glättung, Frische-Wächter 
+ * NEU: Bugfix in Slider-Logik (Crash-Test erst NACH der Umverteilung).
  */
 window.BOS_BRAIN = {
     calculateChain: function(prodId, session, plannedProd) {
@@ -84,18 +85,10 @@ window.BOS_BRAIN = {
         return { productId: prodId, productName: p.name, chain: results, isOk: allMandatoryCovered, maxDeficit: maxDeficit };
     },
 
-    // =========================================================
-    // AUTOMATISCHE PRODUKTIONSMENGEN-BERECHNUNG V2 (Container-Logik)
-    // 1. Berechnet Gesamtbedarf.
-    // 2. Teilt durch Gebindegröße (batchSize).
-    // 3. Verteilt Ladungen gleichmäßig.
-    // 4. Prüft auf Frische-Lücken und schiebt Ladungen bei Bedarf nach vorne.
-    // =========================================================
     calculateAutoPlanning: function(prodId, session) {
         if (!window.BOS_STAMMDATEN || !window.BOS_STAMMDATEN[prodId]) return [];
         const p = window.BOS_STAMMDATEN[prodId];
         
-        // --- 1. SETUP & DATEN ---
         const stock = (typeof session.inventory?.[prodId] === 'object')
                         ? (session.inventory[prodId].stock || 0)
                         : (session.inventory?.[prodId] || 0);
@@ -103,7 +96,6 @@ window.BOS_BRAIN = {
         const todayIdx  = session.startDayIdx ?? new Date().getDay();
         const targetDay = session.targetDays?.[prodId] || 1;
         
-        // Gebindegröße aus Stammdaten (Fallback auf 1)
         const BATCH = p.batchSize || 1; 
 
         const startStep  = (session.frosterDone && shortage === 0) ? 2 : 1;
@@ -111,7 +103,6 @@ window.BOS_BRAIN = {
         const totalSteps = rawSteps < 3 ? rawSteps + 7 : rawSteps;
         const prodDayIdxs = session.productionDays?.[prodId] || [];
 
-        // Hilfsfunktion Bedarf
         const getAdjustedNeed = (dIdx) => {
             const bosIdx = (dIdx === 0) ? 6 : dIdx - 1;
             const base   = p.needs[bosIdx] || 0;
@@ -124,8 +115,6 @@ window.BOS_BRAIN = {
             return Math.ceil(adj);
         };
 
-        // --- 2. GESAMTBEDARF ERMITTELN ---
-        // Wir simulieren den Verbrauch über die gesamte Zeitachse
         let totalConsumption = 0;
         const consumptions = [];
         for (let i = 0; i <= totalSteps; i++) {
@@ -138,17 +127,12 @@ window.BOS_BRAIN = {
         const effectiveStock = stock - shortage;
         const totalNeeded = Math.max(0, totalConsumption - effectiveStock);
         
-        // Ergebnis-Array initialisieren
         const planned = new Array(totalSteps + 1).fill(0);
 
-        // Welche Steps sind Produktionstage?
-        // (Wichtig: map speichert Step-Index für schnellen Zugriff)
         const prodSteps = []; 
         const seenDays = new Set();
-        for (let i = 0; i <= totalSteps; i++) { // Letzter Step (Target) ist nie Produktionstag
+        for (let i = 0; i <= totalSteps; i++) { 
              const dIdx = (todayIdx + i) % 7;
-             // Production möglich, wenn Tag gewählt UND (nicht Target-Tag ODER wir erlauben Prod am Target nicht)
-             // In der UI ist Target meist Abholtag. Wir produzieren bis i < totalSteps
              if (i < totalSteps && prodDayIdxs.includes(dIdx) && !seenDays.has(dIdx)) {
                  prodSteps.push(i);
                  seenDays.add(dIdx);
@@ -157,65 +141,34 @@ window.BOS_BRAIN = {
 
         if (totalNeeded === 0 || prodSteps.length === 0) return planned;
 
-        // --- 3. IN LADUNGEN (BATCHES) UMRECHNEN ---
         const totalBatches = Math.ceil(totalNeeded / BATCH);
         const numProdDays  = prodSteps.length;
 
-        // --- 4. VERTEILUNG (GLÄTTUNG) ---
-        // Basis-Ladungen pro Tag
         const baseBatchesPerDay = Math.floor(totalBatches / numProdDays);
         let remainder = totalBatches % numProdDays;
 
-        // Verteilung auf die Tage (Array speichert Anzahl Ladungen pro Prod-Tag)
         const batchesDistrib = new Array(numProdDays).fill(baseBatchesPerDay);
         
-        // Rest verteilen: Wir geben den Rest den SPÄTEREN Tagen (fürs Glätten besser)
-        // Beispiel: 13 Ladungen, 3 Tage -> 4, 4, 5
         for (let i = numProdDays - 1; i >= numProdDays - remainder; i--) {
             batchesDistrib[i]++;
         }
 
-        // Mapping: StepIndex -> Anzahl Ladungen
         const stepBatches = {};
         prodSteps.forEach((stepIdx, i) => {
             stepBatches[stepIdx] = batchesDistrib[i];
         });
 
-        // --- 5. DER FRISCHE-WÄCHTER (SIMULATION & KORREKTUR) ---
-        // Wir simulieren den Verlauf. Wenn wir ins Minus laufen, müssen wir
-        // eine Ladung von einem SPÄTEREN Tag nach VORNE holen.
-        
         let valid = false;
         let sanityCounter = 0;
 
-        while (!valid && sanityCounter < 20) {
+        while (!valid && sanityCounter < 50) { 
             valid = true;
             let currentRunStock = effectiveStock;
             
             for (let i = 0; i <= totalSteps; i++) {
-                // Verbrauch abziehen
-                currentRunStock -= consumptions[i];
-                
-                // Produktion draufrechnen (falls Produktionstag)
-                if (stepBatches[i]) {
-                    // Produktion wirkt für den Bestand NACH dem Verbrauch?
-                    // Im Planner gilt: stockAfterNeed = Start - Cons.
-                    // stockForTomorrow = stockAfterNeed + Planned.
-                    // Das heißt, Produktion füllt das Lager für MORGEN auf.
-                    // Wenn stockAfterNeed < 0 ist, ist es zu spät für heute.
-                    // Wir müssen also sicherstellen, dass wir VORHER schon genug hatten.
-                    
-                    // Wir addieren Produktion zum laufenden Bestand für den nächsten Step
-                    currentRunStock += (stepBatches[i] * BATCH);
-                }
+                let stockAfterNeed = currentRunStock - consumptions[i];
 
-                // CHECK: Sind wir im Minus?
-                if (currentRunStock < 0) {
-                    // PROBLEM! Wir haben eine Lücke.
-                    // Strategie: Hole eine Ladung vom LETZTEN Produktionstag, der noch Ladungen hat,
-                    // und schiebe sie auf den SPÄTESTEN Produktionstag VOR der Lücke.
-                    
-                    // 1. Spender finden (von hinten suchen)
+                if (stockAfterNeed < 0) {
                     let donorIdx = -1;
                     for (let d = numProdDays - 1; d >= 0; d--) {
                         if (batchesDistrib[d] > 0) {
@@ -224,46 +177,115 @@ window.BOS_BRAIN = {
                         }
                     }
 
-                    // 2. Empfänger finden (Produktionstag <= aktueller Step i)
-                    // Da Produktion erst für morgen wirkt, muss ProdTag < i sein, um Lücke bei i zu decken?
-                    // Wenn shortage bei Step i (stockAfterNeed < 0), brauchen wir mehr Startbestand bei i.
-                    // Das kommt aus Prod bei i-1.
-                    // Also suchen wir ProdTag < i.
                     let receiverIdx = -1;
                     for (let r = 0; r < numProdDays; r++) {
-                        if (prodSteps[r] <= i) { // Wir probieren es <= i, da Setup meist "Nachtschicht" impliziert
+                        if (prodSteps[r] < i) { 
                              receiverIdx = r;
                         } else {
                             break;
                         }
                     }
 
-                    // Kann man verschieben?
                     if (donorIdx > -1 && receiverIdx > -1 && donorIdx > receiverIdx) {
                         batchesDistrib[donorIdx]--;
                         batchesDistrib[receiverIdx]++;
                         
-                        // Map updaten
                         prodSteps.forEach((stepIdx, idx) => {
                             stepBatches[stepIdx] = batchesDistrib[idx];
                         });
                         
-                        valid = false; // Simulation neu starten
-                        break; // Break for-loop, restart while
-                    } else {
-                        // Keine Verschiebung möglich (Lücke ganz am Anfang oder alles schon vorne).
-                        // Dann müssen wir es akzeptieren (oder Gesamtmenge erhöhen, aber das ist hier nicht gewünscht).
+                        valid = false; 
+                        break; 
                     }
                 }
+                currentRunStock = stockAfterNeed + (stepBatches[i] ? stepBatches[i] * BATCH : 0);
             }
             sanityCounter++;
         }
 
-        // --- 6. OUTPUT GENERIEREN ---
         prodSteps.forEach((stepIdx, i) => {
             planned[stepIdx] = batchesDistrib[i] * BATCH;
         });
 
         return planned;
+    },
+
+    recalculateShift: function(prodId, session, currentPlan, changedStepIdx, newAmount) {
+        const p = window.BOS_STAMMDATEN[prodId];
+        if (!p) return null;
+
+        const BATCH = p.batchSize || 1;
+        
+        // Sicherstellen, dass der neue Wert ein Vielfaches der Batch-Size ist
+        let safeNewAmount = Math.max(0, Math.ceil(newAmount / BATCH) * BATCH);
+        
+        const oldAmount = currentPlan[changedStepIdx];
+        const delta = oldAmount - safeNewAmount; 
+
+        if (delta === 0) return currentPlan; 
+
+        // 1. Plan-Kopie erstellen (OHNE voreiligen Crash-Test!)
+        let testPlan = [...currentPlan];
+        testPlan[changedStepIdx] = safeNewAmount;
+        
+        // 2. Empfänger / Spender für die Differenz finden
+        let futureProdSteps = [];
+        const prodDayIdxs = session.productionDays?.[prodId] || [];
+        const todayIdx = session.startDayIdx ?? new Date().getDay();
+        
+        for (let i = changedStepIdx + 1; i < currentPlan.length; i++) {
+            let dIdx = (todayIdx + i) % 7;
+            if (prodDayIdxs.includes(dIdx) && i < currentPlan.length - 1) { 
+                futureProdSteps.push(i);
+            }
+        }
+
+        // Wenn wir reduzieren wollen (delta > 0), aber keine Folgetage mehr existieren -> Geht nicht!
+        if (delta > 0 && futureProdSteps.length === 0) {
+            return null;
+        }
+
+        // 3. Verteilung der Ladungen (Batches)
+        let batchesToDistribute = delta / BATCH;
+        
+        let sanity = 0;
+        while (batchesToDistribute !== 0 && sanity < 1000) {
+            let changedInLoop = false;
+            
+            for (let i = 0; i < futureProdSteps.length; i++) {
+                let step = futureProdSteps[i];
+                
+                if (batchesToDistribute > 0) {
+                    // Vorne abgezogen, hinten drauflegen
+                    testPlan[step] += BATCH;
+                    batchesToDistribute--;
+                    changedInLoop = true;
+                } else if (batchesToDistribute < 0) {
+                    // Vorne erhöht, hinten abziehen (aber nicht unter Null!)
+                    if (testPlan[step] >= BATCH) {
+                        testPlan[step] -= BATCH;
+                        batchesToDistribute++;
+                        changedInLoop = true;
+                    }
+                }
+                
+                if (batchesToDistribute === 0) break;
+            }
+            
+            // Wenn wir nichts mehr umverteilen konnten (z.B. alle Folgetage auf 0), brechen wir ab.
+            // Die "Überproduktion" bleibt dann einfach am aktuellen Tag stehen.
+            if (!changedInLoop) break; 
+            
+            sanity++;
+        }
+
+        // 4. JETZT ERST DER CRASH-TEST! 
+        // Hat unsere Reduzierung + Verteilung irgendwo eine Lücke gerissen?
+        let finalCheck = this.calculateChain(prodId, session, testPlan);
+        if (!finalCheck.isOk) {
+            return null; // Das Minimum wurde wirklich unterschritten.
+        }
+
+        return testPlan;
     }
 };

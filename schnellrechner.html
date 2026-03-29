@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="systemdesign.css">
     <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
     <script src="produktions_gehirn.js"></script>
+    <script src="froster_gehirn.js"></script>
     <script src="inventurdaten.js"></script>
     <script src="translations.js"></script>
     <script src="baeko_bestand.js"></script>
@@ -70,6 +71,13 @@
         .calc-table .row-total { border-top: 2px solid var(--border); padding-top: 15px; }
         .calc-table .row-stock { color: var(--green); border-bottom: none; }
         .calc-table .row-missing { color: var(--red); font-weight: 800; }
+        /* Produktionstag-Checkbox */
+        .prod-cb { appearance:none; -webkit-appearance:none; width:20px; height:20px; border:2px solid var(--border-s); border-radius:6px; background:var(--surface); cursor:pointer; flex-shrink:0; transition:0.15s; vertical-align:middle; margin-right:8px; }
+        .prod-cb:checked { background:var(--amber); border-color:var(--amber); background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 10 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 4l3 3 5-6' stroke='white' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:center; }
+        .prod-cb:disabled { opacity:0.3; cursor:not-allowed; }
+        .prod-cb-spacer { display:inline-block; width:20px; height:20px; margin-right:8px; flex-shrink:0; }
+        @keyframes cb-hint { 0%,100% { border-color:var(--border-s); } 60% { border-color:var(--amber); box-shadow:0 0 0 3px rgba(192,122,16,0.18); } }
+        .prod-cb:not(:checked) { animation: cb-hint 1.6s ease 0.5s 3; }
     </style>
 </head>
 <body>
@@ -89,9 +97,12 @@
         <button class="sr-tab-btn" id="sr-btn-pressen" onclick="srSetTab('pressen')"><i class="ph ph-arrows-left-right" style="margin-right:6px;"></i>PressenRechner</button>
     </div>
 
-    <!-- ── TAB: SCHNELLRECHNER ── -->
     <div class="sr-tab-view aktiv" id="sr-tab-schnell">
     <div class="container">
+        <div id="session-queue" style="display:none; margin-bottom:16px; background:var(--surface); border:2px solid var(--green); border-radius:16px; padding:16px 16px 8px; box-shadow:0 4px 16px var(--shadow);">
+            <div class="label" style="margin-bottom:10px; text-align:left; color:var(--green); font-size:0.7rem;">📋 Im Plan:</div>
+            <div id="session-queue-items"></div>
+        </div>
         <div class="card">
             <div class="label" id="lang-calcToday">Heute ist:</div>
             <div id="strip-today" class="strip-today"></div>
@@ -115,7 +126,10 @@
                 <input type="number" id="missing-input" placeholder="..." oninput="calculate()" style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--border-s); text-align:center; font-weight:800;">
             </div>
 
-            <div class="label" id="lang-calcReach">Reicht bis einschl.:</div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                <div class="label" id="lang-calcReach" style="margin-bottom:0;">Reicht bis einschl.:</div>
+                <button id="btn-erweitert" onclick="toggleErweitertePlanung()" style="font-family:inherit; font-size:0.68rem; font-weight:800; padding:5px 10px; border-radius:8px; border:1.5px solid var(--border-s); background:var(--surface2); color:var(--dim); cursor:pointer; letter-spacing:0.5px;"><span>2 Wochen</span></button>
+            </div>
             <div id="strip-target" class="strip"></div>
 
             <button class="btn-toggle-extras" onclick="toggleExtras()" id="lang-calcExtras"><i class="ph ph-gear" style="margin-right:6px;"></i>Feiertage & besondere Tage</button>
@@ -136,8 +150,8 @@
                 <div class="label" id="lang-calcResult">Produktion nötig:</div>
                 <div class="res-val" id="res-val">0</div>
                 <div style="font-weight:900; font-size:1.1rem; color:var(--dim); margin-bottom:20px;" id="res-unit">BLECHE</div>
+                <div style="font-size:0.7rem;font-weight:800;color:var(--amber);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;opacity:0.85;">☑ Produktionstage anklicken:</div>
                 <table class="calc-table" id="calc-table"></table>
-                <!-- Pressen-Umrechnung (erscheint wenn pressenGroesse gesetzt) -->
                 <div class="pressen-box" id="pressen-box" style="display:none;">
                     <div>
                         <div class="pressen-label">→ Umrechnung in Pressen</div>
@@ -148,12 +162,19 @@
                         <div class="pressen-einheit">Pressen</div>
                     </div>
                 </div>
+                <div id="plan-actions" style="margin-top:20px; padding-top:16px; border-top:2px dashed var(--border);">
+                    <div style="font-size:0.72rem; font-weight:800; color:var(--dim); letter-spacing:1.2px; text-transform:uppercase; margin-bottom:10px; opacity:0.7;">Produktionstage</div>
+                    <div id="autoplan-preview" style="margin-bottom:12px;"></div>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <button onclick="addToSession()" style="width:100%;padding:16px;border-radius:14px;border:2px solid var(--border-s);background:var(--surface2);color:var(--text);font-weight:900;font-size:0.9rem;cursor:pointer;font-family:inherit;letter-spacing:0.5px;">➕ Weiteres Produkt</button>
+                        <button onclick="goToPlaner()" style="width:100%;padding:16px;border-radius:14px;border:none;background:var(--green);color:white;font-weight:900;font-size:1rem;cursor:pointer;font-family:inherit;letter-spacing:0.5px;box-shadow:0 4px 0 #2d8a50;">📋 Zum Planer →</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     </div>
 
-    <!-- ── TAB: PRESSENRECHNER ── -->
     <div class="sr-tab-view" id="sr-tab-pressen">
     <div class="container">
         <div style="font-size:0.85rem; color:var(--dim); line-height:1.6; margin-bottom:16px;">
@@ -164,7 +185,6 @@
     </div>
 
     <div class="sr-tab-view aktiv" id="sr-tab-schnell-hilfe">
-    <!-- HILFE -->
     <div style="max-width:600px; margin: 0 auto 40px; padding: 0 20px;">
         <div style="border-top: 2px dashed var(--border); padding-top: 16px;">
             <div onclick="toggleHilfe()" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; margin-bottom:0;">
@@ -176,7 +196,7 @@
 
                 <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
                     <span style="color:var(--text);"><i class="ph ph-calendar" style="margin-right:4px;"></i>Heute & Reicht bis</span><br>
-                    Wähle den aktuellen Wochentag. Dann wählst du, bis einschließlich welchem Tag die Ware reichen soll — maximal bis Dienstag der Folgewoche.
+                    Wähle den aktuellen Wochentag. Dann wählst du, bis einschließlich welchem Tag die Ware reichen soll — standardmäßig bis Dienstag der Folgewoche. Mit dem Button <b>2 Wochen</b> neben dem Label lässt sich die Planung auf zwei Wochen erweitern.
                 </div>
 
                 <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
@@ -201,9 +221,7 @@
             </div>
         </div>
     </div>
-    </div><!-- end sr-tab-schnell-hilfe -->
-
-    <script>
+    </div><script>
         // ── TAB-UMSCHALTER ───────────────────────────────────
         function srSetTab(tab) {
             ['schnell','pressen'].forEach(function(t) {
@@ -263,6 +281,202 @@
         let targetOffset = null;
         let frosterDone = null;
         let simClosed = {}, simHamster = {};
+        let erweitertePlanung = false;
+        function toggleErweitertePlanung() {
+            erweitertePlanung = !erweitertePlanung;
+            const btn = document.getElementById('btn-erweitert');
+            btn.style.borderColor = erweitertePlanung ? 'var(--amber)' : 'var(--border-s)';
+            btn.style.color = erweitertePlanung ? 'var(--amber)' : 'var(--dim)';
+            btn.style.background = erweitertePlanung ? 'rgba(192,122,16,0.08)' : 'var(--surface2)';
+            btn.querySelector('span').textContent = erweitertePlanung ? '2 Wochen ✓' : '2 Wochen';
+            if (targetOffset !== null && frosterDone !== null) {
+                const normalMax = 8 - todayIdx;
+                if (!erweitertePlanung && targetOffset > normalMax) {
+                    targetOffset = normalMax;
+                    targetIdx = (todayIdx + targetOffset) % 7;
+                }
+            }
+            renderTarget(); buildSandbox(); calculate();
+        }
+
+        // ── PLAN-SESSION ────────────────────────────────────────────────────
+        let planSession = null;
+        let currentProdDaySteps = [];
+        const DAY_NAMES_LONG = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+        const DAY_NAMES_SHORT_MON = ["Mo","Di","Mi","Do","Fr","Sa","So"]; // Mon-based
+
+        function resetProdTage() {
+            currentProdDaySteps = [];
+        }
+
+        function onProdTagCheck(i, checked) {
+            if (checked) {
+                if (!currentProdDaySteps.includes(i)) currentProdDaySteps.push(i);
+            } else {
+                currentProdDaySteps = currentProdDaySteps.filter(s => s !== i);
+            }
+            currentProdDaySteps.sort((a,b) => a-b);
+            autoCalcPreview();
+        }
+
+        function buildTempSess(id, stock, missing, offset) {
+            // Baut eine minimale Session die BOS_BRAIN.calculateAutoPlanning versteht
+            initPlanSession();
+            const targetDayJS  = (targetIdx + 1) % 7;
+            const prodDaysJS   = currentProdDaySteps.map(i => ((todayIdx + i) + 1) % 7);
+            const weekCfg = {};
+            for (let d = 0; d < 7; d++) weekCfg[d] = { status: 'auf' };
+            for (let i = offset; i <= targetOffset; i++) {
+                if (simClosed[i]) weekCfg[(todayIdx + i + 1) % 7] = { status: 'zu' };
+            }
+            return {
+                station: 'SCHNELLRECHNER',
+                startDayIdx:     (todayIdx + 1) % 7,
+                selectedIds:     [id],
+                inventory:       { [id]: stock },
+                frosterDone:     frosterDone,
+                targetDays:      { [id]: targetDayJS },
+                productionDays:  { [id]: prodDaysJS },
+                shortages:       { [id]: missing },
+                weekConfig:      weekCfg,
+                autoPlanning:    true,
+                prePlanned:      {}
+            };
+        }
+
+        function autoCalcPreview() {
+            const id = document.getElementById('prod-select').value;
+            const preview = document.getElementById('autoplan-preview');
+            if (!id || frosterDone === null || targetOffset === null) { preview.innerHTML = ''; return; }
+            if (currentProdDaySteps.length === 0) {
+                preview.innerHTML = '<div style="color:var(--dim);font-size:0.82rem;text-align:center;padding:8px 0;">Keinen Produktionstag gewählt</div>';
+                return;
+            }
+            if (!window.BOS_BRAIN?.calculateAutoPlanning) {
+                preview.innerHTML = '<div style="color:var(--dim);font-size:0.82rem;text-align:center;padding:8px 0;">Gehirn lädt…</div>';
+                return;
+            }
+            const stock   = parseInt(document.getElementById('stock-input').value) || 0;
+            const missing = parseInt(document.getElementById('missing-input').value) || 0;
+            const offset  = frosterDone ? 2 : 1;
+            const tempSess = buildTempSess(id, stock, missing, offset);
+            const pre = window.BOS_BRAIN.calculateAutoPlanning(id, tempSess);
+            window._currentPrePlanned = pre;
+
+            const jsDays = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+            let html = '';
+            currentProdDaySteps.forEach(i => {
+                const dJsIdx = ((todayIdx + i) + 1) % 7;
+                const amt = (pre && pre[i] != null) ? pre[i] : 0;
+                html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface2);border-radius:10px;margin-bottom:6px;border:1.5px solid ${amt > 0 ? 'var(--amber)' : 'var(--green)'};">
+                    <span style="font-weight:800;font-size:0.9rem;">${DAY_NAMES_LONG[(todayIdx + i) % 7]}</span>
+                    <span style="font-family:'Fraunces',serif;font-weight:900;font-size:1.5rem;color:${amt > 0 ? 'var(--amber)' : 'var(--green)'};">${amt > 0 ? amt : '✓'}</span>
+                    <span style="font-size:0.72rem;font-weight:700;color:var(--dim);">${amt > 0 ? 'Bleche' : 'Bestand reicht'}</span>
+                </div>`;
+            });
+            preview.innerHTML = html;
+        }
+
+        function initPlanSession() {
+            if (!planSession) {
+                const weekCfg = {};
+                for (let d = 0; d < 7; d++) weekCfg[d] = { status: 'auf' };
+                planSession = {
+                    station: 'SCHNELLRECHNER',
+                    startDayIdx: (todayIdx + 1) % 7,
+                    selectedIds: [], inventory: {}, frosterDone: null,
+                    targetDays: {}, productionDays: {}, shortages: {},
+                    weekConfig: weekCfg, autoPlanning: true, prePlanned: {}
+                };
+            }
+        }
+
+        function addToSession() {
+            const id = document.getElementById('prod-select').value;
+            if (!id || frosterDone === null || targetOffset === null || currentProdDaySteps.length === 0) {
+                alert('Bitte Produkt, Froster-Status, Zieldatum und mindestens einen Produktionstag wählen.');
+                return;
+            }
+            const stock   = parseInt(document.getElementById('stock-input').value) || 0;
+            const missing = parseInt(document.getElementById('missing-input').value) || 0;
+            const offset  = frosterDone ? 2 : 1;
+            const tempSess = buildTempSess(id, stock, missing, offset);
+            const pre = window.BOS_BRAIN?.calculateAutoPlanning
+                ? window.BOS_BRAIN.calculateAutoPlanning(id, tempSess)
+                : [];
+
+            if (!planSession.selectedIds.includes(id)) planSession.selectedIds.push(id);
+            planSession.inventory[id]      = stock;
+            planSession.frosterDone        = frosterDone;
+            planSession.targetDays[id]     = tempSess.targetDays[id];
+            planSession.productionDays[id] = tempSess.productionDays[id];
+            planSession.shortages[id]      = missing;
+            planSession.prePlanned[id]     = pre;
+            planSession.startDayIdx        = tempSess.startDayIdx;
+            Object.assign(planSession.weekConfig, tempSess.weekConfig);
+            renderSessionQueue();
+            resetForm();
+        }
+
+        function resetForm() {
+            document.getElementById('prod-select').value = '';
+            document.getElementById('stock-input').value = '';
+            document.getElementById('missing-input').value = '';
+            document.getElementById('extra-order-input').value = '';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('inventur-warn').style.display = 'none';
+            targetOffset = null; targetIdx = null;
+            currentProdDaySteps = [];
+            document.getElementById('missing-tomorrow-area').style.display = frosterDone ? 'block' : 'none';
+            resetProdTage();
+            renderTarget();
+            window.scrollTo({ top: 52, behavior: 'smooth' });
+        }
+
+        function renderSessionQueue() {
+            const qDiv = document.getElementById('session-queue');
+            const iDiv = document.getElementById('session-queue-items');
+            if (!planSession || planSession.selectedIds.length === 0) { qDiv.style.display = 'none'; return; }
+            qDiv.style.display = 'block';
+            const jsDays = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+            iDiv.innerHTML = planSession.selectedIds.map(id => {
+                const p = window.BOS_STAMMDATEN[id];
+                const tLabel = jsDays[planSession.targetDays[id]] || '?';
+                const pdLabel = (planSession.productionDays[id] || []).map(d => jsDays[d]).join(', ');
+                const total = (planSession.prePlanned[id] || []).reduce((a,b) => a+b, 0);
+                return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 2px;border-bottom:1px solid var(--border-s);">
+                    <div>
+                        <div style="font-weight:800;font-size:0.88rem;">${p.name}</div>
+                        <div style="font-size:0.7rem;color:var(--dim);margin-top:2px;">bis ${tLabel} · 📅 ${pdLabel}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span style="font-family:'Fraunces',serif;font-weight:900;font-size:1.2rem;color:var(--amber);">${total} Bl.</span>
+                        <button onclick="removeFromSession('${id}')" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:1.1rem;padding:4px;">✕</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function removeFromSession(id) {
+            if (!planSession) return;
+            planSession.selectedIds = planSession.selectedIds.filter(i => i !== id);
+            ['inventory','targetDays','productionDays','shortages','prePlanned'].forEach(k => delete planSession[k][id]);
+            if (planSession.selectedIds.length === 0) planSession = null;
+            renderSessionQueue();
+        }
+
+        function goToPlaner() {
+            const id = document.getElementById('prod-select').value;
+            const hasOpenProduct = id && frosterDone !== null && targetOffset !== null && currentProdDaySteps.length > 0;
+            if (hasOpenProduct) addToSession();
+            if (!planSession || planSession.selectedIds.length === 0) {
+                alert('Bitte mindestens ein Produkt mit Produktionstag konfigurieren.');
+                return;
+            }
+            localStorage.setItem('BOS_SESSION', JSON.stringify(planSession));
+            window.location.href = 'planer.html';
+        }
+
         const HAMSTER_ICON_SINGLE = '🐹';
         const HAMSTER_ICON_DOUBLE = '🐹<span style="font-size:1.25em; margin-left:-2px;">🐹</span>';
         let produktConfigMap = {}; // legacyKey → {pressenGroesse, teiggewichtAufschlag}
@@ -314,7 +528,12 @@
                 p.className = `pill ${i === todayIdx ? 'active' : ''}`;
                 p.style.cssText = 'min-width:unset; font-size:0.8rem;';
                 p.innerText = d;
-                p.onclick = () => { todayIdx = i; resetTarget(); renderToday(); renderTarget(); buildSandbox(); calculate(); };
+                p.onclick = () => {
+                    if (planSession && planSession.selectedIds.length > 0) {
+                        if (!confirm('Wochentag ändern setzt den laufenden Plan zurück. Fortfahren?')) return;
+                        planSession = null; renderSessionQueue();
+                    }
+                    todayIdx = i; resetTarget(); currentProdDaySteps = []; resetProdTage(); renderToday(); renderTarget(); buildSandbox(); calculate(); };
                 c.appendChild(p);
             });
         }
@@ -333,7 +552,7 @@
             const offset = frosterDone ? 2 : 1;
             if (targetOffset === null) resetTarget();
 
-            const maxOffset = 8 - todayIdx; // immer Dienstag der Folgewoche
+            const maxOffset = (8 - todayIdx) + (erweitertePlanung ? 7 : 0);
             for (let i = offset; i <= maxOffset; i++) {
                 const dIdx = (todayIdx + i) % 7;
                 const p = document.createElement('div');
@@ -363,7 +582,7 @@
         function buildSandbox() {
             const grid = document.getElementById('sandbox-grid'); grid.innerHTML = '';
             const dayNames = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
-            const sbMax = 8 - todayIdx;
+            const sbMax = (8 - todayIdx) + (erweitertePlanung ? 7 : 0);
             for(let i = 1; i <= sbMax; i++) {
                 let dIdx = (todayIdx + i) % 7;
                 const row = document.createElement('div'); row.className = 'wg-row';
@@ -375,6 +594,7 @@
         }
 
         function setFroster(v) {
+            currentProdDaySteps = [];
             frosterDone = v;
             document.getElementById('f-yes').classList.toggle('active', v);
             document.getElementById('f-no').classList.toggle('active', !v);
@@ -403,18 +623,30 @@
                 rowsHtml += `<tr class="row-missing"><td>${missLabel}</td><td style="text-align:right;">${missing}</td></tr>`;
             }
 
-            for(let i = offset; i <= targetSteps; i++) {
+            for(let i = 1; i <= targetSteps; i++) {
                 const dIdx = (todayIdx + i) % 7;
+                const coveredByFroster = (i < offset); // Froster deckt diesen Tag ab
                 let need = simClosed[i] ? 0 : p.needs[dIdx];
                 let icon = simClosed[i] ? ' <i class="ph ph-lock-simple"></i>' : '';
-                if(!simClosed[i]) {
+                if(!simClosed[i] && !coveredByFroster) {
                     const satNeed = p.needs[5];
                     if(simHamster[i] === 1) { need = Math.ceil((satNeed + need) / 2); icon = ' ' + HAMSTER_ICON_SINGLE; }
                     else if(simHamster[i] === 2) { need = satNeed; icon = ' ' + HAMSTER_ICON_DOUBLE; }
-
                 }
-                totalNeed += need;
-                rowsHtml += `<tr style="${simClosed[i]?'opacity:0.4; text-decoration:line-through;':''}"><td>${dayNamesLong[dIdx]}${icon}</td><td style="text-align:right;">${need}</td></tr>`;
+                if (!coveredByFroster) totalNeed += need;
+                // Checkbox: immer (außer Sonntag und geschlossene Tage)
+                const isSo = dIdx === 6;
+                const cbChecked = currentProdDaySteps.includes(i) ? 'checked' : '';
+                const cbHtml = (!isSo && !simClosed[i])
+                    ? `<input type="checkbox" class="prod-cb" ${cbChecked} onchange="onProdTagCheck(${i}, this.checked)">`
+                    : `<span class="prod-cb-spacer"></span>`;
+                const rowStyle = coveredByFroster
+                    ? 'opacity:0.45; font-style:italic;'
+                    : simClosed[i] ? 'opacity:0.4; text-decoration:line-through;' : '';
+                const needDisplay = coveredByFroster
+                    ? `<span style="font-size:0.75rem;color:var(--green);">❄️ Froster</span>`
+                    : need;
+                rowsHtml += `<tr style="${rowStyle}"><td style="display:flex;align-items:center;gap:0;">${cbHtml}${dayNamesLong[dIdx]}${icon}</td><td style="text-align:right;">${needDisplay}</td></tr>`;
             }
 
             if (extraOrder > 0) {
@@ -450,10 +682,13 @@
             document.getElementById('res-val').innerText = displayVal % 1 !== 0 ? displayVal.toFixed(1).replace('.', ',') : displayVal;
             document.getElementById('res-unit').innerText = unit;
             document.getElementById('result').style.display = 'block';
+            autoCalcPreview();
         }
 
         function toggleExtras() { const a = document.getElementById('extras-area'); a.style.display = a.style.display==='none'?'block':'none'; }
         function syncStock() {
+            currentProdDaySteps = [];
+            resetProdTage();
             const id = document.getElementById('prod-select').value;
             if (!id) return;
             const inp = document.getElementById('stock-input');
@@ -505,42 +740,42 @@
 const SR_HILFE_TEXTE = {
   "de": {
     dir: "ltr",
-    titel: "B\u00e4ckereiOS \u2013 Anleitung Schnellrechner",
+    titel: "BäckereiOS – Anleitung Schnellrechner",
     schritte: [
-      ["Schritt 1: Wochentag pr\u00fcfen","Ganz oben siehst du die Wochentage. Das System w\u00e4hlt automatisch den heutigen Tag. Vergewissere dich kurz, ob der richtige Tag markiert ist.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">HEUTE IST:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Mi</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Do</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fr</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Sa</div></div>"],
-      ["Schritt 2: Produkt w\u00e4hlen & Bestand eintragen","W\u00e4hle das Produkt aus dem Dropdown. Trage rechts den aktuellen Bestand ein. Bei roter Warnung: Inventur ist \u00e4lter als 24 Std. \u2014 Bestand manuell nachz\u00e4hlen.",""],
-      ["Schritt 3: Froster-Status festlegen","Zwingend erforderlich \u2014 ohne diese Eingabe rechnet der Rechner nicht.\n\u2744\ufe0f FROSTER FERTIG: Die Ware f\u00fcr morgen liegt bereits im Froster \u2014 morgiger Bedarf ist gedeckt.\n\u274c NOCH NICHT: Die Produktion f\u00fcr morgen steht noch aus.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">STATUS F\u00dcR MORGEN:</div>"],
-      ["Schritt 4: Ziel-Tag w\u00e4hlen & Ergebnis lesen","W\u00e4hle unter \"REICHT BIS EINSCHL.\" den Tag bis zu dem der Bestand reichen soll. Der Rechner zeigt dir die genaue Fehlmenge die du produzieren musst.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">REICHT BIS EINSCHL.:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fr</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Sa</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">So</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Mo</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Di</div></div>"],
+      ["Schritt 1: Wochentag prüfen","Ganz oben siehst du die Wochentage. Das System wählt automatisch den heutigen Tag. Vergewissere dich kurz, ob der richtige Tag markiert ist.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">HEUTE IST:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Mi</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Do</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fr</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Sa</div></div>"],
+      ["Schritt 2: Produkt wählen & Bestand eintragen","Wähle das Produkt aus dem Dropdown. Trage rechts den aktuellen Bestand ein. Bei roter Warnung: Inventur ist älter als 24 Std. — Bestand manuell nachzählen.",""],
+      ["Schritt 3: Froster-Status festlegen","Zwingend erforderlich — ohne diese Eingabe rechnet der Rechner nicht.\n❄️ FROSTER FERTIG: Die Ware für morgen liegt bereits im Froster — morgiger Bedarf ist gedeckt.\n❌ NOCH NICHT: Die Produktion für morgen steht noch aus.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">STATUS FÜR MORGEN:</div>"],
+      ["Schritt 4: Ziel-Tag wählen & Ergebnis lesen","Wähle unter \"REICHT BIS EINSCHL.\" den Tag bis zu dem der Bestand reichen soll. Der Rechner zeigt dir die genaue Fehlmenge die du produzieren musst.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">REICHT BIS EINSCHL.:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fr</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Sa</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">So</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Mo</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Di</div></div>"],
     ]
   },
   "en": {
     dir: "ltr",
-    titel: "B\u00e4ckereiOS \u2013 Quick Calculator Guide",
+    titel: "BäckereiOS – Quick Calculator Guide",
     schritte: [
       ["Step 1: Check the weekday","At the top you see the days of the week. The system automatically selects today. Quickly check that the correct day is highlighted.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">TODAY IS:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Wed</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Thu</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fri</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Sat</div></div>"],
-      ["Step 2: Select product & enter stock","Choose the product from the dropdown. Enter the current stock on the right. If you see a red warning, the inventory is older than 24 hours \u2014 count manually.",""],
-      ["Step 3: Set freezer status","Required \u2014 the calculator will not work without this.\n\u2744\ufe0f FREEZER DONE: Tomorrows items are already in the freezer \u2014 demand is covered.\n\u274c NOT YET: Production for tomorrow is still pending.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">STATUS FOR TOMORROW:</div>"],
+      ["Step 2: Select product & enter stock","Choose the product from the dropdown. Enter the current stock on the right. If you see a red warning, the inventory is older than 24 hours — count manually.",""],
+      ["Step 3: Set freezer status","Required — the calculator will not work without this.\n❄️ FREEZER DONE: Tomorrows items are already in the freezer — demand is covered.\n❌ NOT YET: Production for tomorrow is still pending.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">STATUS FOR TOMORROW:</div>"],
       ["Step 4: Choose target day & read result","Under \"LASTS UNTIL INCL.\" choose the day the stock should last until. The calculator shows the exact shortage you need to produce.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">LASTS UNTIL INCL.:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fri</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Sat</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Sun</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Mon</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Tue</div></div>"],
     ]
   },
   "ar": {
     dir: "rtl",
-    titel: "B\u00e4ckereiOS \u2013 \u062f\u0644\u064a\u0644 \u0627\u0644\u062d\u0627\u0633\u0628\u0629 \u0627\u0644\u0633\u0631\u064a\u0639\u0629",
+    titel: "BäckereiOS – دليل الحاسبة السريعة",
     schritte: [
-      ["\u0627\u0644\u062e\u0637\u0648\u0629 \u0627\u0644\u0623\u0648\u0644\u0649: \u062a\u0623\u0643\u062f \u0645\u0646 \u0627\u0644\u064a\u0648\u0645","\u0641\u0648\u06af \u0628\u0627\u0644\u062d\u0627\u0633\u0628\u0629 \u0627\u0644\u0633\u0631\u064a\u0639\u0629 \u0631\u0627\u062d \u062a\u0634\u0648\u0641 \u0623\u064a\u0627\u0645 \u0627\u0644\u0623\u0633\u0628\u0648\u0639. \u0627\u0644\u0646\u0638\u0627\u0645 \u0639\u0627\u062f\u0629 \u064a\u062e\u062a\u0627\u0631 \u0627\u0644\u064a\u0648\u0645 \u0627\u0644\u062d\u0627\u0644\u064a \u062a\u0644\u0642\u0627\u0626\u064a\u0627\u064b. \u0628\u0633 \u062a\u0623\u0643\u062f \u0628\u0633\u0631\u0639\u0629 \u0625\u0630\u0627 \u0627\u0644\u064a\u0648\u0645 \u0627\u0644\u0635\u062d\u064a\u062d \u0645\u062a\u0623\u0634\u0631 \u0628\u0644\u0648\u0646 \u0645\u062e\u062a\u0644\u0641.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">HEUTE IST: (\u0627\u0644\u064a\u0648\u0645 \u0647\u0648)</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Mi</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Do</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fr</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Sa</div></div>"],
-      ["\u0627\u0644\u062e\u0637\u0648\u0629 \u0627\u0644\u062b\u0627\u0646\u064a\u0629: \u0627\u062e\u062a\u0627\u0631 \u0627\u0644\u0645\u0646\u062a\u062c \u0648\u0627\u0643\u062a\u0628 \u0627\u0644\u0631\u0635\u064a\u062f \u0627\u0644\u062d\u0627\u0644\u064a","\u0627\u062e\u062a\u0627\u0631 \u0627\u0644\u0645\u0646\u062a\u062c \u0627\u0644\u0644\u064a \u062a\u0631\u064a\u062f\u0647 \u0645\u0646 \u0627\u0644\u0642\u0627\u0626\u0645\u0629. \u0627\u0643\u062a\u0628 \u0639\u0644\u0649 \u0627\u0644\u062c\u0647\u0629 \u0627\u0644\u0643\u0645\u064a\u0629 \u0627\u0644\u0645\u0648\u062c\u0648\u062f\u0629 \u0647\u0633\u0647 \u0628\u0627\u0644\u0645\u062e\u0632\u0646. \u0625\u0630\u0627 \u0634\u0641\u062a \u062a\u062d\u0630\u064a\u0631 \u0623\u062d\u0645\u0631: \u0627\u0644\u062c\u0631\u062f \u0623\u0642\u062f\u0645 \u0645\u0646 24 \u0633\u0627\u0639\u0629 \u2014 \u0644\u0627\u0632\u0645 \u062a\u062d\u0633\u0628 \u064a\u062f\u0648\u064a.",""],
-      ["\u0627\u0644\u062e\u0637\u0648\u0629 \u0627\u0644\u062b\u0627\u0644\u062b\u0629: \u062d\u062f\u062f \u062d\u0627\u0644\u0629 \u0627\u0644\u0641\u0631\u064a\u0632\u0631 (\u0636\u0631\u0648\u0631\u064a \u062c\u062f\u0627\u064b!)","\u0644\u0627\u0632\u0645 \u062a\u062f\u0648\u0633 \u0639\u0644\u0649 \u0648\u0627\u062d\u062f \u0645\u0646 \u0627\u0644\u0632\u0631\u064a\u0646\u060c \u0648\u0628\u062f\u0648\u0646\u0647\u0627 \u0627\u0644\u062d\u0627\u0633\u0628\u0629 \u0645\u0627 \u0631\u0627\u062d \u062a\u062d\u0633\u0628 \u0623\u064a \u0634\u064a\u0621:\n\u2744\ufe0f FROSTER FERTIG (\u0627\u0644\u0641\u0631\u064a\u0632\u0631 \u062c\u0627\u0647\u0632): \u0628\u0636\u0627\u0639\u0629 \u0628\u0627\u062c\u0631 \u062c\u0627\u0647\u0632\u0629 \u0628\u0627\u0644\u0641\u0631\u064a\u0632\u0631.\n\u274c NOCH NICHT (\u0628\u0639\u062f): \u0628\u0639\u062f\u0643 \u0645\u0627 \u0645\u0633\u0648\u064a \u0625\u0646\u062a\u0627\u062c \u0628\u0627\u062c\u0631.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">STATUS F\u00dcR MORGEN: (\u062d\u0627\u0644\u0629 \u0628\u0627\u062c\u0631)</div>"],
-      ["\u0627\u0644\u062e\u0637\u0648\u0629 \u0627\u0644\u0631\u0627\u0628\u0639\u0629: \u0627\u062e\u062a\u0627\u0631 \u064a\u0648\u0645 \u0627\u0644\u0647\u062f\u0641 \u0648\u0627\u062d\u0633\u0628 \u0627\u0644\u0646\u0642\u0635","\u062c\u0648\u0647 \"REICHT BIS EINSCHL.\" \u062a\u062d\u062f\u062f \u0644\u064a\u0648\u0645 \u0627\u0644\u0644\u064a \u062a\u0631\u064a\u062f \u0627\u0644\u0631\u0635\u064a\u062f \u064a\u0643\u0641\u064a\u0643 \u0625\u0644\u0647. \u0627\u0644\u0646\u0638\u0627\u0645 \u0631\u0627\u062d \u064a\u0637\u0644\u0639\u0644\u0643 \u0628\u0627\u0644\u0636\u0628\u0637 \u0634\u06af\u062f \u0635\u0648\u0627\u0646\u064a \u0628\u0639\u062f \u0644\u0627\u0632\u0645 \u062a\u0646\u062a\u062c.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">REICHT BIS EINSCHL.: (\u064a\u0643\u0641\u064a \u0644\u062d\u062f)</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fr</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Sa</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">So</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Mo</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Di</div></div>"],
+      ["الخطوة الأولى: تأكد من اليوم","فوگ بالحاسبة السريعة راح تشوف أيام الأسبوع. النظام عادة يختار اليوم الحالي تلقائياً. بس تأكد بسرعة إذا اليوم الصحيح متأشر بلون مختلف.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">HEUTE IST: (اليوم هو)</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Mi</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Do</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fr</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Sa</div></div>"],
+      ["الخطوة الثانية: اختار المنتج واكتب الرصيد الحالي","اختار المنتج اللي تريده من القائمة. اكتب على الجهة الكمية الموجودة هسه بالمخزن. إذا شفت تحذير أحمر: الجرد أقدم من 24 ساعة — لازم تحسب يدوي.",""],
+      ["الخطوة الثالثة: حدد حالة الفريزر (ضروري جداً!)","لازم تدوس على واحد من الزرين، وبدونها الحاسبة ما راح تحسب أي شيء:\n❄️ FROSTER FERTIG (الفريزر جاهز): بضاعة باجر جاهزة بالفريزر.\n❌ NOCH NICHT (بعد): بعدك ما مسوي إنتاج باجر.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">STATUS FÜR MORGEN: (حالة باجر)</div>"],
+      ["الخطوة الرابعة: اختار يوم الهدف واحسب النقص","جوه \"REICHT BIS EINSCHL.\" تحدد ليوم اللي تريد الرصيد يكفيك إله. النظام راح يطلعلک بالضبط شگد صواني بعد لازم تنتج.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">REICHT BIS EINSCHL.: (يكفي لحد)</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fr</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Sa</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">So</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Mo</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Di</div></div>"],
     ]
   },
   "vi": {
     dir: "ltr",
-    titel: "B\u00e4ckereiOS \u2013 H\u01b0\u1edbng d\u1eabn M\u00e1y t\u00ednh nhanh",
+    titel: "BäckereiOS – Hướng dẫn Máy tính nhanh",
     schritte: [
-      ["B\u01b0\u1edbc 1: Ki\u1ec3m tra ng\u00e0y trong tu\u1ea7n","\u1ede tr\u00ean c\u00f9ng b\u1ea1n th\u1ea5y c\u00e1c ng\u00e0y trong tu\u1ea7n. H\u1ec7 th\u1ed1ng t\u1ef1 \u0111\u1ed9ng ch\u1ecdn ng\u00e0y h\u00f4m nay. H\u00e3y ki\u1ec3m tra nhanh xem ng\u00e0y \u0111\u00fang c\u00f3 \u0111\u01b0\u1ee3c \u0111\u00e1nh d\u1ea5u kh\u00f4ng.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">H\u00d4M NAY L\u00c0:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Th4</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Th5</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Th6</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">T7</div></div>"],
-      ["B\u01b0\u1edbc 2: Ch\u1ecdn s\u1ea3n ph\u1ea9m v\u00e0 nh\u1eadp s\u1ed1 l\u01b0\u1ee3ng t\u1ed3n kho","Ch\u1ecdn s\u1ea3n ph\u1ea9m t\u1eeb danh s\u00e1ch. Nh\u1eadp s\u1ed1 l\u01b0\u1ee3ng hi\u1ec7n c\u00f3 v\u00e0o \u00f4 b\u00ean ph\u1ea3i. N\u1ebfu c\u00f3 c\u1ea3nh b\u00e1o \u0111\u1ecf: ki\u1ec3m k\u00ea c\u0169 h\u01a1n 24 gi\u1edd \u2014 h\u00e3y \u0111\u1ebfm l\u1ea1i th\u1ee7 c\u00f4ng.",""],
-      ["B\u01b0\u1edbc 3: \u0110\u1eb7t tr\u1ea1ng th\u00e1i t\u1ee7 \u0111\u00f4ng (B\u1eaft bu\u1ed9c!)","B\u1eaft bu\u1ed9c \u2014 m\u00e1y t\u00ednh s\u1ebd kh\u00f4ng ho\u1ea1t \u0111\u1ed9ng n\u1ebfu kh\u00f4ng c\u00f3 b\u01b0\u1edbc n\u00e0y.\n\u2744\ufe0f FROSTER FERTIG: H\u00e0ng cho ng\u00e0y mai \u0111\u00e3 c\u00f3 trong t\u1ee7 \u0111\u00f4ng.\n\u274c NOCH NICHT: Ch\u01b0a s\u1ea3n xu\u1ea5t cho ng\u00e0y mai.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">TR\u1ea0NG TH\u00c1I CHO NG\u00c0Y MAI:</div>"],
-      ["B\u01b0\u1edbc 4: Ch\u1ecdn ng\u00e0y m\u1ee5c ti\u00eau v\u00e0 \u0111\u1ecdc k\u1ebft qu\u1ea3","Trong m\u1ee5c \"REICHT BIS EINSCHL.\" ch\u1ecdn ng\u00e0y b\u1ea1n mu\u1ed1n h\u00e0ng \u0111\u1ee7 d\u00f9ng \u0111\u1ebfn. M\u00e1y t\u00ednh s\u1ebd hi\u1ec3n th\u1ecb ch\u00ednh x\u00e1c s\u1ed1 l\u01b0\u1ee3ng b\u1ea1n c\u1ea7n s\u1ea3n xu\u1ea5t th\u00eam.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">\u0110\u1ee6 D\u00d9NG \u0110\u1ebeN:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">T6</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">T7</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">CN</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">T2</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">T3</div></div>"],
+      ["Bước 1: Kiểm tra ngày trong tuần","Ở trên cùng bạn thấy các ngày trong tuần. Hệ thống tự động chọn ngày hôm nay. Hãy kiểm tra nhanh xem ngày đúng có được đánh dấu không.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">HÔM NAY LÀ:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Th4</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Th5</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Th6</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">T7</div></div>"],
+      ["Bước 2: Chọn sản phẩm và nhập số lượng tồn kho","Chọn sản phẩm từ danh sách. Nhập số lượng hiện có vào ô bên phải. Nếu có cảnh báo đỏ: kiểm kê cũ hơn 24 giờ — hãy đếm lại thủ công.",""],
+      ["Bước 3: Đặt trạng thái tủ đông (Bắt buộc!)","Bắt buộc — máy tính sẽ không hoạt động nếu không có bước này.\n❄️ FROSTER FERTIG: Hàng cho ngày mai đã có trong tủ đông.\n❌ NOCH NICHT: Chưa sản xuất cho ngày mai.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">TRẠNG THÁI CHO NGÀY MAI:</div>"],
+      ["Bước 4: Chọn ngày mục tiêu và đọc kết quả","Trong mục \"REICHT BIS EINSCHL.\" chọn ngày bạn muốn hàng đủ dùng đến. Máy tính sẽ hiển thị chính xác số lượng bạn cần sản xuất thêm.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">ĐỦ DÙNG ĐẾN:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">T6</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">T7</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">CN</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">T2</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">T3</div></div>"],
     ]
   },
 };
@@ -578,7 +813,6 @@ function srRenderHilfe() {
 }
 </script>
 
-<!-- Hilfe Modal -->
 <div id="sr-hilfe-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;overflow-y:auto;" onclick="if(event.target===this)srSchliesseHilfe()">
     <div style="background:var(--surface,#fff);border-radius:16px 16px 0 0;max-width:680px;margin:40px auto 0;padding:20px 16px 40px;min-height:60vh;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
@@ -595,7 +829,6 @@ function srRenderHilfe() {
     </div>
 </div>
 
-<!-- Hilfe Button -->
 <button onclick="srOeffneHilfe()" style="position:fixed;bottom:130px;right:14px;width:36px;height:36px;border-radius:50%;background:#d49a36;color:#fff;font-size:1rem;font-weight:900;border:none;cursor:pointer;z-index:100;box-shadow:0 2px 8px rgba(212,154,54,0.4);">?</button>
 
 <style>
