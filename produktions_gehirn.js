@@ -173,13 +173,14 @@ const GEHIRN = {
                 batchSize: prod.batchSize || 1,
                 station:   prod.station   || 'Nachtschicht',
                 unit:      prod.unit      ?? 0,
-                sun:       0, // bewusst 0 — Wettergehirn übernimmt das später
-                // Zusätzliche Felder für moderne Tools
+                sun:       0,
                 legacyKey: key,
                 einheit:   prod.einheit   || 'stueck',
                 charge:    prod.charge    || 1,
                 backTage:  prod.backTage  || [],
-                filialeProdukt: prod.filialeProdukt || false
+                filialeProdukt: prod.filialeProdukt || false,
+                lagerort:  prod.lagerort  || null,
+                frosterliste: prod.frosterliste ?? true
             };
         });
 

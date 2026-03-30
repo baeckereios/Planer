@@ -39,7 +39,9 @@
     "charge": 20,
     "legacyKey": "hasenberger_stueck",
     "hinweis": null,
-    "einheit": "bleche",
+    "einheit": "Bleche",
+    "lagerort": "",
+    "frosterliste": true,
     "backTage": [
       0,
       1,

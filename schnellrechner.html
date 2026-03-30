@@ -43,10 +43,8 @@
         .card { background: var(--surface); border: 2px solid var(--border); border-radius: 24px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 20px var(--shadow); }
         .label { font-size: 0.75rem; font-weight: 900; color: var(--amber); letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase; text-align: center; }
 
-        .strip-today { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 20px; }
         .strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 20px; flex-wrap: nowrap; }
         .pill { min-width: 48px; height: 48px; border-radius: 12px; border: 2px solid var(--border-s); background: var(--surface); font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; }
-        .pill.active { border-color: var(--amber); background: var(--amber); color: white; }
         .pill.target { border-color: var(--green); background: var(--green); color: white; }
         .pill.in-range { border-color: var(--green); background: rgba(77,184,122,0.15); color: var(--green); }
         .pill.is-closed { border-color: var(--red); color: var(--red); background: rgba(201,74,74,0.1); text-decoration: line-through; cursor: not-allowed; opacity: 0.6; }
@@ -104,8 +102,19 @@
             <div id="session-queue-items"></div>
         </div>
         <div class="card">
-            <div class="label" id="lang-calcToday">Heute ist:</div>
-            <div id="strip-today" class="strip-today"></div>
+            
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; padding:12px 18px; background:var(--surface2); border-radius:16px; border:1.5px solid var(--border-s);">
+                <div class="label" id="lang-calcToday" style="margin-bottom:0; font-size:0.8rem;">Startpunkt / Heute:</div>
+                <select id="today-select" onchange="changeToday(this.value)" style="padding:10px 16px; border-radius:12px; border:2px solid var(--border-s); font-weight:900; font-family:inherit; background:var(--surface); color:var(--text); outline:none; cursor:pointer; font-size:0.9rem;">
+                    <option value="0">Montag</option>
+                    <option value="1">Dienstag</option>
+                    <option value="2">Mittwoch</option>
+                    <option value="3">Donnerstag</option>
+                    <option value="4">Freitag</option>
+                    <option value="5">Samstag</option>
+                    <option value="6">Sonntag</option>
+                </select>
+            </div>
 
             <div style="display:grid; grid-template-columns: 1fr 80px; gap:10px; margin-bottom:20px; width:100%; overflow:hidden;">
                 <select id="prod-select" onchange="syncStock()" style="padding:15px; border-radius:12px; border:2px solid var(--border-s); font-weight:800; font-family:inherit; background:var(--surface); color:var(--text); min-width:0;">
@@ -196,7 +205,7 @@
 
                 <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
                     <span style="color:var(--text);"><i class="ph ph-calendar" style="margin-right:4px;"></i>Heute & Reicht bis</span><br>
-                    Wähle den aktuellen Wochentag. Dann wählst du, bis einschließlich welchem Tag die Ware reichen soll — standardmäßig bis Dienstag der Folgewoche. Mit dem Button <b>2 Wochen</b> neben dem Label lässt sich die Planung auf zwei Wochen erweitern.
+                    Wähle den aktuellen Wochentag aus dem Dropdown. Dann wählst du in der Leiste, bis einschließlich welchem Tag die Ware reichen soll. Mit dem Button <b>2 Wochen</b> neben dem Label lässt sich die Planung auf zwei Wochen erweitern.
                 </div>
 
                 <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
@@ -210,6 +219,7 @@
                     Aktivierbar pro Tag in den Feiertags-Einstellungen.<br>
                     <b>🐹 Einfach</b> = Mittelwert aus Samstagsmenge und normaler Tagesmenge<br>
                     <b>🐹🐹 Ultra</b> = volle Samstagsmenge — maximale Produktion<br>
+                    <b>🚀 Eskalation</b> = Doppelter Tagesbedarf (an Samstagen zum Schutz 1.5-fach)<br>
                     Nochmal klicken deaktiviert den Hamster wieder.
                 </div>
 
@@ -282,6 +292,7 @@
         let frosterDone = null;
         let simClosed = {}, simHamster = {};
         let erweitertePlanung = false;
+
         function toggleErweitertePlanung() {
             erweitertePlanung = !erweitertePlanung;
             const btn = document.getElementById('btn-erweitert');
@@ -303,7 +314,7 @@
         let planSession = null;
         let currentProdDaySteps = [];
         const DAY_NAMES_LONG = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
-        const DAY_NAMES_SHORT_MON = ["Mo","Di","Mi","Do","Fr","Sa","So"]; // Mon-based
+        const DAY_NAMES_SHORT_MON = ["Mo","Di","Mi","Do","Fr","Sa","So"]; 
 
         function resetProdTage() {
             currentProdDaySteps = [];
@@ -320,15 +331,20 @@
         }
 
         function buildTempSess(id, stock, missing, offset) {
-            // Baut eine minimale Session die BOS_BRAIN.calculateAutoPlanning versteht
             initPlanSession();
             const targetDayJS  = (targetIdx + 1) % 7;
             const prodDaysJS   = currentProdDaySteps.map(i => ((todayIdx + i) + 1) % 7);
             const weekCfg = {};
-            for (let d = 0; d < 7; d++) weekCfg[d] = { status: 'auf' };
-            for (let i = offset; i <= targetOffset; i++) {
-                if (simClosed[i]) weekCfg[(todayIdx + i + 1) % 7] = { status: 'zu' };
+            
+            for (let d = 0; d < 7; d++) weekCfg[d] = { status: 'auf', hamster: 0 };
+            
+            const maxOffset = (8 - todayIdx) + (erweitertePlanung ? 7 : 0);
+            for (let i = 1; i <= maxOffset; i++) {
+                const jsIdx = ((todayIdx + i) + 1) % 7;
+                if (simClosed[i]) weekCfg[jsIdx].status = 'zu';
+                if (simHamster[i]) weekCfg[jsIdx].hamster = simHamster[i]; 
             }
+
             return {
                 station: 'SCHNELLRECHNER',
                 startDayIdx:     (todayIdx + 1) % 7,
@@ -363,10 +379,8 @@
             const pre = window.BOS_BRAIN.calculateAutoPlanning(id, tempSess);
             window._currentPrePlanned = pre;
 
-            const jsDays = ['So','Mo','Di','Mi','Do','Fr','Sa'];
             let html = '';
             currentProdDaySteps.forEach(i => {
-                const dJsIdx = ((todayIdx + i) + 1) % 7;
                 const amt = (pre && pre[i] != null) ? pre[i] : 0;
                 html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface2);border-radius:10px;margin-bottom:6px;border:1.5px solid ${amt > 0 ? 'var(--amber)' : 'var(--green)'};">
                     <span style="font-weight:800;font-size:0.9rem;">${DAY_NAMES_LONG[(todayIdx + i) % 7]}</span>
@@ -380,7 +394,7 @@
         function initPlanSession() {
             if (!planSession) {
                 const weekCfg = {};
-                for (let d = 0; d < 7; d++) weekCfg[d] = { status: 'auf' };
+                for (let d = 0; d < 7; d++) weekCfg[d] = { status: 'auf', hamster: 0 }; 
                 planSession = {
                     station: 'SCHNELLRECHNER',
                     startDayIdx: (todayIdx + 1) % 7,
@@ -479,9 +493,9 @@
 
         const HAMSTER_ICON_SINGLE = '🐹';
         const HAMSTER_ICON_DOUBLE = '🐹<span style="font-size:1.25em; margin-left:-2px;">🐹</span>';
-        let produktConfigMap = {}; // legacyKey → {pressenGroesse, teiggewichtAufschlag}
+        const HAMSTER_ICON_TRIPLE = '🚀'; 
+        let produktConfigMap = {};
 
-        // DIE VERMISSTE FUNKTION
         function applyLang() {
             const l = localStorage.getItem('BOS_LANG_CODE') || 'de';
             if (!window.BOS_LANG) return;
@@ -498,14 +512,14 @@
             applyLang();
             renderToday();
             buildSandbox();
-            // produkt_config.json laden für pressenGroesse/teiggewichtAufschlag
             fetch('produkt_config.json', { cache: 'no-store' })
                 .then(r => r.json())
                 .then(cfg => {
                     cfg.forEach(p => {
                         if (p.legacyKey) produktConfigMap[p.legacyKey] = {
                             pressenGroesse: p.pressenGroesse || null,
-                            teiggewichtAufschlag: p.teiggewichtAufschlag || null
+                            teiggewichtAufschlag: p.teiggewichtAufschlag || null,
+                            einheit: p.einheit || null
                         };
                     });
                 }).catch(() => {});
@@ -513,7 +527,6 @@
             const sel = document.getElementById('prod-select');
             Object.keys(window.BOS_STAMMDATEN).forEach(id => {
                 const p = window.BOS_STAMMDATEN[id];
-                // Nur anzeigen wenn schnellrechnerRelevant=true (oder nicht gesetzt = alle anzeigen für Rückwärtskompatibilität)
                 if (p.schnellrechnerRelevant === false) return;
                 const opt = document.createElement('option'); opt.value = id; opt.innerText = p.name;
                 sel.appendChild(opt);
@@ -521,21 +534,24 @@
         }
 
         function renderToday() {
-            const c = document.getElementById('strip-today'); c.innerHTML = '';
-            const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-            days.forEach((d, i) => {
-                const p = document.createElement('div');
-                p.className = `pill ${i === todayIdx ? 'active' : ''}`;
-                p.style.cssText = 'min-width:unset; font-size:0.8rem;';
-                p.innerText = d;
-                p.onclick = () => {
-                    if (planSession && planSession.selectedIds.length > 0) {
-                        if (!confirm('Wochentag ändern setzt den laufenden Plan zurück. Fortfahren?')) return;
-                        planSession = null; renderSessionQueue();
-                    }
-                    todayIdx = i; resetTarget(); currentProdDaySteps = []; resetProdTage(); renderToday(); renderTarget(); buildSandbox(); calculate(); };
-                c.appendChild(p);
-            });
+            document.getElementById('today-select').value = todayIdx;
+        }
+
+        function changeToday(val) {
+            if (planSession && planSession.selectedIds.length > 0) {
+                if (!confirm('Wochentag ändern setzt den laufenden Plan zurück. Fortfahren?')) {
+                    document.getElementById('today-select').value = todayIdx;
+                    return;
+                }
+                planSession = null; renderSessionQueue();
+            }
+            todayIdx = parseInt(val);
+            resetTarget(); 
+            currentProdDaySteps = []; 
+            resetProdTage(); 
+            renderTarget(); 
+            buildSandbox(); 
+            calculate();
         }
 
         function resetTarget() {
@@ -573,12 +589,6 @@
             }
         }
 
-        function isDayInRange(s, t, c) {
-            let s1 = s, t1 = t, c1 = c;
-            if (t1 < s1) t1 += 7; if (c1 < s1) c1 += 7;
-            return c1 >= s1 && c1 <= t1;
-        }
-
         function buildSandbox() {
             const grid = document.getElementById('sandbox-grid'); grid.innerHTML = '';
             const dayNames = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
@@ -588,7 +598,7 @@
                 const row = document.createElement('div'); row.className = 'wg-row';
                 row.innerHTML = `<div class="wg-day">${dayNames[dIdx].substring(0,2)}</div>
                     <button class="wg-ctrl ${simClosed[i]?'is-zu':''}" onclick="simClosed[${i}]=!simClosed[${i}]; buildSandbox(); renderTarget(); calculate();">${simClosed[i]?'<i class="ph ph-lock-simple"></i> ZU':'AUF'}</button>
-                    <button class="wg-ctrl ${(simHamster[i]||0)>0?'active':''}" onclick="simHamster[${i}]=((simHamster[${i}]||0)+1)%3; buildSandbox(); calculate();">${simHamster[i]===2?HAMSTER_ICON_DOUBLE:(simHamster[i]===1?HAMSTER_ICON_SINGLE:'· Kein')}</button>`;
+                    <button class="wg-ctrl ${(simHamster[i]||0)>0?'active':''}" onclick="simHamster[${i}]=((simHamster[${i}]||0)+1)%4; buildSandbox(); calculate();">${simHamster[i]===3?HAMSTER_ICON_TRIPLE:(simHamster[i]===2?HAMSTER_ICON_DOUBLE:(simHamster[i]===1?HAMSTER_ICON_SINGLE:'· Kein'))}</button>`;
                 grid.appendChild(row);
             }
         }
@@ -623,30 +633,57 @@
                 rowsHtml += `<tr class="row-missing"><td>${missLabel}</td><td style="text-align:right;">${missing}</td></tr>`;
             }
 
-            for(let i = 1; i <= targetSteps; i++) {
+            for(let i = 0; i <= targetSteps; i++) {
                 const dIdx = (todayIdx + i) % 7;
-                const coveredByFroster = (i < offset); // Froster deckt diesen Tag ab
-                let need = simClosed[i] ? 0 : p.needs[dIdx];
+                const coveredByFroster = (i < offset); 
+                
+                let need = (i === 0 || simClosed[i]) ? 0 : p.needs[dIdx];
                 let icon = simClosed[i] ? ' <i class="ph ph-lock-simple"></i>' : '';
-                if(!simClosed[i] && !coveredByFroster) {
+                
+                if(i > 0 && !simClosed[i] && !coveredByFroster) {
                     const satNeed = p.needs[5];
                     if(simHamster[i] === 1) { need = Math.ceil((satNeed + need) / 2); icon = ' ' + HAMSTER_ICON_SINGLE; }
                     else if(simHamster[i] === 2) { need = satNeed; icon = ' ' + HAMSTER_ICON_DOUBLE; }
+                    else if(simHamster[i] === 3) { 
+                        need = (dIdx === 5) ? Math.ceil(satNeed * 1.5) : (need * 2); 
+                        icon = ' ' + HAMSTER_ICON_TRIPLE; 
+                    }
                 }
-                if (!coveredByFroster) totalNeed += need;
-                // Checkbox: immer (außer Sonntag und geschlossene Tage)
+                
+                if (!coveredByFroster && i > 0) totalNeed += need;
+                
                 const isSo = dIdx === 6;
                 const cbChecked = currentProdDaySteps.includes(i) ? 'checked' : '';
                 const cbHtml = (!isSo && !simClosed[i])
                     ? `<input type="checkbox" class="prod-cb" ${cbChecked} onchange="onProdTagCheck(${i}, this.checked)">`
                     : `<span class="prod-cb-spacer"></span>`;
-                const rowStyle = coveredByFroster
+                
+                const textStyle = (coveredByFroster || i === 0)
                     ? 'opacity:0.45; font-style:italic;'
                     : simClosed[i] ? 'opacity:0.4; text-decoration:line-through;' : '';
-                const needDisplay = coveredByFroster
-                    ? `<span style="font-size:0.75rem;color:var(--green);">❄️ Froster</span>`
-                    : need;
-                rowsHtml += `<tr style="${rowStyle}"><td style="display:flex;align-items:center;gap:0;">${cbHtml}${dayNamesLong[dIdx]}${icon}</td><td style="text-align:right;">${needDisplay}</td></tr>`;
+                
+                let displayDay = dayNamesLong[dIdx];
+                if (i === 0) displayDay = "Heute (" + displayDay.substring(0,2) + ")";
+                else if (i === 1) displayDay = "Morgen (" + displayDay.substring(0,2) + ")";
+
+                let needDisplay = "";
+                if (i === 0) {
+                    needDisplay = `<span style="font-size:0.75rem;color:var(--dim);">—</span>`;
+                } else if (coveredByFroster) {
+                    needDisplay = `<span style="font-size:0.75rem;color:var(--green);">❄️ Froster</span>`;
+                } else {
+                    needDisplay = need;
+                }
+
+                rowsHtml += `<tr>
+                    <td style="display:flex;align-items:center;gap:0;">
+                        ${cbHtml}
+                        <span style="${textStyle}">${displayDay}${icon}</span>
+                    </td>
+                    <td style="text-align:right;">
+                        <span style="${textStyle}">${needDisplay}</span>
+                    </td>
+                </tr>`;
             }
 
             if (extraOrder > 0) {
@@ -657,14 +694,12 @@
             rowsHtml += `<tr class="row-total"><td>Gesamtbedarf</td><td style="text-align:right;">${totalNeed}</td></tr><tr class="row-stock"><td>- Bestand</td><td style="text-align:right;">-${stock}</td></tr>`;
             document.getElementById('calc-table').innerHTML = rowsHtml;
 
-            // Einheit & Pressenumrechnung aus Config
             const legacyKey = p.legacyKey;
             const cfg = produktConfigMap[legacyKey] || {};
             const pressenGroesse = cfg.pressenGroesse || null;
             const aufschlag = cfg.teiggewichtAufschlag || 1;
 
-            let displayVal = rawNeeded, unit = "BLECHE";
-            // Pressen-Box
+            let displayVal = rawNeeded, unit = (cfg.einheit || 'BLECHE').toUpperCase();
             const pressenBox = document.getElementById('pressen-box');
             if (pressenGroesse && rawNeeded > 0) {
                 const charge = p.charge || 1;
@@ -692,15 +727,12 @@
             const id = document.getElementById('prod-select').value;
             if (!id) return;
             const inp = document.getElementById('stock-input');
-            // Inventur-Alter prüfen
             if (window.BOS_INVENTUR?.products) {
                 const legacyKey = window.BOS_STAMMDATEN?.[id]?.legacyKey;
-                // Erst produktspezifischen ts prüfen, sonst globalen neuesten
                 let checkTs = 0;
                 if (legacyKey && window.BOS_INVENTUR.products[legacyKey]?.ts) {
                     checkTs = window.BOS_INVENTUR.products[legacyKey].ts;
                 } else {
-                    // Kein produktspezifischer ts → globalen neuesten nehmen
                     for (const key in window.BOS_INVENTUR.products) {
                         const ts = window.BOS_INVENTUR.products[key]?.ts || 0;
                         if (ts > checkTs) checkTs = ts;
@@ -718,7 +750,6 @@
             inp.style.borderColor = '';
             inp.placeholder = 'Ist';
             document.getElementById('inventur-warn').style.display = 'none';
-            // Bestand aus Inventur laden — mit legacyKey
             const legacyKey2 = window.BOS_STAMMDATEN?.[id]?.legacyKey;
             if (legacyKey2 && window.BOS_INVENTUR?.products?.[legacyKey2]) {
                 const prod = window.BOS_INVENTUR.products[legacyKey2];

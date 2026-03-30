@@ -254,15 +254,6 @@ tr.station-header td:first-child { padding-left: 8px; }
       <div class="notes-line"></div>
     </div>
   </div>
-
-  <!-- Filter Panel -->
-  <div class="filter-panel no-print">
-    <div class="filter-toggle" onclick="toggleFilterPanel()">
-      <span>🔽 Produkte ein-/ausblenden</span>
-      <span id="filter-arrow">▼</span>
-    </div>
-    <div class="filter-body" id="filter-body"></div>
-  </div>
 </div>
 
 <script src="../produktions_gehirn.js"></script>
@@ -271,44 +262,11 @@ const TAGNAMEN = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag
 const TAGKURZ  = ['Mo','Di','Mi','Do','Fr','Sa','So'];
 
 let aktiverTag = 0;
-let versteckteProdukte = new Set(JSON.parse(localStorage.getItem('BOS_FL_VERSTECKT') || '[]'));
-
-function toggleFilterPanel() {
-  const body = document.getElementById('filter-body');
-  const arrow = document.getElementById('filter-arrow');
-  body.classList.toggle('open');
-  arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
-}
-
-function baueFilterChips() {
-  const body = document.getElementById('filter-body');
-  body.innerHTML = '';
-  Object.entries(window.BOS_STAMMDATEN || {}).forEach(([id, p]) => {
-    const chip = document.createElement('button');
-    chip.className = 'filter-chip' + (versteckteProdukte.has(id) ? ' versteckt' : '');
-    chip.textContent = p.name;
-    chip.dataset.id = id;
-    chip.addEventListener('click', function() {
-      const pid = this.dataset.id;
-      if (versteckteProdukte.has(pid)) {
-        versteckteProdukte.delete(pid);
-        this.classList.remove('versteckt');
-      } else {
-        versteckteProdukte.add(pid);
-        this.classList.add('versteckt');
-      }
-      localStorage.setItem('BOS_FL_VERSTECKT', JSON.stringify([...versteckteProdukte]));
-      rendereTabelle(aktiverTag);
-    });
-    body.appendChild(chip);
-  });
-}
 
 // Boot: Gehirn laden dann initialisieren
 (async function() {
   const ok = await window.BOS_GEHIRN.init();
   if (ok) {
-    // Datumsbereich aus DB ermitteln
     const db = window.BOS_GEHIRN._db || [];
     if (db.length) {
       const sortiert = [...db].sort((a,b) => a.datum.localeCompare(b.datum));
@@ -320,7 +278,6 @@ function baueFilterChips() {
         `📅 Ø-Werte aus DB &nbsp;·&nbsp; ${fmt(von)} – ${fmt(bis)} &nbsp;·&nbsp; ${anzahl} Tage`;
     }
     setTag(heuteIdx());
-    baueFilterChips();
   }
 })();
 
@@ -362,7 +319,7 @@ function rendereTabelle(tagIdx) {
   }
 
   const produkte = Object.entries(window.BOS_STAMMDATEN)
-    .filter(([id]) => !versteckteProdukte.has(id));
+    .filter(([id, p]) => p.frosterliste !== false);
 
   let html = '';
   let nr = 1;
@@ -371,16 +328,17 @@ function rendereTabelle(tagIdx) {
     const soll = p.needs?.[tagIdx] ?? 0;
     const sollKlasse = soll === 0 ? 'soll-0' : '';
     const sollText = soll === 0 ? '—' : soll;
-    const einheit = (p.unit === undefined || p.unit === 0) ? 'Bl.' : 'St.';
+    const einheit = p.lagerort ? '' : ((p.unit === undefined || p.unit === 0) ? 'Bl.' : 'St.');
+    const wohin = p.lagerort || '';
 
     html += `<tr>
       <td class="col-nr">${nr++}</td>
       <td class="col-name">${p.name || id}</td>
-      <td class="col-soll ${sollKlasse}">${sollText}<span style="font-size:0.6rem;font-weight:400;opacity:0.6"> ${soll > 0 ? einheit : ''}</span></td>
+      <td class="col-soll ${sollKlasse}">${sollText}<span style="font-size:0.6rem;font-weight:400;opacity:0.6"> ${soll > 0 ? ((p.unit === undefined || p.unit === 0) ? 'Bl.' : 'St.') : ''}</span></td>
       <td class="col-zahl col-sep"></td>
       <td class="col-zahl"></td>
       <td class="col-zahl col-sep"></td>
-      <td class="col-zahl"></td>
+      <td class="col-zahl" style="font-size:0.65rem;color:#475569;font-weight:700;">${wohin}</td>
     </tr>`;
   });
 

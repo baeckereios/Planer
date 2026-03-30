@@ -1,7 +1,7 @@
 /**
- * BÄCKEREIOS - ZENTRALES FROSTER-GEHIRN V122
- * Revision: Container-Logik (Batch Size), Glättung, Frische-Wächter 
- * NEU: Bugfix in Slider-Logik (Crash-Test erst NACH der Umverteilung).
+ * BÄCKEREIOS - ZENTRALES FROSTER-GEHIRN V125
+ * Revision: Container-Logik, Glättung, Frische-Wächter 
+ * NEU: Raketen-Eskalationsstufe (Faktor 2, aber max 1.5x am Samstag)
  */
 window.BOS_BRAIN = {
     calculateChain: function(prodId, session, plannedProd) {
@@ -30,9 +30,17 @@ window.BOS_BRAIN = {
             let base = p.needs[bosIdx] || 0;
             const cfg = session.weekConfig?.[dIdx] || { status: 'auf', hamster: 0, grill: false };
             if (cfg.status === 'zu') return 0;
+            
             let adj = base;
-            if (cfg.hamster === 1) adj = Math.ceil(adj * 1.5);
-            else if (cfg.hamster === 2) adj = Math.ceil(adj * 2);
+            const satNeed = p.needs[5] || 0; 
+            
+            if (cfg.hamster === 1) adj = Math.ceil((satNeed + base) / 2);
+            else if (cfg.hamster === 2) adj = satNeed;
+            else if (cfg.hamster === 3) {
+                // 🚀 RAKETE: Samstag max 1.5x, ansonsten Tageswert verdoppeln
+                adj = (bosIdx === 5) ? Math.ceil(satNeed * 1.5) : (base * 2);
+            }
+            
             if (cfg.grill && p.sun) adj += p.sun;
             return Math.ceil(adj);
         };
@@ -48,14 +56,12 @@ window.BOS_BRAIN = {
             let nextDIdx = (todayIdx + i + 1) % 7;
             let nextNeed = getAdjustedNeed(nextDIdx);
             
-            // Verbrauch erst ab startStep relevant (wenn Frosterstatus=fertig, ist heute schon safe)
             let actualConsumption = (i >= startStep) ? dailyNeed : 0;
             
             let stockAfterNeed = currentRest - actualConsumption;
             let stockForTomorrow = stockAfterNeed + prodAmount;
             
             let isDayBroken = (stockAfterNeed < 0);
-            // Warnung für nächsten Morgen: Nur wenn Bestand für morgen < Bedarf morgen
             let isNextMorningInDanger = (i >= (startStep - 1)) && (stockForTomorrow < nextNeed && i < totalStepsNeeded);
 
             results.push({
@@ -108,9 +114,17 @@ window.BOS_BRAIN = {
             const base   = p.needs[bosIdx] || 0;
             const cfg    = session.weekConfig?.[dIdx] || { status: 'auf', hamster: 0, grill: false };
             if (cfg.status === 'zu') return 0;
+            
             let adj = base;
-            if (cfg.hamster === 1) adj = Math.ceil(adj * 1.5);
-            else if (cfg.hamster === 2) adj = Math.ceil(adj * 2);
+            const satNeed = p.needs[5] || 0; 
+            
+            if (cfg.hamster === 1) adj = Math.ceil((satNeed + base) / 2);
+            else if (cfg.hamster === 2) adj = satNeed;
+            else if (cfg.hamster === 3) {
+                // 🚀 RAKETE: Samstag max 1.5x, ansonsten Tageswert verdoppeln
+                adj = (bosIdx === 5) ? Math.ceil(satNeed * 1.5) : (base * 2);
+            }
+            
             if (cfg.grill && p.sun) adj += p.sun;
             return Math.ceil(adj);
         };
@@ -215,20 +229,15 @@ window.BOS_BRAIN = {
         if (!p) return null;
 
         const BATCH = p.batchSize || 1;
-        
-        // Sicherstellen, dass der neue Wert ein Vielfaches der Batch-Size ist
         let safeNewAmount = Math.max(0, Math.ceil(newAmount / BATCH) * BATCH);
-        
         const oldAmount = currentPlan[changedStepIdx];
         const delta = oldAmount - safeNewAmount; 
 
         if (delta === 0) return currentPlan; 
 
-        // 1. Plan-Kopie erstellen (OHNE voreiligen Crash-Test!)
         let testPlan = [...currentPlan];
         testPlan[changedStepIdx] = safeNewAmount;
         
-        // 2. Empfänger / Spender für die Differenz finden
         let futureProdSteps = [];
         const prodDayIdxs = session.productionDays?.[prodId] || [];
         const todayIdx = session.startDayIdx ?? new Date().getDay();
@@ -240,51 +249,32 @@ window.BOS_BRAIN = {
             }
         }
 
-        // Wenn wir reduzieren wollen (delta > 0), aber keine Folgetage mehr existieren -> Geht nicht!
-        if (delta > 0 && futureProdSteps.length === 0) {
-            return null;
-        }
-
-        // 3. Verteilung der Ladungen (Batches)
         let batchesToDistribute = delta / BATCH;
-        
         let sanity = 0;
+        
         while (batchesToDistribute !== 0 && sanity < 1000) {
             let changedInLoop = false;
-            
             for (let i = 0; i < futureProdSteps.length; i++) {
                 let step = futureProdSteps[i];
-                
                 if (batchesToDistribute > 0) {
-                    // Vorne abgezogen, hinten drauflegen
                     testPlan[step] += BATCH;
                     batchesToDistribute--;
                     changedInLoop = true;
                 } else if (batchesToDistribute < 0) {
-                    // Vorne erhöht, hinten abziehen (aber nicht unter Null!)
                     if (testPlan[step] >= BATCH) {
                         testPlan[step] -= BATCH;
                         batchesToDistribute++;
                         changedInLoop = true;
                     }
                 }
-                
                 if (batchesToDistribute === 0) break;
             }
-            
-            // Wenn wir nichts mehr umverteilen konnten (z.B. alle Folgetage auf 0), brechen wir ab.
-            // Die "Überproduktion" bleibt dann einfach am aktuellen Tag stehen.
             if (!changedInLoop) break; 
-            
             sanity++;
         }
 
-        // 4. JETZT ERST DER CRASH-TEST! 
-        // Hat unsere Reduzierung + Verteilung irgendwo eine Lücke gerissen?
         let finalCheck = this.calculateChain(prodId, session, testPlan);
-        if (!finalCheck.isOk) {
-            return null; // Das Minimum wurde wirklich unterschritten.
-        }
+        if (!finalCheck.isOk) return null; 
 
         return testPlan;
     }
