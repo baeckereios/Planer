@@ -180,7 +180,8 @@ const GEHIRN = {
                 backTage:  prod.backTage  || [],
                 filialeProdukt: prod.filialeProdukt || false,
                 lagerort:  prod.lagerort  || null,
-                frosterliste: prod.frosterliste ?? true
+                frosterliste: prod.frosterliste ?? true,
+                schnellrechnerRelevant: prod.schnellrechnerRelevant ?? null
             };
         });
 

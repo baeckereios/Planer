@@ -56,7 +56,7 @@
         .bos-shell-logo span { color: var(--amber); font-style: italic; }
         .bos-page-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; color: var(--amber); text-align: right; min-width: 80px; white-space: pre-line; line-height: 1.3; }
         .bos-shell-bottom { position: fixed; bottom: 0; left: 0; right: 0; z-index: 500; }
-        .bos-status-strip { background: var(--surface2); border-top: 1px solid var(--border); padding: 5px 16px; display: flex; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-size: 0.67rem; font-weight: 700; letter-spacing: 0.8px; color: var(--dim); }
+        .bos-status-strip { background: var(--surface2); border-top: 1px solid var(--border); padding: 5px 16px; display: flex; justify-content: space-between; font-family: 'Barlow Condensed', sans-serif; font-size: 0.67rem; font-weight: 700; letter-spacing: 0.8px; color: var(--dim); }
         .bos-status-item { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
         .bos-dot { width: 6px; height: 6px; border-radius: 50%; background: #bbb; flex-shrink: 0; }
         .bos-dot.ok { background: #2ecc71; }

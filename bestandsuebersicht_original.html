@@ -225,18 +225,6 @@
 
 <div class="container">
 
-    <!-- Einleitung -->
-    <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.85rem; color:var(--dim); line-height:1.5; margin-bottom:20px; padding:12px 14px; background:var(--surface); border-radius:12px; border:1px solid var(--border-s);">
-        Hier siehst du den aktuellen Frosterbestand aller Produkte — bewertet gegen den Bedarf bis zu deinem gewählten Zieldatum. Grün heißt gedeckt, Rot heißt handeln.
-    </div>
-
-    <!-- Station Filter -->
-    <div class="filter-wrap">
-        <div class="filter-label">Welche Station möchtest du prüfen?</div>
-        <div class="station-filter" id="station-filter"></div>
-    </div>
-
-    <!-- Status Dashboard -->
     <div class="status-dashboard">
         <div class="status-row">
             <div class="status-label">Letzte Inventur</div>
@@ -246,20 +234,19 @@
             <div class="status-label">Froster</div>
             <div class="status-val" id="froster-val">Lade...</div>
         </div>
-        <div class="status-row" style="align-items:center;">
-            <div class="status-label">Reicht bis:</div>
-            <select id="target-select" onchange="onTargetChange()" style="font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:0.88rem; padding:6px 10px; border-radius:10px; border:1.5px solid var(--amber); background:var(--surface); color:var(--text); cursor:pointer; max-width:160px;">
-                <option>Lade...</option>
-            </select>
-        </div>
         <div class="status-hint">
-            ℹ️ <strong>Nur Richtwerte.</strong> Für Feinplanung mit Feiertagen & Sondertagen: <a href="schnellrechner.html" style="color:var(--amber);font-weight:900;text-decoration:none;">→ Schnellrechner</a>
+            ℹ️ <strong>Nur Richtwerte:</strong> Exakte Feinplanung (inkl. Feiertage/Sonderwetter) bitte über den Assistenten.
         </div>
     </div>
 
     <div id="stale-inventur-warn" style="display:none; background:rgba(224,92,92,0.1); border:2px solid var(--red,#c0392b); border-radius:14px; padding:14px 16px; margin-bottom:16px;">
         <div style="font-family:'Barlow Condensed'; font-weight:900; font-size:0.85rem; letter-spacing:1px; text-transform:uppercase; color:var(--red,#c0392b); margin-bottom:4px;">⚠️ Achtung: Veraltete Bestände</div>
         <div style="font-size:0.82rem; color:var(--text); line-height:1.5;">Die letzte Inventur liegt <strong id="stale-hours"></strong> zurück. Diese Werte sind möglicherweise nicht mehr aktuell — bitte nicht als Grundlage für Produktionsentscheidungen verwenden.</div>
+    </div>
+
+    <div class="filter-wrap">
+        <div class="filter-label">Welche Station möchtest du prüfen?</div>
+        <div class="station-filter" id="station-filter"></div>
     </div>
 
     <div class="today-label" id="today-label"></div>
@@ -283,59 +270,10 @@
 var activeStation = 'alle';
 var latestInvTsGlobal = 0;
 var anchorDate = new Date();
-var targetDate = new Date(); // Zieldatum aus Dropdown
 var isInitialized = false;
 var retryCount = 0;
 var nurInvRelevant = true;
-var inventurRelevantKeys = new Set();
-
-function buildTargetDropdown() {
-    var sel = document.getElementById('target-select');
-    sel.innerHTML = '';
-    var dayNames = ['So','Mo','Di','Mi','Do','Fr','Sa'];
-    var pad = function(n) { return n < 10 ? '0'+n : n; };
-    // Nächste 14 Tage ab anchorDate
-    for (var i = 0; i <= 14; i++) {
-        var d = new Date(anchorDate.getTime());
-        d.setDate(d.getDate() + i);
-        var opt = document.createElement('option');
-        var label = dayNames[d.getDay()] + ', ' + pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.';
-        opt.value = d.toISOString().slice(0,10);
-        opt.textContent = label;
-        // Default: nächster Montag
-        if (d.getDay() === 1 && !sel.options.length || (d.getDay() === 1 && i > 0 && sel.selectedIndex === 0)) {
-            opt.selected = true;
-        }
-        sel.appendChild(opt);
-    }
-    // Sicherstellen dass Montag vorausgewählt ist
-    for (var j = 0; j < sel.options.length; j++) {
-        var val = new Date(sel.options[j].value + 'T12:00:00');
-        if (val.getDay() === 1) { sel.selectedIndex = j; break; }
-    }
-    onTargetChange();
-}
-
-function onTargetChange() {
-    var sel = document.getElementById('target-select');
-    if (!sel || !sel.value) return;
-    targetDate = new Date(sel.value + 'T12:00:00');
-    updateTodayLabel();
-    renderGrid();
-}
-
-function updateTodayLabel() {
-    var el = document.getElementById('today-label');
-    if (!el) return;
-    var dayNames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-    var anchorDayName = dayNames[anchorDate.getDay()];
-    var targetDayName = dayNames[targetDate.getDay()];
-    var pad = function(n) { return n < 10 ? '0'+n : n; };
-    var targetStr = pad(targetDate.getDate()) + '.' + pad(targetDate.getMonth()+1) + '.';
-    el.innerHTML = 'Rest-Bedarf von <span style="color:var(--amber);font-weight:900;">' +
-        anchorDayName.toUpperCase() + '</span> bis <span style="color:var(--amber);font-weight:900;">' +
-        targetDayName.toUpperCase() + ' ' + targetStr + '</span>';
-}
+var inventurRelevantKeys = new Set(); // legacyKeys mit inventurRelevant:true
 
 function toggleInvFilter() {
     nurInvRelevant = !nurInvRelevant;
@@ -458,8 +396,11 @@ function setupTimeLogic() {
         elFroster.innerHTML = '⚠️ Offen <span>(Zählung zw. 20:00 & 01:30 Uhr)</span>';
     }
 
-    // 5. Dropdown befüllen & Label setzen
-    buildTargetDropdown();
+    // 5. Überschrift setzen
+    var dayNames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    var anchorDayName = dayNames[anchorDate.getDay()];
+    
+    elToday.innerHTML = 'Rest-Bedarf f&#252;r die Zeit von <span style="color:var(--amber);font-weight:900;">' + anchorDayName.toUpperCase() + '</span> bis n&#228;chsten Montag';
 }
 
 function getDateTimeStr() {
@@ -586,23 +527,25 @@ function printBestand() {
 
 var CIRCUMFERENCE = 238.76;
 
-function daysUntilTarget() {
-    var a = new Date(anchorDate); a.setHours(0,0,0,0);
-    var t = new Date(targetDate); t.setHours(0,0,0,0);
-    var diff = Math.round((t - a) / 86400000);
-    return diff > 0 ? diff : 1;
+function daysUntilNextMondayFromAnchor() {
+    var jsDay = anchorDate.getDay(); 
+    var daysLeft = (8 - jsDay) % 7;
+    if (daysLeft === 0) daysLeft = 7;
+    return daysLeft;
 }
 
 function calcRawNeed(prodId) {
     var p = window.BOS_STAMMDATEN[prodId];
     if (!p) return 0;
-    var days = daysUntilTarget();
+    
+    var jsDay = anchorDate.getDay();
+    var days = daysUntilNextMondayFromAnchor();
     var total = 0;
+    
+    // Da wir ab dem berechneten "Anker-Datum" starten, zählen wir einfach ab diesem Tag!
     for (var i = 0; i < days; i++) {
-        var d = new Date(anchorDate.getTime());
-        d.setDate(d.getDate() + i);
-        var jsDay = d.getDay();
-        var bosIdx = (jsDay === 0) ? 6 : jsDay - 1;
+        var dIdx = (jsDay + i) % 7;            
+        var bosIdx = (dIdx === 0) ? 6 : dIdx - 1; 
         total += p.needs[bosIdx] || 0;
     }
     return total;

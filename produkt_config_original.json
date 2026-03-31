@@ -8,8 +8,7 @@
     "hinweis": null,
     "station": "Brötchenstraße",
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "111002",
@@ -20,8 +19,7 @@
     "hinweis": null,
     "station": "Brötchenstraße",
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "111003",
@@ -32,8 +30,7 @@
     "hinweis": null,
     "station": "Brötchenstraße",
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "111010",
@@ -55,10 +52,9 @@
       6
     ],
     "inventurRelevant": true,
-    "station": "Frühschicht",
+    "station": "Brötchenstraße",
     "pressenGroesse": 30,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "111030",
@@ -81,8 +77,7 @@
     "filialeProdukt": true,
     "station": "Brötchenstraße",
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "112001",
@@ -92,7 +87,7 @@
     "legacyKey": "kornknacker_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Frühschicht",
+    "station": "Brötchenstraße",
     "backTage": [
       0,
       1,
@@ -104,8 +99,7 @@
     ],
     "inventurRelevant": true,
     "pressenGroesse": 30,
-    "teiggewichtAufschlag": 1.06,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": 1.06
   },
   {
     "artNr": "114120",
@@ -115,7 +109,7 @@
     "legacyKey": "dinkel_zwerg_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Frühschicht",
+    "station": "Brötchenstraße",
     "backTage": [
       0,
       1,
@@ -127,8 +121,7 @@
     ],
     "inventurRelevant": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "115001",
@@ -150,8 +143,7 @@
     "inventurRelevant": true,
     "station": "Brötchenstraße",
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "115009",
@@ -161,7 +153,7 @@
     "legacyKey": "laugenecken_gesamt_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Frühschicht",
+    "station": "Brötchenstraße",
     "backTage": [
       0,
       1,
@@ -173,8 +165,7 @@
     ],
     "filialeProdukt": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "116001",
@@ -196,8 +187,7 @@
     "inventurRelevant": true,
     "station": "Brötchenstraße",
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "116003",
@@ -220,8 +210,7 @@
     "inventurRelevant": true,
     "station": "Brötchenstraße",
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "116004",
@@ -231,7 +220,7 @@
     "legacyKey": "rosinen_batzen_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Frühschicht",
+    "station": "Brötchenstraße",
     "backTage": [
       0,
       1,
@@ -243,8 +232,7 @@
     ],
     "inventurRelevant": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "116005",
@@ -254,7 +242,7 @@
     "legacyKey": "schoko_batzen_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Frühschicht",
+    "station": "Brötchenstraße",
     "backTage": [
       0,
       1,
@@ -266,8 +254,7 @@
     ],
     "inventurRelevant": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "116009",
@@ -289,8 +276,7 @@
     "inventurRelevant": true,
     "station": "Brötchenstraße",
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "116011",
@@ -300,7 +286,7 @@
     "legacyKey": "butter_croissant_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Frühschicht",
+    "station": "Brötchenstraße",
     "backTage": [
       0,
       1,
@@ -312,8 +298,7 @@
     ],
     "filialeProdukt": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "116012",
@@ -333,10 +318,9 @@
       6
     ],
     "inventurRelevant": false,
-    "station": "Frühschicht",
+    "station": "Brötchenstraße",
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "116020",
@@ -346,7 +330,7 @@
     "legacyKey": "mini_croissant_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Frühschicht",
+    "station": "Brötchenstraße",
     "filialeProdukt": true,
     "backTage": [
       0,
@@ -358,8 +342,7 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "116022",
@@ -369,7 +352,7 @@
     "legacyKey": "mini_schoko_croissant_stueck",
     "hinweis": null,
     "einheit": "bleche",
-    "station": "Frühschicht",
+    "station": "Brötchenstraße",
     "backTage": [
       0,
       1,
@@ -381,8 +364,7 @@
     ],
     "filialeProdukt": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": null,
@@ -392,7 +374,7 @@
     "legacyKey": "schlawiner_gesamt_stueck",
     "hinweis": "ArtNr unbekannt – bitte nachtragen",
     "einheit": "bleche",
-    "station": "Frühschicht",
+    "station": "Brötchenstraße",
     "backTage": [
       0,
       1,
@@ -405,8 +387,7 @@
     "filialeProdukt": true,
     "inventurRelevant": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "121001",
@@ -425,8 +406,7 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "121002",
@@ -445,8 +425,7 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "121005",
@@ -465,8 +444,7 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "121010",
@@ -482,8 +460,7 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "121011",
@@ -502,8 +479,7 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "121012",
@@ -522,8 +498,7 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "121015",
@@ -542,8 +517,7 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "121020",
@@ -558,8 +532,7 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "121030",
@@ -575,8 +548,7 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "121060",
@@ -595,8 +567,7 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "122001",
@@ -611,8 +582,7 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "122004",
@@ -626,8 +596,7 @@
       3
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "122005",
@@ -641,8 +610,7 @@
       3
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "122006",
@@ -657,8 +625,7 @@
       5
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "124001",
@@ -674,8 +641,7 @@
       5
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "124002",
@@ -694,8 +660,7 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "124003",
@@ -711,8 +676,7 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "124005",
@@ -730,12 +694,11 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "126000",
-    "name": "Baguettestange Bleche",
+    "name": "Stangen Gesamt",
     "kategorie": "Brot",
     "charge": 6,
     "legacyKey": "stangen_gesamt_stueck",
@@ -753,8 +716,7 @@
     "filialeProdukt": true,
     "inventurRelevant": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "126002",
@@ -776,8 +738,7 @@
     "inventurRelevant": true,
     "filialeProdukt": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "126006",
@@ -799,8 +760,7 @@
     "inventurRelevant": true,
     "filialeProdukt": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "126008",
@@ -810,8 +770,7 @@
     "legacyKey": null,
     "hinweis": "Kundenbestellung Henri 2",
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "126010",
@@ -833,8 +792,7 @@
     "inventurRelevant": true,
     "filialeProdukt": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "126011",
@@ -856,8 +814,7 @@
     "inventurRelevant": true,
     "filialeProdukt": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "126050",
@@ -876,8 +833,7 @@
       6
     ],
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "131001",
@@ -887,8 +843,7 @@
     "legacyKey": "kaesekuchen_stueck",
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "131005",
@@ -898,8 +853,7 @@
     "legacyKey": "carrot_cheesecake_stueck",
     "hinweis": "nur Henri",
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "131113",
@@ -909,8 +863,7 @@
     "legacyKey": "bienenstich_gefuellt_stueck",
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "131200",
@@ -920,8 +873,7 @@
     "legacyKey": null,
     "hinweis": "nur Samstag",
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "133001",
@@ -931,8 +883,7 @@
     "legacyKey": "oma_hertas_stueck",
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "133006",
@@ -942,8 +893,7 @@
     "legacyKey": "streuselkuchen_stueck",
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "133010",
@@ -953,8 +903,7 @@
     "legacyKey": null,
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "133112",
@@ -964,8 +913,7 @@
     "legacyKey": null,
     "hinweis": "saisonal",
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "133150",
@@ -975,8 +923,7 @@
     "legacyKey": "brownie_stueck",
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "133200",
@@ -986,8 +933,7 @@
     "legacyKey": "dinkel_apfelkuchen_stueck",
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "133202",
@@ -997,8 +943,7 @@
     "legacyKey": "dinkel_rueblikuchen_stueck",
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "133211",
@@ -1008,8 +953,7 @@
     "legacyKey": "veganer_himbeerkuchen_stueck",
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "133212",
@@ -1019,8 +963,7 @@
     "legacyKey": null,
     "hinweis": "nur Henri",
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "133250",
@@ -1030,8 +973,7 @@
     "legacyKey": null,
     "hinweis": "wechselnde Frucht, nur Fr",
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "133300",
@@ -1051,8 +993,7 @@
     ],
     "inventurRelevant": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "134001",
@@ -1062,8 +1003,7 @@
     "legacyKey": "amis_stueck",
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "134002",
@@ -1083,8 +1023,7 @@
     ],
     "inventurRelevant": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "134006",
@@ -1101,8 +1040,7 @@
     ],
     "inventurRelevant": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "134035",
@@ -1122,8 +1060,7 @@
     ],
     "inventurRelevant": true,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "134041",
@@ -1140,8 +1077,7 @@
     ],
     "inventurRelevant": false,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "137031",
@@ -1151,8 +1087,7 @@
     "legacyKey": "kaese_mohn_to_stueck",
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "360005",
@@ -1162,8 +1097,7 @@
     "legacyKey": "dinkel_waffel_teig_stueck",
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "135001",
@@ -1173,8 +1107,7 @@
     "legacyKey": "donuts_stueck",
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "135009",
@@ -1184,8 +1117,7 @@
     "legacyKey": "krapfen_gesamt_stueck",
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "135030",
@@ -1195,8 +1127,7 @@
     "legacyKey": "quarkinis_stueck",
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "151035",
@@ -1206,8 +1137,7 @@
     "legacyKey": null,
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   },
   {
     "artNr": "151036",
@@ -1217,7 +1147,6 @@
     "legacyKey": null,
     "hinweis": null,
     "pressenGroesse": null,
-    "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": false
+    "teiggewichtAufschlag": null
   }
 ]
