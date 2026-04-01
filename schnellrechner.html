@@ -100,6 +100,9 @@
         <div id="session-queue" style="display:none; margin-bottom:16px; background:var(--surface); border:2px solid var(--green); border-radius:16px; padding:16px 16px 8px; box-shadow:0 4px 16px var(--shadow);">
             <div class="label" style="margin-bottom:10px; text-align:left; color:var(--green); font-size:0.7rem;">📋 Im Plan:</div>
             <div id="session-queue-items"></div>
+            <div style="border-top:1px solid var(--border-s); margin-top:8px; padding-top:10px; text-align:right;">
+                <span onclick="goToPlaner()" style="font-size:0.82rem; font-weight:900; color:var(--green); cursor:pointer; letter-spacing:0.5px;">Zum Planer →</span>
+            </div>
         </div>
         <div class="card">
             
@@ -116,50 +119,58 @@
                 </select>
             </div>
 
-            <div style="display:grid; grid-template-columns: 1fr 80px; gap:10px; margin-bottom:20px; width:100%; overflow:hidden;">
-                <select id="prod-select" onchange="syncStock()" style="padding:15px; border-radius:12px; border:2px solid var(--border-s); font-weight:800; font-family:inherit; background:var(--surface); color:var(--text); min-width:0;">
-                    <option value="" id="lang-calcSelect">-- Produkt --</option>
-                </select>
-                <input type="number" id="stock-input" placeholder="Ist" oninput="calculate()" style="padding:15px; border-radius:12px; border:2px solid var(--border-s); text-align:center; font-weight:800; background:var(--surface); color:var(--text); min-width:0; width:100%; box-sizing:border-box;">
-            </div>
-            <div id="inventur-warn" style="display:none; background:rgba(224,92,92,0.1); border:1.5px solid var(--red); border-radius:12px; padding:10px 14px; margin-top:-10px; margin-bottom:14px; font-size:0.82rem; font-weight:800; color:var(--red); text-align:center;"><i class="ph ph-warning" style="margin-right:4px;"></i>Inventur älter als 24 Std. — Bestand bitte manuell eintragen</div>
+            <!-- Produkt + Froster + Fehlmenge -->
+            <div style="background:var(--surface2); border:1.5px solid var(--border-s); border-radius:14px; padding:14px 18px; margin-bottom:20px;">
+                <div style="display:grid; grid-template-columns: 1fr 80px; gap:10px; margin-bottom:6px; width:100%; overflow:hidden;">
+                    <select id="prod-select" onchange="syncStock()" style="padding:15px; border-radius:12px; border:2px solid var(--border-s); font-weight:800; font-family:inherit; background:var(--surface); color:var(--text); min-width:0;">
+                        <option value="" id="lang-calcSelect">-- Produkt --</option>
+                    </select>
+                    <input type="number" id="stock-input" placeholder="Ist" oninput="calculate()" style="padding:15px; border-radius:12px; border:2px solid var(--border-s); text-align:center; font-weight:800; background:var(--surface); color:var(--text); min-width:0; width:100%; box-sizing:border-box;">
+                </div>
+                <div id="inventur-ts-label" style="display:none; text-align:right; font-size:0.68rem; font-weight:800; color:var(--green); padding-right:2px; margin-bottom:8px; opacity:0.85;"><i class="ph ph-check-circle" style="margin-right:3px;"></i><span id="inventur-ts-text"></span></div>
+                <div id="inventur-warn" style="display:none; background:rgba(224,92,92,0.1); border:1.5px solid var(--red); border-radius:12px; padding:10px 14px; margin-bottom:10px; font-size:0.82rem; font-weight:800; color:var(--red); text-align:center;"><i class="ph ph-warning" style="margin-right:4px;"></i>Inventur älter als 24 Std. — Bestand bitte manuell eintragen</div>
 
-            <div class="label" id="lang-calcStatus">Status für Morgen:</div>
-            <div class="froster-group">
-                <button class="f-btn yes" id="f-yes" onclick="setFroster(true)"><i class="ph ph-snowflake" style="margin-right:6px;"></i><span id="lang-calcFrosterDone">FERTIG</span></button>
-                <button class="f-btn no" id="f-no" onclick="setFroster(false)"><i class="ph ph-x-circle" style="margin-right:6px;"></i><span id="lang-calcFrosterNo">NOCH NICHT</span></button>
-            </div>
+                <div class="label" id="lang-calcStatus" style="margin-top:4px;">Status für Morgen:</div>
+                <div class="froster-group">
+                    <button class="f-btn yes" id="f-yes" onclick="setFroster(true)"><i class="ph ph-snowflake" style="margin-right:6px;"></i><span id="lang-calcFrosterDone">FERTIG</span></button>
+                    <button class="f-btn no" id="f-no" onclick="setFroster(false)"><i class="ph ph-x-circle" style="margin-right:6px;"></i><span id="lang-calcFrosterNo">NOCH NICHT</span></button>
+                </div>
 
-            <div id="missing-tomorrow-area" style="display:none; margin-bottom:15px; border:2.5px solid rgba(224,92,92,0.3); padding:15px; border-radius:16px;">
-                <div class="label" style="color:var(--red);" id="lang-calcMissing">Fehlmenge Morgen ⚠️</div>
-                <input type="number" id="missing-input" placeholder="..." oninput="calculate()" style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--border-s); text-align:center; font-weight:800;">
-            </div>
-
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-                <div class="label" id="lang-calcReach" style="margin-bottom:0;">Reicht bis einschl.:</div>
-                <button id="btn-erweitert" onclick="toggleErweitertePlanung()" style="font-family:inherit; font-size:0.68rem; font-weight:800; padding:5px 10px; border-radius:8px; border:1.5px solid var(--border-s); background:var(--surface2); color:var(--dim); cursor:pointer; letter-spacing:0.5px;"><span>2 Wochen</span></button>
-            </div>
-            <div id="strip-target" class="strip"></div>
-
-            <button class="btn-toggle-extras" onclick="toggleExtras()" id="lang-calcExtras"><i class="ph ph-gear" style="margin-right:6px;"></i>Feiertage & besondere Tage</button>
-            <div class="extras-area" id="extras-area">
-                <div id="sandbox-grid"></div>
-                <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border-s);">
-                    <div class="label" style="margin-bottom:8px;">KUNDENBESTELLUNG (+ BLECHE):</div>
-                    <input type="number" id="extra-order-input" placeholder="0" oninput="calculate()"
-                        style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--border-s); text-align:center; font-weight:800; font-size:1.1rem; background:var(--surface); color:var(--text);">
+                <div id="missing-tomorrow-area" style="display:none; margin-top:12px;">
+                    <label style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:12px 14px; border-radius:12px; border:1.5px solid var(--border-s); background:var(--surface);">
+                        <input type="checkbox" id="missing-checkbox" onchange="toggleMissingInput(this.checked)" style="width:20px; height:20px; accent-color:var(--red); cursor:pointer; flex-shrink:0;">
+                        <span style="font-size:0.85rem; font-weight:800; color:var(--text);" id="lang-calcMissing">Gibt es Fehlmengen für den morgigen Tag?</span>
+                    </label>
+                    <div id="missing-input-area" style="display:none; margin-top:10px; border:2px solid rgba(224,92,92,0.35); border-radius:12px; padding:14px;">
+                        <div class="label" style="color:var(--red); margin-bottom:8px;">Fehlmenge (Bleche) ⚠️</div>
+                        <input type="number" id="missing-input" placeholder="0" oninput="calculate()" style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--border-s); text-align:center; font-weight:800; font-size:1.1rem; background:var(--surface); color:var(--text); box-sizing:border-box;">
+                    </div>
                 </div>
             </div>
 
-            <button class="btn-main" style="width:100%; padding:20px; border-radius:16px; background:var(--amber); color:white; border:none; font-weight:900; font-size:1.1rem; cursor:pointer;" id="btn-calc" onclick="calculate()" disabled>
-                <span id="lang-calcProduce">BERECHNEN</span>
-            </button>
+            <!-- Reicht bis + Feiertage -->
+            <div style="background:var(--surface2); border:1.5px solid var(--border-s); border-radius:14px; padding:14px 18px; margin-bottom:20px;">
+                <div class="label" id="lang-calcReach" style="margin-bottom:10px; font-size:0.8rem;">Reicht bis einschl.:</div>
+                <select id="target-select" onchange="onTargetSelect(this.value)" style="width:100%; padding:10px 16px; border-radius:12px; border:2px solid var(--border-s); font-weight:900; font-family:inherit; background:var(--surface); color:var(--text); outline:none; cursor:pointer; font-size:0.9rem; box-sizing:border-box; margin-bottom:12px;"></select>
+                <button class="btn-toggle-extras" onclick="toggleExtras()" id="lang-calcExtras" style="margin:0;"><i class="ph ph-calendar-x" style="margin-right:6px;"></i>Feiertage & besondere Tage</button>
+                <div style="font-size:0.72rem; color:var(--dim); margin-top:6px; padding-left:4px; opacity:0.8;"><i class="ph ph-arrow-bend-down-right" style="margin-right:4px;"></i>Geschlossene Tage & Sonderbedarf eintragen</div>
+                <div class="extras-area" id="extras-area" style="margin-bottom:0;">
+                    <div id="sandbox-grid"></div>
+                    <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border-s);">
+                        <div class="label" style="margin-bottom:8px;">KUNDENBESTELLUNG (+ BLECHE):</div>
+                        <input type="number" id="extra-order-input" placeholder="0" oninput="calculate()"
+                            style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--border-s); text-align:center; font-weight:800; font-size:1.1rem; background:var(--surface); color:var(--text);">
+                    </div>
+                    <button onclick="toggleExtras()" style="width:100%; margin-top:14px; padding:10px; border-radius:10px; border:1.5px solid var(--border-s); background:var(--surface); color:var(--dim); font-weight:800; font-size:0.8rem; cursor:pointer; font-family:inherit;"><i class="ph ph-caret-up" style="margin-right:6px;"></i>Einklappen</button>
+                </div>
+            </div>
 
             <div id="result">
                 <div class="label" id="lang-calcResult">Produktion nötig:</div>
                 <div class="res-val" id="res-val">0</div>
                 <div style="font-weight:900; font-size:1.1rem; color:var(--dim); margin-bottom:20px;" id="res-unit">BLECHE</div>
-                <div style="font-size:0.7rem;font-weight:800;color:var(--amber);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;opacity:0.85;">☑ Produktionstage anklicken:</div>
+                <div style="font-size:0.7rem;font-weight:800;color:var(--dim);letter-spacing:0.5px;margin-bottom:4px;opacity:0.75;">Detail-Planung <span style="font-weight:700;opacity:0.7;">(optional)</span></div>
+                <div style="font-size:0.68rem;color:var(--dim);opacity:0.6;margin-bottom:10px;">Wähle die Wochentage aus, an denen produziert werden soll</div>
                 <table class="calc-table" id="calc-table"></table>
                 <div class="pressen-box" id="pressen-box" style="display:none;">
                     <div>
@@ -291,15 +302,10 @@
         let targetOffset = null;
         let frosterDone = null;
         let simClosed = {}, simHamster = {};
-        let erweitertePlanung = false;
+        let erweitertePlanung = true;
 
         function toggleErweitertePlanung() {
             erweitertePlanung = !erweitertePlanung;
-            const btn = document.getElementById('btn-erweitert');
-            btn.style.borderColor = erweitertePlanung ? 'var(--amber)' : 'var(--border-s)';
-            btn.style.color = erweitertePlanung ? 'var(--amber)' : 'var(--dim)';
-            btn.style.background = erweitertePlanung ? 'rgba(192,122,16,0.08)' : 'var(--surface2)';
-            btn.querySelector('span').textContent = erweitertePlanung ? '2 Wochen ✓' : '2 Wochen';
             if (targetOffset !== null && frosterDone !== null) {
                 const normalMax = 8 - todayIdx;
                 if (!erweitertePlanung && targetOffset > normalMax) {
@@ -562,31 +568,37 @@
         }
 
         function renderTarget() {
-            const c = document.getElementById('strip-target'); c.innerHTML = '';
+            const sel = document.getElementById('target-select');
+            sel.innerHTML = '';
             if (frosterDone === null) return;
-            const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+            const daysFull = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
             const offset = frosterDone ? 2 : 1;
             if (targetOffset === null) resetTarget();
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
             const maxOffset = (8 - todayIdx) + (erweitertePlanung ? 7 : 0);
             for (let i = offset; i <= maxOffset; i++) {
                 const dIdx = (todayIdx + i) % 7;
-                const p = document.createElement('div');
                 const isClosed = simClosed[i];
-                const isTarget = i === targetOffset;
-                const inRange = !isTarget && i < targetOffset;
-                p.className = `pill ${isClosed ? 'is-closed' : ''} ${isTarget ? 'target' : (inRange ? 'in-range' : '')}`;
-                p.innerText = days[dIdx];
-                const capturedI = i;
-                const capturedDIdx = dIdx;
-                if (!isClosed) p.onclick = () => {
-                    targetIdx = capturedDIdx;
-                    targetOffset = capturedI;
-                    renderTarget();
-                    calculate();
-                };
-                c.appendChild(p);
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                const dateStr = date.getDate().toString().padStart(2, '0') + '.' + (date.getMonth() + 1).toString().padStart(2, '0') + '.';
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = daysFull[dIdx] + ', ' + dateStr + (isClosed ? ' (geschlossen)' : '');
+                if (isClosed) opt.disabled = true;
+                if (i === targetOffset) opt.selected = true;
+                sel.appendChild(opt);
             }
+        }
+
+        function onTargetSelect(val) {
+            const i = parseInt(val);
+            targetOffset = i;
+            targetIdx = (todayIdx + i) % 7;
+            calculate();
         }
 
         function buildSandbox() {
@@ -603,13 +615,26 @@
             }
         }
 
+        function toggleMissingInput(checked) {
+            document.getElementById('missing-input-area').style.display = checked ? 'block' : 'none';
+            if (!checked) {
+                document.getElementById('missing-input').value = '';
+                calculate();
+            }
+        }
+
         function setFroster(v) {
             currentProdDaySteps = [];
             frosterDone = v;
             document.getElementById('f-yes').classList.toggle('active', v);
             document.getElementById('f-no').classList.toggle('active', !v);
-            document.getElementById('missing-tomorrow-area').style.display = v ? 'block' : 'none';
-            document.getElementById('btn-calc').disabled = false;
+            const missingArea = document.getElementById('missing-tomorrow-area');
+            missingArea.style.display = v ? 'block' : 'none';
+            if (!v) {
+                document.getElementById('missing-checkbox').checked = false;
+                document.getElementById('missing-input-area').style.display = 'none';
+                document.getElementById('missing-input').value = '';
+            }
             resetTarget(); renderTarget(); calculate();
         }
 
@@ -756,8 +781,18 @@
                 const bestand = prod.stock !== undefined ? prod.stock
                     : (prod.locs ? prod.locs.reduce((a,b) => a+b, 0) : 0);
                 inp.value = bestand;
+                if (prod.ts) {
+                    const d = new Date(prod.ts);
+                    const label = document.getElementById('inventur-ts-label');
+                    const text = document.getElementById('inventur-ts-text');
+                    text.textContent = 'Inventur vom ' + d.getDate().toString().padStart(2,'0') + '.' + (d.getMonth()+1).toString().padStart(2,'0') + '. ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+                    label.style.display = 'block';
+                }
             } else if (window.BOS_INVENTUR?.stocks?.[legacyKey2] !== undefined) {
                 inp.value = window.BOS_INVENTUR.stocks[legacyKey2];
+                document.getElementById('inventur-ts-label').style.display = 'none';
+            } else {
+                document.getElementById('inventur-ts-label').style.display = 'none';
             }
             calculate();
         }
