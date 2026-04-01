@@ -2,35 +2,55 @@ window.BOS_INVENTUR = {
   "products": {
     "hasenberger_stueck": {
       "locs": [
-        16,
-        0,
+        21,
+        22,
         0,
         0
       ],
-      "stock": 16,
-      "ts": 1774921192210
+      "stock": 43,
+      "ts": 1775006329512
     },
     "kaesebroetchen_stueck": {
       "locs": [
-        36,
+        18,
         0,
         0,
         0
       ],
-      "stock": 36,
-      "ts": 1774934901958
+      "stock": 18,
+      "ts": 1775006348973
     },
     "kornknacker_stueck": {
       "locs": [
-        82,
+        29,
         0,
         0,
         0
       ],
-      "stock": 82,
-      "ts": 1774921211782
+      "stock": 29,
+      "ts": 1775006367133
     },
     "dinkel_zwerg_stueck": {
+      "locs": [
+        2,
+        0,
+        0,
+        0
+      ],
+      "stock": 2,
+      "ts": 1775006370429
+    },
+    "laugenstangen_stueck": {
+      "locs": [
+        28,
+        0,
+        0,
+        0
+      ],
+      "stock": 28,
+      "ts": 1775006385124
+    },
+    "rosinen_hedwig_stueck": {
       "locs": [
         4,
         0,
@@ -38,67 +58,47 @@ window.BOS_INVENTUR = {
         0
       ],
       "stock": 4,
-      "ts": 1774921220358
-    },
-    "laugenstangen_stueck": {
-      "locs": [
-        67,
-        0,
-        0,
-        0
-      ],
-      "stock": 67,
-      "ts": 1774934901958
-    },
-    "rosinen_hedwig_stueck": {
-      "locs": [
-        15,
-        0,
-        0,
-        0
-      ],
-      "stock": 15,
-      "ts": 1774921247076
+      "ts": 1775006391586
     },
     "hasenpfoetchen_stueck": {
       "locs": [
-        50,
-        0,
+        4,
+        24,
         0,
         0
       ],
-      "stock": 50,
-      "ts": 1774921253379
+      "stock": 28,
+      "ts": 1775006404032
     },
     "rosinen_batzen_stueck": {
       "locs": [
-        0,
+        17,
         0,
         0,
         0
       ],
-      "stock": 0,
-      "ts": 1774921257235
+      "stock": 17,
+      "ts": 1775006417845
     },
     "schoko_batzen_stueck": {
       "locs": [
-        0,
+        22,
         0,
         0,
         0
       ],
-      "stock": 0,
-      "ts": 1774921259842
+      "stock": 22,
+      "ts": 1775006423587
     },
     "zimt_woelkchen_stueck": {
       "locs": [
-        52,
+        31,
         0,
         0,
         0
       ],
-      "stock": 52,
-      "ts": 1774921291350
+      "stock": 31,
+      "ts": 1775006448264
     },
     "schlawiner_gesamt_stueck": {
       "locs": [
@@ -108,27 +108,27 @@ window.BOS_INVENTUR = {
         0
       ],
       "stock": 0,
-      "ts": 1774921293096
+      "ts": 0
     },
     "stangen_gesamt_stueck": {
       "locs": [
-        42,
+        20,
         20,
         0,
         0
       ],
-      "stock": 62,
-      "ts": 1774921410149
+      "stock": 40,
+      "ts": 1775006573199
     },
     "baguettestange_teig_stueck": {
       "locs": [
-        50,
-        6,
-        19,
+        48,
+        48,
+        22,
         0
       ],
-      "stock": 75,
-      "ts": 1774921476469
+      "stock": 118,
+      "ts": 1775006627571
     },
     "lamourette_250g_stueck": {
       "locs": [
@@ -138,49 +138,59 @@ window.BOS_INVENTUR = {
         0
       ],
       "stock": 84,
-      "ts": 1774921315626
+      "ts": 1775006718136
     },
     "zwiebelstange_stueck": {
       "locs": [
-        17,
-        3,
+        15,
+        0,
         0,
         0
       ],
-      "stock": 20,
-      "ts": 1774921457075
+      "stock": 15,
+      "ts": 1775006640516
     },
     "zwiebelstange_teig_stueck": {
       "locs": [
-        46,
-        10,
+        48,
+        19,
         0,
         0
       ],
-      "stock": 56,
-      "ts": 1774921458895
+      "stock": 67,
+      "ts": 1775006596702
     },
     "schnecken_stueck": {
       "locs": [
-        43,
+        31,
         0,
         0,
         0
       ],
-      "stock": 43,
-      "ts": 1774921325414
+      "stock": 31,
+      "ts": 1775006472882
     },
     "plunderstreifen_stueck": {
       "locs": [
-        0,
+        44,
         0,
         0,
         0
       ],
-      "stock": 0,
-      "ts": 1774921362614
+      "stock": 44,
+      "ts": 1775006487230
     },
     "puddingbrezel_stueck": {
+      "locs": [
+        11,
+        0,
+        0,
+        0
+      ],
+      "stock": 11,
+      "ts": 1775006510307
+    },
+    "plunderschiffe_vegan_stueck": {
       "locs": [
         9,
         0,
@@ -188,39 +198,29 @@ window.BOS_INVENTUR = {
         0
       ],
       "stock": 9,
-      "ts": 1774921344896
-    },
-    "plunderschiffe_vegan_stueck": {
-      "locs": [
-        13,
-        0,
-        0,
-        0
-      ],
-      "stock": 13,
-      "ts": 1774921356420
+      "ts": 1775006529689
     }
   },
   "stocks": {
-    "hasenberger_stueck": 16,
-    "kaesebroetchen_stueck": 36,
-    "kornknacker_stueck": 82,
-    "dinkel_zwerg_stueck": 4,
-    "laugenstangen_stueck": 67,
-    "rosinen_hedwig_stueck": 15,
-    "hasenpfoetchen_stueck": 50,
-    "rosinen_batzen_stueck": 0,
-    "schoko_batzen_stueck": 0,
-    "zimt_woelkchen_stueck": 52,
+    "hasenberger_stueck": 43,
+    "kaesebroetchen_stueck": 18,
+    "kornknacker_stueck": 29,
+    "dinkel_zwerg_stueck": 2,
+    "laugenstangen_stueck": 28,
+    "rosinen_hedwig_stueck": 4,
+    "hasenpfoetchen_stueck": 28,
+    "rosinen_batzen_stueck": 17,
+    "schoko_batzen_stueck": 22,
+    "zimt_woelkchen_stueck": 31,
     "schlawiner_gesamt_stueck": 0,
-    "stangen_gesamt_stueck": 62,
-    "baguettestange_teig_stueck": 75,
+    "stangen_gesamt_stueck": 40,
+    "baguettestange_teig_stueck": 118,
     "lamourette_250g_stueck": 84,
-    "zwiebelstange_stueck": 20,
-    "zwiebelstange_teig_stueck": 56,
-    "schnecken_stueck": 43,
-    "plunderstreifen_stueck": 0,
-    "puddingbrezel_stueck": 9,
-    "plunderschiffe_vegan_stueck": 13
+    "zwiebelstange_stueck": 15,
+    "zwiebelstange_teig_stueck": 67,
+    "schnecken_stueck": 31,
+    "plunderstreifen_stueck": 44,
+    "puddingbrezel_stueck": 11,
+    "plunderschiffe_vegan_stueck": 9
   }
 };
