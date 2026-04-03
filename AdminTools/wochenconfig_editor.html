@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zeit-Konfigurator – BäckereiOS</title>
+<script src="../feiertage_nds.js"></script>
+<style>
+  :root {
+    --dunkel:  #0d1117;
+    --grau1:   #161b22;
+    --grau2:   #21262d;
+    --grau3:   #30363d;
+    --grau4:   #484f58;
+    --border:  #30363d;
+    --akzent:  #7c3aed;
+    --akzent2: #6d28d9;
+    --gruen:   #22c55e;
+    --rot:     #ef4444;
+    --amber:   #f59e0b;
+    --cyan:    #06b6d4;
+    --text:    #e6edf3;
+    --dim:     #8b949e;
+    --font:    'Courier New', 'Lucida Console', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--dunkel); color: var(--text); min-height: 100vh; font-size: 13px; }
+  header { background: var(--akzent); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--akzent2); }
+  header h1 { font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: #fff; font-weight: bold; }
+  header .meta { font-size: 10px; color: rgba(255,255,255,0.75); text-align: right; line-height: 1.7; }
+  .toolbar { background: var(--grau1); border-bottom: 2px solid var(--border); padding: 8px 20px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .btn { font-family: var(--font); font-size: 11px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; border: none; border-radius: 3px; padding: 6px 13px; cursor: pointer; transition: opacity 0.15s; }
+  .btn:hover { opacity: 0.85; }
+  .btn-lila { background: var(--akzent); color: #fff; }
+  .btn-cyan { background: var(--cyan); color: #000; }
+  .btn-grau { background: var(--grau4); color: #fff; }
+  .btn-rot  { background: var(--rot); color: #fff; }
+  .toolbar .sep { width: 1px; height: 24px; background: var(--border); }
+  .toolbar .tb-label { font-size: 10px; color: var(--dim); letter-spacing: 0.5px; text-transform: uppercase; }
+  .toolbar input[type=date] { font-family: var(--font); font-size: 11px; background: var(--grau2); color: var(--text); border: 1px solid var(--border); border-radius: 3px; padding: 5px 8px; }
+  #statusBar { font-size: 11px; color: var(--dim); margin-left: auto; letter-spacing: 0.5px; }
+  #statusBar.ok  { color: var(--gruen); }
+  #statusBar.err { color: var(--rot); }
+  #main { max-width: 1000px; margin: 0 auto; padding: 20px; }
+
+  /* BEREICH-RAHMEN */
+  .bereich-header { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-radius: 4px 4px 0 0; border: 2px solid; border-bottom: none; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; }
+  .bereich-header.cyan  { border-color: var(--cyan);   background: rgba(6,182,212,0.06);  color: var(--cyan); }
+  .bereich-header.lila  { border-color: var(--akzent); background: rgba(124,58,237,0.06); color: #a78bfa; }
+  .bereich-header .bh-sub { font-size: 10px; font-weight: normal; letter-spacing: 0.5px; opacity: 0.7; text-transform: none; }
+  .bereich-body { background: var(--grau1); border: 2px solid; border-top: none; border-radius: 0 0 4px 4px; padding: 20px; margin-bottom: 28px; }
+  .bereich-body.cyan  { border-color: var(--cyan); }
+  .bereich-body.lila  { border-color: var(--akzent); }
+
+  /* TRENNER */
+  .trenner { display: flex; align-items: center; gap: 12px; margin: 4px 0 28px; }
+  .trenner-line { flex: 1; height: 1px; background: var(--border); }
+  .trenner-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--grau4); white-space: nowrap; }
+
+  /* BERECHNUNGSGRUNDLAGE */
+  .einst-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 768px) { .einst-grid { grid-template-columns: 1fr; gap: 16px; } }
+  .einst-section-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--cyan); font-weight: bold; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+  .einst-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .einst-row label { font-size: 11px; color: var(--dim); min-width: 140px; }
+  .einst-select { font-family: var(--font); font-size: 11px; background: var(--grau2); color: var(--text); border: 1px solid var(--border); border-radius: 3px; padding: 5px 8px; }
+  .einst-toggle { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 3px; border: 1px solid var(--border); color: var(--dim); cursor: pointer; font-size: 11px; width: 100%; background: var(--grau2); transition: all 0.12s; margin-bottom: 6px; }
+  .einst-toggle input { accent-color: var(--cyan); width: 13px; height: 13px; cursor: pointer; }
+  .einst-toggle.aktiv { border-color: var(--cyan); color: var(--text); }
+  .einst-hinweis { font-size: 10px; color: var(--grau4); margin-top: 6px; line-height: 1.5; }
+  .kalender-wrap { margin-top: 16px; }
+  .kalender-hinweis { font-size: 10px; color: var(--grau4); margin-bottom: 8px; line-height: 1.5; }
+  .kalender-grid { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+  .kal-tag { width: 38px; padding: 4px 3px; border-radius: 3px; text-align: center; border: 1px solid var(--border); background: var(--grau2); cursor: pointer; transition: all 0.12s; }
+  .kal-tag:hover { border-color: var(--cyan); }
+  .kal-tag.ausgeschlossen { background: rgba(239,68,68,0.18); border-color: var(--rot); }
+  .kal-tag.feiertag-auto  { background: rgba(6,182,212,0.08); border-color: rgba(6,182,212,0.3); opacity: 0.7; cursor: default; }
+  .kal-tag.sondertag      { border-color: var(--amber); }
+  .kal-wt    { font-size: 8px; color: var(--grau4); font-weight: bold; }
+  .kal-datum { font-size: 10px; font-weight: bold; color: var(--text); }
+  .kal-sym   { font-size: 9px; min-height: 12px; }
+  .kal-tag.ausgeschlossen .kal-wt { color: #fca5a5; }
+  .ausgeschl-liste { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+  .ausgeschl-item { display: flex; align-items: center; gap: 8px; padding: 5px 10px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 3px; font-size: 11px; }
+  .ausgeschl-datum { color: var(--rot); font-weight: bold; min-width: 80px; }
+  .ausgeschl-grund { color: var(--dim); flex: 1; }
+  .ausgeschl-del   { color: var(--grau4); cursor: pointer; padding: 0 4px; }
+  .ausgeschl-del:hover { color: var(--rot); }
+  .save-btn-cyan { font-family: var(--font); font-size: 11px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; border: none; border-radius: 3px; padding: 8px 18px; cursor: pointer; background: var(--cyan); color: #000; margin-top: 16px; }
+  .save-btn-cyan:hover { opacity: 0.85; }
+
+  /* WOCHEN-TABELLE — Desktop */
+  .tabelle { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .tabelle thead tr { background: var(--grau2); border-bottom: 2px solid var(--border); }
+  .tabelle thead th { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); font-weight: bold; padding: 7px 12px; text-align: left; }
+  .tabelle tbody tr { border-bottom: 1px solid var(--border); }
+  .tabelle tbody tr:hover { background: rgba(124,58,237,0.04); }
+  .tabelle tbody tr.wochenende { background: rgba(255,255,255,0.015); }
+  .tabelle tbody tr.feiertag   { background: rgba(124,58,237,0.06); }
+  .tabelle tbody tr.ist-zu     { opacity: 0.5; }
+  .tabelle tbody td { padding: 8px 12px; vertical-align: middle; }
+  .td-datum { font-weight: bold; color: var(--text); white-space: nowrap; }
+  .td-tag.montag { color: var(--amber); font-weight: bold; }
+  .td-tag { color: var(--dim); }
+
+  /* WOCHEN-KARTEN — Mobile (ersetzt Tabelle) */
+  .wochen-karten { display: none; flex-direction: column; gap: 6px; }
+  .wk-karte { background: var(--grau2); border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px; }
+  .wk-karte.wochenende { background: rgba(255,255,255,0.02); }
+  .wk-karte.feiertag   { border-color: rgba(124,58,237,0.4); background: rgba(124,58,237,0.05); }
+  .wk-karte.ist-zu     { opacity: 0.5; }
+  .wk-kopf { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .wk-datum { font-weight: bold; color: var(--text); font-size: 12px; }
+  .wk-tag   { color: var(--dim); font-size: 11px; }
+  .wk-tag.montag { color: var(--amber); font-weight: bold; }
+  .wk-buttons { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .wk-notiz { margin-top: 6px; }
+
+  @media (max-width: 640px) {
+    .tabelle, .tabelle thead { display: none; }
+    .wochen-karten { display: flex; }
+  }
+  .ft-badge { font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; font-weight: bold; padding: 1px 6px; border-radius: 2px; background: rgba(124,58,237,0.2); color: #a78bfa; border: 1px solid rgba(124,58,237,0.3); }
+  .ferien-badge { font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; font-weight: bold; padding: 1px 6px; border-radius: 2px; background: rgba(6,182,212,0.12); color: #67e8f9; border: 1px solid rgba(6,182,212,0.3); }
+  .status-btn { font-family: var(--font); font-size: 11px; font-weight: bold; letter-spacing: 1px; padding: 5px 14px; border-radius: 3px; cursor: pointer; border: 1px solid var(--border); background: var(--grau2); color: var(--dim); text-transform: uppercase; transition: all 0.12s; min-width: 60px; text-align: center; }
+  .status-btn.zu { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
+  .hamster-btn { font-family: var(--font); font-size: 11px; font-weight: bold; padding: 5px 12px; border-radius: 3px; cursor: pointer; border: 1px solid var(--border); background: var(--grau2); color: var(--dim); min-width: 100px; text-align: center; transition: all 0.12s; }
+  .hamster-btn.h1 { background: rgba(245,158,11,0.10); border-color: rgba(245,158,11,0.3); color: #fcd34d; }
+  .hamster-btn.h2 { background: rgba(245,158,11,0.20); border-color: rgba(245,158,11,0.5); color: #fbbf24; }
+  .hamster-btn.h3 { background: rgba(245,158,11,0.35); border-color: rgba(245,158,11,0.7); color: #f59e0b; }
+  .notiz-input { font-family: var(--font); font-size: 11px; background: var(--grau2); color: var(--text); border: 1px solid var(--border); border-radius: 3px; padding: 4px 8px; width: 100%; min-width: 120px; }
+  .notiz-input:focus { outline: none; border-color: var(--akzent); }
+  .save-btn-lila { font-family: var(--font); font-size: 11px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; border: none; border-radius: 3px; padding: 8px 18px; cursor: pointer; background: var(--akzent); color: #fff; }
+  .save-btn-lila:hover { opacity: 0.85; }
+  .legende { display: flex; flex-direction: column; gap: 5px; font-size: 10px; color: var(--grau4); margin-top: 14px; line-height: 1.5; }
+  .foot-hint { font-size: 10px; color: var(--grau4); margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⏱ BäckereiOS · Zeit-Konfigurator</h1>
+  <div class="meta">
+    <div id="statusBar">BEREIT</div>
+    <div id="meta-info" style="margin-top:2px;"></div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <span class="tb-label">Berechnung:</span>
+  <button class="btn btn-cyan" onclick="einstSpeichern()">↓ taeglicher_verbrauch.json</button>
+  <div class="sep"></div>
+  <span class="tb-label">Wochenplanung:</span>
+  <input type="date" id="startDatum" onchange="renderTabelle()">
+  <button class="btn btn-grau" onclick="setNaechsterMontag()">NÄCHSTER MO</button>
+  <button class="btn btn-lila" onclick="exportieren()">↓ wochenconfig.json</button>
+  <div class="sep"></div>
+  <button class="btn btn-grau" onclick="ladeWochenconfig()">↑ LADEN</button>
+  <input type="file" id="fileInput" accept=".json" style="display:none" onchange="dateiLaden(this)">
+</div>
+
+<div id="main">
+
+  <div class="bereich-header cyan">
+    ⚙ Berechnungsgrundlage
+    <span class="bh-sub">— Zeitraum & Ausschlüsse für den Durchschnittsverbrauch → taeglicher_verbrauch.json</span>
+  </div>
+  <div class="bereich-body cyan">
+    <div class="einst-grid">
+      <div>
+        <div class="einst-section-label">Zeitraum</div>
+        <div class="einst-row">
+          <label>Berechnungsbasis:</label>
+          <select class="einst-select" id="einst-zeitraum" onchange="einstAktualisiere()">
+            <option value="7">Letzte 7 Tage</option>
+            <option value="14" selected>Letzte 14 Tage</option>
+            <option value="21">Letzte 21 Tage</option>
+            <option value="28">Letzte 28 Tage</option>
+            <option value="56">Letzte 56 Tage (~2 Monate)</option>
+            <option value="0">Alle verfügbaren Tage</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <div class="einst-section-label">Automatische Ausschlüsse</div>
+        <label class="einst-toggle aktiv" id="tog-feiertage">
+          <input type="checkbox" id="einst-feiertage" checked onchange="einstToggle('feiertage')">
+          Gesetzliche Feiertage (NDS) ausschließen
+        </label>
+        <label class="einst-toggle aktiv" id="tog-sondertage">
+          <input type="checkbox" id="einst-sondertage" checked onchange="einstToggle('sondertage')">
+          Als Sondertag markierte Tage ausschließen
+        </label>
+        <div class="einst-hinweis">Feiertage verfälschen den Durchschnitt. Sondertage betreffen nur manche Produkte.</div>
+      </div>
+    </div>
+    <div class="kalender-wrap">
+      <div class="einst-section-label" style="margin-top:16px;">Einzelne Tage ausschließen</div>
+      <div class="kalender-hinweis">Antippen = aus Durchschnittsrechnung ausschließen. Blau = Feiertag (auto). Gelb = auffällig laut DB.</div>
+      <div class="kalender-grid" id="einst-kalender">
+        <div style="color:var(--grau4);font-size:11px;">Lade backmengen_db.json…</div>
+      </div>
+      
+      <div id="sondertage-info"></div>
+      
+      <div class="ausgeschl-liste" id="ausgeschlossen-liste"></div>
+    </div>
+    <button class="save-btn-cyan" onclick="einstSpeichern()">↓ taeglicher_verbrauch.json speichern</button>
+    <div class="foot-hint" style="margin-top:6px;">In den Stammordner von BäckereiOS deployen (neben produkt_config.json).</div>
+  </div>
+
+  <div class="trenner">
+    <div class="trenner-line"></div>
+    <div class="trenner-label">Wochenplanung</div>
+    <div class="trenner-line"></div>
+  </div>
+
+  <div class="bereich-header lila">
+    📅 Wochenplanung
+    <span class="bh-sub">— Sondertage für die laufende Woche → wochenconfig.json</span>
+  </div>
+  <div class="bereich-body lila">
+    <table class="tabelle">
+        <thead><tr>
+          <th style="width:100px">Datum</th>
+          <th style="width:80px">Tag</th>
+          <th style="width:140px">Besonderheit</th>
+          <th style="width:70px">Status</th>
+          <th style="width:120px">Sonderbedarf</th>
+          <th>Notiz</th>
+        </tr></thead>
+        <tbody id="tabelle-body"></tbody>
+      </table>
+      <div class="wochen-karten" id="wochen-karten"></div>
+    <div class="legende">
+      <div><span style="color:#fca5a5;font-weight:bold;">ZU</span> — Geschäft geschlossen. Kein Verbrauch wird berechnet.</div>
+      <div><span style="color:#fcd34d;font-weight:bold;">🐹 ×1 Sonderbedarf leicht</span> — Erhöhter Kundenandrang. Rechnet mit dem Mittelwert aus normalem Tagesbedarf und Samstagsbedarf.</div>
+      <div><span style="color:#fbbf24;font-weight:bold;">🐹 ×2 Sonderbedarf mittel</span> — Starker Andrang wie an einem Samstag. Samstagsbedarf wird angesetzt.</div>
+      <div><span style="color:#f59e0b;font-weight:bold;">🐹 ×3 Sonderbedarf hoch</span> — Maximaler Ansturm. Samstag ×1,5 bzw. normaler Tag ×2.</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;align-items:center;">
+      <button class="btn btn-grau" onclick="alleAuf()">ALLE AUF</button>
+      <button class="btn btn-rot"  onclick="alleZu()">ALLE ZU</button>
+      <button class="btn btn-grau" onclick="resetWochen()">RESET</button>
+      <button class="save-btn-lila" onclick="exportieren()">↓ wochenconfig.json speichern</button>
+    </div>
+    <div class="foot-hint" style="margin-top:6px;">In den Stammordner deployen. Wird automatisch von Schnellrechner und Bestandsübersicht erkannt.</div>
+  </div>
+</div>
+
+<script>
+const WT_KURZ = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+const WT_LANG = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+const FEIERTAGE_NDS = (window.BOS_FEIERTAGE?.feiertage || []).map(f => f.datum);
+const TAGE = 14;
+let startDatum = new Date(); startDatum.setHours(0,0,0,0);
+let tageConfig = {};
+
+// ══ BERECHNUNGSGRUNDLAGE ══════════════════════════════
+let einstDaten = { zeitraum_tage:14, feiertage_ausschliessen:true, sondertage_ausschliessen:true, ausgeschlossene_tage:[] };
+let dbTageMap = {};
+
+async function ladeEinstellungen() {
+  try { const r = await fetch('../taeglicher_verbrauch.json',{cache:'no-store'}); if(r.ok) einstDaten=await r.json(); } catch(e){}
+  try { const r2 = await fetch('../backmengen_db.json',{cache:'no-store'}); if(r2.ok){const db=await r2.json();db.forEach(e=>{dbTageMap[e.datum]=e.kontext||{};});} } catch(e){}
+  document.getElementById('einst-zeitraum').value = einstDaten.zeitraum_tage;
+  document.getElementById('einst-feiertage').checked = einstDaten.feiertage_ausschliessen;
+  document.getElementById('einst-sondertage').checked = einstDaten.sondertage_ausschliessen;
+  document.getElementById('tog-feiertage').classList.toggle('aktiv', einstDaten.feiertage_ausschliessen);
+  document.getElementById('tog-sondertage').classList.toggle('aktiv', einstDaten.sondertage_ausschliessen);
+  einstKalenderRender(); einstListeRender();
+}
+
+function einstAktualisiere() { einstDaten.zeitraum_tage=parseInt(document.getElementById('einst-zeitraum').value)||14; einstKalenderRender(); }
+
+function einstToggle(feld) {
+  if(feld==='feiertage'){einstDaten.feiertage_ausschliessen=document.getElementById('einst-feiertage').checked;document.getElementById('tog-feiertage').classList.toggle('aktiv',einstDaten.feiertage_ausschliessen);}
+  else{einstDaten.sondertage_ausschliessen=document.getElementById('einst-sondertage').checked;document.getElementById('tog-sondertage').classList.toggle('aktiv',einstDaten.sondertage_ausschliessen);}
+}
+
+function einstKalenderRender() {
+  const grid=document.getElementById('einst-kalender');
+  const infoDiv=document.getElementById('sondertage-info');
+  const alle=Object.keys(dbTageMap).sort().reverse();
+  const tage=einstDaten.zeitraum_tage>0?alle.slice(0,einstDaten.zeitraum_tage):alle;
+  if(!tage.length){grid.innerHTML='<div style="color:var(--grau4);font-size:11px;">backmengen_db.json nicht gefunden.</div>';return;}
+  grid.innerHTML='';
+  
+  let sondertageTexte = [];
+
+  tage.forEach(datum=>{
+    const k=dbTageMap[datum]||{};
+    const istFeiertag=FEIERTAGE_NDS.includes(datum)||k.feiertag;
+    const istSondertag=k.besonderheit||k.ausschluss_sondertag||k.ausschluss_einschraenkung;
+    const istAusgesch=einstDaten.ausgeschlossene_tage.some(t=>t.datum===datum);
+    const d=new Date(datum+'T12:00:00');
+    const label=d.getDate()+'.'+(d.getMonth()+1)+'.';
+    const wt=WT_KURZ[d.getDay()];
+    let cls='kal-tag',sym='';
+    
+    if(istAusgesch){cls+=' ausgeschlossen';sym='✕';}
+    else if(istFeiertag){cls+=' feiertag-auto';sym='✦';}
+    else if(istSondertag){
+        cls+=' sondertag';sym='⚠';
+        const grund = k.besonderheit || k.ausschluss_sondertag || k.ausschluss_einschraenkung || 'Auffälligkeit in DB hinterlegt';
+        sondertageTexte.push(`<span style="color:var(--amber)">${wt} ${label}</span>: ${grund}`);
+    }
+    
+    const div=document.createElement('div');
+    div.className=cls;
+    div.title=datum+(k.besonderheit?' — '+k.besonderheit:'');
+    div.innerHTML=`<div class="kal-wt">${wt}</div><div class="kal-datum">${label}</div><div class="kal-sym">${sym}</div>`;
+    if(!istFeiertag) div.onclick=()=>einstTagToggle(datum);
+    grid.appendChild(div);
+  });
+
+  if(infoDiv) {
+      if(sondertageTexte.length > 0) {
+          infoDiv.innerHTML = '<div style="font-size:10px; color:var(--dim); margin: 8px 0; line-height:1.6;"><b>⚠ Hinterlegte Auffälligkeiten in diesem Zeitraum:</b><br>' + sondertageTexte.join('<br>') + '</div>';
+      } else {
+          infoDiv.innerHTML = '';
+      }
+  }
+}
+
+function einstTagToggle(datum) {
+  const idx=einstDaten.ausgeschlossene_tage.findIndex(t=>t.datum===datum);
+  if(idx>-1){einstDaten.ausgeschlossene_tage.splice(idx,1);}
+  else{const grund=prompt('Grund für Ausschluss (optional):')?? '';einstDaten.ausgeschlossene_tage.push({datum,grund});einstDaten.ausgeschlossene_tage.sort((a,b)=>b.datum.localeCompare(a.datum));}
+  einstKalenderRender();einstListeRender();
+}
+
+function einstListeRender() {
+  const liste=document.getElementById('ausgeschlossen-liste');
+  if(!einstDaten.ausgeschlossene_tage.length){liste.innerHTML='<div style="font-size:10px;color:var(--grau4);margin-top:6px;">Noch keine manuellen Ausschlüsse.</div>';return;}
+  liste.innerHTML='';
+  einstDaten.ausgeschlossene_tage.forEach(t=>{
+    const d=new Date(t.datum+'T12:00:00');
+    const label=WT_KURZ[d.getDay()]+' '+t.datum;
+    const div=document.createElement('div');div.className='ausgeschl-item';
+    div.innerHTML=`<span class="ausgeschl-datum">${label}</span><span class="ausgeschl-grund">${t.grund||'—'}</span><span class="ausgeschl-del" onclick="einstTagToggle('${t.datum}')">✕</span>`;
+    liste.appendChild(div);
+  });
+}
+
+function einstSpeichern() {
+  einstDaten.zeitraum_tage=parseInt(document.getElementById('einst-zeitraum').value)||14;
+  dl(JSON.stringify(einstDaten,null,2),'taeglicher_verbrauch.json');
+  status('taeglicher_verbrauch.json gespeichert','ok');
+}
+
+// ══ WOCHENPLANUNG ═════════════════════════════════════
+function setNaechsterMontag() {
+  const h=new Date();h.setHours(0,0,0,0);
+  const j=h.getDay();const dtm=j===1?0:j===0?1:(8-j);
+  const mon=new Date(h);mon.setDate(h.getDate()+dtm);
+  startDatum=mon;document.getElementById('startDatum').value=lds(mon);renderTabelle();
+}
+
+function renderTabelle() {
+  const inp=document.getElementById('startDatum').value;
+  if(inp){const p=inp.split('-');startDatum=new Date(+p[0],+p[1]-1,+p[2]);}
+  const tbody=document.getElementById('tabelle-body'); tbody.innerHTML='';
+  const karten=document.getElementById('wochen-karten'); karten.innerHTML='';
+
+  for(let i=0;i<TAGE;i++){
+    const d=new Date(startDatum);d.setDate(startDatum.getDate()+i);
+    const ds=lds(d);const jsDay=d.getDay();
+    const cfg=tageConfig[i]||{zu:false,hamster:0,notiz:''};
+    let besonderheit='',rowExtra='';
+    if(window.BOS_IST_BESONDERER_TAG){const info=window.BOS_IST_BESONDERER_TAG(ds);if(info){const cls=info.typ==='feiertag'?'ft-badge':'ferien-badge';besonderheit=`<span class="${cls}">${info.name}</span>`;rowExtra=info.typ==='feiertag'?'feiertag':'';}}
+    const trCls=[rowExtra,(jsDay===0||jsDay===6)?'wochenende':'',cfg.zu?'ist-zu':''].filter(Boolean).join(' ');
+    const hl=['· Kein','🐹 ×1','🐹 ×2','🐹 ×3'][cfg.hamster];
+    const hc=['','h1','h2','h3'][cfg.hamster];
+    const pad=n=>String(n).padStart(2,'0');
+    const datumStr=`${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;
+
+    // Desktop Tabellenzeile
+    const tr=document.createElement('tr');tr.className=trCls;
+    tr.innerHTML=`<td class="td-datum">${datumStr}</td>
+      <td class="td-tag ${jsDay===1?'montag':''}">${WT_LANG[jsDay]}</td>
+      <td>${besonderheit}</td>
+      <td><button class="status-btn ${cfg.zu?'zu':''}" onclick="toggleZu(${i})">${cfg.zu?'ZU':'AUF'}</button></td>
+      <td><button class="hamster-btn ${hc}" onclick="cycleHamster(${i})" ${cfg.zu?'disabled style="opacity:0.3;cursor:not-allowed"':''}>${hl}</button></td>
+      <td><input class="notiz-input" type="text" value="${esc(cfg.notiz||'')}" placeholder="Optionaler Hinweis..." oninput="updNotiz(${i},this.value)"></td>`;
+    tbody.appendChild(tr);
+
+    // Mobile Karte
+    const karte=document.createElement('div');
+    karte.className='wk-karte '+trCls;
+    karte.innerHTML=`
+      <div class="wk-kopf">
+        <div><span class="wk-datum">${datumStr}</span> <span class="wk-tag ${jsDay===1?'montag':''}">${WT_LANG[jsDay]}</span></div>
+        <div>${besonderheit}</div>
+      </div>
+      <div class="wk-buttons">
+        <button class="status-btn ${cfg.zu?'zu':''}" onclick="toggleZu(${i})">${cfg.zu?'ZU':'AUF'}</button>
+        <button class="hamster-btn ${hc}" onclick="cycleHamster(${i})" ${cfg.zu?'disabled style="opacity:0.3;cursor:not-allowed"':''}>${hl}</button>
+      </div>
+      <div class="wk-notiz"><input class="notiz-input" type="text" value="${esc(cfg.notiz||'')}" placeholder="Notiz..." oninput="updNotiz(${i},this.value)"></div>`;
+    karten.appendChild(karte);
+  }
+  document.getElementById('meta-info').textContent='AB '+lds(startDatum).split('-').reverse().join('.')+' · '+TAGE+' TAGE';
+}
+
+function toggleZu(i){if(!tageConfig[i])tageConfig[i]={zu:false,hamster:0,notiz:''};tageConfig[i].zu=!tageConfig[i].zu;if(tageConfig[i].zu)tageConfig[i].hamster=0;renderTabelle();}
+function cycleHamster(i){if(!tageConfig[i])tageConfig[i]={zu:false,hamster:0,notiz:''};tageConfig[i].hamster=(tageConfig[i].hamster+1)%4;renderTabelle();}
+function updNotiz(i,w){if(!tageConfig[i])tageConfig[i]={zu:false,hamster:0,notiz:''};tageConfig[i].notiz=w;}
+function alleAuf(){for(let i=0;i<TAGE;i++){if(!tageConfig[i])tageConfig[i]={zu:false,hamster:0,notiz:''};tageConfig[i].zu=false;}renderTabelle();}
+function alleZu(){for(let i=0;i<TAGE;i++){if(!tageConfig[i])tageConfig[i]={zu:false,hamster:0,notiz:''};tageConfig[i].zu=true;tageConfig[i].hamster=0;}renderTabelle();}
+function resetWochen(){if(!confirm('Wochenplanung zurücksetzen?'))return;tageConfig={};renderTabelle();status('Zurückgesetzt','');}
+
+function exportieren() {
+  const tage=[];
+  for(let i=0;i<TAGE;i++){
+    const d=new Date(startDatum);d.setDate(startDatum.getDate()+i);
+    const datum=lds(d);const cfg=tageConfig[i]||{zu:false,hamster:0,notiz:''};
+    let typ='normal';
+    if(cfg.zu)typ='zu';else if(cfg.hamster===1)typ='hamster_1';else if(cfg.hamster===2)typ='hamster_2';else if(cfg.hamster===3)typ='hamster_3';
+    const e={datum,typ};if(cfg.notiz)e.notiz=cfg.notiz;tage.push(e);
+  }
+  dl(JSON.stringify({erstellt:lds(new Date()),gueltig_ab:lds(startDatum),tage},null,2),'wochenconfig.json');
+  status('wochenconfig.json exportiert','ok');
+}
+
+function ladeWochenconfig(){document.getElementById('fileInput').click();}
+function dateiLaden(input){const file=input.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{wendeCfgAn(JSON.parse(e.target.result));status('Geladen: '+file.name,'ok');}catch(err){status('Fehler: '+err.message,'err');}input.value='';};r.readAsText(file);}
+
+function wendeCfgAn(cfg){
+  if(cfg.gueltig_ab){const p=cfg.gueltig_ab.split('-');startDatum=new Date(+p[0],+p[1]-1,+p[2]);document.getElementById('startDatum').value=cfg.gueltig_ab;}
+  tageConfig={};
+  (cfg.tage||[]).forEach(e=>{const p=e.datum.split('-');const d=new Date(+p[0],+p[1]-1,+p[2]);const off=Math.round((d-startDatum)/86400000);if(off<0||off>=TAGE)return;tageConfig[off]={zu:e.typ==='zu',hamster:{hamster_1:1,hamster_2:2,hamster_3:3}[e.typ]||0,notiz:e.notiz||''};});
+  renderTabelle();
+}
+
+// ══ UTILS ════════════════════════════════════════════
+function lds(d){const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
+function dl(content,filename){const b=new Blob([content],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);}
+function status(msg,cls){const el=document.getElementById('statusBar');el.textContent=msg.toUpperCase();el.className=cls||'';if(cls)setTimeout(()=>{el.textContent='BEREIT';el.className='';},3000);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+window.addEventListener('load',function(){
+  setNaechsterMontag();ladeEinstellungen();
+  fetch('../wochenconfig.json',{cache:'no-store'}).then(r=>r.json()).then(wendeCfgAn).catch(()=>fetch('wochenconfig.json',{cache:'no-store'}).then(r=>r.json()).then(wendeCfgAn).catch(()=>{}));
+});
+</script>
+</body>
+</html>

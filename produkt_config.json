@@ -42,7 +42,7 @@
     "charge": 20,
     "legacyKey": "hasenberger_stueck",
     "hinweis": null,
-    "einheit": "Bleche",
+    "einheit": "bleche",
     "lagerort": "",
     "frosterliste": true,
     "backTage": [
@@ -1221,5 +1221,235 @@
     "pressenGroesse": null,
     "teiggewichtAufschlag": null,
     "schnellrechnerRelevant": false
+  },
+  {
+    "artNr": "133212",
+    "name": "Dinkel-Fruchtkuchen Vegan (Nur Henri)",
+    "kategorie": "Konditorei",
+    "charge": 1,
+    "einheit": "stueck",
+    "legacyKey": "dinkel_fruchtkuchen_vegan_nur_henri_stueck",
+    "station": "Nachtschicht",
+    "unit": 0,
+    "batchSize": 1,
+    "backTage": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "hinweis": "Automatisch erkannt — bitte prüfen"
+  },
+  {
+    "artNr": "134036",
+    "name": "vegange Kirsch-Schiffchen (nur Henri)",
+    "kategorie": "Konditorei",
+    "charge": 12,
+    "einheit": "stueck",
+    "legacyKey": "vegange_kirsch_schiffchen_nur_henri_stueck",
+    "station": "Rondo",
+    "unit": 0,
+    "batchSize": 1,
+    "backTage": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "hinweis": "Automatisch erkannt — bitte prüfen",
+    "inventurRelevant": true,
+    "schnellrechnerRelevant": true
+  },
+  {
+    "artNr": "134042",
+    "name": "Spiegelei Plunder",
+    "kategorie": "Konditorei",
+    "charge": 20,
+    "einheit": "stueck",
+    "legacyKey": "spiegelei_plunder_stueck",
+    "station": "Rondo",
+    "unit": 0,
+    "batchSize": 1,
+    "backTage": [
+      2,
+      4,
+      6
+    ],
+    "hinweis": "Automatisch erkannt — bitte prüfen",
+    "inventurRelevant": true,
+    "schnellrechnerRelevant": true
+  },
+  {
+    "artNr": "122006",
+    "name": "Feines Vollkorn 500g",
+    "kategorie": "Brot",
+    "charge": 8,
+    "einheit": "stueck",
+    "legacyKey": "feines_vollkorn_500g_stueck",
+    "station": "Nachtschicht",
+    "unit": 0,
+    "batchSize": 1,
+    "backTage": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "hinweis": "Automatisch erkannt — bitte prüfen"
+  },
+  {
+    "artNr": "124001",
+    "name": "Schwabenbrot 500g",
+    "kategorie": "Brot",
+    "charge": 8,
+    "einheit": "stueck",
+    "legacyKey": "schwabenbrot_500g_stueck",
+    "station": "Nachtschicht",
+    "unit": 0,
+    "batchSize": 1,
+    "backTage": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "hinweis": "Automatisch erkannt — bitte prüfen"
+  },
+  {
+    "artNr": "126008",
+    "name": "Sonderbestellung Baguette 20-22cm",
+    "kategorie": "Konditorei",
+    "charge": 1,
+    "einheit": "stueck",
+    "legacyKey": "sonderbestellung_baguette_20_22cm_stueck",
+    "station": "Nachtschicht",
+    "unit": 0,
+    "batchSize": 1,
+    "backTage": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "hinweis": "Automatisch erkannt — bitte prüfen"
+  },
+  {
+    "artNr": "133250",
+    "name": "Wchd. Frucht",
+    "kategorie": "Konditorei",
+    "charge": 1,
+    "einheit": "stueck",
+    "legacyKey": "wchd_frucht_stueck",
+    "station": "Nachtschicht",
+    "unit": 0,
+    "batchSize": 1,
+    "backTage": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "hinweis": "Automatisch erkannt — bitte prüfen"
+  },
+  {
+    "artNr": "121020",
+    "name": "Havelser Urbrot 1000g",
+    "kategorie": "Brot",
+    "charge": 1,
+    "einheit": "stueck",
+    "legacyKey": "havelser_urbrot_1000g_stueck",
+    "station": "Nachtschicht",
+    "unit": 0,
+    "batchSize": 1,
+    "backTage": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "hinweis": "Automatisch erkannt — bitte prüfen"
+  },
+  {
+    "artNr": "131200",
+    "name": "Orangen-Joghurt-Schnitte",
+    "kategorie": "Konditorei",
+    "charge": 1,
+    "einheit": "stueck",
+    "legacyKey": "orangen_joghurt_schnitte_stueck",
+    "station": "Nachtschicht",
+    "unit": 0,
+    "batchSize": 1,
+    "backTage": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "hinweis": "Automatisch erkannt — bitte prüfen"
+  },
+  {
+    "artNr": "131202",
+    "name": "Eierlikör-Sahne-Schnitte",
+    "kategorie": "Konditorei",
+    "charge": 1,
+    "einheit": "stueck",
+    "legacyKey": "eierlikoer_sahne_schnitte_stueck",
+    "station": "Nachtschicht",
+    "unit": 0,
+    "batchSize": 1,
+    "backTage": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "hinweis": "Automatisch erkannt — bitte prüfen"
+  },
+  {
+    "artNr": "137011",
+    "name": "Erdbeersahne 1 Stk (16)",
+    "kategorie": "Konditorei",
+    "charge": 1,
+    "einheit": "stueck",
+    "legacyKey": "erdbeersahne_1_stk_16_stueck",
+    "station": "Nachtschicht",
+    "unit": 0,
+    "batchSize": 1,
+    "backTage": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "hinweis": "Automatisch erkannt — bitte prüfen"
   }
 ]

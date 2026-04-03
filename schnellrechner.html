@@ -6,6 +6,7 @@
     <title>BOS - Schnellrechner</title>
     <link rel="stylesheet" href="systemdesign.css">
     <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+    <script src="feiertage_nds.js"></script>
     <script src="produktions_gehirn.js"></script>
     <script src="froster_gehirn.js"></script>
     <script src="inventurdaten.js"></script>
@@ -155,13 +156,29 @@
                 <button class="btn-toggle-extras" onclick="toggleExtras()" id="lang-calcExtras" style="margin:0;"><i class="ph ph-calendar-x" style="margin-right:6px;"></i>Feiertage & besondere Tage</button>
                 <div style="font-size:0.72rem; color:var(--dim); margin-top:6px; padding-left:4px; opacity:0.8;"><i class="ph ph-arrow-bend-down-right" style="margin-right:4px;"></i>Geschlossene Tage & Sonderbedarf eintragen</div>
                 <div class="extras-area" id="extras-area" style="margin-bottom:0;">
+
+                    <!-- Wochenschablone -->
+                    <div id="wochenschablone-hinweis" style="display:none; background:rgba(192,122,16,0.08); border:1.5px solid var(--amber); border-radius:12px; padding:12px 14px; margin-bottom:14px;">
+                        <div style="font-size:0.72rem; font-weight:900; color:var(--amber); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;"><i class="ph ph-warning" style="margin-right:4px;"></i>Besondere Woche erkannt</div>
+                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                            <input type="checkbox" id="schablone-cb" onchange="ladeWochenschablone(this.checked)" style="width:18px; height:18px; accent-color:var(--amber); cursor:pointer; flex-shrink:0;">
+                            <span style="font-size:0.82rem; font-weight:800; color:var(--text);" id="schablone-label">Wochenschablone laden</span>
+                        </label>
+                    </div>
+
                     <div id="sandbox-grid"></div>
                     <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border-s);">
                         <div class="label" style="margin-bottom:8px;">KUNDENBESTELLUNG (+ BLECHE):</div>
                         <input type="number" id="extra-order-input" placeholder="0" oninput="calculate()"
                             style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--border-s); text-align:center; font-weight:800; font-size:1.1rem; background:var(--surface); color:var(--text);">
                     </div>
-                    <button onclick="toggleExtras()" style="width:100%; margin-top:14px; padding:10px; border-radius:10px; border:1.5px solid var(--border-s); background:var(--surface); color:var(--dim); font-weight:800; font-size:0.8rem; cursor:pointer; font-family:inherit;"><i class="ph ph-caret-up" style="margin-right:6px;"></i>Einklappen</button>
+
+                    <!-- Admin: Wochenconfig exportieren -->
+                    <div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border-s); text-align:right;">
+                        <span onclick="exportWochenconfig()" style="font-size:0.68rem; font-weight:800; color:var(--dim); cursor:pointer; opacity:0.5; letter-spacing:0.5px;"><i class="ph ph-download-simple" style="margin-right:3px;"></i>wochenconfig.json auswerfen</span>
+                    </div>
+
+                    <button onclick="toggleExtras()" style="width:100%; margin-top:10px; padding:10px; border-radius:10px; border:1.5px solid var(--border-s); background:var(--surface); color:var(--dim); font-weight:800; font-size:0.8rem; cursor:pointer; font-family:inherit;"><i class="ph ph-caret-up" style="margin-right:6px;"></i>Einklappen</button>
                 </div>
             </div>
 
@@ -796,9 +813,81 @@
             }
             calculate();
         }
+        // ── WOCHENCONFIG ─────────────────────────────────────────────────────
+
+        async function pruefeFeiertagsWoche() {
+            if (!window.BOS_BESONDERE_TAGE_IN) return;
+            const treffer = window.BOS_BESONDERE_TAGE_IN(14);
+            if (treffer.length === 0) return;
+            // Schablone vorhanden?
+            try {
+                const rs = await fetch('wochenconfig.json', { cache: 'no-store' });
+                if (!rs.ok) return;
+                const hinweis = document.getElementById('wochenschablone-hinweis');
+                const label = document.getElementById('schablone-label');
+                const erster = treffer[0];
+                const d = new Date(erster.datum);
+                label.textContent = 'Wochenschablone laden — ' + erster.name + ' (' + d.getDate() + '.' + (d.getMonth()+1) + '.)';
+                hinweis.style.display = 'block';
+            } catch(e) {}
+        }
+
+        async function ladeWochenschablone(checked) {
+            if (!checked) {
+                simClosed = {}; simHamster = {};
+                buildSandbox(); renderTarget(); calculate();
+                return;
+            }
+            try {
+                const r = await fetch('wochenconfig.json', { cache: 'no-store' });
+                const cfg = await r.json();
+                simClosed = {}; simHamster = {};
+                const heute = new Date(); heute.setHours(0,0,0,0);
+                (cfg.tage || []).forEach(eintrag => {
+                    // Datum als lokale Zeit parsen (nicht UTC) um Timezone-Verschiebung zu vermeiden
+                    const parts = eintrag.datum.split('-');
+                    const d = new Date(+parts[0], +parts[1]-1, +parts[2]);
+                    const offset = Math.round((d - heute) / 86400000);
+                    if (offset < 0 || offset > 14) return;
+                    if (eintrag.typ === 'zu') simClosed[offset] = true;
+                    if (eintrag.typ === 'hamster_1') simHamster[offset] = 1;
+                    if (eintrag.typ === 'hamster_2') simHamster[offset] = 2;
+                    if (eintrag.typ === 'hamster_3') simHamster[offset] = 3;
+                });
+                buildSandbox(); renderTarget(); calculate();
+            } catch(e) {
+                alert('wochenconfig.json konnte nicht geladen werden.');
+                document.getElementById('schablone-cb').checked = false;
+            }
+        }
+
+        function exportWochenconfig() {
+            const heute = new Date(); heute.setHours(0,0,0,0);
+            const pad = n => String(n).padStart(2, '0');
+            const localDate = d => d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+            const maxOffset = (8 - todayIdx) + 7;
+            const tage = [];
+            for (let i = 1; i <= maxOffset; i++) {
+                const d = new Date(heute); d.setDate(heute.getDate() + i);
+                const datum = localDate(d);
+                let typ = 'normal';
+                if (simClosed[i]) typ = 'zu';
+                else if (simHamster[i] === 1) typ = 'hamster_1';
+                else if (simHamster[i] === 2) typ = 'hamster_2';
+                else if (simHamster[i] === 3) typ = 'hamster_3';
+                tage.push({ datum, typ });
+            }
+            const cfg = { erstellt: localDate(heute), tage };
+            const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'wochenconfig.json';
+            a.click();
+        }
+
         window.onload = async function() {
             const ok = await window.BOS_GEHIRN.init();
-            if (ok) init();
+            if (ok) { init(); pruefeFeiertagsWoche(); }
         };
     </script>
   <script src="shell.js"></script>

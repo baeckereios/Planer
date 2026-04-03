@@ -12,6 +12,7 @@
     </script>
     <link rel="stylesheet" href="systemdesign.css">
     
+    <script src="feiertage_nds.js"></script>
     <script src="produktions_gehirn.js"></script>
     <script src="inventurdaten.js" defer></script>
     
@@ -61,119 +62,255 @@
         }
         .status-val.ok { color: #2d9e5f; }
         .status-val.warn { color: #c94a4a; }
-        .status-val span { font-weight: 500; font-size: 0.75rem; color: var(--dim); display: block; margin-top: 2px; }
-        
-        .status-hint {
-            margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-s);
-            font-size: 0.72rem; color: var(--dim); line-height: 1.4; text-align: center;
-        }
-        .status-hint strong { color: var(--text); }
 
-        /* ── STATION FILTER (CHIPS) ── */
-        .filter-wrap {
-            margin-bottom: 24px;
+        /* ── HAUPT-BOX ── */
+        .haupt-box {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 18px 18px 14px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px var(--shadow);
         }
-        .filter-label {
-            text-align: center;
+
+        /* Intro Text */
+        .intro-text {
+            font-size: 0.82rem; color: var(--dim); line-height: 1.5;
+            margin-bottom: 14px; padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-s);
+        }
+        .intro-preview { display: inline; }
+        .intro-full    { display: none; }
+        .intro-toggle  {
+            display: inline-flex; align-items: center; gap: 3px;
+            font-size: 0.75rem; font-weight: 900; color: var(--amber);
+            cursor: pointer; margin-left: 4px; white-space: nowrap;
+        }
+        .intro-toggle .arrow { transition: transform 0.2s; display: inline-block; }
+        .intro-toggle.offen .arrow { transform: rotate(90deg); }
+
+        /* Station Dropdown */
+        .station-zeile {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 14px; padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-s);
+        }
+        .station-zeile label {
+            font-family: 'Barlow Condensed'; font-size: 0.75rem;
+            font-weight: 800; color: var(--dim); text-transform: uppercase;
+            letter-spacing: 1px; white-space: nowrap;
+        }
+        .station-select {
+            flex: 1; padding: 8px 12px; border-radius: 10px;
+            border: 1.5px solid var(--border-s); font-family: 'Barlow Condensed';
+            font-weight: 800; font-size: 0.9rem;
+            background: var(--surface2); color: var(--text);
+            cursor: pointer; outline: none;
+        }
+        .station-select:focus { border-color: var(--amber); }
+
+        /* Meldungszentrale */
+        .meldungen { display: flex; flex-direction: column; gap: 8px; }
+        .meldung {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 12px; border-radius: 12px;
+            border: 1.5px solid var(--border-s); background: var(--surface2);
+            gap: 8px;
+        }
+        .meldung-links { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+        /* Froster Icon */
+        .froster-icon { font-size: 1rem; flex-shrink: 0; display: flex; gap: 4px; align-items: center; }
+        .froster-icon .check { color: #2d9e5f; }
+        .froster-icon .cross { color: #c94a4a; }
+        .froster-icon .gedimmt { color: var(--border-s); }
+        /* Inventur Status */
+        .inventur-label-ok   { color: var(--dim); font-weight: 800; }
+        .inventur-label-warn { color: #c94a4a; font-weight: 800; text-shadow: 0 0 8px rgba(201,74,74,0.3); }
+        .meldung-label {
+            font-family: 'Barlow Condensed'; font-weight: 800; font-size: 0.82rem;
+            color: var(--text); letter-spacing: 0.3px;
+        }
+        .meldung-label.gedimmt { color: var(--dim); }
+        .meldung-sub {
+            font-size: 0.7rem; color: var(--dim); font-weight: 600;
+        }
+        .meldung-rechts { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+        /* Info-Button */
+        .info-btn {
+            width: 20px; height: 20px; border-radius: 50%;
+            background: var(--surface); border: 1.5px solid var(--border-s);
+            color: var(--dim); font-size: 0.65rem; font-weight: 900;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: 0.15s; font-family: serif;
+        }
+        .info-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+        /* Info Tooltip/Popup */
+        .info-popup {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); z-index: 200;
+            align-items: flex-end; justify-content: center;
+        }
+        .info-popup.aktiv { display: flex; }
+        .info-popup-inner {
+            background: var(--surface); border-radius: 20px 20px 0 0;
+            padding: 20px 18px 100px; max-width: 480px; width: 100%;
+            box-shadow: 0 -8px 30px rgba(0,0,0,0.2);
+            max-height: 70vh; overflow-y: auto;
+        }
+        .info-popup-titel {
+            font-family: 'Barlow Condensed'; font-weight: 900; font-size: 0.9rem;
+            color: var(--amber); letter-spacing: 1px; text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .info-popup-text {
+            font-size: 0.82rem; color: var(--dim); line-height: 1.6;
+        }
+        .info-popup-close {
+            float: right; background: none; border: none;
+            font-size: 1.2rem; color: var(--dim); cursor: pointer; margin-top: -4px;
+        }
+
+        /* Wochenconfig Checkbox in Meldung */
+        .wochen-cb {
+            width: 18px; height: 18px; accent-color: var(--amber);
+            cursor: pointer; flex-shrink: 0;
+        }
+        .wochen-cb:disabled { opacity: 0.3; cursor: not-allowed; }
+
+
+        /* ── STALE OVERLAY ── */
+        .stale-overlay {
+            display: none;
+            position: fixed; inset: 0; z-index: 100;
+            background: rgba(180,30,30,0.96);
+            flex-direction: column; align-items: center; justify-content: center;
+            padding: 32px 24px; text-align: center;
+        }
+        .stale-overlay.aktiv { display: flex; }
+        .stale-icon { font-size: 3rem; margin-bottom: 16px; }
+        .stale-titel {
             font-family: 'Barlow Condensed', sans-serif;
-            font-size: 0.75rem;
-            font-weight: 800;
-            color: var(--dim);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
+            font-size: 1.4rem; font-weight: 900; color: #fff;
+            letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px;
         }
-        .station-filter { 
-            display: flex; 
-            gap: 8px; 
-            flex-wrap: wrap; 
-            justify-content: center;
+        .stale-text {
+            font-size: 0.9rem; color: rgba(255,255,255,0.85);
+            line-height: 1.6; max-width: 340px; margin-bottom: 28px;
         }
-        .sf-btn { 
-            padding: 8px 16px; 
-            border: 1.5px solid var(--border-s); 
-            border-radius: 20px; 
-            background: var(--surface); 
-            color: var(--dim); 
-            font-family: 'Barlow Condensed'; 
-            font-weight: 800; 
-            font-size: 0.85rem; 
-            letter-spacing: 0.5px; 
-            cursor: pointer; 
-            transition: 0.2s; 
-            white-space: nowrap; 
+        .stale-btn {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900; font-size: 1rem; letter-spacing: 1px;
+            text-transform: uppercase; padding: 14px 28px;
+            border-radius: 14px; border: none; cursor: pointer;
+            text-decoration: none; display: inline-block; margin: 6px;
         }
-        .sf-btn.active { 
-            border-color: var(--amber); 
-            background: var(--amber); 
-            color: white; 
-            box-shadow: 0 4px 10px rgba(192,122,16,0.25);
-        }
-
-        /* ── HEUTE-LABEL ── */
-        .today-label {
-            text-align: center;
-            font-family: 'Barlow Condensed'; font-weight: 800;
-            font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase;
-            color: var(--dim); margin-bottom: 20px;
-            background: var(--surface2); padding: 8px; border-radius: 8px; border: 1px solid var(--border);
-        }
-        .today-label span { color: var(--amber); font-weight: 900; }
+        .stale-btn-primary { background: #fff; color: #b91c1c; }
+        .stale-btn-secondary { background: rgba(255,255,255,0.15); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
 
         /* ── PRODUKT-GRID ── */
         .product-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-        }
-        @media (max-width: 400px) {
-            .product-grid { grid-template-columns: repeat(2, 1fr); }
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         /* ── PRODUKT-KARTE ── */
         .prod-card {
             background: var(--surface);
             border: 2px solid var(--border);
-            border-radius: 18px;
-            padding: 16px 10px 14px;
+            border-radius: 16px;
+            padding: 14px 16px 12px;
             box-shadow: 0 4px 12px var(--shadow);
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-            text-align: center;
+        }
+        .prod-card.no-data { opacity: 0.6; border-style: dashed; }
+
+        .prod-header {
+            display: flex; justify-content: space-between; align-items: baseline;
+            margin-bottom: 10px;
         }
         .prod-name {
-            font-family: 'Barlow Condensed'; font-weight: 800;
-            font-size: 0.82rem; text-transform: uppercase;
-            letter-spacing: 0.3px; color: var(--text);
-            line-height: 1.2; min-height: 2em;
-            display: flex; align-items: center; justify-content: center;
+            font-family: 'Barlow Condensed'; font-weight: 900;
+            font-size: 1rem; text-transform: uppercase;
+            letter-spacing: 0.5px; color: var(--text);
         }
-
-        /* ── SVG KREIS ── */
-        .circle-wrap { position: relative; width: 90px; height: 90px; flex-shrink: 0; }
-        .circle-wrap svg { width: 90px; height: 90px; transform: rotate(-90deg); }
-        .circle-bg { fill: none; stroke: var(--border); stroke-width: 7; }
-        .circle-fill { fill: none; stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
-        .circle-fill.green  { stroke: #2d9e5f; }
-        .circle-fill.yellow { stroke: #d4a017; }
-        .circle-fill.red    { stroke: #c94a4a; }
-        .circle-fill.grey   { stroke: var(--border-s); }
-
-        .circle-center {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 1px;
+        .prod-stock-info {
+            font-family: 'Barlow Condensed'; font-size: 0.85rem;
+            font-weight: 700; color: var(--dim); white-space: nowrap;
         }
-        .circle-stock {
+        .prod-stock-num {
             font-family: 'Fraunces', serif; font-weight: 900;
-            font-size: 1.3rem; line-height: 1; color: var(--text);
-        }
-        .circle-divider { width: 20px; height: 1px; background: var(--border-s); }
-        .circle-need {
-            font-family: 'Barlow Condensed'; font-weight: 700;
-            font-size: 0.75rem; color: var(--dim); line-height: 1;
+            font-size: 1.1rem; color: var(--text);
         }
 
-        /* ── STATUS BADGE & REICHT BIS ── */
+        /* ── LADEBALKEN (Zwei-Zonen) ── */
+        .ladebalken-wrap { width: 100%; margin-bottom: 8px; }
+        .ladebalken-zones {
+            display: flex; width: 100%; height: 28px;
+            border-radius: 8px; overflow: hidden;
+            border: 1px solid var(--border-s);
+        }
+        .lb-pflicht-zone {
+            width: 65%; display: flex;
+            border-right: 2px solid rgba(0,0,0,0.18);
+        }
+        .lb-ueberhang-zone {
+            width: 35%; display: flex;
+            background: rgba(0,0,0,0.02);
+        }
+        .lb-cell {
+            flex: 1; border-right: 1px solid rgba(0,0,0,0.05);
+            transition: background 0.3s;
+        }
+        .lb-cell:last-child { border-right: none; }
+        .lb-cell.lb-filled-green   { background: #2d9e5f; }
+        .lb-cell.lb-filled-yellow  { background: #d4a017; }
+        .lb-cell.lb-filled-red     { background: #c94a4a; }
+        .lb-cell.lb-filled-grey    { background: var(--border-s); }
+        .lb-cell.lb-filled-overhang { background: rgba(45,158,95,0.28); }
+        .lb-cell.lb-empty-red { background: rgba(201,74,74,0.12); }
+        .lb-cell.lb-empty-yellow { background: rgba(212,160,23,0.10); }
+        .lb-cell.lb-froster { background: rgba(0,0,0,0.04); display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:var(--dim); }
+        .lb-cell.lb-zu { background: rgba(0,0,0,0.04); display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:var(--dim); }
+        .ladebalken-labels { display: flex; width: 100%; margin-top: 3px; }
+        .lb-labels-pflicht { width: 65%; display: flex; }
+        .lb-labels-ueberhang { width: 35%; display: flex; }
+        .lb-label-cell {
+            flex: 1; text-align: center;
+            font-family: 'Barlow Condensed'; font-size: 0.6rem;
+            font-weight: 800; color: var(--dim);
+        }
+        .lb-label-cell.lb-label-mon { color: var(--text); font-weight: 900; font-size: 0.65rem; }
+        .lb-label-cell.lb-label-reach { color: var(--amber); font-weight: 900; }
+
+        /* ── AKKORDEON ── */
+        .card-detail {
+            margin-top: 12px; padding-top: 12px;
+            border-top: 1px dashed var(--border-s);
+        }
+        .detail-table { width: 100%; border-collapse: collapse; font-family: 'Barlow Condensed'; font-size: 0.82rem; }
+        .detail-table td { padding: 5px 4px; border-bottom: 1px solid var(--border-s); color: var(--text); font-weight: 700; }
+        .detail-table td:last-child { text-align: right; font-weight: 900; }
+        .detail-table tr.row-mon td { color: var(--amber); font-weight: 900; }
+        .detail-table tr.row-overhang td { opacity: 0.5; }
+        .detail-table tr.row-total td { border-top: 2px solid var(--border); border-bottom: none; font-weight: 900; font-size: 0.88rem; }
+        .detail-table tr.row-froster td { color: var(--dim); opacity: 0.6; font-style: italic; }
+        .weitere-tage-btn {
+            width: 100%; background: none; border: none; border-top: 1px dashed var(--border-s);
+            padding: 8px 4px 0; margin-top: 4px; font-family: 'Barlow Condensed';
+            font-size: 0.75rem; font-weight: 800; color: var(--dim); cursor: pointer;
+            text-align: left; letter-spacing: 0.5px;
+        }
+        .ueberhang-rows { display: none; }
+        .card-arrow { font-size: 0.75rem; color: var(--dim); transition: transform 0.2s; display: inline-block; }
+
+        .prod-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 4px;
+        }
+
+        /* ── STATUS BADGE ── */
         .status-badge {
             font-family: 'Barlow Condensed'; font-weight: 800;
             font-size: 0.7rem; letter-spacing: 0.5px; text-transform: uppercase;
@@ -184,22 +321,38 @@
         .status-badge.red    { background: rgba(201,74,74,0.12);  color: #9a1010; }
         .status-badge.grey   { background: rgba(201,74,74,0.08); color: var(--dim); border: 1px dashed var(--border-s); }
 
-        .reach-date {
-            font-family: 'Barlow Condensed'; font-weight: 800;
-            font-size: 0.75rem; color: var(--amber); letter-spacing: 0.5px;
-            margin-top: -3px; text-transform: uppercase;
+        .kollegen-badge {
+            position: absolute; top: 8px; right: 8px;
+            width: 18px; height: 18px; background: #10b981;
+            border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; font-size: 0.7rem; font-weight: 900;
+            color: #fff; box-shadow: 0 1px 4px rgba(16,185,129,0.4);
         }
 
-        /* ── KEIN BESTAND ── */
-        .prod-card.no-data { opacity: 0.6; border-style: dashed; }
-        .prod-card.no-data .circle-stock { font-size: 0.85rem; color: var(--dim); }
-        .prod-card.no-data .circle-divider { display: none; }
-        .prod-card.no-data .circle-need { display: none; }
+        
 
         /* ── ACTION BAR ── */
-        .action-bar { display: flex; gap: 10px; margin-top: 24px; }
-        .btn-action { flex: 1; padding: 16px; border-radius: 14px; border: 2px solid var(--border-s); background: var(--surface); color: var(--text); font-family: 'Barlow Condensed'; font-weight: 900; font-size: 1rem; letter-spacing: 1px; cursor: pointer; text-align: center; }
+        .action-bar { display: flex; gap: 10px; margin-top: 20px; flex-direction: column; }
+        .action-bar-box {
+            background: var(--surface); border: 1.5px solid var(--border-s);
+            border-radius: 16px; padding: 14px 16px; margin-top: 20px;
+        }
+        .action-bar-titel {
+            font-family: 'Barlow Condensed'; font-size: 0.7rem; font-weight: 900;
+            color: var(--dim); text-transform: uppercase; letter-spacing: 1.5px;
+            margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+        }
+        .action-bar-titel::after {
+            content: ''; flex: 1; height: 1px; background: var(--border-s);
+        }
+        .action-bar-buttons { display: flex; gap: 10px; }
+        .btn-action { flex: 1; padding: 14px 10px; border-radius: 14px; border: 2px solid var(--border-s); background: var(--surface); color: var(--text); font-family: 'Barlow Condensed'; font-weight: 900; font-size: 1rem; letter-spacing: 1px; cursor: pointer; text-align: center; transition: 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-action:hover { background: var(--surface2); }
         .btn-action.amber { background: var(--amber); border-color: var(--amber); color: white; }
+        .btn-action.amber:hover { opacity: 0.88; }
+        .export-ziel { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1.5px solid var(--border-s); border-radius: 12px; padding: 10px 14px; }
+        .export-ziel label { font-family: 'Barlow Condensed'; font-size: 0.75rem; font-weight: 800; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+        .export-ziel select { flex: 1; font-family: 'Barlow Condensed'; font-size: 0.9rem; font-weight: 800; border: none; background: transparent; color: var(--text); cursor: pointer; outline: none; }
 
         /* ── LEGENDE ── */
         .legend {
@@ -225,55 +378,124 @@
 
 <div class="container">
 
-    <!-- Einleitung -->
-    <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.85rem; color:var(--dim); line-height:1.5; margin-bottom:20px; padding:12px 14px; background:var(--surface); border-radius:12px; border:1px solid var(--border-s);">
-        Hier siehst du den aktuellen Frosterbestand aller Produkte — bewertet gegen den Bedarf bis zu deinem gewählten Zieldatum. Grün heißt gedeckt, Rot heißt handeln.
-    </div>
+    <!-- ── HAUPT-BOX ── -->
+    <div class="haupt-box">
 
-    <!-- Station Filter -->
-    <div class="filter-wrap">
-        <div class="filter-label">Welche Station möchtest du prüfen?</div>
-        <div class="station-filter" id="station-filter"></div>
-    </div>
+        <!-- Intro Text -->
+        <div class="intro-text">
+            <span class="intro-preview">Hier siehst du den aktuellen Frosterbestand aller Produkte —</span>
+            <span class="intro-full"> bewertet gegen den Bedarf bis zum nächsten Montag. Grün heißt gedeckt, Rot heißt handeln. Die Werte basieren auf der letzten Inventur und dem berechneten Durchschnittsverbrauch.</span>
+            <span class="intro-toggle" id="intro-toggle" onclick="toggleIntro()"><span class="arrow">▶</span> mehr</span>
+        </div>
 
-    <!-- Status Dashboard -->
-    <div class="status-dashboard">
-        <div class="status-row">
-            <div class="status-label">Letzte Inventur</div>
-            <div class="status-val" id="datetime-val">Lade...</div>
-        </div>
-        <div class="status-row">
-            <div class="status-label">Froster</div>
-            <div class="status-val" id="froster-val">Lade...</div>
-        </div>
-        <div class="status-row" style="align-items:center;">
-            <div class="status-label">Reicht bis:</div>
-            <select id="target-select" onchange="onTargetChange()" style="font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:0.88rem; padding:6px 10px; border-radius:10px; border:1.5px solid var(--amber); background:var(--surface); color:var(--text); cursor:pointer; max-width:160px;">
-                <option>Lade...</option>
+        <!-- Station Dropdown -->
+        <div class="station-zeile">
+            <label>Station:</label>
+            <select class="station-select" id="station-select" onchange="onStationChange(this.value)">
+                <option value="alle">Alle Produkte</option>
             </select>
         </div>
-        <div class="status-hint">
-            ℹ️ <strong>Nur Richtwerte.</strong> Für Feinplanung mit Feiertagen & Sondertagen: <a href="schnellrechner.html" style="color:var(--amber);font-weight:900;text-decoration:none;">→ Schnellrechner</a>
+
+        <!-- Meldungszentrale -->
+        <div class="meldungen">
+
+            <!-- Froster -->
+            <div class="meldung">
+                <div class="meldung-links">
+                    <div class="froster-icon">
+                        <span class="gedimmt" id="froster-check">✔</span>
+                        <span style="color:var(--border-s);font-size:0.7rem;">/</span>
+                        <span class="gedimmt" id="froster-cross">✘</span>
+                    </div>
+                    <div>
+                        <div class="meldung-label" id="froster-label">Froster</div>
+                        <div class="meldung-sub" id="froster-sub">Wird geladen…</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventur -->
+            <div class="meldung">
+                <div class="meldung-links">
+                    <div>
+                        <div class="meldung-label inventur-label-ok" id="inventur-label">Inventur</div>
+                        <div class="meldung-sub" id="inventur-sub">Wird geladen…</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wochenschablone -->
+            <div class="meldung">
+                <div class="meldung-links">
+                    <div>
+                        <label class="meldung-label gedimmt" id="wochen-label" for="wochenconfig-cb" style="cursor:pointer;">Wochenschablone</label>
+                        <div class="meldung-sub" id="wochen-sub">Keine besonderen Tage erkannt</div>
+                    </div>
+                </div>
+                <div class="meldung-rechts">
+                    <input type="checkbox" class="wochen-cb" id="wochenconfig-cb"
+                        onchange="toggleWochenconfig(this.checked)" disabled>
+                    <button class="info-btn" onclick="zeigeInfoPopup('wochen')">i</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <div id="stale-inventur-warn" style="display:none; background:rgba(224,92,92,0.1); border:2px solid var(--red,#c0392b); border-radius:14px; padding:14px 16px; margin-bottom:16px;">
-        <div style="font-family:'Barlow Condensed'; font-weight:900; font-size:0.85rem; letter-spacing:1px; text-transform:uppercase; color:var(--red,#c0392b); margin-bottom:4px;">⚠️ Achtung: Veraltete Bestände</div>
-        <div style="font-size:0.82rem; color:var(--text); line-height:1.5;">Die letzte Inventur liegt <strong id="stale-hours"></strong> zurück. Diese Werte sind möglicherweise nicht mehr aktuell — bitte nicht als Grundlage für Produktionsentscheidungen verwenden.</div>
+    <!-- Info Popups -->
+
+    <div class="info-popup" id="popup-wochen" onclick="if(event.target===this)schliessePopup('wochen')">
+        <div class="info-popup-inner">
+            <button class="info-popup-close" onclick="schliessePopup('wochen')">✕</button>
+            <div class="info-popup-titel">Wochenschablone</div>
+            <div class="info-popup-text">Die Wochenschablone sorgt dafür, dass besondere Wochen einheitlich geplant werden — zum Beispiel wenn Tage geschlossen sind oder ungewöhnlich hohe Mengen erwartet werden. Die Schablone wird vom Admin vorbereitet und kann hier geladen werden, damit alle Ladebalken automatisch die richtigen Verbrauchswerte verwenden. Da die meisten Wochen nach Standard laufen, ist die Funktion nur aktiv wenn ein Feiertag oder ein besonderer Tag in den nächsten 14 Tagen erkannt wird.</div>
+        </div>
     </div>
 
-    <div class="today-label" id="today-label"></div>
+    <!-- STALE OVERLAY -->
+    <div class="stale-overlay" id="stale-overlay">
+        <div class="stale-icon">⚠️</div>
+        <div class="stale-titel">Inventur veraltet</div>
+        <div class="stale-text" id="stale-overlay-text">
+            Die letzte Inventur liegt zu lange zurück.<br>
+            Diese Bestände spiegeln nicht den aktuellen Stand wider.<br><br>
+            <strong>Bitte nicht als Grundlage für Produktionsentscheidungen verwenden.</strong>
+        </div>
+        <a href="schnellrechner.html" class="stale-btn stale-btn-primary">→ Zum Schnellrechner</a>
+        <button class="stale-btn stale-btn-secondary" onclick="staleTrotzdemAnzeigen()">
+            Trotzdem anzeigen (auf eigene Gefahr)
+        </button>
+    </div>
+
     <div class="product-grid" id="product-grid"></div>
 
-    <div class="action-bar">
-        <button class="btn-action" onclick="shareBestand()">&#8679; Teilen</button>
-        <button class="btn-action amber" onclick="printBestand()">&#128438; Drucken</button>
+    <div class="action-bar-box">
+        <div class="action-bar-titel">Export &amp; Teilen</div>
+        <div class="action-bar">
+            <div class="export-ziel">
+                <label>Bedarf bis:</label>
+                <select id="export-zieldatum" onchange="aktualisiereExportZiel()"></select>
+            </div>
+            <div style="font-size:0.68rem; color:var(--dim); padding: 0 2px;">
+                Gilt nur für Druck &amp; Teilen — beeinflusst nicht die Darstellung oben.
+            </div>
+            <div class="action-bar-buttons">
+                <button class="btn-action" onclick="shareBestand()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                    Teilen
+                </button>
+                <button class="btn-action amber" onclick="printBestand()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    Drucken
+                </button>
+            </div>
+        </div>
     </div>
 
     <div class="legend">
-        <div><span class="legend-dot" style="background:#2d9e5f;"></span>Gut versorgt (&ge;80%)</div>
-        <div><span class="legend-dot" style="background:#d4a017;"></span>Im Auge behalten (&ge;40%)</div>
-        <div><span class="legend-dot" style="background:#c94a4a;"></span>Kritisch (&lt;40%)</div>
+        <div><span class="legend-dot" style="background:#2d9e5f;"></span>Gedeckt (kein Fehlbestand)</div>
+        <div><span class="legend-dot" style="background:#d4a017;"></span>Fast gedeckt (&le;20% Lücke)</div>
+        <div><span class="legend-dot" style="background:#c94a4a;"></span>Kritisch (&gt;20% Lücke)</div>
         <div><span class="legend-dot" style="background:#bbb;"></span>Kein Bestand erfasst</div>
     </div>
 
@@ -283,72 +505,83 @@
 var activeStation = 'alle';
 var latestInvTsGlobal = 0;
 var anchorDate = new Date();
-var targetDate = new Date(); // Zieldatum aus Dropdown
 var isInitialized = false;
 var retryCount = 0;
 var nurInvRelevant = true;
 var inventurRelevantKeys = new Set();
+var wochenconfig = {};
+var frosterOffset = 1; // 1 = froster offen, 2 = froster erledigt
+var exportZielDate = null; // Datum für Druck/Teilen-Berechnung
 
-function buildTargetDropdown() {
-    var sel = document.getElementById('target-select');
-    sel.innerHTML = '';
-    var dayNames = ['So','Mo','Di','Mi','Do','Fr','Sa'];
-    var pad = function(n) { return n < 10 ? '0'+n : n; };
-    // Nächste 14 Tage ab anchorDate
-    for (var i = 0; i <= 14; i++) {
-        var d = new Date(anchorDate.getTime());
-        d.setDate(d.getDate() + i);
-        var opt = document.createElement('option');
-        var label = dayNames[d.getDay()] + ', ' + pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.';
-        opt.value = d.toISOString().slice(0,10);
-        opt.textContent = label;
-        // Default: nächster Montag
-        if (d.getDay() === 1 && !sel.options.length || (d.getDay() === 1 && i > 0 && sel.selectedIndex === 0)) {
-            opt.selected = true;
+// ── WOCHENCONFIG ──────────────────────────────────────────
+async function pruefeWochenkonfigHinweis() {
+    var cb = document.getElementById('wochenconfig-cb');
+    var label = document.getElementById('wochen-label');
+    var sub = document.getElementById('wochen-sub');
+    
+
+    if (!window.BOS_BESONDERE_TAGE_IN) return;
+    var treffer = window.BOS_BESONDERE_TAGE_IN(14);
+
+    if (treffer.length === 0) {
+        // Normale Woche — Checkbox bleibt deaktiviert
+        
+        label.className = 'meldung-label gedimmt';
+        sub.textContent = 'Keine besonderen Tage in den nächsten 14 Tagen';
+        return;
+    }
+
+    // Besondere Tage erkannt — prüfen ob Config vorhanden
+    try {
+        var r = await fetch('wochenconfig.json', { cache: 'no-store' });
+        if (!r.ok) {
+            // Besonderer Tag, aber keine Config
+            
+            label.className = 'meldung-label gedimmt';
+            var erster = treffer[0];
+            sub.textContent = erster.name + ' erkannt — keine Schablone hinterlegt';
+            return;
         }
-        sel.appendChild(opt);
-    }
-    // Sicherstellen dass Montag vorausgewählt ist
-    for (var j = 0; j < sel.options.length; j++) {
-        var val = new Date(sel.options[j].value + 'T12:00:00');
-        if (val.getDay() === 1) { sel.selectedIndex = j; break; }
-    }
-    onTargetChange();
+        // Config vorhanden — Checkbox aktivieren
+        var erster = treffer[0];
+        
+        label.className = 'meldung-label';
+        label.style.cursor = 'pointer';
+        sub.textContent = erster.name + ' erkannt — Schablone verfügbar';
+        cb.disabled = false;
+    } catch(e) {}
 }
 
-function onTargetChange() {
-    var sel = document.getElementById('target-select');
-    if (!sel || !sel.value) return;
-    targetDate = new Date(sel.value + 'T12:00:00');
-    updateTodayLabel();
+async function toggleWochenconfig(checked) {
+    
+    if (checked) {
+        try {
+            var r = await fetch('wochenconfig.json', { cache: 'no-store' });
+            if (!r.ok) { alert('wochenconfig.json nicht gefunden.'); document.getElementById('wochenconfig-cb').checked = false; return; }
+            var cfg = await r.json();
+            wochenconfig = {};
+            (cfg.tage || []).forEach(function(e) { wochenconfig[e.datum] = e.typ; });
+            
+            document.getElementById('wochen-sub').textContent = 'Schablone aktiv';
+        } catch(e) { wochenconfig = {}; }
+    } else {
+        wochenconfig = {};
+        
+        document.getElementById('wochen-sub').textContent = pruefeWochenkonfigHinweis._lastSub || 'Schablone deaktiviert';
+    }
     renderGrid();
 }
 
-function updateTodayLabel() {
-    var el = document.getElementById('today-label');
-    if (!el) return;
-    var dayNames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-    var anchorDayName = dayNames[anchorDate.getDay()];
-    var targetDayName = dayNames[targetDate.getDay()];
-    var pad = function(n) { return n < 10 ? '0'+n : n; };
-    var targetStr = pad(targetDate.getDate()) + '.' + pad(targetDate.getMonth()+1) + '.';
-    el.innerHTML = 'Rest-Bedarf von <span style="color:var(--amber);font-weight:900;">' +
-        anchorDayName.toUpperCase() + '</span> bis <span style="color:var(--amber);font-weight:900;">' +
-        targetDayName.toUpperCase() + ' ' + targetStr + '</span>';
+// ── HILFSFUNKTIONEN ───────────────────────────────────────
+function getDaysToNextMonday() {
+    var a = new Date(anchorDate); a.setHours(0,0,0,0);
+    var jsDay = a.getDay();
+    if (jsDay === 1) return 0; // anchorDate ist Montag
+    return jsDay === 0 ? 1 : (8 - jsDay);
 }
 
 function toggleInvFilter() {
     nurInvRelevant = !nurInvRelevant;
-    var btn = document.getElementById('btn-inv-filter');
-    if (nurInvRelevant) {
-        btn.style.background = '#e67e22';
-        btn.style.borderColor = '#e67e22';
-        btn.style.color = '#fff';
-    } else {
-        btn.style.background = 'var(--surface,#fff)';
-        btn.style.borderColor = 'var(--border,#e5e0d8)';
-        btn.style.color = 'var(--text,#1a1a1a)';
-    }
     renderGrid();
 }
 
@@ -365,37 +598,26 @@ function initApp() {
                 document.getElementById('product-grid').innerHTML =
                     '<div style="grid-column:1/-1;padding:30px;text-align:center;color:#c94a4a;font-weight:800;">' +
                     '&#9888; Lade-Verzögerung. Bitte Seite einmal neu laden.</div>';
-                document.getElementById('datetime-val').innerHTML = '<span style="color:#c94a4a">Fehler</span>';
-                document.getElementById('froster-val').innerHTML  = '<span style="color:#c94a4a">Fehler</span>';
+                document.getElementById('inventur-label').textContent = 'Fehler';
+                document.getElementById('froster-label').textContent = 'Fehler';
                 return;
             }
         }
     }
 
     isInitialized = true;
-    // produkt_config laden
-    fetch('produkt_config.json', { cache: 'no-store' })
-        .then(function(r) { return r.json(); })
-        .then(function(cfg) {
-            cfg.forEach(function(p) {
-                if (p.inventurRelevant && p.legacyKey) inventurRelevantKeys.add(p.legacyKey);
-            });
-            renderGrid(); // erst nach dem Laden rendern
-        })
-        .catch(function() {
-            renderGrid(); // im Fehlerfall trotzdem rendern
-        });
-    setupTimeLogic(); 
+    // inventurRelevantKeys direkt aus BOS_STAMMDATEN — kein zweiter Fetch nötig
+    Object.values(window.BOS_STAMMDATEN).forEach(function(p) {
+        if (p.inventurRelevant && p.legacyKey) inventurRelevantKeys.add(p.legacyKey);
+    });
+    setupTimeLogic();
     buildStationFilter();
+    renderGrid();
 }
 
-// ── DIE NEUE "EISERNE FROSTER-REGEL" (01:30 bis 20:00 Uhr) ──
 function setupTimeLogic() {
-    var elDatetime = document.getElementById('datetime-val');
-    var elFroster = document.getElementById('froster-val');
-    var elToday = document.getElementById('today-label');
-    
-    // 1. Neuesten Stempel finden
+    var pad = function(n) { return n < 10 ? '0'+n : n; };
+
     if (window.BOS_INVENTUR && window.BOS_INVENTUR.products) {
         for (var key in window.BOS_INVENTUR.products) {
             if (window.BOS_INVENTUR.products[key].ts > latestInvTsGlobal) {
@@ -403,63 +625,65 @@ function setupTimeLogic() {
             }
         }
     }
-    
+
     if (latestInvTsGlobal === 0) {
-        elDatetime.innerHTML = 'Nicht erfasst';
-        elFroster.innerHTML = '⚠️ Keine Daten';
-        elToday.innerHTML = 'Keine Inventur gefunden.';
-        anchorDate = new Date(); 
+        document.getElementById('froster-check').className = 'gedimmt';
+        document.getElementById('froster-cross').className = 'gedimmt';
+        document.getElementById('froster-label').textContent = 'Froster unbekannt';
+        document.getElementById('froster-sub').textContent = 'Keine Inventurdaten';
+        document.getElementById('inventur-label').className = 'meldung-label inventur-label-warn';
+        document.getElementById('inventur-label').textContent = 'Inventur';
+        document.getElementById('inventur-sub').textContent = 'Nicht erfasst';
+        anchorDate = new Date();
         anchorDate.setDate(anchorDate.getDate() + 1);
+        renderGrid();
         return;
     }
 
-    // 2. Datum in der UI formatieren
-    var pad = function(n) { return n < 10 ? '0'+n : n; };
     var invDateObj = new Date(latestInvTsGlobal);
-    var invDateStr = pad(invDateObj.getDate()) + '.' + pad(invDateObj.getMonth()+1) + '.';
-    var invTimeStr = pad(invDateObj.getHours()) + ':' + pad(invDateObj.getMinutes()) + ' Uhr';
-    elDatetime.innerHTML = '⏱ ' + invDateStr + ' ' + invTimeStr;
-
-    // Alter der Inventur prüfen — Warnung wenn >24h
     var diffH = (Date.now() - latestInvTsGlobal) / 3600000;
-    if (diffH > 24) {
-        var warn = document.getElementById('stale-inventur-warn');
-        warn.style.display = 'block';
+    var isStale = diffH > 24;
+
+    // Froster: immer aktuelle Uhrzeit prüfen — unabhängig von Inventur-Timestamp
+    var jetzt = new Date();
+    var jetztMin = (jetzt.getHours() * 60) + jetzt.getMinutes();
+    var isFrosterDone = (jetztMin >= 90 && jetztMin <= 1200);
+
+    // Froster Meldung
+    document.getElementById('froster-check').className = isFrosterDone ? 'check' : 'gedimmt';
+    document.getElementById('froster-cross').className = isFrosterDone ? 'gedimmt' : 'cross';
+    document.getElementById('froster-label').textContent = isFrosterDone ? 'Froster erledigt' : 'Froster offen';
+    document.getElementById('froster-sub').textContent = isFrosterDone
+        ? 'Produkte für morgen bereits bereitgestellt'
+        : 'Produkte für morgen noch nicht bereitgestellt';
+
+    // Inventur Meldung
+    var pad = function(n) { return n < 10 ? '0'+n : n; };
+    var invStr = pad(invDateObj.getDate()) + '.' + pad(invDateObj.getMonth()+1) + '. ' + pad(invDateObj.getHours()) + ':' + pad(invDateObj.getMinutes()) + ' Uhr';
+    document.getElementById('inventur-label').className = 'meldung-label ' + (isStale ? 'inventur-label-warn' : 'inventur-label-ok');
+    document.getElementById('inventur-label').textContent = isStale ? 'Inventur veraltet' : 'Inventur aktuell';
+    document.getElementById('inventur-sub').textContent = invStr + (isStale ? ' — ' + Math.floor(diffH) + ' Std. alt' : '');
+
+    // Anker-Datum: von HEUTE aus, Froster bestimmt +1 oder +2
+    frosterOffset = isFrosterDone ? 2 : 1;
+    anchorDate = new Date(); anchorDate.setHours(0,0,0,0);
+    anchorDate.setDate(anchorDate.getDate() + frosterOffset);
+
+    // Veraltete Inventur → Overlay zeigen
+    if (isStale) {
         var h = Math.floor(diffH);
-        var label = h < 48 ? h + ' Stunden' : Math.floor(h/24) + ' Tage';
-        document.getElementById('stale-hours').textContent = label;
+        document.getElementById('stale-overlay-text').innerHTML =
+            'Die letzte Inventur liegt <strong>' + h + ' Stunden</strong> zurück.<br>' +
+            'Diese Bestände spiegeln nicht den aktuellen Stand wider.<br><br>' +
+            '<strong>Bitte nicht als Grundlage für Produktionsentscheidungen verwenden.</strong>';
+        document.getElementById('stale-overlay').classList.add('aktiv');
     }
 
-    // 3. Das Zeitfenster prüfen (01:30 bis 20:00 Uhr)
-    var invHour = invDateObj.getHours();
-    var invMin = invDateObj.getMinutes();
-    // Umrechnung in absolute Minuten seit Mitternacht (01:30 = 90 Min, 20:00 = 1200 Min)
-    var minutesSinceMidnight = (invHour * 60) + invMin;
-    
-    var isFrosterDone = false;
+    renderGrid();
+}
 
-    if (minutesSinceMidnight >= 90 && minutesSinceMidnight <= 1200) {
-        isFrosterDone = true;
-    }
-
-    // 4. Anker-Datum setzen
-    anchorDate = new Date(latestInvTsGlobal);
-
-    if (isFrosterDone) {
-        // Zählung im Zeitfenster = Ware für heute UND morgen ist schon draußen. 
-        // Bestand ist also für ÜBERMORGEN (+2 Tage).
-        anchorDate.setDate(anchorDate.getDate() + 2);
-        elFroster.className = 'status-val ok'; 
-        elFroster.innerHTML = '✅ Erledigt <span>(Zählung zw. 01:30 & 20:00 Uhr)</span>';
-    } else {
-        // Zählung außerhalb des Fensters = Ware für morgen ist noch drin (+1 Tag).
-        anchorDate.setDate(anchorDate.getDate() + 1);
-        elFroster.className = 'status-val warn'; 
-        elFroster.innerHTML = '⚠️ Offen <span>(Zählung zw. 20:00 & 01:30 Uhr)</span>';
-    }
-
-    // 5. Dropdown befüllen & Label setzen
-    buildTargetDropdown();
+function staleTrotzdemAnzeigen() {
+    document.getElementById('stale-overlay').classList.remove('aktiv');
 }
 
 function getDateTimeStr() {
@@ -476,73 +700,139 @@ function getDateTimeStr() {
 }
 
 function getFrosterStr() {
-    if (latestInvTsGlobal === 0) return 'Froster: Keine Daten';
-    
-    var invDateObj = new Date(latestInvTsGlobal);
-    var invHour = invDateObj.getHours();
-    var invMin = invDateObj.getMinutes();
-    var minutes = (invHour * 60) + invMin;
-    
-    var isFrosterDone = (minutes >= 90 && minutes <= 1200);
-
+    var jetzt = new Date();
+    var min = (jetzt.getHours() * 60) + jetzt.getMinutes();
+    var isFrosterDone = (min >= 90 && min <= 1200);
     return isFrosterDone ? '✓ Froster: Erledigt (01:30 - 20:00)' : '✗ Froster: Offen (> 20:00 / < 01:30)';
 }
 
+function buildExportZielOptions() {
+    var sel = document.getElementById('export-zieldatum');
+    if (!sel) return;
+    sel.innerHTML = '';
+    var DAY_NAMES = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    var DAY_FULL  = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    var d = new Date(anchorDate); d.setHours(0,0,0,0);
+    var pad = function(n){ return n<10?'0'+n:''+n; };
+    for (var i = 0; i < 14; i++) {
+        var opt = document.createElement('option');
+        var label = DAY_FULL[d.getDay()] + ', ' + pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.';
+        if (d.getDay() === 1) label += ' ← Mo';
+        opt.value = d.toISOString().split('T')[0];
+        opt.textContent = label;
+        if (d.getDay() === 1 && !sel.options.length) opt.selected = true;
+        sel.appendChild(opt);
+        d.setDate(d.getDate() + 1);
+    }
+    aktualisiereExportZiel();
+}
+
+function aktualisiereExportZiel() {
+    var sel = document.getElementById('export-zieldatum');
+    if (!sel || !sel.value) return;
+    var parts = sel.value.split('-');
+    exportZielDate = new Date(+parts[0], +parts[1]-1, +parts[2]);
+    exportZielDate.setHours(0,0,0,0);
+}
+
+function calcNeedUntilDate(prodId, zielDate) {
+    var p = window.BOS_STAMMDATEN[prodId];
+    if (!p || !zielDate) return 0;
+    var total = 0;
+    var d = new Date(anchorDate); d.setHours(0,0,0,0);
+    while (d <= zielDate) {
+        var jsDay = d.getDay();
+        var bosIdx = (jsDay === 0) ? 6 : jsDay - 1;
+        var dailyNeed = p.needs[bosIdx] || 0;
+        var dateStr = d.toISOString().split('T')[0];
+        var typ = wochenconfig[dateStr] || 'normal';
+        if (typ === 'zu') dailyNeed = 0;
+        else if (typ === 'hamster_1') dailyNeed = Math.ceil((p.needs[5] + dailyNeed) / 2);
+        else if (typ === 'hamster_2') dailyNeed = p.needs[5];
+        else if (typ === 'hamster_3') dailyNeed = (bosIdx === 5) ? Math.ceil(p.needs[5] * 1.2) : Math.ceil(dailyNeed * 1.5);
+        total += dailyNeed;
+        d.setDate(d.getDate() + 1);
+    }
+    return total;
+}
+
 function shareBestand() {
-    var lines = ['BaeckereiOS - Bestandsuebersicht', getDateTimeStr(), getFrosterStr(), ''];
+    var ziel = exportZielDate || anchorDate;
+    var pad = function(n){return n<10?'0'+n:''+n;};
+    var zielStr = pad(ziel.getDate()) + '.' + pad(ziel.getMonth()+1) + '.';
+    var lines = ['BäckereiOS · Bestände', getDateTimeStr(), getFrosterStr(), 'Bedarf bis: ' + zielStr, ''];
     var keys = Object.keys(window.BOS_STAMMDATEN);
     for (var i = 0; i < keys.length; i++) {
         var k = keys[i];
         var p = window.BOS_STAMMDATEN[k];
+        if (!inventurRelevantKeys.has(p.legacyKey)) continue;
         var stock = getStock(k);
-        var need = calcRawNeed(k);
-        var status = stock === null ? '?' : (stock + '/' + need);
-        var flag = stock === null ? '⚠️' : (stock / need >= 0.8 ? '✅' : (stock / need >= 0.4 ? '⚠️' : '❌'));
-        lines.push(flag + ' ' + p.name + ': ' + status);
+        var need = calcNeedUntilDate(k, ziel);
+        var status = stock === null ? '?' : (stock + '/' + need + ' Bl.');
+        var lueckeShare = stock === null ? '' : (need - stock > 0 ? ' → prod. ' + (need - stock) + ' Bl.' : ' → ok');
+        var lueckeS = stock === null ? 1 : (need === 0 ? 0 : need - stock);
+        var lueckeRelS = stock === null ? 1 : (need === 0 ? 0 : lueckeS / need);
+        var flag = stock === null ? '⚠️' : (lueckeS <= 0 ? '✅' : (lueckeRelS <= 0.2 ? '⚠️' : '❌'));
+        lines.push(flag + ' ' + p.name + ': ' + status + lueckeShare);
     }
     lines.push('');
-    lines.push('Richtwerte ohne Feiertage/Modifikatoren.');
+    lines.push('Erstellt mit BäckereiOS.');
     var text = lines.join('\n');
     if (navigator.share) {
         navigator.share({ text: text });
     } else if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(function() { alert('Kopiert!'); });
+        navigator.clipboard.writeText(text).then(function() { alert('In Zwischenablage kopiert!'); });
     } else {
         alert(text);
     }
 }
 
 function printBestand() {
+    var ziel = exportZielDate || anchorDate;
+    var pad2 = function(n){return n<10?'0'+n:''+n;};
+    var zielStr = pad2(ziel.getDate()) + '.' + pad2(ziel.getMonth()+1) + '.';
     var keys = Object.keys(window.BOS_STAMMDATEN);
     var rows = '';
     for (var i = 0; i < keys.length; i++) {
         var k = keys[i];
         var p = window.BOS_STAMMDATEN[k];
+        if (!inventurRelevantKeys.has(p.legacyKey)) continue;
         var stock = getStock(k);
-        var need = calcRawNeed(k);
-        var pct = (stock === null || need === 0) ? 0 : Math.min(1, stock / need);
-        var color = stock === null ? '#999' : (pct >= 0.8 ? '#1a7a45' : (pct >= 0.4 ? '#8a6000' : '#9a1010'));
-        var bg    = stock === null ? '#f5f5f5' : (pct >= 0.8 ? '#eaf7ef' : (pct >= 0.4 ? '#fdf6e0' : '#fceaea'));
-        var statusTxt = stock === null ? 'Nicht gezählt' : (pct >= 0.8 ? 'Gut versorgt' : (pct >= 0.4 ? 'Im Auge behalten' : 'Kritisch'));
+        var need = calcNeedUntilDate(k, ziel);
+        var luecke2 = (stock === null || need === 0) ? 0 : (need - stock);
+        var lueckeRel2 = (stock === null || need === 0) ? 0 : luecke2 / need;
+        var color = stock === null ? '#999' : (luecke2 <= 0 ? '#1a7a45' : (lueckeRel2 <= 0.2 ? '#8a6000' : '#9a1010'));
+        var bg    = stock === null ? '#f5f5f5' : (luecke2 <= 0 ? '#eaf7ef' : (lueckeRel2 <= 0.2 ? '#fdf6e0' : '#fceaea'));
+        var statusTxt = stock === null ? 'Nicht gezählt' : (luecke2 <= 0 ? 'Gedeckt' : (lueckeRel2 <= 0.2 ? 'Fast gedeckt' : 'Kritisch'));
         var stockTxt = stock === null ? '?' : stock;
+        var luecke = stock === null ? '?' : (need - stock);
+        var lueckeTxt = stock === null ? '?' : (luecke > 0 ? '+' + luecke : (luecke === 0 ? '✓' : '✓ +' + Math.abs(luecke)));
+        var lueckeColor = stock === null ? '#999' : (luecke <= 0 ? '#1a7a45' : (luecke <= need * 0.3 ? '#8a6000' : '#9a1010'));
+        var lueckeVal = stock === null ? 0 : (need - stock);
+        var pressenRow = '';
+        if (lueckeVal > 0 && p.pressenGroesse) {
+            var ch = p.charge || 1;
+            var aufschlag = p.teiggewichtAufschlag || 1;
+            var pressen = (lueckeVal * ch / p.pressenGroesse) * aufschlag;
+            var pressenGer = Math.ceil(pressen * 10) / 10;
+            var pressenStr = pressenGer % 1 === 0 ? pressenGer : pressenGer.toFixed(1).replace('.', ',');
+            var formel = aufschlag !== 1
+                ? lueckeVal + ' Bl. × ' + ch + ' ÷ ' + p.pressenGroesse + ' × ' + aufschlag
+                : lueckeVal + ' Bl. × ' + ch + ' ÷ ' + p.pressenGroesse;
+            pressenRow = '<tr><td colspan="5" style="font-size:8pt;color:#888;padding:2px 10px 8px 22px;font-family:Barlow Condensed,sans-serif;">→ ' + pressenStr + ' Pressen (' + formel + ')</td></tr>';
+        }
         rows += '<tr>' +
             '<td style="font-family:Barlow Condensed,sans-serif;font-weight:800;font-size:10pt;padding:6px 10px;border-bottom:1px solid #eee;text-transform:uppercase;">' + p.name + '</td>' +
             '<td style="font-family:Fraunces,serif;font-size:13pt;font-weight:900;padding:6px 10px;border-bottom:1px solid #eee;text-align:center;">' + stockTxt + '</td>' +
             '<td style="font-size:9pt;padding:6px 10px;border-bottom:1px solid #eee;text-align:center;color:#555;">' + need + '</td>' +
+            '<td style="font-family:Fraunces,serif;font-size:11pt;font-weight:900;padding:6px 10px;border-bottom:1px solid #eee;text-align:center;color:' + lueckeColor + ';">' + lueckeTxt + '</td>' +
             '<td style="font-size:8pt;font-weight:800;padding:6px 10px;border-bottom:1px solid #eee;text-align:center;color:' + color + ';background:' + bg + ';">' + statusTxt + '</td>' +
-        '</tr>';
+        '</tr>' + pressenRow;
     }
 
-    var isFrosterDone = false;
-    if (latestInvTsGlobal > 0) {
-        var invDateObj = new Date(latestInvTsGlobal);
-        var invHour = invDateObj.getHours();
-        var invMin = invDateObj.getMinutes();
-        var minutes = (invHour * 60) + invMin;
-        if (minutes >= 90 && minutes <= 1200) {
-            isFrosterDone = true;
-        }
-    }
+    var jetzt = new Date();
+    var isFrosterDone = ((jetzt.getHours() * 60) + jetzt.getMinutes()) >= 90 &&
+                        ((jetzt.getHours() * 60) + jetzt.getMinutes()) <= 1200;
 
     var frosterColor = isFrosterDone ? '#1a7a45' : '#9a1010';
     var frosterBg    = isFrosterDone ? '#eaf7ef' : '#fceaea';
@@ -556,7 +846,9 @@ function printBestand() {
         '.meta{text-align:right;font-family:"Barlow Condensed",sans-serif;}' +
         '.meta-time{font-size:18pt;font-weight:900;}' +
         '.meta-date{font-size:9pt;font-weight:700;color:#555;letter-spacing:1px;text-transform:uppercase;}' +
-        '.froster-box{display:inline-block;margin:10px 0 16px;padding:6px 16px;border-radius:8px;font-family:"Barlow Condensed",sans-serif;font-weight:900;font-size:10pt;letter-spacing:1px;background:' + frosterBg + ';color:' + frosterColor + ';}' +
+        '.bedarf-bis{font-family:"Barlow Condensed",sans-serif;font-weight:900;font-size:13pt;letter-spacing:1px;text-transform:uppercase;margin:10px 0 4px;color:#000;}' +
+        '.bedarf-bis span{color:#c07a10;}' +
+        '.froster-box{display:inline-block;margin:4px 0 16px;padding:6px 16px;border-radius:8px;font-family:"Barlow Condensed",sans-serif;font-weight:900;font-size:10pt;letter-spacing:1px;background:' + frosterBg + ';color:' + frosterColor + ';}' +
         'table{width:100%;border-collapse:collapse;}' +
         'th{font-family:"Barlow Condensed",sans-serif;font-size:8pt;font-weight:900;letter-spacing:1px;text-transform:uppercase;text-align:left;padding:4px 10px;border-bottom:2px solid black;color:#555;}' +
         '.note{font-size:7pt;color:#888;margin-top:16px;}' +
@@ -571,12 +863,13 @@ function printBestand() {
                 '<div class="meta-date">' + getDateTimeStr().split(' – ')[0] + '</div>' +
             '</div>' +
         '</div>' +
+        '<div class="bedarf-bis">Bedarf bis: <span>' + zielStr + '</span></div>' +
         '<div class="froster-box">' + getFrosterStr() + '</div>' +
         '<table>' +
-        '<tr><th>Produkt</th><th style="text-align:center;">Bestand</th><th style="text-align:center;">Bedarf</th><th style="text-align:center;">Status</th></tr>' +
+        '<tr><th>Produkt</th><th style="text-align:center;">Bestand</th><th style="text-align:center;">Bedarf</th><th style="text-align:center;">Lücke</th><th style="text-align:center;">Status</th></tr>' +
         rows +
         '</table>' +
-        '<div class="note">Richtwerte ohne Feiertage/Modifikatoren. Erstellt mit BäckereiOS.</div>' +
+        '<div class="note">Erstellt mit BäckereiOS · ' + getDateTimeStr().split(' – ')[0] + '.</div>' +
         '\n</body></html>';
 
     var w = window.open('', '_blank');
@@ -584,68 +877,104 @@ function printBestand() {
     w.document.close();
 }
 
-var CIRCUMFERENCE = 238.76;
-
-function daysUntilTarget() {
-    var a = new Date(anchorDate); a.setHours(0,0,0,0);
-    var t = new Date(targetDate); t.setHours(0,0,0,0);
-    var diff = Math.round((t - a) / 86400000);
-    return diff > 0 ? diff : 1;
-}
-
-function calcRawNeed(prodId) {
+function calcNeedUntilMonday(prodId) {
     var p = window.BOS_STAMMDATEN[prodId];
     if (!p) return 0;
-    var days = daysUntilTarget();
+    var pflichtDays = getDaysToNextMonday();
     var total = 0;
-    for (var i = 0; i < days; i++) {
+    for (var i = 0; i <= pflichtDays; i++) {
         var d = new Date(anchorDate.getTime());
         d.setDate(d.getDate() + i);
         var jsDay = d.getDay();
         var bosIdx = (jsDay === 0) ? 6 : jsDay - 1;
-        total += p.needs[bosIdx] || 0;
+        var dailyNeed = p.needs[bosIdx] || 0;
+        var dateStr = d.toISOString().split('T')[0];
+        var typ = wochenconfig[dateStr] || 'normal';
+        if (typ === 'zu') dailyNeed = 0;
+        else if (typ === 'hamster_1') dailyNeed = Math.ceil((p.needs[5] + dailyNeed) / 2);
+        else if (typ === 'hamster_2') dailyNeed = p.needs[5];
+        else if (typ === 'hamster_3') dailyNeed = (bosIdx === 5) ? Math.ceil(p.needs[5] * 1.5) : (dailyNeed * 2);
+        total += dailyNeed;
     }
     return total;
 }
 
-function calcReachDate(prodId, stock) {
-    if (stock <= 0) return 'Leer';
+function calcDayBreakdown(prodId) {
     var p = window.BOS_STAMMDATEN[prodId];
-    if (!p || !p.needs) return '';
-    
+    if (!p || !p.needs) return [];
+    var DAY_NAMES = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    var pflichtDays = getDaysToNextMonday();
+    var SHOW_DAYS = 10;
+    var rows = [];
+    var d = new Date(anchorDate); d.setHours(0,0,0,0);
+    var pad = function(n) { return n < 10 ? '0'+n : n; };
+    for (var i = 0; i < SHOW_DAYS; i++) {
+        var jsDay = d.getDay();
+        var bosIdx = (jsDay === 0) ? 6 : jsDay - 1;
+        var dailyNeed = p.needs[bosIdx] || 0;
+        var dateStr = d.toISOString().split('T')[0];
+        var typ = wochenconfig[dateStr] || 'normal';
+        var icon = '';
+        if (typ === 'zu') { dailyNeed = 0; icon = ' 🔒'; }
+        else if (typ === 'hamster_1') { dailyNeed = Math.ceil((p.needs[5] + dailyNeed) / 2); icon = ' 🐹'; }
+        else if (typ === 'hamster_2') { dailyNeed = p.needs[5]; icon = ' 🐹🐹'; }
+        else if (typ === 'hamster_3') { dailyNeed = (bosIdx === 5) ? Math.ceil(p.needs[5] * 1.5) : (dailyNeed * 2); icon = ' 🐹🐹🐹'; }
+        rows.push({
+            label: DAY_NAMES[jsDay] + ', ' + pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.',
+            need: dailyNeed, icon: icon,
+            isMon: (i === pflichtDays), isOverhang: (i > pflichtDays)
+        });
+        d.setDate(d.getDate() + 1);
+    }
+    return rows;
+}
+
+function toggleAccordion(k) {
+    var detail = document.getElementById('detail-' + k);
+    if (!detail) return;
+    var isOpen = detail.style.display === 'block';
+    detail.style.display = isOpen ? 'none' : 'block';
+    var arrow = document.getElementById('arrow-' + k);
+    if (arrow) arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+}
+
+function toggleUeberhang(k, btn) {
+    var rows = document.getElementById('ueberhang-' + k);
+    if (!rows) return;
+    var isOpen = rows.style.display === 'table-row-group';
+    rows.style.display = isOpen ? 'none' : 'table-row-group';
+    btn.innerHTML = isOpen ? '▾ Weitere Tage' : '▴ Weniger';
+}
+
+function calcReachDays(prodId, stock) {
+    if (stock === null || stock <= 0) return 0;
+    var p = window.BOS_STAMMDATEN[prodId];
+    if (!p || !p.needs) return 0;
     var totalWeeklyNeed = p.needs.reduce(function(a,b){return a+b;}, 0);
-    if (totalWeeklyNeed === 0) return 'Kein Bedarf';
+    if (totalWeeklyNeed === 0) return 21;
 
     var remaining = stock;
-    var d = new Date(anchorDate.getTime()); // Er simuliert ab dem Anker-Datum!
+    var d = new Date(anchorDate); d.setHours(0,0,0,0);
+    var days = 0;
 
-    var daysCount = 0;
-    
-    while (remaining > 0 && daysCount < 60) {
+    while (remaining > 0 && days < 21) {
         var jsDay = d.getDay();
-        var bosIdx = (jsDay === 0) ? 6 : jsDay - 1; 
+        var bosIdx = (jsDay === 0) ? 6 : jsDay - 1;
         var dailyNeed = p.needs[bosIdx] || 0;
-        
+        var dateStr = d.toISOString().split('T')[0];
+        var typ = wochenconfig[dateStr] || 'normal';
+
+        if (typ === 'zu') dailyNeed = 0;
+        else if (typ === 'hamster_1') dailyNeed = Math.ceil((p.needs[5] + dailyNeed) / 2);
+        else if (typ === 'hamster_2') dailyNeed = p.needs[5];
+        else if (typ === 'hamster_3') dailyNeed = (bosIdx === 5) ? Math.ceil(p.needs[5] * 1.5) : (dailyNeed * 2);
+
         remaining -= dailyNeed;
-        
-        if (remaining < 0) {
-            break; 
-        }
-        
+        if (remaining < 0) break;
         d.setDate(d.getDate() + 1);
-        daysCount++;
+        days++;
     }
-    
-    if (daysCount === 0) {
-        var dayNames = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-        return 'Reicht nicht für ' + dayNames[anchorDate.getDay()];
-    }
-    
-    if (daysCount >= 60) return '> 60 Tage';
-    
-    d.setDate(d.getDate() - 1);
-    var pad = function(n) { return n < 10 ? '0'+n : n; };
-    return 'Reicht bis: ' + pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.';
+    return days;
 }
 
 function getStock(prodId) {
@@ -668,120 +997,208 @@ function getStock(prodId) {
     return null;
 }
 
+function toggleIntro() {
+    var tog = document.getElementById('intro-toggle');
+    var full = document.querySelector('.intro-full');
+    var open = tog.classList.toggle('offen');
+    full.style.display = open ? 'inline' : 'none';
+    tog.querySelector('.arrow').style.transform = open ? 'rotate(90deg)' : '';
+    tog.childNodes[1].textContent = open ? ' weniger' : ' mehr';
+}
+
+function zeigeInfoPopup(typ) {
+    document.getElementById('popup-' + typ).classList.add('aktiv');
+    document.body.style.overflow = 'hidden';
+}
+
+function schliessePopup(typ) {
+    document.getElementById('popup-' + typ).classList.remove('aktiv');
+    document.body.style.overflow = '';
+}
+
+function onStationChange(val) {
+    activeStation = val;
+    renderGrid();
+}
+
 function buildStationFilter() {
     var stationSet = {};
     var keys = Object.keys(window.BOS_STAMMDATEN);
-    var i, st;
-    for (i = 0; i < keys.length; i++) {
-        st = window.BOS_STAMMDATEN[keys[i]].station;
+    for (var i = 0; i < keys.length; i++) {
+        var st = window.BOS_STAMMDATEN[keys[i]].station;
         if (st) stationSet[st] = true;
     }
-    var stations = ['alle'].concat(Object.keys(stationSet));
-    var wrap = document.getElementById('station-filter');
-    wrap.innerHTML = '';
-    for (i = 0; i < stations.length; i++) {
-        (function(s) {
-            var btn = document.createElement('button');
-            btn.className = 'sf-btn' + (s === activeStation ? ' active' : '');
-            btn.innerText = s === 'alle' ? 'Alle Produkte' : s;
-            btn.onclick = function() {
-                activeStation = s;
-                renderGrid();
-                var btns = document.querySelectorAll('.sf-btn');
-                for (var j = 0; j < btns.length; j++) btns[j].classList.remove('active');
-                btn.classList.add('active');
-            };
-            wrap.appendChild(btn);
-        })(stations[i]);
-    }
+    var sel = document.getElementById('station-select');
+    sel.innerHTML = '<option value="alle">Alle Produkte</option>';
+    Object.keys(stationSet).sort().forEach(function(s) {
+        var opt = document.createElement('option');
+        opt.value = s; opt.textContent = s;
+        sel.appendChild(opt);
+    });
 }
 
 function renderGrid() {
     var grid = document.getElementById('product-grid');
     grid.innerHTML = '';
-
     var keys = Object.keys(window.BOS_STAMMDATEN);
-    var i, k, p, stock, need, pct, colorClass, statusText, card, reachStr;
-
-    // Median-Timestamp berechnen — alles was >5 Min neuer ist = vom Kollegen
     var prods = window.BOS_INVENTUR ? (window.BOS_INVENTUR.products || {}) : {};
     var allTs = Object.values(prods).map(function(p) { return p.ts || 0; }).filter(function(t) { return t > 0; }).sort(function(a,b){return a-b;});
     var medianTs = allTs.length ? allTs[Math.floor(allTs.length / 2)] : 0;
-    var KOLLEGEN_SCHWELLE = 5 * 60 * 1000; // 5 Minuten
+    var KOLLEGEN_SCHWELLE = 5 * 60 * 1000;
+    var pflichtDays = getDaysToNextMonday();
 
-    for (i = 0; i < keys.length; i++) {
-        k = keys[i];
-        p = window.BOS_STAMMDATEN[k];
-
+    for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        var p = window.BOS_STAMMDATEN[k];
         if (activeStation !== 'alle' && p.station !== activeStation) continue;
         if (nurInvRelevant && !inventurRelevantKeys.has(p.legacyKey)) continue;
 
-        stock = getStock(k);
-        need  = calcRawNeed(k);
-        reachStr = '';
-
-        // Kollegen-Badge prüfen
+        var stock = getStock(k);
+        var need  = calcNeedUntilMonday(k);
         var prodTs = p.legacyKey && prods[p.legacyKey] ? (prods[p.legacyKey].ts || 0) : 0;
         var vonKollegen = medianTs > 0 && prodTs > 0 && (prodTs - medianTs) > KOLLEGEN_SCHWELLE;
 
+        var reachDays, colorClass, statusText;
         if (stock === null) {
-            colorClass  = 'grey';
-            statusText  = '&#9888; Nicht gez&#228;hlt';
-            pct         = 0;
+            reachDays = -1;
+            colorClass = 'grey';
+            statusText = '&#9888; Nicht gez&#228;hlt';
         } else {
-            pct = (need > 0) ? Math.min(1, stock / need) : 1;
-            if (pct >= 0.8)       { colorClass = 'green';  statusText = 'Gut versorgt'; }
-            else if (pct >= 0.4)  { colorClass = 'yellow'; statusText = 'Im Auge behalten'; }
-            else                  { colorClass = 'red';    statusText = 'Kritisch'; }
-            reachStr = calcReachDate(k, stock);
+            reachDays = calcReachDays(k, stock);
+            if (need === 0 || stock >= need) { colorClass = 'green'; statusText = 'Gedeckt'; }
+            else                            { colorClass = 'red';   statusText = 'Kritisch'; }
         }
 
-        card = buildCard(k, p.name, stock, need, pct, colorClass, statusText, reachStr, vonKollegen);
+        var card = buildCard(k, p.name, stock, need, colorClass, statusText, reachDays, pflichtDays, vonKollegen, prodTs, medianTs);
         grid.appendChild(card);
     }
 }
 
-function buildCard(k, name, stock, need, pct, colorClass, statusText, reachStr, vonKollegen) {
+function buildCard(k, name, stock, need, colorClass, statusText, reachDays, pflichtDays, vonKollegen, prodTs, medianTs) {
     var card = document.createElement('div');
     card.className = 'prod-card' + (stock === null ? ' no-data' : '');
-
-    var strokeOffset = CIRCUMFERENCE * (1 - pct);
-    var stockDisplay = (stock === null) ? '?' : stock;
-
-    var kollegenBadge = vonKollegen
-        ? '<div style="position:absolute;top:6px;right:6px;width:18px;height:18px;background:#10b981;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:900;color:#fff;box-shadow:0 1px 4px rgba(16,185,129,0.4);">+</div>'
-        : '';
-
-    var svgHtml =
-        '<div class="circle-wrap">' +
-            '<svg viewBox="0 0 90 90">' +
-                '<circle class="circle-bg" cx="45" cy="45" r="38"></circle>' +
-                '<circle class="circle-fill ' + colorClass + '" cx="45" cy="45" r="38"' +
-                    ' stroke-dasharray="' + CIRCUMFERENCE + '"' +
-                    ' stroke-dashoffset="' + strokeOffset.toFixed(1) + '">' +
-                '</circle>' +
-            '</svg>' +
-            '<div class="circle-center">' +
-                '<div class="circle-stock">' + stockDisplay + '</div>' +
-                '<div class="circle-divider"></div>' +
-                '<div class="circle-need">' + need + '</div>' +
-            '</div>' +
-        '</div>';
-
     card.style.position = 'relative';
+    card.style.cursor = 'pointer';
+    card.onclick = function() { toggleAccordion(k); };
+
+    var DAY_LABELS = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    // Balken startet immer von HEUTE — Froster-Tage ausgegraut mit ❄
+    var totalCells = 10;
+    var fo = frosterOffset; // 1 oder 2 Froster-Tage
+    var pflichtCells = pflichtDays + 1; // ab anchorDate bis Mo
+    var ueberhangCells = totalCells - fo - pflichtCells;
+    if (ueberhangCells < 0) ueberhangCells = 0;
+
+    // Froster-Zellen (65% Pflichtzone)
+    var pflichtBar = '', pflichtLabels = '';
+    var d = new Date(); d.setHours(0,0,0,0);
+    for (var fi = 0; fi < fo; fi++) {
+        pflichtBar += '<div class="lb-cell lb-froster">❄</div>';
+        pflichtLabels += '<div class="lb-label-cell">' + DAY_LABELS[d.getDay()] + '</div>';
+        d.setDate(d.getDate() + 1);
+    }
+    // Pflicht-Zellen (ab anchorDate bis Mo)
+    for (var i = 0; i < pflichtCells; i++) {
+        var dateStrPf = d.toISOString().split('T')[0];
+        var isClosed = wochenconfig[dateStrPf] === 'zu';
+        var isFilled = (reachDays >= 0 && i < reachDays);
+        var isEmpty = !isFilled && !isClosed;
+        var cls = isClosed
+            ? 'lb-cell lb-zu'
+            : (isFilled
+                ? 'lb-cell lb-filled-' + colorClass
+                : (colorClass === 'red' && isEmpty ? 'lb-cell lb-empty-red' : 'lb-cell'));
+        pflichtBar += '<div class="' + cls + '">' + (isClosed ? '🔒' : '') + '</div>';
+        var lCls = 'lb-label-cell' + (i === pflichtCells - 1 ? ' lb-label-mon' : '');
+        pflichtLabels += '<div class="' + lCls + '">' + DAY_LABELS[d.getDay()] + '</div>';
+        d.setDate(d.getDate() + 1);
+    }
+
+    // Überhang cells (35%)
+    var ueberhangBar = '', ueberhangLabels = '';
+    for (var j = 0; j < ueberhangCells; j++) {
+        var dateStrUe = d.toISOString().split('T')[0];
+        var isClosedU = wochenconfig[dateStrUe] === 'zu';
+        var cellIdx = pflichtCells + j;
+        var isFilledU = (reachDays >= 0 && cellIdx < reachDays);
+        var isReachEnd = (reachDays >= 0 && cellIdx === reachDays - 1 && reachDays > pflichtCells);
+        var clsU = isClosedU ? 'lb-cell lb-zu' : ('lb-cell' + (isFilledU ? ' lb-filled-overhang' : ''));
+        ueberhangBar += '<div class="' + clsU + '">' + (isClosedU ? '🔒' : '') + '</div>';
+        var lClsU = 'lb-label-cell' + (isReachEnd ? ' lb-label-reach' : '');
+        ueberhangLabels += '<div class="' + lClsU + '">' + DAY_LABELS[d.getDay()] + '</div>';
+        d.setDate(d.getDate() + 1);
+    }
+
+    // Akkordeon Tagesaufschlüsselung
+    var breakdown = calcDayBreakdown(k);
+    var pflichtRows = '', ueberhangRows = '';
+    // Froster-Zeilen oben
+    var dAcc = new Date(); dAcc.setHours(0,0,0,0);
+    var WT_LANG_ACC = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    var padAcc = function(n){return n<10?'0'+n:n;};
+    for (var fi = 0; fi < frosterOffset; fi++) {
+        var accLabel = WT_LANG_ACC[dAcc.getDay()] + ', ' + padAcc(dAcc.getDate()) + '.' + padAcc(dAcc.getMonth()+1) + '.';
+        pflichtRows += '<tr class="row-froster"><td>' + accLabel + ' ❄️</td><td style="color:var(--dim);">Froster</td></tr>';
+        dAcc.setDate(dAcc.getDate() + 1);
+    }
+    for (var r = 0; r < breakdown.length; r++) {
+        var row = breakdown[r];
+        var needTxt = row.need > 0 ? row.need + ' Bl.' : '—';
+        var rowHtml = '<tr' + (row.isMon ? ' class="row-mon"' : '') + '><td>' + row.label + row.icon + '</td><td>' + needTxt + '</td></tr>';
+        if (!row.isOverhang) pflichtRows += rowHtml;
+        else ueberhangRows += rowHtml;
+    }
+    var tableHtml =
+        '<table class="detail-table">' +
+            pflichtRows +
+            '<tr class="row-total"><td>Bedarf bis Mo</td><td>' + need + ' Bl.</td></tr>' +
+        '</table>' +
+        (ueberhangRows
+            ? '<button class="weitere-tage-btn" onclick="event.stopPropagation();toggleUeberhang(\'' + k + '\',this)">▾ Weitere Tage</button>' +
+              '<table class="detail-table" id="ueberhang-' + k + '" style="display:none;">' + ueberhangRows + '</table>'
+            : '');
+
+    var stockDisplay = (stock === null) ? '?' : stock;
+    var kollegenBadge = vonKollegen ? '<div class="kollegen-badge">+</div>' : '';
+
+    // Individueller Inventur-Timestamp
+    var invTsLabel = '';
+    if (prodTs && medianTs && (prodTs - medianTs) > 300000) {
+        var invD = new Date(prodTs);
+        var pInv = function(n){return n<10?'0'+n:''+n;};
+        invTsLabel = '<span style="font-size:0.65rem;color:#2d9e5f;font-weight:700;margin-left:4px;">↑' + pInv(invD.getHours()) + ':' + pInv(invD.getMinutes()) + '</span>';
+    }
+
     card.innerHTML =
         kollegenBadge +
-        '<div class="prod-name">' + name + '</div>' +
-        svgHtml +
-        '<div class="status-badge ' + colorClass + '">' + statusText + '</div>' +
-        (reachStr ? '<div class="reach-date">' + reachStr + '</div>' : '');
+        '<div class="prod-header">' +
+            '<div class="prod-name">' + name + invTsLabel + '</div>' +
+            '<div class="prod-stock-info">' +
+                '<span class="prod-stock-num">' + stockDisplay + '</span>' +
+                '<span style="color:var(--dim);"> / ' + need + ' Bl. </span>' +
+                '<span class="card-arrow" id="arrow-' + k + '">▾</span>' +
+            '</div>' +
+        '</div>' +
+        '<div class="ladebalken-wrap">' +
+            '<div class="ladebalken-zones">' +
+                '<div class="lb-pflicht-zone">' + pflichtBar + '</div>' +
+                '<div class="lb-ueberhang-zone">' + ueberhangBar + '</div>' +
+            '</div>' +
+            '<div class="ladebalken-labels">' +
+                '<div class="lb-labels-pflicht">' + pflichtLabels + '</div>' +
+                '<div class="lb-labels-ueberhang">' + ueberhangLabels + '</div>' +
+            '</div>' +
+        '</div>' +
+        '<div class="card-detail" id="detail-' + k + '" style="display:none;">' +
+            tableHtml +
+        '</div>';
 
     return card;
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
     const ok = await window.BOS_GEHIRN.init();
-    if (ok) initApp();
+    if (ok) { initApp(); pruefeWochenkonfigHinweis(); setTimeout(buildExportZielOptions, 200); }
 });
 window.addEventListener('load', initApp); 
 </script>

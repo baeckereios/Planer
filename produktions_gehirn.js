@@ -161,8 +161,8 @@ const GEHIRN = {
                 return alsBlech ? Math.round(avg / charge) : Math.round(avg);
             });
 
-            // Wenn alle needs = 0 → Produkt überspringen
-            if (needs.every(n => n === 0)) return;
+            // Wenn alle needs = 0 → Produkt überspringen, AUSSER es ist inventurRelevant
+            if (needs.every(n => n === 0) && !prod.inventurRelevant) return;
 
             // BOS-ID: p1, p2, ... oder legacyKey als Fallback
             const bosId = 'p' + (idx + 1);
@@ -181,7 +181,10 @@ const GEHIRN = {
                 filialeProdukt: prod.filialeProdukt || false,
                 lagerort:  prod.lagerort  || null,
                 frosterliste: prod.frosterliste ?? true,
-                schnellrechnerRelevant: prod.schnellrechnerRelevant ?? null
+                schnellrechnerRelevant: prod.schnellrechnerRelevant ?? null,
+                pressenGroesse: prod.pressenGroesse || null,
+                teiggewichtAufschlag: prod.teiggewichtAufschlag || null,
+                inventurRelevant: prod.inventurRelevant ?? false
             };
         });
 

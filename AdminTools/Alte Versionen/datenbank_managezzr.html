@@ -53,11 +53,10 @@
         .oi-btn-fix  { background:#dbeafe; color:#1d4ed8; }
         .oi-btn-excl { background:#fee2e2; color:#991b1b; }
         .oi-btn-ok   { background:#dcfce7; color:#166534; }
-        .oi-fix-row  { display:none; margin-top:10px; flex-direction:column; gap:6px; background:#fff8e1; border:1px solid #f59e0b; border-radius:8px; padding:10px 12px; }
+        .oi-fix-row  { display:none; margin-top:8px; gap:6px; align-items:center; }
         .oi-fix-row.show { display:flex; }
-        .oi-fix-label { font-size:0.78rem; font-weight:700; color:#92400e; }
-        .oi-fix-inp  { width:100%; padding:9px 10px; border-radius:6px; border:1px solid #f59e0b; font-size:1rem; font-weight:700; }
-        .oi-fix-save { padding:9px 14px; border-radius:6px; background:#f59e0b; color:white; border:none; font-weight:800; font-size:0.9rem; cursor:pointer; width:100%; }
+        .oi-fix-inp  { flex:1; padding:6px 9px; border-radius:6px; border:1px solid var(--border-color,#e2e8f0); font-size:0.85rem; }
+        .oi-fix-save { padding:6px 12px; border-radius:6px; background:var(--btn-primary,#c07a10); color:white; border:none; font-weight:700; font-size:0.78rem; cursor:pointer; }
         .oi-resolved-label { font-size:0.75rem; font-weight:700; margin-top:6px; }
 
         .summary { display:none; background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:12px 15px; margin-top:10px; font-size:0.85rem; line-height:1.6; }
@@ -106,15 +105,9 @@
     <div class="card">
         <h2>① Datenbank laden <span style="font-size:0.75rem;font-weight:600;color:var(--alert-color);">— zuerst!</span></h2>
         <small>Die Datenbank wird für die Ausreißer-Kontrolle benötigt. Zuerst laden, dann Zettel eingeben.</small>
-        <label style="font-size:0.78rem;font-weight:700;color:#374151;display:block;margin:8px 0 4px;">backmengen_db.json hochladen:</label>
         <input type="file" id="fileInput" accept=".json">
         <button onclick="loadLS()" style="background:var(--text-muted);margin-top:6px;width:100%;padding:9px;border-radius:6px;border:none;color:white;font-weight:700;cursor:pointer;font-size:0.85rem;">Aus Browser-Zwischenspeicher laden</button>
         <div class="hint" id="hint-db" style="margin-top:6px;"></div>
-        <div style="margin-top:12px;padding-top:10px;border-top:1px solid #e2e8f0;">
-            <div id="cfg-status" style="font-size:0.78rem;font-weight:700;margin-bottom:6px;color:#6b7280;">⏳ produkt_config.json wird geladen…</div>
-            <label style="font-size:0.78rem;color:#6b7280;display:block;margin-bottom:4px;">Falls nicht automatisch geladen — <strong>produkt_config.json</strong> manuell hochladen:</label>
-            <input type="file" id="cfgFileInput" accept=".json" onchange="ladeProduktConfigManuell(this)">
-        </div>
     </div>
 
     <!-- ② KONTEXT -->
@@ -324,51 +317,9 @@ let produktConfig = []; // Global — sammelt alle Änderungen auf
 (async function() {
     try {
         const r = await fetch('../produkt_config.json', { cache: 'no-store' });
-        if (r.ok) {
-            produktConfig = await r.json();
-            setCfgStatus(true);
-        } else {
-            setCfgStatus(false);
-        }
-    } catch(e) {
-        console.warn('produkt_config nicht geladen:', e.message);
-        setCfgStatus(false);
-    }
+        if (r.ok) produktConfig = await r.json();
+    } catch(e) { console.warn('produkt_config nicht geladen:', e.message); }
 })();
-
-function setCfgStatus(ok) {
-    const el = document.getElementById('cfg-status');
-    if (!el) return;
-    if (ok) {
-        el.textContent = '✅ produkt_config.json geladen (' + produktConfig.length + ' Produkte)';
-        el.style.color = '#16a34a';
-    } else {
-        el.textContent = '⚠️ produkt_config.json NICHT geladen — bitte manuell hochladen!';
-        el.style.color = '#dc2626';
-        el.style.fontWeight = '900';
-    }
-}
-
-function ladeProduktConfigManuell(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = JSON.parse(e.target.result);
-            if (!Array.isArray(data) || data.length < 5) {
-                alert('Ungültige produkt_config.json — zu wenige Einträge.');
-                return;
-            }
-            produktConfig = data;
-            setCfgStatus(true);
-        } catch(err) {
-            alert('Fehler beim Lesen: ' + err.message);
-        }
-        input.value = '';
-    };
-    reader.readAsText(file);
-}
 
 // ── UNBEKANNTE PRODUKTE PANEL ─────────────────────────────
 function renderUnbekanntePanel() {
@@ -397,10 +348,10 @@ function renderUnbekanntePanel() {
                             <option selected>Konditorei</option><option>Fettgebäck</option><option>Snack</option>
                         </select>
                         <input type="number" id="unk-charge-${i}" value="1" min="1" placeholder="Charge"
-                            style="width:70px;padding:6px 8px;border-radius:6px;border:1px solid #e5e7eb;font-size:0.85rem;font-family:inherit;" title="Stück pro Blech — z.B. 20 wenn 20 Brötchen auf ein Blech passen">
+                            style="width:70px;padding:6px 8px;border-radius:6px;border:1px solid #e5e7eb;font-size:0.85rem;font-family:inherit;">
                     </div>
                     <div style="font-size:0.72rem;color:#6b7280;margin-top:5px;">
-                        <strong>Charge</strong> = Stück pro Blech (z.B. 20) · legacyKey wird automatisch generiert · Restliche Felder im Config-Editor ergänzen
+                        legacyKey wird automatisch generiert · Restliche Felder im Config-Editor ergänzen
                     </div>
                 </div>
             </div>`;
@@ -635,17 +586,9 @@ function runOutlierCheck() {
 
         const neuStueck = parseFloat(mergedProdukte[key]) || 0;
         const neuBleche = getBlechValue(key, mergedProdukte);
+        const avgBleche = avgStueck / (STUECK_PRO_BLECH[key] || 1);
 
-        // Charge aus produktConfig lesen — zuverlässiger als STUECK_PRO_BLECH
-        const cfgEintrag = produktConfig.find(function(p) { return p.legacyKey === key; });
-        const chargeAusCfg = cfgEintrag && cfgEintrag.charge > 1 ? cfgEintrag.charge : null;
-        const chargeWert = chargeAusCfg || STUECK_PRO_BLECH[key] || null;
-
-        // Wenn kein Blech-Wert ermittelbar → überspringen (kein falscher Alarm)
         if (neuBleche === null) return;
-        if (!chargeWert && !mergedProdukte[key.replace('_stueck','_bleche')]) return;
-
-        const avgBleche = chargeWert ? (avgStueck / chargeWert) : avgStueck;
 
         const blechDelta = Math.abs(neuBleche - avgBleche);
         const pctDelta   = Math.abs(neuStueck - avgStueck) / avgStueck;
@@ -699,9 +642,8 @@ function runOutlierCheck() {
                 <button class="oi-btn oi-btn-ok"   onclick="oiAction('${o.key}','accept')">✅ So lassen</button>
             </div>
             <div class="oi-fix-row" id="fixrow-${o.key}">
-                <div class="oi-fix-label">✏️ Korrekten Stückwert eingeben:</div>
-                <input type="number" class="oi-fix-inp" id="fixval-${o.key}" placeholder="Stückzahl eingeben..." value="${o.neuStueck}">
-                <button class="oi-fix-save" onclick="oiSaveFix('${o.key}',${o.neuStueck})">✓ Korrektur speichern</button>
+                <input type="number" class="oi-fix-inp" id="fixval-${o.key}" placeholder="Korrekter Stückwert..." value="${o.neuStueck}">
+                <button class="oi-fix-save" onclick="oiSaveFix('${o.key}',${o.neuStueck})">Speichern</button>
             </div>
             <div class="oi-resolved-label" id="resolved-${o.key}"></div>
         `;
@@ -930,12 +872,6 @@ ${sektionen}
     const corrCount = Object.values(flags).filter(f=>f.type==='outlier_corrected').length;
     const exclCount = Object.values(flags).filter(f=>f.type==='outlier_excluded').length;
     const acptCount = Object.values(flags).filter(f=>f.type==='outlier_accepted').length;
-
-    // Sicherheitsprüfung: Config muss vollständig geladen sein
-    if (produktConfig.length < 5) {
-        alert('STOPP: Die produkt_config.json wurde nicht korrekt geladen (' + produktConfig.length + ' Eintraege).\n\nBitte zuerst die produkt_config.json manuell hochladen (Feld oben bei Schritt 1) -- sonst werden alle bestehenden Produkte ueberschrieben!');
-        return;
-    }
 
     // Neue Produkte: alle angehakten Checkboxen einsammeln und zur Config hinzufügen
     let neueHinzugefuegt = 0;
