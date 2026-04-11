@@ -44,7 +44,6 @@
     "hinweis": null,
     "einheit": "bleche",
     "lagerort": "",
-    "frosterliste": true,
     "backTage": [
       0,
       1,
@@ -1451,5 +1450,341 @@
       6
     ],
     "hinweis": "Automatisch erkannt — bitte prüfen"
+  },
+  {
+    "artNr": null,
+    "name": "Schlawiner (klassisch)",
+    "legacyKey": "schlawiner_klassisch_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 48,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 0,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
+  },
+  {
+    "artNr": null,
+    "name": "Kürbis-Schlawiner",
+    "legacyKey": "schlawiner_kuerbis_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 48,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 0,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
+  },
+  {
+    "artNr": null,
+    "name": "Sonnen-Schlawiner",
+    "legacyKey": "schlawiner_sonnen_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 48,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 0,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
+  },
+  {
+    "artNr": null,
+    "name": "Mohn-Schlawiner",
+    "legacyKey": "schlawiner_mohn_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 48,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 0,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
+  },
+  {
+    "artNr": null,
+    "name": "gem. Körner Schlawiner",
+    "legacyKey": "schlawiner_koerner_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 48,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 0,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
+  },
+  {
+    "artNr": null,
+    "name": "Sesam-Schlawiner",
+    "legacyKey": "schlawiner_sesam_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 48,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 0,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
+  },
+  {
+    "artNr": null,
+    "name": "Kürbis-Käse-Schlawiner",
+    "legacyKey": "schlawiner_kuerbiskaese_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 48,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 0,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
+  },
+  {
+    "artNr": null,
+    "name": "Löwen-Schlawiner",
+    "legacyKey": "schlawiner_loewen_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 48,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 0,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
+  },
+  {
+    "artNr": null,
+    "name": "Schlawinerstange (3er)",
+    "legacyKey": "schlawiner_stange3_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 16,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 1,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
+  },
+  {
+    "artNr": null,
+    "name": "Schlawinerstange (5er)",
+    "legacyKey": "schlawiner_stange5_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 10,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 1,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
+  },
+  {
+    "artNr": null,
+    "name": "Schlawinerbrot (6er)",
+    "legacyKey": "schlawiner_brot6_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 8,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 1,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
+  },
+  {
+    "artNr": null,
+    "name": "Kü-Schlawiner-Stange (3er)",
+    "legacyKey": "schlawiner_kuestange3_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 16,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 1,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
+  },
+  {
+    "artNr": null,
+    "name": "So-Schlawiner-Stange (3er)",
+    "legacyKey": "schlawiner_sostange3_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 16,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 1,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
+  },
+  {
+    "artNr": null,
+    "name": "Schlawinerstange gem. (3er)",
+    "legacyKey": "schlawiner_gemstange3_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 16,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 1,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
+  },
+  {
+    "artNr": null,
+    "name": "Löwen-Schlawinerstange",
+    "legacyKey": "schlawiner_loewenstange_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 16,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 1,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
+  },
+  {
+    "artNr": null,
+    "name": "Kü-Schlawiner-Stange (5er)",
+    "legacyKey": "schlawiner_kuestange5_stueck",
+    "kategorie": "Schlawiner",
+    "charge": 10,
+    "schnellrechnerRelevant": false,
+    "inventurRelevant": false,
+    "station": "Frühschicht",
+    "unit": 1,
+    "einheit": "stueck",
+    "backTage": [
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So"
+    ]
   }
 ]

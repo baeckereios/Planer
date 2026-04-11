@@ -109,15 +109,7 @@
             
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; padding:12px 18px; background:var(--surface2); border-radius:16px; border:1.5px solid var(--border-s);">
                 <div class="label" id="lang-calcToday" style="margin-bottom:0; font-size:0.8rem;">Startpunkt / Heute:</div>
-                <select id="today-select" onchange="changeToday(this.value)" style="padding:10px 16px; border-radius:12px; border:2px solid var(--border-s); font-weight:900; font-family:inherit; background:var(--surface); color:var(--text); outline:none; cursor:pointer; font-size:0.9rem;">
-                    <option value="0">Montag</option>
-                    <option value="1">Dienstag</option>
-                    <option value="2">Mittwoch</option>
-                    <option value="3">Donnerstag</option>
-                    <option value="4">Freitag</option>
-                    <option value="5">Samstag</option>
-                    <option value="6">Sonntag</option>
-                </select>
+                <select id="today-select" onchange="changeToday(this.value)" style="padding:10px 16px; border-radius:12px; border:2px solid var(--border-s); font-weight:900; font-family:inherit; background:var(--surface); color:var(--text); outline:none; cursor:pointer; font-size:0.9rem;"></select>
             </div>
 
             <!-- Produkt + Froster + Fehlmenge -->
@@ -557,7 +549,22 @@
         }
 
         function renderToday() {
-            document.getElementById('today-select').value = todayIdx;
+            const sel = document.getElementById('today-select');
+            const heute = new Date(); heute.setHours(0,0,0,0);
+            const JS_ZU_BOS = [6,0,1,2,3,4,5];
+            const BOS_ZU_WDAY = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+            const WT_LANG = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+            sel.innerHTML = '';
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(heute); d.setDate(heute.getDate() + i);
+                const bos = JS_ZU_BOS[d.getDay()];
+                const datumStr = String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.';
+                const opt = document.createElement('option');
+                opt.value = bos;
+                opt.textContent = WT_LANG[bos] + ', ' + datumStr + (i === 0 ? ' (heute)' : '');
+                if (bos === todayIdx) opt.selected = true;
+                sel.appendChild(opt);
+            }
         }
 
         function changeToday(val) {

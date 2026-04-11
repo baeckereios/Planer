@@ -63,35 +63,16 @@ h1 { font-size: 1.3rem; font-weight: 900; color: var(--amber,#e67e22); margin: 0
 .auf-name { font-size: 0.7rem; color: var(--dim,#6b7280); font-weight: 700; margin-top: 2px; }
 .auf-einheit { font-size: 0.65rem; color: #94a3b8; }
 
-/* Slider */
-.slider-haupt-row { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
-.slider-haupt-row input[type=range] {
-    flex: 1; -webkit-appearance: none; appearance: none; height: 6px;
-    border-radius: 3px; outline: none; cursor: pointer;
-    background: linear-gradient(to right, var(--amber,#e67e22) 0%, var(--amber,#e67e22) var(--val,28%), var(--border-color,#e5e0d8) var(--val,28%));
-}
-.slider-haupt-row input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%;
-    background: white; border: 3px solid var(--amber,#e67e22);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15); cursor: pointer;
-}
-.slider-zahl-box {
-    min-width: 36px; height: 36px; border-radius: 8px;
-    background: var(--amber,#e67e22); color: white;
-    font-size: 1rem; font-weight: 900; display: flex;
-    align-items: center; justify-content: center; flex-shrink: 0;
-}
-.wochen-wrap { display: flex; flex-direction: column; gap: 4px; }
-.wochen-zeile { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-.wt-kopf { font-size: 0.65rem; font-weight: 800; text-align: center;
-           color: var(--dim,#6b7280); padding: 2px 0; }
-.wt-box { height: 22px; border-radius: 4px; border: 1.5px solid var(--border-color,#e5e0d8);
-          background: var(--background,#f8f6f2); transition: all 0.15s; cursor: pointer; }
-.wt-box:hover { border-color: #94a3b8; }
-.wt-box.start { border: 2.5px solid #1e293b; background: #1e293b !important; }
-.wt-box.aktiv-1 { background: var(--amber,#e67e22); border-color: var(--amber,#e67e22); }
-.wt-box.aktiv-2 { background: #f59e0b88; border-color: var(--amber,#e67e22); }
-.wt-box.heute { border-color: #1e293b; border-width: 2px; }
+/* Zeitraum-Dropdowns */
+.zeitraum-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
+.zeitraum-gruppe { display: flex; flex-direction: column; gap: 4px; }
+.zeitraum-label { font-size: 0.68rem; font-weight: 800; color: var(--dim,#6b7280);
+    text-transform: uppercase; letter-spacing: 0.5px; }
+.zeitraum-select { font-family: inherit; font-size: 0.95rem; font-weight: 800;
+    padding: 10px 10px; border: 2px solid var(--border-color,#e5e0d8);
+    border-radius: 10px; background: var(--card-bg,#fff);
+    color: var(--text-primary,#1a1a1a); width: 100%; cursor: pointer; }
+.zeitraum-select:focus { outline: none; border-color: var(--amber,#e67e22); }
 
 /* Tag-Tabelle nebeneinander */
 
@@ -156,41 +137,20 @@ h1 { font-size: 1.3rem; font-weight: 900; color: var(--amber,#e67e22); margin: 0
         ⚠ Inventur älter als 24 Std. — Bestände bitte manuell eintragen
     </div>
 
-    <!-- Zieldatum Slider -->
+    <!-- Zeitraum Dropdowns -->
     <div class="card" id="slider-card">
-        <div class="card-titel">Soll reichen bis einschl. — Starttag antippen</div>
-        <div class="slider-haupt-row">
-            <input type="range" id="slider-tage" min="1" max="14" value="4" oninput="sliderUpdate()">
-            <div class="slider-zahl-box" id="slider-zahl">4</div>
-        </div>
-        <div style="text-align:center;font-size:0.72rem;color:var(--dim,#6b7280);margin-bottom:10px;">Tage</div>
-        <div class="wochen-wrap">
-            <div class="wochen-zeile">
-                <div class="wt-kopf">Mo</div><div class="wt-kopf">Di</div>
-                <div class="wt-kopf">Mi</div><div class="wt-kopf">Do</div>
-                <div class="wt-kopf">Fr</div><div class="wt-kopf">Sa</div>
-                <div class="wt-kopf">So</div>
+        <div class="card-titel">Zeitraum — Von · Bis</div>
+        <div class="zeitraum-wrap">
+            <div class="zeitraum-gruppe">
+                <div class="zeitraum-label">Von</div>
+                <select class="zeitraum-select" id="dd-von" onchange="vonGeaendert()"></select>
             </div>
-            <div class="wochen-zeile" id="woche1">
-                <div class="wt-box" data-woche="1" data-wt="0"></div>
-                <div class="wt-box" data-woche="1" data-wt="1"></div>
-                <div class="wt-box" data-woche="1" data-wt="2"></div>
-                <div class="wt-box" data-woche="1" data-wt="3"></div>
-                <div class="wt-box" data-woche="1" data-wt="4"></div>
-                <div class="wt-box" data-woche="1" data-wt="5"></div>
-                <div class="wt-box" data-woche="1" data-wt="6"></div>
-            </div>
-            <div class="wochen-zeile" id="woche2">
-                <div class="wt-box" data-woche="2" data-wt="0"></div>
-                <div class="wt-box" data-woche="2" data-wt="1"></div>
-                <div class="wt-box" data-woche="2" data-wt="2"></div>
-                <div class="wt-box" data-woche="2" data-wt="3"></div>
-                <div class="wt-box" data-woche="2" data-wt="4"></div>
-                <div class="wt-box" data-woche="2" data-wt="5"></div>
-                <div class="wt-box" data-woche="2" data-wt="6"></div>
+            <div class="zeitraum-gruppe">
+                <div class="zeitraum-label">Bis</div>
+                <select class="zeitraum-select" id="dd-bis" onchange="dropdownUpdate()"></select>
             </div>
         </div>
-        <div id="lbl-spanne" style="margin-top:10px;text-align:center;font-size:0.78rem;font-weight:700;color:var(--amber,#e67e22);"></div>
+        <div id="lbl-spanne" style="margin-top:8px;text-align:center;font-size:0.78rem;font-weight:700;color:var(--amber,#e67e22);"></div>
     </div>
 
     <!-- UMSCHALTER -->
@@ -307,7 +267,7 @@ function getNeedsEffektiv(legacyKey, prodKey) {
 function tagesBedarfEffektiv(legacyKey, prodKey) {
     const needs = getNeedsEffektiv(legacyKey, prodKey);
     const start = getStartTag();
-    const tage  = parseInt(document.getElementById('slider-tage').value) || 1;
+    const tage  = getTageAnzahl();
     let total = 0;
     for (let i = 0; i < tage; i++) {
         total += (needs[(start + i) % 7] || 0);
@@ -486,53 +446,83 @@ function aktualisiereTagTabelleEinzel(ab) {
 }
 
 let stammdaten = null;
-let starttagBosIdx = null; // null = morgen
 
 function heuteBosIdx() { return JS_ZU_BOS[new Date().getDay()]; }
 function getStartTag() {
-    if (starttagBosIdx !== null) return starttagBosIdx;
-    return (heuteBosIdx() + 1) % 7;
+    // Von-Tag ist der Froster-Stand: Ware liegt bereits im Laden.
+    // Berechnung startet erst ab dem Tag DANACH.
+    const vonOffset = document.getElementById('dd-von') ? parseInt(document.getElementById('dd-von').value) : 0;
+    const heute = new Date(); heute.setHours(0,0,0,0);
+    const vonD = new Date(heute); vonD.setDate(heute.getDate() + vonOffset + 1);
+    return JS_ZU_BOS[vonD.getDay()];
+}
+function getTageAnzahl() {
+    const vonOffset = parseInt(document.getElementById('dd-von').value) || 0;
+    const bisOffset = parseInt(document.getElementById('dd-bis').value) || 1;
+    return Math.max(1, bisOffset - vonOffset + 1);
 }
 
-function sliderUpdate() {
-    const tage = parseInt(document.getElementById('slider-tage').value);
-    const start = getStartTag();
-    const WT = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+const WT_LANG = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+const WT_KURZ = ['Mo','Di','Mi','Do','Fr','Sa','So'];
 
-    document.getElementById('slider-zahl').textContent = tage;
-    const pct = ((tage - 1) / 13 * 100).toFixed(1);
-    document.getElementById('slider-tage').style.setProperty('--val', pct + '%');
+function datumLabel(d) {
+    const wt = WT_LANG[JS_ZU_BOS[d.getDay()]];
+    return wt + ', ' + String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.';
+}
 
-    // Heute markieren
-    const heute = heuteBosIdx();
-
-    // Wochenanzeige
-    for (let wt = 0; wt < 7; wt++) {
-        const b1 = document.querySelector('.wt-box[data-woche="1"][data-wt="'+wt+'"]');
-        const b2 = document.querySelector('.wt-box[data-woche="2"][data-wt="'+wt+'"]');
-        if (!b1 || !b2) continue;
-        b1.className = 'wt-box' + (wt === start ? ' start' : '') + (wt === heute ? ' heute' : '');
-        b2.className = 'wt-box';
-        b1.onclick = (function(idx) { return function() {
-            starttagBosIdx = idx;
-            sliderUpdate();
-        }; })(wt);
-        const tageInW1 = 7 - start;
-        if (wt >= start && (wt - start) < Math.min(tage, tageInW1)) b1.classList.add('aktiv-1');
-        const restTage = tage - tageInW1;
-        if (restTage > 0 && wt < restTage) b2.classList.add('aktiv-2');
+function fuelleVonDropdown() {
+    const sel = document.getElementById('dd-von');
+    const heute = new Date(); heute.setHours(0,0,0,0);
+    sel.innerHTML = '';
+    for (let i = 0; i < 10; i++) {
+        const d = new Date(heute); d.setDate(heute.getDate() + i);
+        const o = document.createElement('option');
+        o.value = i;
+        const hinweis = i === 0 ? ' · Froster nicht fertig' : i === 1 ? ' · Froster fertig' : '';
+        o.textContent = datumLabel(d) + hinweis;
+        sel.appendChild(o);
     }
+}
 
-    // Ziel-BOS-Index = letzter Tag der Spanne
-    const endIdx = (start + tage - 1) % 7;
-    window._zielBos = endIdx;
+function fuelleBisDropdown(vonOffset) {
+    const sel = document.getElementById('dd-bis');
+    const heute = new Date(); heute.setHours(0,0,0,0);
+    const vonDatum = new Date(heute); vonDatum.setDate(heute.getDate() + vonOffset);
+    const alterWert = parseInt(sel.value) || (vonOffset + 1);
+    sel.innerHTML = '';
+    for (let i = 0; i < 10; i++) {
+        const d = new Date(vonDatum); d.setDate(vonDatum.getDate() + i);
+        const offset = vonOffset + i;
+        const o = document.createElement('option');
+        o.value = offset;
+        o.textContent = (i === 0 ? 'Gleicher Tag · ' : '') + datumLabel(d);
+        if (offset === alterWert) o.selected = true;
+        sel.appendChild(o);
+    }
+    // Default: 1 Tag nach Von wenn kein passender alter Wert
+    if (!sel.value || parseInt(sel.value) < vonOffset) sel.options[1 < sel.options.length ? 1 : 0].selected = true;
+}
 
+function vonGeaendert() {
+    const vonOffset = parseInt(document.getElementById('dd-von').value);
+    fuelleBisDropdown(vonOffset);
+    dropdownUpdate();
+}
+
+function dropdownUpdate() {
+    const vonOffset = parseInt(document.getElementById('dd-von').value);
+    const bisOffset = parseInt(document.getElementById('dd-bis').value);
+    const heute = new Date(); heute.setHours(0,0,0,0);
+    const bisD = new Date(heute); bisD.setDate(heute.getDate() + bisOffset);
+    const tage = bisOffset - vonOffset + 1;
+    window._zielBos = JS_ZU_BOS[bisD.getDay()];
     document.getElementById('lbl-spanne').textContent =
-        WT[start] + ' → ' + WT[endIdx] + ' · ' + tage + ' Tag' + (tage===1?'':'e');
-
+        tage + ' Tag' + (tage === 1 ? '' : 'e');
     berechne();
 }
+function sliderUpdate() { dropdownUpdate(); }
 
+// Wochentag-Hilfsfunktionen
 // Wochentag-Hilfsfunktionen (BOS: Mo=0..So=6)
 const JS_ZU_BOS = [6,0,1,2,3,4,5];
 function heuteBos() { return JS_ZU_BOS[new Date().getDay()]; }
@@ -636,7 +626,7 @@ function zeigeAktiv(bedarfA, bedarfB, chargeA, chargeB, fehlen, prodA, prodB, be
     const needsA = getNeedsEffektiv(tab.a.key, tab.a.prodKey);
     const needsB = getNeedsEffektiv(tab.b.key, tab.b.prodKey);
     const start  = getStartTag();
-    const tage   = parseInt(document.getElementById('slider-tage').value) || 1;
+    const tage   = getTageAnzahl();
     const WT_LANG = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
 
     let rowsHtml = `<tr>
@@ -773,9 +763,16 @@ window.addEventListener('DOMContentLoaded', async function() {
             `📅 Ø-Werte aus DB &nbsp;·&nbsp; ${fmt(s[0].datum)} – ${fmt(s[s.length-1].datum)} &nbsp;·&nbsp; ${db.length} Tage`;
     }
 
+    fuelleVonDropdown();
+    fuelleBisDropdown(0);
+    // Default: Von=heute, Bis=morgen
+    document.getElementById('dd-von').value = 0;
+    fuelleBisDropdown(0);
+    document.getElementById('dd-bis').value = 1;
+
     alleTabellen();
     ladeInventur();
-    sliderUpdate();
+    dropdownUpdate();
 });
 </script>
 </body>

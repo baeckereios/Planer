@@ -159,6 +159,7 @@ function rendereProdukte() {
 
     const gefilter = config.filter(p => {
         if (!p.legacyKey) return false;
+        if (!p.inventurRelevant) return false;
         if (aktiveFilter === 'alle') return true;
         return p.station === aktiveFilter || p.kategorie === aktiveFilter;
     });

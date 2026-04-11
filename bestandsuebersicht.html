@@ -209,6 +209,37 @@
         .stale-btn-primary { background: #fff; color: #b91c1c; }
         .stale-btn-secondary { background: rgba(255,255,255,0.15); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
 
+        /* ── SCHLÜSSEL-IMPORT IM OVERLAY ── */
+        .schluessel-box {
+            width: 100%; max-width: 340px; margin-top: 8px;
+            background: rgba(0,0,0,0.25); border-radius: 14px;
+            padding: 16px; display: none;
+        }
+        .schluessel-box.aktiv { display: block; }
+        .schluessel-label {
+            font-family: 'Barlow Condensed'; font-size: 0.75rem; font-weight: 900;
+            color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .schluessel-input {
+            width: 100%; box-sizing: border-box;
+            background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.3);
+            border-radius: 10px; color: #fff; font-size: 0.75rem; font-family: monospace;
+            padding: 10px; resize: none; min-height: 70px; outline: none;
+        }
+        .schluessel-input::placeholder { color: rgba(255,255,255,0.4); }
+        .schluessel-input:focus { border-color: rgba(255,255,255,0.7); }
+        .schluessel-fehler {
+            font-size: 0.75rem; color: #fca5a5; font-weight: 700;
+            margin-top: 6px; min-height: 18px;
+        }
+        .schluessel-btn {
+            font-family: 'Barlow Condensed'; font-weight: 900; font-size: 1rem;
+            letter-spacing: 1px; text-transform: uppercase;
+            padding: 12px 20px; border-radius: 12px; border: none; cursor: pointer;
+            background: #fff; color: #b91c1c; width: 100%; margin-top: 10px;
+        }
+
         /* ── PRODUKT-GRID ── */
         .product-grid {
             display: flex;
@@ -454,17 +485,26 @@
 
     <!-- STALE OVERLAY -->
     <div class="stale-overlay" id="stale-overlay">
-        <div class="stale-icon">⚠️</div>
-        <div class="stale-titel">Inventur veraltet</div>
+        <div class="stale-icon" id="stale-icon">⚠️</div>
+        <div class="stale-titel" id="stale-titel">Inventur veraltet</div>
         <div class="stale-text" id="stale-overlay-text">
             Die letzte Inventur liegt zu lange zurück.<br>
             Diese Bestände spiegeln nicht den aktuellen Stand wider.<br><br>
             <strong>Bitte nicht als Grundlage für Produktionsentscheidungen verwenden.</strong>
         </div>
         <a href="schnellrechner.html" class="stale-btn stale-btn-primary">→ Zum Schnellrechner</a>
-        <button class="stale-btn stale-btn-secondary" onclick="staleTrotzdemAnzeigen()">
+        <button class="stale-btn stale-btn-secondary" id="stale-btn-trotzdem" onclick="staleTrotzdemAnzeigen()">
             Trotzdem anzeigen (auf eigene Gefahr)
         </button>
+
+        <!-- Schlüssel-Import: nur bei Hardlock (>48h) -->
+        <div class="schluessel-box" id="schluessel-box">
+            <div class="schluessel-label">🗝️ Inventur-Schlüssel eingeben</div>
+            <textarea class="schluessel-input" id="schluessel-input"
+                placeholder="Komplette Nachricht hier einfügen (inkl. ---INVENTURDATEN--- Block)…"></textarea>
+            <div class="schluessel-fehler" id="schluessel-fehler"></div>
+            <button class="schluessel-btn" onclick="importSchluessel()">🔓 Bestände freischalten</button>
+        </div>
     </div>
 
     <div class="product-grid" id="product-grid"></div>
@@ -642,7 +682,29 @@ function setupTimeLogic() {
 
     var invDateObj = new Date(latestInvTsGlobal);
     var diffH = (Date.now() - latestInvTsGlobal) / 3600000;
-    var isStale = diffH > 24;
+    var isWarn     = diffH > 24;
+    var isHardLock = diffH > 48;
+
+    // Gecachten Urlaubsschlüssel automatisch anwenden wenn lokale Inventur veraltet
+    if (isWarn) {
+        try {
+            var _cached = JSON.parse(localStorage.getItem('BOS_URLAUBSSCHLUESSEL_CACHE') || 'null');
+            if (_cached && _cached.exportedAt &&
+                (Date.now() - _cached.exportedAt) <= 24 * 3600000 &&
+                _cached.products && Object.keys(_cached.products).length > 0) {
+                window.BOS_INVENTUR = { products: _cached.products, stocks: _cached.stocks || {} };
+                // Timestamp aus gecachten Daten neu ermitteln
+                var _maxTs = 0;
+                for (var _k in _cached.products) {
+                    if ((_cached.products[_k].ts || 0) > _maxTs) _maxTs = _cached.products[_k].ts;
+                }
+                var _newDiffH = _maxTs > 0 ? (Date.now() - _maxTs) / 3600000 : 9999;
+                isWarn     = _newDiffH > 24;
+                isHardLock = _newDiffH > 48;
+                latestInvTsGlobal = _maxTs;
+            }
+        } catch(e) {}
+    }
 
     // Froster: immer aktuelle Uhrzeit prüfen — unabhängig von Inventur-Timestamp
     var jetzt = new Date();
@@ -660,9 +722,9 @@ function setupTimeLogic() {
     // Inventur Meldung
     var pad = function(n) { return n < 10 ? '0'+n : n; };
     var invStr = pad(invDateObj.getDate()) + '.' + pad(invDateObj.getMonth()+1) + '. ' + pad(invDateObj.getHours()) + ':' + pad(invDateObj.getMinutes()) + ' Uhr';
-    document.getElementById('inventur-label').className = 'meldung-label ' + (isStale ? 'inventur-label-warn' : 'inventur-label-ok');
-    document.getElementById('inventur-label').textContent = isStale ? 'Inventur veraltet' : 'Inventur aktuell';
-    document.getElementById('inventur-sub').textContent = invStr + (isStale ? ' — ' + Math.floor(diffH) + ' Std. alt' : '');
+    document.getElementById('inventur-label').className = 'meldung-label ' + (isWarn ? 'inventur-label-warn' : 'inventur-label-ok');
+    document.getElementById('inventur-label').textContent = isWarn ? 'Inventur veraltet' : 'Inventur aktuell';
+    document.getElementById('inventur-sub').textContent = invStr + (isWarn ? ' — ' + Math.floor(diffH) + ' Std. alt' : '');
 
     // Anker-Datum: von HEUTE aus, Froster bestimmt +1 oder +2
     frosterOffset = isFrosterDone ? 2 : 1;
@@ -670,12 +732,27 @@ function setupTimeLogic() {
     anchorDate.setDate(anchorDate.getDate() + frosterOffset);
 
     // Veraltete Inventur → Overlay zeigen
-    if (isStale) {
+    if (isWarn) {
         var h = Math.floor(diffH);
-        document.getElementById('stale-overlay-text').innerHTML =
-            'Die letzte Inventur liegt <strong>' + h + ' Stunden</strong> zurück.<br>' +
-            'Diese Bestände spiegeln nicht den aktuellen Stand wider.<br><br>' +
-            '<strong>Bitte nicht als Grundlage für Produktionsentscheidungen verwenden.</strong>';
+        if (isHardLock) {
+            document.getElementById('stale-icon').textContent = '🔒';
+            document.getElementById('stale-titel').textContent = 'Bestände gesperrt';
+            document.getElementById('stale-overlay-text').innerHTML =
+                'Die letzte Inventur liegt <strong>' + h + ' Stunden</strong> zurück.<br>' +
+                'Die Bestände sind gesperrt — eine veraltete Grundlage darf nicht verwendet werden.<br><br>' +
+                '<strong>Gib den Inventur-Schlüssel eines Kollegen ein, um die Seite freizuschalten.</strong>';
+            document.getElementById('stale-btn-trotzdem').style.display = 'none';
+            document.getElementById('schluessel-box').classList.add('aktiv');
+        } else {
+            document.getElementById('stale-icon').textContent = '⚠️';
+            document.getElementById('stale-titel').textContent = 'Inventur veraltet';
+            document.getElementById('stale-overlay-text').innerHTML =
+                'Die letzte Inventur liegt <strong>' + h + ' Stunden</strong> zurück.<br>' +
+                'Diese Bestände spiegeln nicht den aktuellen Stand wider.<br><br>' +
+                '<strong>Bitte nicht als Grundlage für Produktionsentscheidungen verwenden.</strong>';
+            document.getElementById('stale-btn-trotzdem').style.display = 'inline-block';
+            document.getElementById('schluessel-box').classList.remove('aktiv');
+        }
         document.getElementById('stale-overlay').classList.add('aktiv');
     }
 
@@ -684,6 +761,52 @@ function setupTimeLogic() {
 
 function staleTrotzdemAnzeigen() {
     document.getElementById('stale-overlay').classList.remove('aktiv');
+}
+
+function importSchluessel() {
+    var fehlerEl = document.getElementById('schluessel-fehler');
+    fehlerEl.textContent = '';
+    var text = document.getElementById('schluessel-input').value.trim();
+    if (!text) { fehlerEl.textContent = '⚠ Bitte den Schlüssel einfügen.'; return; }
+
+    var marker = '---INVENTURDATEN---';
+    var idx = text.indexOf(marker);
+    var b64 = idx !== -1 ? text.substring(idx + marker.length).trim() : text.trim();
+    // Nur erste Zeile nehmen (WhatsApp fügt ggf. Leerzeilen ein)
+    b64 = b64.split('\n')[0].trim();
+
+    var daten;
+    try {
+        daten = JSON.parse(decodeURIComponent(escape(atob(b64))));
+    } catch(e) {
+        fehlerEl.textContent = '⚠ Ungültiger Code — bitte nochmals prüfen.';
+        return;
+    }
+
+    // 24h Gültigkeitsprüfung
+    if (!daten.exportedAt) {
+        fehlerEl.textContent = '⚠ Dieser Schlüssel enthält kein Ablaufdatum und kann nicht verwendet werden.';
+        return;
+    }
+    if ((Date.now() - daten.exportedAt) > 24 * 3600000) {
+        var abgelaufenVorH = Math.floor((Date.now() - daten.exportedAt) / 3600000) - 24;
+        fehlerEl.textContent = '⚠ Schlüssel abgelaufen — war ' + abgelaufenVorH + ' Std. zu lange gültig. Bitte neuen Schlüssel anfordern.';
+        return;
+    }
+    if (!daten.products || Object.keys(daten.products).length === 0) {
+        fehlerEl.textContent = '⚠ Schlüssel enthält keine Bestandsdaten.';
+        return;
+    }
+
+    // Übernehmen und Seite entsperren
+    window.BOS_INVENTUR = { products: daten.products, stocks: daten.stocks || {} };
+    // Schlüssel für spätere Nutzung cachen (gilt so lange er gültig ist)
+    try { localStorage.setItem('BOS_URLAUBSSCHLUESSEL_CACHE', JSON.stringify(daten)); } catch(e) {}
+    document.getElementById('stale-overlay').classList.remove('aktiv');
+    isInitialized = false;
+    latestInvTsGlobal = 0;
+    retryCount = 0;
+    initApp();
 }
 
 function getDateTimeStr() {
@@ -792,11 +915,27 @@ function printBestand() {
     var pad2 = function(n){return n<10?'0'+n:''+n;};
     var zielStr = pad2(ziel.getDate()) + '.' + pad2(ziel.getMonth()+1) + '.';
     var keys = Object.keys(window.BOS_STAMMDATEN);
-    var rows = '';
+    // Produkte nach Station gruppieren
+    var stationGroups = {};
+    var stationOrder = [];
     for (var i = 0; i < keys.length; i++) {
         var k = keys[i];
         var p = window.BOS_STAMMDATEN[k];
         if (!inventurRelevantKeys.has(p.legacyKey)) continue;
+        var st = p.station || 'Sonstige';
+        if (!stationGroups[st]) { stationGroups[st] = []; stationOrder.push(st); }
+        stationGroups[st].push(k);
+    }
+
+    var rows = '';
+    for (var si = 0; si < stationOrder.length; si++) {
+        var station = stationOrder[si];
+        // Stations-Trennzeile
+        rows += '<tr><td colspan="7" style="padding:10px 10px 4px;background:#f0f0f0;font-family:Barlow Condensed,sans-serif;font-weight:900;font-size:9pt;letter-spacing:1.5px;text-transform:uppercase;color:#555;border-top:2px solid #ccc;">' + station + '</td></tr>';
+        var stationKeys = stationGroups[station];
+        for (var i = 0; i < stationKeys.length; i++) {
+        var k = stationKeys[i];
+        var p = window.BOS_STAMMDATEN[k];
         var stock = getStock(k);
         var need = calcNeedUntilDate(k, ziel);
         var luecke2 = (stock === null || need === 0) ? 0 : (need - stock);
@@ -809,6 +948,52 @@ function printBestand() {
         var lueckeTxt = stock === null ? '?' : (luecke > 0 ? '+' + luecke : (luecke === 0 ? '✓' : '✓ +' + Math.abs(luecke)));
         var lueckeColor = stock === null ? '#999' : (luecke <= 0 ? '#1a7a45' : (luecke <= need * 0.3 ? '#8a6000' : '#9a1010'));
         var lueckeVal = stock === null ? 0 : (need - stock);
+
+        // Erster Produktionstag berechnen
+        var prodAbTxt, prodAbColor, prodAbBg, prodAbStyle;
+        var DAY_SHORT_P = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+        var padP = function(n){ return n < 10 ? '0'+n : ''+n; };
+        if (stock === null) {
+            prodAbTxt = '?'; prodAbColor = '#999'; prodAbBg = '#f5f5f5'; prodAbStyle = '';
+        } else {
+            var reachD = calcReachDays(k, stock);
+            var prodDay = new Date(anchorDate);
+            prodDay.setDate(prodDay.getDate() + Math.max(0, reachD - 1));
+            var prodStr = DAY_SHORT_P[prodDay.getDay()] + ', ' + padP(prodDay.getDate()) + '.' + padP(prodDay.getMonth()+1) + '.';
+            if (luecke2 <= 0) {
+                // Gedeckt — jenseits Horizont, ca.-Datum gedimmt
+                prodAbTxt = 'ca. ' + prodStr;
+                prodAbColor = '#999'; prodAbBg = '#f5f5f5'; prodAbStyle = 'font-weight:600;';
+            } else {
+                // Kritisch — klares rotes Datum
+                prodAbTxt = prodStr;
+                prodAbColor = '#9a1010'; prodAbBg = '#fceaea'; prodAbStyle = 'font-weight:900;';
+            }
+        }
+        var dreieckInline = '';
+        if (lueckeVal > 0) {
+            dreieckInline = '<div style="display:flex;flex-direction:column;gap:3px;align-items:flex-start;">';
+            for (var dn = 3; dn >= 2; dn--) {
+                dreieckInline += '<div style="display:flex;align-items:center;gap:3px;">';
+                for (var dj = 0; dj < dn; dj++) {
+                    var dVal = (dj === dn - 1)
+                        ? lueckeVal - Math.ceil(lueckeVal / dn) * (dn - 1)
+                        : Math.ceil(lueckeVal / dn);
+                    dreieckInline += '<span style="display:inline-block;min-width:28px;border:1px solid #bbb;border-radius:3px;padding:2px 5px;font-family:Barlow Condensed,sans-serif;font-weight:900;font-size:8pt;color:#444;background:#f8f8f8;text-align:center;">' + dVal + '</span>';
+                }
+                dreieckInline += '</div>';
+            }
+            dreieckInline += '</div>';
+        }
+
+        var manuelleZellen = '<div style="display:flex;align-items:center;gap:5px;">' +
+            '<div style="width:48px;height:28px;border:1.5px solid #bbb;border-radius:4px;background:#fff;"></div>' +
+            '<span style="font-size:10pt;color:#aaa;font-weight:700;">+</span>' +
+            '<div style="width:48px;height:28px;border:1.5px solid #bbb;border-radius:4px;background:#fff;"></div>' +
+            '<span style="font-size:10pt;color:#aaa;font-weight:700;">+</span>' +
+            '<div style="width:48px;height:28px;border:1.5px solid #bbb;border-radius:4px;background:#fff;"></div>' +
+            '</div>';
+
         var pressenRow = '';
         if (lueckeVal > 0 && p.pressenGroesse) {
             var ch = p.charge || 1;
@@ -819,16 +1004,19 @@ function printBestand() {
             var formel = aufschlag !== 1
                 ? lueckeVal + ' Bl. × ' + ch + ' ÷ ' + p.pressenGroesse + ' × ' + aufschlag
                 : lueckeVal + ' Bl. × ' + ch + ' ÷ ' + p.pressenGroesse;
-            pressenRow = '<tr><td colspan="5" style="font-size:8pt;color:#888;padding:2px 10px 8px 22px;font-family:Barlow Condensed,sans-serif;">→ ' + pressenStr + ' Pressen (' + formel + ')</td></tr>';
+            pressenRow = '<tr><td colspan="7" style="font-size:8pt;color:#888;padding:2px 10px 8px 22px;font-family:Barlow Condensed,sans-serif;">→ ' + pressenStr + ' Pressen (' + formel + ')</td></tr>';
         }
         rows += '<tr>' +
             '<td style="font-family:Barlow Condensed,sans-serif;font-weight:800;font-size:10pt;padding:6px 10px;border-bottom:1px solid #eee;text-transform:uppercase;">' + p.name + '</td>' +
+            '<td style="padding:6px 10px;border-bottom:1px solid #eee;vertical-align:middle;">' + dreieckInline + '</td>' +
+            '<td style="padding:6px 10px;border-bottom:1px solid #eee;vertical-align:middle;">' + manuelleZellen + '</td>' +
             '<td style="font-family:Fraunces,serif;font-size:13pt;font-weight:900;padding:6px 10px;border-bottom:1px solid #eee;text-align:center;">' + stockTxt + '</td>' +
             '<td style="font-size:9pt;padding:6px 10px;border-bottom:1px solid #eee;text-align:center;color:#555;">' + need + '</td>' +
             '<td style="font-family:Fraunces,serif;font-size:11pt;font-weight:900;padding:6px 10px;border-bottom:1px solid #eee;text-align:center;color:' + lueckeColor + ';">' + lueckeTxt + '</td>' +
-            '<td style="font-size:8pt;font-weight:800;padding:6px 10px;border-bottom:1px solid #eee;text-align:center;color:' + color + ';background:' + bg + ';">' + statusTxt + '</td>' +
+            '<td style="font-size:8pt;padding:6px 10px;border-bottom:1px solid #eee;text-align:center;color:' + prodAbColor + ';background:' + prodAbBg + ';' + prodAbStyle + '">' + prodAbTxt + '</td>' +
         '</tr>' + pressenRow;
-    }
+        } // end inner product loop
+    } // end station loop
 
     var jetzt = new Date();
     var isFrosterDone = ((jetzt.getHours() * 60) + jetzt.getMinutes()) >= 90 &&
@@ -866,10 +1054,14 @@ function printBestand() {
         '<div class="bedarf-bis">Bedarf bis: <span>' + zielStr + '</span></div>' +
         '<div class="froster-box">' + getFrosterStr() + '</div>' +
         '<table>' +
-        '<tr><th>Produkt</th><th style="text-align:center;">Bestand</th><th style="text-align:center;">Bedarf</th><th style="text-align:center;">Lücke</th><th style="text-align:center;">Status</th></tr>' +
+        '<tr><th>Produkt</th><th>Verteilung</th><th>Manuelle Verteilung</th><th style="text-align:center;">Bestand</th><th style="text-align:center;">Bedarf</th><th style="text-align:center;">Lücke</th><th style="text-align:center;">Prod. ab</th></tr>' +
         rows +
         '</table>' +
         '<div class="note">Erstellt mit BäckereiOS · ' + getDateTimeStr().split(' – ')[0] + '.</div>' +
+        '<div style="margin-top:20px;padding-top:16px;border-top:1px solid #ddd;text-align:center;font-family:Fraunces,serif;font-style:italic;font-size:11pt;color:#555;line-height:1.6;">' +
+            'Alle Angaben basieren auf Durchschnittswerten.<br>' +
+            '<span style="font-weight:900;color:#222;">Der gesunde Menschenverstand hat immer Vorfahrt.</span>' +
+        '</div>' +
         '\n</body></html>';
 
     var w = window.open('', '_blank');
@@ -1105,9 +1297,7 @@ function buildCard(k, name, stock, need, colorClass, statusText, reachDays, pfli
         var isEmpty = !isFilled && !isClosed;
         var cls = isClosed
             ? 'lb-cell lb-zu'
-            : (isFilled
-                ? 'lb-cell lb-filled-' + colorClass
-                : (colorClass === 'red' && isEmpty ? 'lb-cell lb-empty-red' : 'lb-cell'));
+            : 'lb-cell lb-filled-' + colorClass;
         pflichtBar += '<div class="' + cls + '">' + (isClosed ? '🔒' : '') + '</div>';
         var lCls = 'lb-label-cell' + (i === pflichtCells - 1 ? ' lb-label-mon' : '');
         pflichtLabels += '<div class="' + lCls + '">' + DAY_LABELS[d.getDay()] + '</div>';

@@ -18,28 +18,30 @@
         'inventur_dateneingabe.html':{ title: 'Inventur',           mode: 'full', tab: 'mehr'       },
         'produktion_melden.html':   { title: 'Produktion melden',  mode: 'full', tab: 'mehr'       },
         'verbrauchsuebersicht.html': { title: 'Mengenangaben',      mode: 'full', tab: 'mehr'       },
-        'lager_inventur.html':       { title: 'BÄKO Lager',         mode: 'full', tab: 'mehr'       },
-        'lager_auswertung.html':     { title: 'Lager-Auswertung',   mode: 'full', tab: 'mehr'       },
-        'baeko_lager_analyse_klon.html': { title: 'Lager-Analyse',    mode: 'full', tab: 'mehr'       },
         'schablone.html':            { title: 'Verbrauchsschablone', mode: 'full', tab: 'mehr'      },
         'wetter_analyse.html':       { title: 'Wetterrückblick',    mode: 'full', tab: 'mehr'       },
         'wetter_planung.html':       { title: 'Wettervorschau',     mode: 'full', tab: 'mehr'       },
         'verlauf.html':              { title: 'Produktverlauf',     mode: 'full', tab: 'mehr'       },
         'durchschnittsrechner.html': { title: 'Durchschnittsrechner', mode: 'full', tab: 'mehr'     },
         '14_tage_logbuch.html':      { title: '14-Tage Logbuch',    mode: 'full', tab: 'mehr'       },
-        'blechrechner.html':         { title: 'BlechRechner',       mode: 'full', tab: 'mehr'       },
         'brot_historie.html':        { title: 'Backmengen-Historie', mode: 'full', tab: 'mehr'       },
         'hilfe.html':                { title: 'Hilfe',              mode: 'full', tab: 'mehr'       },
         'changelog.html':            { title: 'Changelog',          mode: 'full', tab: 'mehr'       },
         'brot_rechner.html':         { title: 'BrotRechner',        mode: 'full', tab: 'mehr'       },
         'sauerteig_rechner.html':    { title: 'Sauerteig & Vortag', mode: 'full', tab: 'mehr'       },
+        'lieferanten_inventur.html': { title: 'BÄKO Inventur',      mode: 'full', tab: 'mehr'       },
+        'lieferanten_auswertung.html':{ title: 'Lieferanten',        mode: 'full', tab: 'mehr'       },
+        'lieferanten_config_editor.html':{ title: 'Lieferanten-Config', mode: 'full', tab: 'mehr'   },
+        'druckzentrale.html':        { title: 'Druckzentrale',      mode: 'full', tab: 'mehr'       },
+        'schlawiner_rechner.html':   { title: 'Schlawiner\nRechner', mode: 'full', tab: 'mehr'      },
+        'archiv.html':               { title: 'Archiv',             mode: 'full', tab: 'mehr'       },
     };
 
     const filename = window.location.pathname.split('/').pop() || 'index.html';
     const config   = PAGE_CONFIG[filename] || { title: '', mode: 'full', tab: 'mehr' };
 
     // NEU: Die intelligente Ordner-Erkennung
-    const isSubfolder = window.location.href.includes('/baeko_bestellung/') || window.location.href.includes('/news_rohstoffe/') || window.location.href.includes('/azubi_meisterhaft/') || window.location.href.includes('/games/') || window.location.href.includes('/nachtschicht/') || window.location.href.includes('/durchschnittsverbauch/') || window.location.href.includes('/organisation/');
+    const isSubfolder = window.location.href.includes('/baeko_bestellung/') || window.location.href.includes('/news_rohstoffe/') || window.location.href.includes('/azubi_meisterhaft/') || window.location.href.includes('/games/') || window.location.href.includes('/nachtschicht/') || window.location.href.includes('/durchschnittsverbauch/') || window.location.href.includes('/organisation/') || window.location.href.includes('/druckzentrale/') || window.location.href.includes('/schlawiner_rechner/') || window.location.href.includes('/archiv/');
     const base = isSubfolder ? '../' : '';
 
     const isMinimal = config.mode === 'minimal';

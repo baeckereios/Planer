@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BäckereiOS — Lieferanten-Inventur</title>
+<link rel="stylesheet" href="systemdesign.css">
+<script src="shell.js" defer></script>
+<style>
+  body { background: var(--background, #f8f6f2); color: var(--text-primary, #1a1a1a); padding-bottom: 100px; }
+  .container { max-width: 680px; margin: 0 auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+  /* Tab Navigation */
+  .tab-wrap { display: flex; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e5e0d8); border-radius: 12px; padding: 4px; margin-bottom: 6px; gap: 4px; }
+  .tab-btn { flex: 1; padding: 12px; text-align: center; font-size: 0.85rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  
+  /* Spezifische Tab-Farben im aktiven Zustand */
+  .tab-btn.active.tab-inv { background: #1e293b; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .tab-btn.active.tab-lief { background: #059669; color: #fff; box-shadow: 0 2px 8px rgba(5,150,105,0.2); }
+  .tab-btn.inactive { background: transparent; color: var(--text-secondary, #6b7280); }
+
+  /* Arbeitsbereiche (Rahmen & Hintergrund) */
+  #view-inventur {
+    background: rgba(59, 130, 246, 0.04); /* Dezent Blau */
+    border: 2px solid #bfdbfe;
+    border-radius: 14px;
+    padding: 12px;
+  }
+  #view-lieferung {
+    background: rgba(16, 185, 129, 0.04); /* Dezent Grün */
+    border: 2px solid #a7f3d0;
+    border-radius: 14px;
+    padding: 12px;
+  }
+
+  /* Poka Yoke Box */
+  .poka-yoke-box { background: #eff6ff; border: 2px solid #3b82f6; border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+  .py-title { font-weight: 800; font-size: 0.85rem; text-align: center; color: #1e40af; margin-bottom: 12px; line-height: 1.4; }
+  .py-btn-row { display: flex; gap: 8px; }
+  .py-btn { flex: 1; padding: 12px 6px; border-radius: 10px; font-size: 0.78rem; font-weight: 800; border: 2px solid transparent; cursor: pointer; font-family: inherit; transition: all 0.2s; text-align: center; }
+  .py-yes { background: #fff; color: #1e40af; border-color: #bfdbfe; }
+  .py-yes.selected { background: #1e40af; color: #fff; border-color: #1e40af; }
+  .py-no { background: #fff; color: #991b1b; border-color: #fecaca; }
+  .py-no.selected { background: #991b1b; color: #fff; border-color: #991b1b; }
+
+  /* Fortschritt & Buttons */
+  .fortschritt-wrap { background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e5e0d8); border-radius: 12px; padding: 12px 14px; }
+  .fortschritt-label { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary, #6b7280); }
+  .fortschritt-label span:last-child { color: var(--text-primary, #1a1a1a); }
+  .fortschritt-bar { height: 6px; background: var(--border-color, #e5e0d8); border-radius: 3px; overflow: hidden; }
+  .fortschritt-fill { height: 100%; border-radius: 3px; background: #10b981; transition: width 0.3s ease; }
+
+  .action-row { display: flex; gap: 8px; }
+  .btn-secondary { flex: 1; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e5e0d8); color: var(--text-primary, #1a1a1a); font-size: 0.82rem; padding: 11px 10px; border-radius: 10px; font-weight: 600; margin: 0; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 2px; cursor: pointer; font-family: inherit; text-align: center; }
+  .btn-danger { background: #fef2f2; color: #ef4444; border: 1px solid #fecdd3; font-size: 0.82rem; padding: 11px 14px; border-radius: 10px; font-weight: 700; margin: 0; cursor: pointer; font-family: inherit; }
+
+  /* Sektions-Überschriften */
+  .lagertyp-header { display: flex; align-items: center; gap: 8px; padding: 6px 2px; margin-top: 6px; border-bottom: 2px solid var(--border-color, #e5e0d8); margin-bottom: 6px; }
+  .lagertyp-badge { font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+  .badge-tk        { background: #dbeafe; color: #1d4ed8; }
+  .badge-kuehl     { background: #dcfce7; color: #15803d; }
+  .badge-trocken   { background: #fef9c3; color: #854d0e; }
+  .badge-sonstiges { background: #f3e8ff; color: #6b21a8; }
+  .lagertyp-count { font-size: 0.72rem; color: var(--text-secondary, #6b7280); }
+
+  /* Schlankes Listen-Design */
+  .list-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e5e0d8); border-radius: 10px; margin-bottom: 6px; transition: all 0.2s; gap: 10px; }
+  
+  /* Farbliche Zuordnung pro Zeile (Bleibt immer erhalten!) */
+  .list-row.typ-tk       { border-left: 4px solid #3b82f6; }
+  .list-row.typ-kuehl    { border-left: 4px solid #22c55e; }
+  .list-row.typ-trocken  { border-left: 4px solid #f59e0b; }
+  .list-row.typ-sonstiges{ border-left: 4px solid #a855f7; }
+  
+  /* Gezählt-Status (Für beide Tabs anwendbar, falls benötigt) */
+  .list-row.counted { border-color: #10b981; background: #f0fdf4; border-left-color: #10b981; }
+
+  .row-info { flex: 1; min-width: 0; }
+  .row-title { font-size: 0.9rem; font-weight: 800; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row-sub { font-size: 0.7rem; color: var(--text-secondary, #6b7280); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row-ts { font-size: 0.65rem; color: #059669; font-weight: 700; margin-top: 2px; display: none; }
+  .badge-liefertag { font-size: 0.6rem; background: #3b82f6; color: white; padding: 2px 6px; border-radius: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
+
+  .row-inp-wrap { display: flex; flex-direction: column; align-items: flex-end; width: 80px; flex-shrink: 0; }
+  .row-inp { width: 100%; text-align: center; padding: 10px 4px; border: 2px solid var(--border-color, #e5e0d8); font-weight: 900; font-size: 1.15rem; border-radius: 8px; background: var(--card-bg, #fff); color: var(--text-primary, #1a1a1a); font-family: inherit; transition: all 0.15s; box-sizing: border-box; }
+  .row-inp:focus { border-color: #e67e22; outline: none; background: #fffbf5; }
+  #view-inventur .list-row.counted .row-inp { border-color: #10b981; }
+
+  /* Haupt-Buttons */
+  .btn-generate { width: 100%; background: #10b981; color: #fff; font-size: 1rem; padding: 16px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; font-family: inherit; box-shadow: 0 4px 12px rgba(16,185,129,0.25); transition: all 0.2s; margin-top: 4px; }
+  .btn-generate:disabled { background: #cbd5e1; box-shadow: none; cursor: default; }
+  .btn-generate.done { background: #059669; }
+
+  .btn-whatsapp { width: 100%; background: #25d366; color: #fff; font-size: 1rem; padding: 14px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; font-family: inherit; box-shadow: 0 4px 12px rgba(37,211,102,0.25); transition: all 0.2s; }
+  .btn-whatsapp:disabled { background: #cbd5e1; box-shadow: none; cursor: default; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1 style="margin:0 0 4px; font-size:1.4rem; font-weight:900;">📦 Inventur & Wareneingang</h1>
+
+  <div class="tab-wrap">
+    <div class="tab-btn active tab-inv" id="tab-inventur" onclick="switchTab('inventur')">📋 Inventur Zählung</div>
+    <div class="tab-btn inactive tab-lief" id="tab-lieferung" onclick="switchTab('lieferung')">🚚 Lieferung</div>
+  </div>
+
+  <div id="view-inventur">
+    <div class="fortschritt-wrap" style="margin-bottom: 10px;">
+      <div class="fortschritt-label"><span>Gezählt</span><span id="fortschritt-label">0 von 0</span></div>
+      <div class="fortschritt-bar"><div class="fortschritt-fill" id="fortschritt-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="action-row" style="margin-bottom: 10px;">
+      <label class="btn-secondary" style="cursor:pointer;">
+        <span>📂 Vorherige Inventur laden</span>
+        <span style="font-size:0.68rem;color:var(--text-secondary,#6b7280);font-weight:500;">lieferanten_bestand_db.json</span>
+        <input type="file" accept=".json" style="display:none;" onchange="importBestand(this)">
+      </label>
+      <button class="btn-danger" onclick="resetAll()">🔄</button>
+    </div>
+
+    <div id="poka-yoke-box" class="poka-yoke-box" style="display:none;">
+      <div class="py-title">Ist die heutige Lieferung im gezählten Bestand komplett enthalten?</div>
+      <div class="py-btn-row">
+        <button id="py-yes" class="py-btn py-yes" onclick="setPokaYoke(true)">📦 JA, ALLES ZUSAMMEN</button>
+        <button id="py-no" class="py-btn py-no" onclick="setPokaYoke(false)">❌ NEIN, NUR ALTBESTAND</button>
+      </div>
+    </div>
+
+    <div id="main-list" style="display:flex; flex-direction:column;"></div>
+  </div>
+
+  <div id="view-lieferung" style="display:none;">
+    <div style="font-size:0.75rem;color:var(--text-secondary,#6b7280);margin-bottom:12px;line-height:1.5;padding:10px;background:var(--card-bg,#fff);border:1px solid var(--border-color,#e5e0d8);border-radius:10px;">
+      <strong>Lieferschein abtippen:</strong> Trage hier die frischen Liefermengen von heute ein. Diese Daten fließen beim Speichern automatisch in die korrekte Verbrauchsrechnung ein.
+    </div>
+    <div id="eingang-list" style="display:flex;flex-direction:column;"></div>
+  </div>
+
+  <div style="margin-top: 8px;">
+    <button id="btnGenerate" class="btn-generate" onclick="speichernAlles()" disabled>⬇️ Bestand speichern</button>
+    <button id="btnWA" class="btn-whatsapp" onclick="exportWhatsApp()" disabled style="margin-top: 8px;">📤 Als WhatsApp-Nachricht teilen</button>
+  </div>
+
+</div>
+
+<script>
+var config = [];
+var workingData = {};
+var eingangDaten = {}; 
+var lieferantenDb = [];
+var bestandDb = [];
+var isDeliveryDay = false;
+var pokaYokeState = null;
+
+var LAGERTYP_LABEL = { tk:'Tiefkühl', kuehl:'Kühl', trocken:'Trocken', sonstiges:'Sonstiges' };
+var LAGERTYP_ORDER = ['tk','kuehl','trocken','sonstiges'];
+var LAGERTYP_EMOJI = { tk:'🧊', kuehl:'❄️', trocken:'🌾', sonstiges:'📦' };
+
+window.onload = async function() {
+  var pfadeConfig = ['../lieferanten_config.json','lieferanten_config.json'];
+  for (var i = 0; i < pfadeConfig.length; i++) {
+    try { var r = await fetch(pfadeConfig[i], {cache:'no-store'}); if (r.ok) { var d = await r.json(); config = Array.isArray(d) ? d : (d.produkte || []); break; } } catch(e) {}
+  }
+  
+  var pfadeDb = ['../lieferanten_db.json','lieferanten_db.json'];
+  for (var i = 0; i < pfadeDb.length; i++) {
+    try { var r=await fetch(pfadeDb[i],{cache:'no-store'}); if(r.ok){lieferantenDb=await r.json();break;} } catch(e){}
+  }
+
+  var pfadeBestand = ['../lieferanten_bestand_db.json','lieferanten_bestand_db.json'];
+  for (var i = 0; i < pfadeBestand.length; i++) {
+    try { var r=await fetch(pfadeBestand[i],{cache:'no-store'}); if(r.ok){bestandDb=await r.json();break;} } catch(e){}
+  }
+
+  if (!config.length) {
+    document.getElementById('main-list').innerHTML = '<div style="text-align:center;padding:30px;color:#ef4444;font-weight:700;">⚠️ lieferanten_config.json nicht gefunden</div>';
+    return;
+  }
+  
+  checkDeliveryDay();
+  prepareData(); 
+  renderInventur();
+  renderEingang();
+};
+
+function switchTab(tab) {
+  var tabInv = document.getElementById('tab-inventur');
+  var tabLief = document.getElementById('tab-lieferung');
+  
+  if (tab === 'inventur') {
+    tabInv.className = 'tab-btn active tab-inv';
+    tabLief.className = 'tab-btn inactive tab-lief';
+    document.getElementById('view-inventur').style.display = 'block';
+    document.getElementById('view-lieferung').style.display = 'none';
+  } else {
+    tabInv.className = 'tab-btn inactive tab-inv';
+    tabLief.className = 'tab-btn active tab-lief';
+    document.getElementById('view-inventur').style.display = 'none';
+    document.getElementById('view-lieferung').style.display = 'block';
+  }
+}
+
+function checkDeliveryDay() {
+  var heute = (new Date().getDay() + 6) % 7; 
+  config.forEach(function(p) {
+    if ((p.liefertage||[]).includes(heute)) isDeliveryDay = true;
+  });
+  
+  var tabInv = document.getElementById('tab-inventur');
+  var tabLief = document.getElementById('tab-lieferung');
+
+  if (isDeliveryDay) {
+    document.getElementById('poka-yoke-box').style.display = 'block';
+    tabInv.style.flex = "1";
+    tabLief.style.flex = "1";
+    tabLief.innerHTML = "🚚 Lieferung";
+  } else {
+    tabInv.style.flex = "3";
+    tabLief.style.flex = "1";
+    tabLief.innerHTML = "🚚"; 
+    tabLief.title = "Außerplanmäßige Lieferung erfassen";
+  }
+}
+
+function setPokaYoke(state) {
+  pokaYokeState = state;
+  document.getElementById('py-yes').className = state === true ? 'py-btn py-yes selected' : 'py-btn py-yes';
+  document.getElementById('py-no').className = state === false ? 'py-btn py-no selected' : 'py-btn py-no';
+  aktiviereButtons();
+}
+
+function prepareData() {
+  config.forEach(function(p) {
+    workingData[p.id] = {
+      id: p.id, name: p.name, lagertyp: p.lagertyp || 'sonstiges',
+      lieferant: p.lieferant || '', gebinde: p.gebinde || {}, 
+      soll_einheit: p.soll_einheit || '',
+      menge: 0, ts: 0, counted: false
+    };
+  });
+}
+
+function renderInventur() {
+  var container = document.getElementById('main-list');
+  container.innerHTML = '';
+  
+  LAGERTYP_ORDER.forEach(function(typ) {
+    var gruppe = config.filter(function(p){ return (p.lagertyp||'sonstiges') === typ; });
+    if (!gruppe.length) return;
+    
+    var h = document.createElement('div');
+    h.className = 'lagertyp-header';
+    h.innerHTML = '<span class="lagertyp-badge badge-' + typ + '">' + (LAGERTYP_LABEL[typ]||typ) + '</span>'
+      + '<span class="lagertyp-count">' + gruppe.length + ' Produkt' + (gruppe.length!==1?'e':'') + '</span>';
+    container.appendChild(h);
+    
+    gruppe.forEach(function(p){ 
+      container.appendChild(buildListRow(p, 'inventur')); 
+    });
+  });
+  updateFortschritt();
+}
+
+function renderEingang() {
+  var container = document.getElementById('eingang-list');
+  container.innerHTML = '';
+  var heute = (new Date().getDay() + 6) % 7;
+  var irgendwas = false;
+
+  LAGERTYP_ORDER.forEach(function(typ) {
+    var gruppe = config.filter(function(p){
+      return (p.lagertyp||'sonstiges') === typ && (p.liefertage||[]).includes(heute);
+    });
+    if (!gruppe.length) return;
+    irgendwas = true;
+
+    var h = document.createElement('div');
+    h.className = 'lagertyp-header';
+    h.innerHTML = '<span class="lagertyp-badge badge-' + typ + '">' + (LAGERTYP_LABEL[typ]||typ) + '</span>'
+      + '<span class="lagertyp-count">' + gruppe.length + ' Produkt' + (gruppe.length!==1?'e':'') + ' heute</span>';
+    container.appendChild(h);
+
+    gruppe.forEach(function(p){
+      container.appendChild(buildListRow(p, 'lieferung'));
+    });
+  });
+
+  if (!irgendwas) {
+    var hint = document.createElement('div');
+    hint.style.cssText = 'text-align:center;padding:24px 16px;font-size:0.82rem;color:var(--text-secondary,#6b7280);font-style:italic;';
+    hint.textContent = 'Heute sind laut Config keine Liefertage hinterlegt.';
+    container.appendChild(hint);
+  }
+}
+
+function buildListRow(p, mode) {
+  var heute = (new Date().getDay() + 6) % 7;
+  var istLiefertag = (p.liefertage||[]).includes(heute);
+  var lagertypClass = p.lagertyp || 'sonstiges';
+  
+  var row = document.createElement('div');
+  
+  var gebindeTeil = '';
+  if (p.gebinde && p.gebinde.form) {
+    gebindeTeil = cap(p.gebinde.form);
+    if (p.gebinde.inhalt_stueck && p.gebinde.inhalt_einheit) {
+      gebindeTeil += ' \u00e0 ' + p.gebinde.inhalt_stueck + '\u202f' + p.gebinde.inhalt_einheit;
+    }
+  }
+  var subParts = [];
+  if (p.lieferant) subParts.push(p.lieferant);
+  if (gebindeTeil) subParts.push(gebindeTeil);
+
+  if (mode === 'inventur') {
+    var d = workingData[p.id];
+    row.className = 'list-row typ-' + lagertypClass + (d.counted ? ' counted' : '');
+    row.id = 'row_' + p.id;
+    
+    var tsStr = d.ts ? '✓ ' + new Date(d.ts).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) + ' Uhr' : '';
+    var placeholder = d.soll_einheit ? cap(d.soll_einheit) : '–';
+    
+    row.innerHTML = 
+      '<div class="row-info">'
+        + '<div class="row-title">' + esc(p.name) + '</div>'
+        + (subParts.length ? '<div class="row-sub">' + esc(subParts.join(' · ')) + '</div>' : '')
+        + '<div class="row-ts" id="ts_' + p.id + '" style="' + (d.counted ? 'display:block;' : 'display:none;') + '">' + tsStr + '</div>'
+      + '</div>'
+      + '<div class="row-inp-wrap">'
+        + '<input type="number" inputmode="numeric" min="0" placeholder="' + placeholder + '" class="row-inp" id="inp_' + p.id + '"'
+        + ' value="' + (d.counted ? d.menge : '') + '"'
+        + ' data-id="' + p.id + '" oninput="updateMengeDOM(this.dataset.id, this.value)">'
+      + '</div>';
+  } 
+  else if (mode === 'lieferung') {
+    row.className = 'list-row typ-' + lagertypClass;
+    var aktuellesMenge = eingangDaten[p.id] !== undefined ? eingangDaten[p.id] : '';
+    
+    row.innerHTML = 
+      '<div class="row-info">'
+        + '<div class="row-title">' + esc(p.name) + (istLiefertag ? '<span class="badge-liefertag">Liefertag</span>' : '') + '</div>'
+        + (subParts.length ? '<div class="row-sub">' + esc(subParts.join(' · ')) + '</div>' : '')
+      + '</div>'
+      + '<div class="row-inp-wrap">'
+        + '<input type="number" inputmode="numeric" min="0" placeholder="–" class="row-inp"'
+        + ' value="' + aktuellesMenge + '"'
+        + ' data-id="' + p.id + '" oninput="eingangDaten[this.dataset.id]=this.value!==\'\'?parseInt(this.value)||0:undefined">'
+      + '</div>';
+  }
+  
+  return row;
+}
+
+// Direkte DOM-Manipulation für butterweiches Tippen
+function updateMengeDOM(id, val) {
+  var d = workingData[id];
+  var row = document.getElementById('row_' + id);
+  var tsEl = document.getElementById('ts_' + id);
+
+  if (val === '') {
+    d.counted = false;
+    d.menge = 0;
+    d.ts = 0;
+    row.classList.remove('counted');
+    if (tsEl) tsEl.style.display = 'none';
+  } else {
+    d.counted = true;
+    d.menge = parseInt(val) || 0;
+    if (d.ts === 0) d.ts = Date.now(); 
+    row.classList.add('counted');
+    if (tsEl) {
+      tsEl.textContent = '✓ ' + new Date(d.ts).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) + ' Uhr';
+      tsEl.style.display = 'block';
+    }
+  }
+  aktiviereButtons();
+  updateFortschritt();
+}
+
+function aktiviereButtons() {
+  var hat = Object.keys(workingData).some(function(id){return workingData[id].counted;});
+  var btn = document.getElementById('btnGenerate');
+
+  if (isDeliveryDay) {
+    if (hat && pokaYokeState !== null) {
+      btn.disabled = false;
+      btn.textContent = '⬇️ Alles speichern (Inventur + Lieferung)';
+    } else {
+      btn.disabled = true;
+      btn.textContent = hat ? '⚠️ Bitte Poka-Yoke Frage beantworten' : '⬇️ Bestand speichern';
+    }
+  } else {
+    btn.disabled = !hat;
+    btn.textContent = '⬇️ Bestand speichern';
+  }
+  
+  document.getElementById('btnWA').disabled = !hat;
+}
+
+function resetAll() {
+  if(!confirm('Alle Zählungen zurücksetzen?')) return;
+  Object.keys(workingData).forEach(function(id){ workingData[id].menge=0; workingData[id].ts=0; workingData[id].counted=false; });
+  eingangDaten = {};
+  pokaYokeState = null;
+  setPokaYoke(null);
+  renderEingang();
+  renderInventur();
+  aktiviereButtons();
+}
+
+function updateFortschritt() {
+  var g=config.length, z=config.filter(function(p){return workingData[p.id]&&workingData[p.id].counted;}).length;
+  document.getElementById('fortschritt-label').textContent=z+' von '+g;
+  document.getElementById('fortschritt-fill').style.width=(g>0?Math.round(z/g*100):0)+'%';
+}
+
+function speichernAlles() {
+  var jetzt = new Date();
+  var datum = jetzt.getFullYear() + '-' + String(jetzt.getMonth()+1).padStart(2,'0') + '-' + String(jetzt.getDate()).padStart(2,'0');
+  var wochentage = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+  
+  // 1. EINGANG SPEICHERN 
+  var eEintraege = {};
+  Object.keys(eingangDaten).forEach(function(id) {
+    if (eingangDaten[id] !== undefined) eEintraege[id] = { menge: eingangDaten[id] };
+  });
+  
+  if (Object.keys(eEintraege).length > 0) {
+    var eEintrag = { datum: datum, wochentag: wochentage[jetzt.getDay()], typ: 'eingang', eintraege: eEintraege };
+    var idx = lieferantenDb.findIndex(function(e){ return e.datum===datum && e.typ==='eingang'; });
+    if (idx !== -1) lieferantenDb[idx] = eEintrag;
+    else { lieferantenDb.push(eEintrag); lieferantenDb.sort(function(a,b){return a.datum.localeCompare(b.datum);}); }
+    
+    var blobE = new Blob([JSON.stringify(lieferantenDb,null,2)],{type:'application/json'});
+    var aE = document.createElement('a'); aE.href = URL.createObjectURL(blobE); aE.download = 'lieferanten_db.json';
+    document.body.appendChild(aE); aE.click(); document.body.removeChild(aE); URL.revokeObjectURL(aE.href);
+  }
+
+  // 2. BESTAND SPEICHERN
+  var bBestaende = {};
+  Object.keys(workingData).forEach(function(id){ 
+    var d = workingData[id]; 
+    if(!d.counted) return; 
+    
+    var finalMenge = d.menge;
+    if (isDeliveryDay && pokaYokeState === true) {
+       var eing = eingangDaten[id] || 0;
+       finalMenge = Math.max(0, d.menge - eing);
+    }
+    
+    bBestaende[id] = {menge: finalMenge, einheit: d.soll_einheit, ts: d.ts}; 
+  });
+  
+  var bEintrag = { datum: datum, wochentag: wochentage[jetzt.getDay()], typ: 'bestand', timestamp: Date.now(), bestaende: bBestaende };
+  var idxB = bestandDb.findIndex(function(e){ return e.datum===datum; });
+  if (idxB !== -1) bestandDb[idxB] = bEintrag;
+  else { bestandDb.push(bEintrag); bestandDb.sort(function(a,b){return a.datum.localeCompare(b.datum);}); }
+
+  var blobB = new Blob([JSON.stringify(bestandDb,null,2)],{type:'application/json'});
+  var aB = document.createElement('a'); aB.href = URL.createObjectURL(blobB); aB.download = 'lieferanten_bestand_db.json';
+  document.body.appendChild(aB); aB.click(); document.body.removeChild(aB); URL.revokeObjectURL(aB.href);
+
+  // 3. UI UPDATE
+  var btn = document.getElementById('btnGenerate');
+  var now = new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  btn.textContent = '✓ Gespeichert um ' + now; btn.classList.add('done');
+  setTimeout(function(){ aktiviereButtons(); btn.classList.remove('done'); }, 4000);
+}
+
+function exportWhatsApp() {
+  var jetzt=new Date();
+  var ds=jetzt.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
+  var zs=jetzt.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  var zeilen=['📦 *Lieferanten-Inventur*', ds+' · '+zs+' Uhr',''];
+
+  LAGERTYP_ORDER.forEach(function(typ){
+    var gruppe=config.filter(function(p){ return (p.lagertyp||'sonstiges')===typ && workingData[p.id]&&workingData[p.id].counted; });
+    if(!gruppe.length) return;
+    zeilen.push((LAGERTYP_EMOJI[typ]||'')+ ' *'+(LAGERTYP_LABEL[typ]||typ).toUpperCase()+'*');
+    
+    gruppe.forEach(function(p){
+      var d=workingData[p.id];
+      var einheit=cap(d.soll_einheit||'');
+      zeilen.push('• '+d.name+': '+d.menge+' '+einheit);
+    });
+    zeilen.push('');
+  });
+
+  var b={}; Object.keys(workingData).forEach(function(id){ var d=workingData[id]; if(!d.counted) return; b[id]={menge:d.menge,einheit:d.soll_einheit,ts:d.ts}; });
+  var backupObj = {timestamp:Date.now(), bestaende:b};
+  var b64=btoa(unescape(encodeURIComponent(JSON.stringify(backupObj))));
+  zeilen.push('---LIEFERANTEN-BESTAND---'); zeilen.push(b64);
+
+  var msg=zeilen.join('\n');
+  if(navigator.share){ navigator.share({text:msg}).catch(function(){}); }
+  else {
+    navigator.clipboard.writeText(msg).then(function(){
+      var btn=document.getElementById('btnWA');
+      btn.textContent='✓ Kopiert'; setTimeout(function(){btn.textContent='📤 Als WhatsApp-Nachricht teilen';},3000);
+    }).catch(function(){ alert(msg); });
+  }
+}
+
+function importBestand(input) {
+  var file=input.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var daten=JSON.parse(e.target.result);
+      var snapshot = Array.isArray(daten) ? (daten.length ? daten[daten.length-1] : null) : daten;
+      if (!snapshot || !snapshot.bestaende) { alert('Kein gültiger Bestand-Eintrag gefunden.'); return; }
+      var count=0;
+      Object.keys(snapshot.bestaende).forEach(function(id){
+        if(!workingData[id]) return;
+        var b=snapshot.bestaende[id]; workingData[id].menge=b.menge||0; workingData[id].ts=b.ts||0; workingData[id].counted=true; count++;
+      });
+      renderInventur(); 
+      aktiviereButtons();
+      alert(count+' Bestände aus Eintrag '+( snapshot.datum||'unbekannt')+' geladen.');
+    }catch(err){alert('Fehler: '+err.message);}
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):'';}
+</script>
+</body>
+</html>

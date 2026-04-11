@@ -90,7 +90,7 @@
         <h1 style="margin:0;font-size:1.5rem;font-weight:800;">📊 Daten-Zentrale</h1>
         <a href="admin_landing.html" style="text-decoration:none;color:var(--text-muted);font-size:0.8rem;font-weight:bold;padding:5px 10px;border-radius:6px;background:#fff;border:1px solid var(--border-color);">Zurück</a>
     </div>
-    <p style="color:var(--text-muted);font-size:0.82rem;margin:0 0 12px 0;">① DB laden → ② Kontext → ③–⑥ Zettel → ⑦ Ausreißer prüfen → ⑧ Speichern</p>
+    <p style="color:var(--text-muted);font-size:0.82rem;margin:0 0 12px 0;">① DB laden → ② Kontext → ③–⑦ Zettel → Ausreißer prüfen → ⑧ Speichern</p>
 
     <div class="progress-bar">
         <div class="progress-step" id="prog-db"></div>
@@ -99,21 +99,41 @@
         <div class="progress-step" id="prog-schlawiner"></div>
         <div class="progress-step" id="prog-brot"></div>
         <div class="progress-step" id="prog-konditorei"></div>
+        <div class="progress-step" id="prog-tk"></div>
     </div>
-    <small style="text-align:center;display:block;margin-bottom:15px;">DB · Kontext · Brötchen · Schlawiner · Brot · Konditorei</small>
+    <small style="text-align:center;display:block;margin-bottom:15px;">DB · Kontext · Brötchen · Schlawiner · Brot · Konditorei · TK-Produkte</small>
 
     <!-- ① DB LADEN — ZUERST -->
     <div class="card">
         <h2>① Datenbank laden <span style="font-size:0.75rem;font-weight:600;color:var(--alert-color);">— zuerst!</span></h2>
         <small>Die Datenbank wird für die Ausreißer-Kontrolle benötigt. Zuerst laden, dann Zettel eingeben.</small>
-        <label style="font-size:0.78rem;font-weight:700;color:#374151;display:block;margin:8px 0 4px;">backmengen_db.json hochladen:</label>
-        <input type="file" id="fileInput" accept=".json">
-        <button onclick="loadLS()" style="background:var(--text-muted);margin-top:6px;width:100%;padding:9px;border-radius:6px;border:none;color:white;font-weight:700;cursor:pointer;font-size:0.85rem;">Aus Browser-Zwischenspeicher laden</button>
-        <div class="hint" id="hint-db" style="margin-top:6px;"></div>
-        <div style="margin-top:12px;padding-top:10px;border-top:1px solid #e2e8f0;">
+
+        <!-- backmengen_db.json -->
+        <div style="margin-top:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;">
+            <div style="font-size:0.78rem;font-weight:700;color:#374151;margin-bottom:6px;">📊 backmengen_db.json</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <label style="flex:1;min-width:130px;background:var(--btn-primary,#c07a10);color:white;border-radius:6px;padding:8px 10px;font-size:0.8rem;font-weight:700;cursor:pointer;text-align:center;">
+                    📂 Datei wählen<input type="file" id="fileInput" accept=".json" style="display:none;">
+                </label>
+                <button onclick="loadLS()" style="flex:1;min-width:130px;background:#64748b;color:white;border:none;border-radius:6px;padding:8px 10px;font-weight:700;cursor:pointer;font-size:0.8rem;">💾 Zwischenspeicher</button>
+            </div>
+            <div class="hint" id="hint-db" style="margin-top:6px;min-height:0;"></div>
+        </div>
+
+        <!-- produkt_config.json -->
+        <div style="margin-top:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;">
             <div id="cfg-status" style="font-size:0.78rem;font-weight:700;margin-bottom:6px;color:#6b7280;">⏳ produkt_config.json wird geladen…</div>
-            <label style="font-size:0.78rem;color:#6b7280;display:block;margin-bottom:4px;">Falls nicht automatisch geladen — <strong>produkt_config.json</strong> manuell hochladen:</label>
-            <input type="file" id="cfgFileInput" accept=".json" onchange="ladeProduktConfigManuell(this)">
+            <label style="display:flex;align-items:center;justify-content:center;gap:6px;background:#f1f5f9;color:#64748b;border:1px dashed #cbd5e1;border-radius:6px;padding:8px 10px;font-size:0.8rem;font-weight:700;cursor:pointer;text-align:center;">
+                📂 Manuell hochladen<input type="file" id="cfgFileInput" accept=".json" onchange="ladeProduktConfigManuell(this)" style="display:none;">
+            </label>
+        </div>
+
+        <!-- lieferanten_db.json -->
+        <div style="margin-top:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;">
+            <div id="ldb-status" style="font-size:0.78rem;font-weight:700;margin-bottom:6px;color:#6b7280;">⏳ lieferanten_db.json wird geladen…</div>
+            <label style="display:flex;align-items:center;justify-content:center;gap:6px;background:#f1f5f9;color:#64748b;border:1px dashed #cbd5e1;border-radius:6px;padding:8px 10px;font-size:0.8rem;font-weight:700;cursor:pointer;text-align:center;">
+                📂 Manuell hochladen<input type="file" id="ldbFileInput" accept=".json" onchange="ladeLieferantenDbManuell(this)" style="display:none;">
+            </label>
         </div>
     </div>
 
@@ -194,6 +214,7 @@ Gib NUR ein JSON-Objekt zurück — KEIN Markdown, KEIN ```json, KEINE Erklärun
             </div>
             <button class="btn-skip" id="skip-schlawiner" onclick="skipBereich('schlawiner')">⏭ Keine Schlawiner-Liste heute — überspringen</button>
             <button class="btn-cp" id="cp-schlawiner" onclick="copyP('schlawiner')">📋 Prompt kopieren</button>
+            <button class="btn-cp" onclick="exportSchlawinnerDB()" style="background:#059669;color:#fff;border-color:#059669;" id="btn-schlawiner-db">💾 Schlawiner-DB speichern</button>
             <textarea id="pr-schlawiner" readonly style="height:290px;">Du bekommst ein Foto der Schlawiner-Liste.
 Lies die Spalte mit der Tagesproduktion (Überschrift "Anzahl [Wochentag] TT.MM.") und "Anzahl Bleche".
 Gib NUR {"produkte":{...}} zurück. KEIN Markdown, KEIN ```json.
@@ -208,14 +229,16 @@ Sonnen-Schlawiner             → schlawiner_sonnen_stueck
 Mohn-Schlawiner               → schlawiner_mohn_stueck
 Körner / gem.Körner           → schlawiner_koerner_stueck
 Sesam-Schlawiner              → schlawiner_sesam_stueck
-Käse-Schlawiner               → schlawiner_kaese_stueck
+Kürbis-Käse-Schlawiner        → schlawiner_kuerbiskaese_stueck
 Löwen-Schlawiner              → schlawiner_loewen_stueck
-Schlawinerstange (6)          → schlawinerstange_6er_stueck
-Kü-Schlawiner-Stange (3)      → schlawinerstange_kuerbis_stueck
-So.Schlawiner-Stange (3)      → schlawinerstange_sonnen_stueck
-Schlawinerstange gem. (3)     → schlawinerstange_gem_stueck
-Löwen-Schlawinerstange        → schlawinerstange_loewen_stueck
-Schlawinerbrot (6)            → schlawinerbrot_stueck
+Schlawinerstange (3er)        → schlawiner_stange3_stueck
+Schlawinerstange (5er)        → schlawiner_stange5_stueck
+Schlawinerbrot (6er)          → schlawiner_brot6_stueck
+Kü-Schlawiner-Stange (3er)    → schlawiner_kuestange3_stueck
+So-Schlawiner-Stange (3er)    → schlawiner_sostange3_stueck
+Schlawinerstange gem. (3er)   → schlawiner_gemstange3_stueck
+Löwen-Schlawinerstange        → schlawiner_loewenstange_stueck
+Kü-Schlawiner-Stange (5er)    → schlawiner_kuestange5_stueck
 
 Format: {"produkte":{"schlawiner_gesamt_stueck":7968,"schlawiner_gesamt_bleche":166,...}}</textarea>
             <small>KI-Antwort einfügen:</small>
@@ -266,6 +289,26 @@ Format: {"produkte":{"schlawiner_gesamt_stueck":7968,"schlawiner_gesamt_bleche":
         </div>
     </div>
 
+    <!-- ⑦ TK PRODUKTERFASSUNG -->
+    <div class="zb">
+        <div class="zh" onclick="tog('tk')">
+            <span>📦 ⑦ TK Produkterfassung <span class="zettel-status" id="st-tk"></span></span>
+            <span id="ar-tk">▼</span>
+        </div>
+        <div class="zb-body" id="bd-tk">
+            <div class="zettel-info">
+                <strong>Benötigter Zettel:</strong> TK-Produktzettel — was unsere Fahrer heute aus dem Froster mitgenommen haben.<br>
+                Spalte „Anzahl" = Anzahl Gebinde (Kartons, Kisten). Bleche und Charge ignorieren.
+            </div>
+            <button class="btn-skip" id="skip-tk" onclick="skipBereich('tk')">⏭ Kein TK-Zettel heute — überspringen</button>
+            <button class="btn-cp" id="cp-tk" onclick="copyP('tk')">📋 Prompt kopieren</button>
+            <textarea id="pr-tk" readonly style="height:220px;">Lade Prompt…</textarea>
+            <small>KI-Antwort einfügen:</small>
+            <textarea class="pa" id="pa-tk" placeholder='{"eintraege":{"buttercroissant_tk":{"menge":2},...}}' oninput="valTK()"></textarea>
+            <div class="hint" id="hi-tk"></div>
+        </div>
+    </div>
+
     <!-- ⑦ AUSREISSER -->
     <div class="outlier-panel" id="outlier-panel">
         <div class="outlier-title">⚠️ Ausreißer erkannt — bitte prüfen bevor gespeichert wird</div>
@@ -283,7 +326,7 @@ Format: {"produkte":{"schlawiner_gesamt_stueck":7968,"schlawiner_gesamt_bleche":
 
     <!-- ⑧ SPEICHERN -->
     <div class="card">
-        <h2>⑦ Zusammenführen &amp; Speichern</h2>
+        <h2>⑧ Zusammenführen &amp; Speichern</h2>
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.88rem;font-weight:700;padding:10px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:10px;">
             <input type="checkbox" id="chk-erfassung" style="width:18px;height:18px;cursor:pointer;accent-color:#c07a10;">
             <span>
@@ -310,15 +353,17 @@ const STUECK_PRO_BLECH = {         // Für Keys ohne _bleche-Gegenstück
     schlawinerstange_loewen_stueck:3, schlawinerbrot_stueck:6
 };
 
-const BEREICHE = ['kontext','broetchen','schlawiner','brot','konditorei'];
+const BEREICHE = ['kontext','broetchen','schlawiner','brot','konditorei','tk'];
 let db = [];
 let dbLoaded = false;
-let R = { kontext:null, broetchen:null, schlawiner:null, brot:null, konditorei:null };
+let R = { kontext:null, broetchen:null, schlawiner:null, brot:null, konditorei:null, tk:null };
 let uebersprungen = new Set();
 let outlierDecisions = {};
 let outlierKeys = [];
 let unbekannteProdukte = []; // { artNr, name, quelle }
 let produktConfig = []; // Global — sammelt alle Änderungen auf
+let lieferantenConfig = []; // lieferanten_config.json
+let lieferantenDb = []; // lieferanten_db.json (append-only)
 
 // produkt_config.json einmalig laden
 (async function() {
@@ -333,6 +378,36 @@ let produktConfig = []; // Global — sammelt alle Änderungen auf
     } catch(e) {
         console.warn('produkt_config nicht geladen:', e.message);
         setCfgStatus(false);
+    }
+})();
+
+// lieferanten_config.json einmalig laden
+(async function() {
+    try {
+        const r = await fetch('../lieferanten_config.json', { cache: 'no-store' });
+        if (r.ok) {
+            const d = await r.json();
+            lieferantenConfig = Array.isArray(d) ? d : (d.produkte || []);
+            buildTKPrompt();
+        }
+    } catch(e) {
+        console.warn('lieferanten_config nicht geladen:', e.message);
+    }
+})();
+
+// lieferanten_db.json laden (falls vorhanden) — sonst leeres Array
+(async function() {
+    try {
+        const r = await fetch('../lieferanten_db.json', { cache: 'no-store' });
+        if (r.ok) {
+            lieferantenDb = await r.json();
+            setLdbStatus('✅ lieferanten_db.json geladen (' + lieferantenDb.length + ' Einträge)', 'ok');
+        } else {
+            setLdbStatus('ℹ️ lieferanten_db.json nicht gefunden — wird neu angelegt', '');
+        }
+    } catch(e) {
+        lieferantenDb = [];
+        setLdbStatus('⚠️ Nicht geladen — bitte manuell hochladen oder neu anlegen', 'warn');
     }
 })();
 
@@ -362,6 +437,35 @@ function ladeProduktConfigManuell(input) {
             }
             produktConfig = data;
             setCfgStatus(true);
+        } catch(err) {
+            alert('Fehler beim Lesen: ' + err.message);
+        }
+        input.value = '';
+    };
+    reader.readAsText(file);
+}
+
+function setLdbStatus(msg, cls) {
+    const el = document.getElementById('ldb-status');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = cls === 'ok' ? '#16a34a' : cls === 'warn' ? '#d97706' : '#6b7280';
+    if (cls === 'warn') el.style.fontWeight = '900';
+}
+
+function ladeLieferantenDbManuell(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (!Array.isArray(data)) {
+                alert('Ungültige lieferanten_db.json — kein Array.');
+                return;
+            }
+            lieferantenDb = data;
+            setLdbStatus('✅ lieferanten_db.json geladen (' + lieferantenDb.length + ' Einträge)', 'ok');
         } catch(err) {
             alert('Fehler beim Lesen: ' + err.message);
         }
@@ -420,7 +524,7 @@ function unkIgnorieren(i) {
 // ── SKIP ─────────────────────────────────────────────────
 function skipBereich(b) {
     const btn = document.getElementById('skip-'+b);
-    const labels = {broetchen:'Brötchen',schlawiner:'Schlawiner',brot:'Brot',konditorei:'Konditorei'};
+    const labels = {broetchen:'Brötchen',schlawiner:'Schlawiner',brot:'Brot',konditorei:'Konditorei',tk:'TK-Produkte'};
     if (uebersprungen.has(b)) {
         uebersprungen.delete(b);
         R[b] = null;
@@ -482,7 +586,64 @@ async function buildPrompts() {
         kopf('Konditorei','\nWICHTIG: Handschriftliche Zahlen (blauer Stift) sind gültige Werte!') +
         kond.map(zeile).filter(Boolean).join('\n') +
         '\nFehlende/0-Produkte mit 0 eintragen.\nProdukte auf dem Zettel die NICHT im MAPPING stehen unter \"unbekannt\" aufführen (ArtNr + Name).\nFormat: {\"produkte\":{...},\"unbekannt\":[{\"artNr\":\"134006\",\"name\":\"Puddingbrezel\"}]}\nKein \"unbekannt\"-Feld wenn nichts Unbekanntes vorhanden.';
+
+    // TK-Prompt falls lieferantenConfig bereits geladen
+    if (lieferantenConfig.length) buildTKPrompt();
 }
+
+// ── TK PROMPT AUFBAUEN ───────────────────────────────────
+function buildTKPrompt() {
+    const tkProdukte = lieferantenConfig.filter(p => p.lagertyp === 'tk' && p.artNr);
+    const ta = document.getElementById('pr-tk');
+    if (!ta) return;
+
+    if (!tkProdukte.length) {
+        ta.value = 'Keine TK-Produkte mit ArtNr in lieferanten_config.json gefunden.\nBitte zuerst im Lieferanten-Editor die ArtNr eintragen.';
+        return;
+    }
+
+    const mapping = tkProdukte.map(p =>
+        (p.artNr||'').toString().padEnd(10) +
+        (p.name||'').padEnd(30) +
+        ' → ' + p.id +
+        ' (' + (p.gebinde?.form||'Gebinde') + ' à ' + (p.gebinde?.inhalt_stueck||'?') + ' ' + (p.gebinde?.inhalt_einheit||'Stk') + ')'
+    ).join('\n');
+
+    ta.value =
+        'Du bekommst ein Foto (oder Text) eines TK-Produktzettels — die tägliche Aufstellung der TK-Produkte, die unsere Fahrer aus dem Froster für die Filialen mitgenommen haben.\n' +
+        'Lies die Spalte "Anzahl" — das ist die Anzahl der Gebinde (Kartons, Kisten usw.).\n' +
+        'Ignoriere die Spalten "Bleche" und "Charge".\n' +
+        'Gib NUR {"eintraege":{...}} zurück. KEIN Markdown, KEIN ```json, KEINE Erklärungen.\n\n' +
+        'MAPPING (ArtNr → Config-ID):\n' +
+        mapping + '\n\n' +
+        'Produkte auf dem Zettel die NICHT im MAPPING stehen: ignorieren.\n' +
+        'Produkte im MAPPING die nicht auf dem Zettel stehen: NICHT eintragen.\n' +
+        'Wenn Anzahl = 0: trotzdem eintragen mit menge:0.\n\n' +
+        'Format: {"eintraege":{"buttercroissant_tk":{"menge":2},"schokocroissant_tk":{"menge":1}}}';
+}
+
+// ── TK VALIDIERUNG ───────────────────────────────────────
+function valTK() {
+    const raw = document.getElementById('pa-tk').value.trim();
+    const ta  = document.getElementById('pa-tk');
+    const st  = document.getElementById('st-tk');
+    if (!raw) { ta.className='pa'; st.className='zettel-status'; R.tk=null; setHint('tk','',true); upd(); return; }
+    try {
+        const p = JSON.parse(raw);
+        if (!p.eintraege || typeof p.eintraege !== 'object') throw new Error('Kein "eintraege"-Objekt gefunden.');
+        const anzahl = Object.keys(p.eintraege).length;
+        if (anzahl === 0) throw new Error('"eintraege" ist leer.');
+        R.tk = p.eintraege;
+        ta.className='pa valid'; st.className='zettel-status ok';
+        setHint('tk', '✅ ' + anzahl + ' TK-Produkt' + (anzahl !== 1 ? 'e' : '') + ' erfasst.', true);
+    } catch(e) {
+        R.tk = null; ta.className='pa invalid'; st.className='zettel-status err';
+        setHint('tk', '❌ ' + e.message, false);
+    }
+    upd();
+    if (allZettelDone()) runOutlierCheck();
+}
+
 
 // ── TOGGLE ───────────────────────────────────────────────
 function tog(b) {
@@ -584,7 +745,7 @@ function setDbHint(msg, ok) {
 
 // ── FORTSCHRITT ───────────────────────────────────────────
 function upd() {
-    ['kontext','broetchen','schlawiner','brot','konditorei'].forEach(b => {
+    ['kontext','broetchen','schlawiner','brot','konditorei','tk'].forEach(b => {
         const el = document.getElementById('prog-'+b);
         if (el) el.className = 'progress-step' + (R[b] ? ' done' : '');
     });
@@ -770,6 +931,68 @@ function updateOutlierHint() {
     }
 }
 
+// ── SCHLAWINER-DB EXPORT ─────────────────────────────────
+var SCHLAWINER_KEYS = [
+    'schlawiner_gesamt_stueck','schlawiner_gesamt_bleche',
+    'schlawiner_klassisch_stueck','schlawiner_kuerbis_stueck',
+    'schlawiner_sonnen_stueck','schlawiner_mohn_stueck',
+    'schlawiner_koerner_stueck','schlawiner_sesam_stueck',
+    'schlawiner_kuerbiskaese_stueck','schlawiner_loewen_stueck',
+    'schlawiner_stange3_stueck','schlawiner_stange5_stueck',
+    'schlawiner_brot6_stueck','schlawiner_kuestange3_stueck',
+    'schlawiner_sostange3_stueck','schlawiner_gemstange3_stueck',
+    'schlawiner_loewenstange_stueck','schlawiner_kuestange5_stueck'
+];
+
+function exportSchlawinnerDB() {
+    if (!R.schlawiner) {
+        alert('Bitte zuerst die Schlawiner-Liste einlesen.');
+        return;
+    }
+    if (!R.kontext) {
+        alert('Bitte zuerst den Kontext-Zettel einlesen (Datum wird benötigt).');
+        return;
+    }
+
+    // Bestehende schlawiner_db laden falls vorhanden
+    var bestehend = [];
+    try {
+        var ls = localStorage.getItem('schlawiner_db');
+        if (ls) bestehend = JSON.parse(ls);
+    } catch(e) {}
+
+    // Schlawiner-Keys aus eingelesenen Daten filtern
+    var produkte = {};
+    SCHLAWINER_KEYS.forEach(function(k) {
+        if (R.schlawiner[k] !== undefined) produkte[k] = R.schlawiner[k];
+    });
+
+    var neuerEintrag = {
+        datum: R.kontext.datum,
+        wochentag: R.kontext.wochentag,
+        produkte: produkte
+    };
+
+    // Bestehenden Eintrag für dieses Datum ersetzen
+    bestehend = bestehend.filter(function(e) { return e.datum !== neuerEintrag.datum; });
+    bestehend.push(neuerEintrag);
+    bestehend.sort(function(a,b){ return a.datum.localeCompare(b.datum); });
+
+    // In localStorage cachen
+    localStorage.setItem('schlawiner_db', JSON.stringify(bestehend));
+
+    // Download
+    var blob = new Blob([JSON.stringify(bestehend, null, 2)], {type:'application/json'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'schlawiner_db.json';
+    a.click();
+
+    var btn = document.getElementById('btn-schlawiner-db');
+    btn.textContent = '✓ Gespeichert · ' + neuerEintrag.datum;
+    setTimeout(function(){ btn.textContent = '💾 Schlawiner-DB speichern'; }, 3000);
+}
+
 // ── MERGE & DOWNLOAD ──────────────────────────────────────
 function merge() {
     const ctx = R.kontext;
@@ -833,6 +1056,30 @@ function merge() {
     a.href=url; a.download='backmengen_db.json';
     document.body.appendChild(a); a.click();
     document.body.removeChild(a); URL.revokeObjectURL(url);
+
+    // ── lieferanten_db.json — TK Produkterfassung ────────
+    if (R.tk && !uebersprungen.has('tk')) {
+        const tkEintrag = {
+            datum:     ctx.datum,
+            wochentag: ctx.wochentag,
+            typ:       'ausgang_filialen',
+            eintraege: R.tk
+        };
+        // Bestehenden Eintrag für gleichen Tag + Typ ersetzen oder anhängen
+        const tkIdx = lieferantenDb.findIndex(e => e.datum === ctx.datum && e.typ === 'ausgang_filialen');
+        if (tkIdx !== -1) {
+            lieferantenDb[tkIdx] = tkEintrag;
+        } else {
+            lieferantenDb.push(tkEintrag);
+            lieferantenDb.sort((a,b) => a.datum.localeCompare(b.datum));
+        }
+        const blobTK = new Blob([JSON.stringify(lieferantenDb, null, 2)], {type:'application/json'});
+        const aTK = document.createElement('a');
+        aTK.href = URL.createObjectURL(blobTK);
+        aTK.download = 'lieferanten_db.json';
+        document.body.appendChild(aTK); aTK.click();
+        document.body.removeChild(aTK); URL.revokeObjectURL(aTK.href);
+    }
 
     // ── Erfassungskontrolle HTML ──────────────────────────
     if (document.getElementById('chk-erfassung').checked) {
@@ -986,6 +1233,7 @@ ${sektionen}
         ) +
         'Datenbank: <strong>' + db.length + ' Tage</strong><br>' +
         (neueHinzugefuegt > 0 ? '📦 <strong>' + neueHinzugefuegt + ' neue Produkte</strong> zur Config hinzugefügt → produkt_config.json hochladen!<br>' : '') +
+        (R.tk && !uebersprungen.has('tk') ? '🚛 <strong>TK-Produkterfassung gespeichert</strong> → lieferanten_db.json hochladen!<br>' : '') +
         '<span style="color:#16a34a;font-size:0.8rem;">→ backmengen_db.json in den Stammordner hochladen!</span>';
 
 }

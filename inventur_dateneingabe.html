@@ -143,19 +143,19 @@
     <!-- Generieren -->
     <button id="btnGenerate" class="btn-generate" onclick="generateInventurJS()" disabled>⬇️ Inventurdaten speichern</button>
 
-    <!-- base64 Akkordeon -->
+    <!-- Akkordeon 1: Kollege hat gezählt -->
     <div class="akk-wrap">
         <div class="akk-header" onclick="toggleAkk()">
-            <span>📤 Produktionsmeldung vom Kollegen verarbeiten</span>
+            <span>➕ Neue Produktion auf Bestände addieren</span>
             <span id="akk-arrow">▼</span>
         </div>
         <div class="akk-body" id="akk-body">
             <div class="akk-hinweis">
-                <strong>Ablauf:</strong> Erst die aktuelle inventurdaten.js laden, dann die WhatsApp-Nachricht einfügen. Das System liest den Daten-Block und aktualisiert die Bestände — aktuellstes Datum gewinnt.
+                Ein Kollege hat heute Ware produziert und dir die Mengen geschickt. Lade zuerst die aktuelle Inventurdatei, füge dann seine Nachricht ein — die neuen Stücke werden auf die bestehenden Bestände aufgerechnet.
             </div>
 
             <!-- Schritt 1: Basis laden -->
-            <div style="font-size:0.75rem;font-weight:800;color:var(--text-primary,var(--text-primary,#1a1a1a));margin-bottom:6px;">
+            <div style="font-size:0.75rem;font-weight:800;color:var(--text-primary,#1a1a1a);margin-bottom:6px;">
                 Schritt 1 — Aktuelle inventurdaten.js laden:
             </div>
             <label style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--background,#f8f6f2);border:1.5px solid var(--border-color,#e5e0d8);border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;margin-bottom:12px;">
@@ -166,7 +166,7 @@
 
             <!-- Schritt 2: Nachricht einfügen -->
             <div style="font-size:0.75rem;font-weight:800;color:var(--text-primary,#1a1a1a);margin-bottom:6px;">
-                Schritt 2 — WhatsApp-Nachricht einfügen:
+                Schritt 2 — Nachricht vom Kollegen einfügen:
             </div>
             <textarea class="b64-area" id="decoder-nachricht"
                 placeholder="Gesamte Nachricht vom Kollegen hier einfügen (inkl. ---PRODUKTIONSDATEN--- Block)..."></textarea>
@@ -175,13 +175,23 @@
                 ⚙ Verarbeiten &amp; neue inventurdaten.js downloaden
             </button>
             <div id="decoder-ergebnis" style="display:none;margin-top:10px;font-size:0.78rem;line-height:1.6;"></div>
+        </div>
+    </div>
 
-            <div style="border-top:1px solid var(--border-color,#e5e0d8);margin-top:14px;padding-top:12px;">
-                <div style="font-size:0.72rem;font-weight:800;color:var(--dim,#6b7280);margin-bottom:6px;">Eigene Inventur als Text exportieren (für Übergabe):</div>
-                <div class="akk-btns">
-                    <button class="akk-btn" onclick="b64Export()">📋 Exportieren</button>
-                </div>
+    <!-- Akkordeon 2: Komplette Inventur teilen -->
+    <div class="akk-wrap">
+        <div class="akk-header" onclick="toggleAkk2()">
+            <span>📤 Komplette Inventur teilen</span>
+            <span id="akk2-arrow">▼</span>
+        </div>
+        <div class="akk-body" id="akk2-body">
+            <div class="akk-hinweis">
+                Erst selbst zählen, dann hier den Schlüssel generieren und teilen. Wenn seit der letzten Inventur mehr als 48 Stunden vergangen sind, wird die Bestandsseite automatisch gesperrt — damit niemand mit veralteten Zahlen arbeitet. Wer diesen Schlüssel dort eingibt, schaltet die Seite wieder frei. Der Schlüssel ist 24 Stunden gültig.
             </div>
+            <button class="akk-btn primary" style="width:100%;margin-top:4px;" onclick="shareInventur()">
+                📤 Inventur jetzt teilen
+            </button>
+            <div id="share-ergebnis" style="display:none;margin-top:10px;font-size:0.78rem;line-height:1.6;"></div>
         </div>
     </div>
 
@@ -244,22 +254,15 @@ function setFrosterStatus(isDone) {
 }
 
 function prepareData() {
-    var cur = window.BOS_INVENTUR || {};
-    var curProducts = cur.products || {};
-    var curStocks = cur.stocks || {};
     window.BOS_INVENTUR_PRODUKTE.forEach(function(p) {
         var k = p.legacyKey;
-        var saved = curProducts[k] || null;
         workingData[k] = {
             name: p.name,
             station: p.station || '',
-            locs: (saved && saved.locs) ? saved.locs : [0,0,0,0],
-            stock: 0, ts: (saved && saved.ts) ? saved.ts : 0,
+            locs: [0,0,0,0],
+            stock: 0, ts: 0,
             counted: false, _fromFile: false
         };
-        if (saved && saved.locs) workingData[k].stock = saved.locs.reduce(function(a,b){return a+b;},0);
-        else if (saved && saved.stock) workingData[k].stock = saved.stock;
-        else workingData[k].stock = curStocks[k] || 0;
     });
 }
 
@@ -302,11 +305,6 @@ function renderList() {
     if (activeStation !== 'alle') {
         keys = keys.filter(function(k){ return workingData[k] && workingData[k].station === activeStation; });
     }
-    keys.sort(function(a, b) {
-        var da = workingData[a], db = workingData[b];
-        return ((da.counted || da._fromFile) ? 0 : 1) - ((db.counted || db._fromFile) ? 0 : 1);
-    });
-
     keys.forEach(function(k) {
         var d = workingData[k];
         if (!d) return;
@@ -596,7 +594,14 @@ function decoderVerarbeiten() {
         '<small>inventurdaten.js downloaden → auf GitHub hochladen</small>';
 }
 
-function b64Export() {
+function toggleAkk2() {
+    var body = document.getElementById('akk2-body');
+    var arrow = document.getElementById('akk2-arrow');
+    body.classList.toggle('open');
+    arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+function shareInventur() {
     var existing = window.BOS_INVENTUR || {};
     var stocks = Object.assign({}, existing.stocks || {});
     var cleanProducts = Object.assign({}, existing.products || {});
@@ -607,16 +612,38 @@ function b64Export() {
         stocks[k] = d.stock;
         cleanProducts[k] = {locs:d.locs, stock:d.stock, ts:d.ts};
     });
-    var js = 'window.BOS_INVENTUR = ' + JSON.stringify({products:cleanProducts, stocks:stocks}, null, 2) + ';';
-    var b64 = btoa(unescape(encodeURIComponent(js)));
-    navigator.clipboard.writeText(b64).then(function() {
-        alert('Text kopiert.');
-    }).catch(function() {
-        var area = document.createElement('textarea');
-        area.value = b64; document.body.appendChild(area);
-        area.select(); document.execCommand('copy');
-        document.body.removeChild(area); alert('Text kopiert.');
-    });
+
+    var now = new Date();
+    var payload = JSON.stringify({products:cleanProducts, stocks:stocks, exportedAt:now.getTime()});
+    var b64 = btoa(unescape(encodeURIComponent(payload)));
+    var datum = now.toLocaleDateString('de-DE', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+    var uhrzeit = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+    var anzahl = Object.keys(cleanProducts).length;
+
+    var nachricht =
+        '🏪 BäckereiOS — Inventurstand\n' +
+        '📅 ' + datum + ', ' + uhrzeit + ' Uhr\n' +
+        '📦 ' + anzahl + ' Produkte\n\n' +
+        'Zum Freischalten der Bestandsseite den Code unten kopieren und dort einfügen.\n\n' +
+        '---INVENTURDATEN---\n' +
+        b64;
+
+    var ergebnis = document.getElementById('share-ergebnis');
+
+    if (navigator.share) {
+        navigator.share({ text: nachricht }).then(function() {
+            ergebnis.style.cssText = 'display:block;background:#f0fdf4;border:1px solid #10b981;border-radius:8px;padding:10px 12px;color:#065f46;font-size:0.78rem;margin-top:10px;';
+            ergebnis.textContent = '✓ Geteilt!';
+        }).catch(function(){});
+    } else {
+        navigator.clipboard.writeText(nachricht).then(function() {
+            ergebnis.style.cssText = 'display:block;background:#f0fdf4;border:1px solid #10b981;border-radius:8px;padding:10px 12px;color:#065f46;font-size:0.78rem;margin-top:10px;';
+            ergebnis.textContent = '✓ In Zwischenablage kopiert — jetzt einfügen und verschicken.';
+        }).catch(function() {
+            ergebnis.style.cssText = 'display:block;background:#fef2f2;border:1px solid #fecdd3;border-radius:8px;padding:10px 12px;color:#ef4444;font-size:0.78rem;margin-top:10px;';
+            ergebnis.textContent = '⚠ Teilen nicht möglich. Bitte manuell kopieren.';
+        });
+    }
 }
 </script>
 </body>

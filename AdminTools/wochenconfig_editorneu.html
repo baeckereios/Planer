@@ -63,22 +63,15 @@
   .einst-section-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--cyan); font-weight: bold; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
   .einst-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
   .einst-row label { font-size: 11px; color: var(--dim); min-width: 140px; }
-  .einst-select { font-family: var(--font); font-size: 11px; background: var(--grau2); color: var(--text); border: 1px solid var(--border); border-radius: 3px; padding: 6px 8px; flex: 1; min-width: 0; }
-  
-  .einst-toggle { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 3px; border: 1px solid var(--border); color: var(--dim); cursor: pointer; font-size: 11px; width: 100%; background: var(--grau2); transition: all 0.12s; margin-bottom: 8px; line-height: 1.4; white-space: normal; }
-  .einst-toggle input { accent-color: var(--cyan); width: 14px; height: 14px; cursor: pointer; margin-top: 1px; flex-shrink: 0; }
+  .einst-select { font-family: var(--font); font-size: 11px; background: var(--grau2); color: var(--text); border: 1px solid var(--border); border-radius: 3px; padding: 5px 8px; }
+  .einst-toggle { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 3px; border: 1px solid var(--border); color: var(--dim); cursor: pointer; font-size: 11px; width: 100%; background: var(--grau2); transition: all 0.12s; margin-bottom: 6px; }
+  .einst-toggle input { accent-color: var(--cyan); width: 13px; height: 13px; cursor: pointer; }
   .einst-toggle.aktiv { border-color: var(--cyan); color: var(--text); }
   .einst-hinweis { font-size: 10px; color: var(--grau4); margin-top: 6px; line-height: 1.5; }
-  
-  @media (max-width: 600px) {
-    .einst-row { flex-direction: column; align-items: stretch; gap: 6px; }
-    .einst-row label { min-width: auto; }
-  }
-
   .kalender-wrap { margin-top: 16px; }
   .kalender-hinweis { font-size: 10px; color: var(--grau4); margin-bottom: 12px; line-height: 1.6; background: rgba(6,182,212,0.04); padding: 10px; border-radius: 4px; border: 1px solid rgba(6,182,212,0.15); }
   
-  /* Akkordeon 12 Monate */
+  /* NEU: Akkordeon 12 Monate */
   .monat-akkordeon { margin-bottom: 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--grau2); overflow: hidden; }
   .monat-header { padding: 10px 14px; font-size: 11px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; color: var(--text); cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--grau2); transition: background 0.15s; }
   .monat-header:hover { background: var(--grau3); }
@@ -87,44 +80,26 @@
   .monat-akkordeon.offen .monat-body { display: block; }
   .monat-akkordeon.offen .monat-arrow { transform: rotate(180deg); }
 
-  /* Echtes Kalender-Grid (7 Spalten) */
-  .kalender-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .kalender-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+  .kal-tag { width: 38px; padding: 4px 3px; border-radius: 3px; text-align: center; border: 1px solid var(--border); background: var(--grau2); cursor: pointer; transition: all 0.12s; }
+  .kal-tag:hover { border-color: var(--cyan); }
+  .kal-tag.keine-daten { opacity: 0.4; }
   
-  /* Standard-Tag (Ohne Daten = "Leerer Slot") */
-  .kal-tag { 
-      padding: 6px 2px; min-height: 38px; border-radius: 3px; text-align: center; 
-      border: 1px dashed var(--grau4); /* Gestrichelt = Leer */
-      background: transparent; 
-      cursor: pointer; transition: all 0.12s; 
-      display: flex; flex-direction: column; align-items: center; justify-content: center; 
-  }
-  .kal-tag .kal-datum { font-size: 11px; color: var(--dim); font-weight: normal; } /* Gedimmt */
-  .kal-sym { font-size: 10px; min-height: 12px; line-height: 1.2; margin-top: 2px; }
-
-  /* Tag MIT Daten ("Gefüllter Slot") */
-  .kal-tag.hat-daten {
-      border: 1px solid var(--border); /* Durchgezogen */
-      background: var(--grau2);
-  }
-  .kal-tag.hat-daten .kal-datum { font-weight: bold; color: var(--text); } /* Hell */
-  .kal-tag.hat-daten:hover { border-color: var(--cyan); background: var(--grau3); }
-  .kal-tag:not(.hat-daten):hover { border-color: var(--dim); background: rgba(255,255,255,0.02); }
-
   /* Der Wurm */
-  .kal-tag.in-wurm { border-style: solid; opacity: 1; }
-  .kal-tag.in-wurm.hat-daten { background: rgba(6,182,212,0.15); border-color: rgba(6,182,212,0.4); }
-  .kal-tag.in-wurm:not(.hat-daten) { background: rgba(6,182,212,0.05); border-color: rgba(6,182,212,0.3); border-style: dashed; }
+  .kal-tag.in-wurm { background: rgba(6,182,212,0.15); border-color: rgba(6,182,212,0.4); }
+  .kal-tag.wurm-start { background: rgba(6,182,212,0.3); border-color: var(--cyan); box-shadow: -2px 0 0 var(--cyan); }
+  .kal-tag.wurm-ende { background: rgba(6,182,212,0.3); border-color: var(--cyan); box-shadow: 2px 0 0 var(--cyan); }
   
-  .kal-tag.wurm-start { box-shadow: inset 3px 0 0 var(--cyan); }
-  .kal-tag.wurm-ende { box-shadow: inset -3px 0 0 var(--cyan); }
-  
-  /* Status auf den Tags (überschreiben Wurm-Farben leicht) */
-  .kal-tag.ausgeschlossen { background: rgba(239,68,68,0.15); border-color: var(--rot); }
+  /* Status auf den Tags */
+  .kal-tag.ausgeschlossen { background: rgba(239,68,68,0.2); border-color: var(--rot); }
   .kal-tag.feiertag-auto  { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.3); }
   .kal-tag.in-wurm.feiertag-auto { background: rgba(124,58,237,0.25); border-color: var(--akzent); }
   .kal-tag.sondertag      { border-color: var(--amber); }
   
-  .kal-tag.ausgeschlossen .kal-datum { color: #fca5a5; text-decoration: line-through; opacity: 0.8; }
+  .kal-wt    { font-size: 8px; color: var(--grau4); font-weight: bold; }
+  .kal-datum { font-size: 10px; font-weight: bold; color: var(--text); }
+  .kal-sym   { font-size: 9px; min-height: 12px; }
+  .kal-tag.ausgeschlossen .kal-wt { color: #fca5a5; }
   
   .ausgeschl-liste { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
   .ausgeschl-item { display: flex; align-items: center; gap: 8px; padding: 5px 10px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 3px; font-size: 11px; }
@@ -149,7 +124,7 @@
   .td-tag.montag { color: var(--amber); font-weight: bold; }
   .td-tag { color: var(--dim); }
 
-  /* WOCHEN-KARTEN — Mobile */
+  /* WOCHEN-KARTEN — Mobile (ersetzt Tabelle) */
   .wochen-karten { display: none; flex-direction: column; gap: 6px; }
   .wk-karte { background: var(--grau2); border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px; }
   .wk-karte.wochenende { background: rgba(255,255,255,0.02); }
@@ -166,7 +141,6 @@
     .tabelle, .tabelle thead { display: none; }
     .wochen-karten { display: flex; }
   }
-  
   .ft-badge { font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; font-weight: bold; padding: 1px 6px; border-radius: 2px; background: rgba(124,58,237,0.2); color: #a78bfa; border: 1px solid rgba(124,58,237,0.3); }
   .ferien-badge { font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; font-weight: bold; padding: 1px 6px; border-radius: 2px; background: rgba(6,182,212,0.12); color: #67e8f9; border: 1px solid rgba(6,182,212,0.3); }
   .status-btn { font-family: var(--font); font-size: 11px; font-weight: bold; letter-spacing: 1px; padding: 5px 14px; border-radius: 3px; cursor: pointer; border: 1px solid var(--border); background: var(--grau2); color: var(--dim); text-transform: uppercase; transition: all 0.12s; min-width: 60px; text-align: center; }
@@ -246,8 +220,8 @@
       <div class="einst-section-label" style="margin-top:16px;">Zeitraum wählen & Einzelne Tage ausschließen</div>
       <div class="kalender-hinweis">
         <span style="color:var(--cyan); font-weight:bold;">Tippen außerhalb der cyan Markierung:</span> Verschiebt den Startpunkt des Zeitraums dorthin.<br>
-        <span style="color:var(--rot); font-weight:bold;">Tippen innerhalb der Markierung:</span> Schließt diesen Tag von der Berechnung aus (✕).<br>
-        Lila/Blau = Feiertag (auto) · Gelb = Auffälligkeit in der DB · Gestrichelt = Keine Daten vorhanden
+        <span style="color:var(--rot); font-weight:bold;">Tippen innerhalb der Markierung:</span> Schließt diesen einzelnen Tag von der Berechnung aus (✕).<br>
+        Lila/Blau = Feiertag (auto) · Gelb = Auffälligkeit in der DB
       </div>
       
       <div id="wurm-info-box" style="font-size:12px; font-weight:bold; color:var(--cyan); margin-bottom:10px; padding:10px; background:rgba(6,182,212,0.1); border-radius:4px; border:1px solid rgba(6,182,212,0.3); text-align:center;">
@@ -395,10 +369,6 @@ function einstKalenderRender() {
       let mo = mStart.getMonth();
       let monthName = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'][mo];
       let daysInMonth = new Date(y, mo + 1, 0).getDate();
-      
-      // Berechne Offset für echten Kalender-Grid (Montag = Spalte 1)
-      let firstDay = new Date(y, mo, 1).getDay();
-      let emptyCells = (firstDay + 6) % 7; 
 
       // Prüfen, ob der Wurm diesen Monat berührt (für Auto-Open)
       let moStartStr = lds(mStart);
@@ -408,16 +378,7 @@ function einstKalenderRender() {
       html += `<div class="monat-akkordeon ${isOpen ? 'offen' : ''}">`;
       html += `<div class="monat-header" onclick="this.parentElement.classList.toggle('offen')">${monthName} ${y} <span class="monat-arrow">▼</span></div>`;
       html += `<div class="monat-body">`;
-      
-      // Kopfzeile der Wochentage pro Monat
-      html += `<div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px; text-align:center; font-size:9px; color:var(--dim); font-weight:bold;"><div>MO</div><div>DI</div><div>MI</div><div>DO</div><div>FR</div><div>SA</div><div>SO</div></div>`;
-      
       html += `<div class="kalender-grid">`;
-
-      // Leere Zellen am Monatsanfang füllen
-      for (let i = 0; i < emptyCells; i++) {
-          html += `<div></div>`;
-      }
 
       for (let d = 1; d <= daysInMonth; d++) {
           let dateObj = new Date(y, mo, d, 12, 0, 0);
@@ -425,8 +386,6 @@ function einstKalenderRender() {
           let wt = WT_KURZ[dateObj.getDay()];
 
           let k = dbTageMap[datumStr] || {};
-          let hatDaten = !!dbTageMap[datumStr]; // <-- NEUE LOGIK
-
           let istFeiertag = FEIERTAGE_NDS.includes(datumStr) || k.feiertag;
           let istSondertag = k.besonderheit || k.ausschluss_sondertag || k.ausschluss_einschraenkung;
           let istAusgesch = einstDaten.ausgeschlossene_tage.some(t => t.datum === datumStr);
@@ -437,9 +396,6 @@ function einstKalenderRender() {
 
           let cls = 'kal-tag';
           let sym = '';
-
-          // Unterscheidung: Hat Daten vs. Leer
-          if (hatDaten) cls += ' hat-daten';
 
           if (inWurm) cls += ' in-wurm';
           if (isWurmStart) cls += ' wurm-start';
@@ -457,9 +413,13 @@ function einstKalenderRender() {
               }
           }
 
+          // Optisch ausgrauen, wenn der Tag in der Vergangenheit liegt, aber keine Datenbankeinträge hat
+          if (!dbTageMap[datumStr] && datumStr <= lds(dNow)) {
+              cls += ' keine-daten';
+          }
+
           html += `<div class="${cls}" title="${datumStr}" onclick="einstTagToggle('${datumStr}')">`;
-          html += `<div class="kal-datum">${d}.</div>`;
-          if (sym) html += `<div class="kal-sym">${sym}</div>`;
+          html += `<div class="kal-wt">${wt}</div><div class="kal-datum">${d}.</div><div class="kal-sym">${sym}</div>`;
           html += `</div>`;
       }
 

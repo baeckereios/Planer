@@ -6,7 +6,7 @@
  *
  * Einbinden: <script src="produktions_gehirn.js"></script>
  * Verwenden: await window.BOS_GEHIRN.init();
- *            // danach ist window.BOS_STAMMDATEN befüllt
+ * // danach ist window.BOS_STAMMDATEN befüllt
  */
 
 (function() {
@@ -97,30 +97,33 @@ const GEHIRN = {
 
     // ── EINTRÄGE FILTERN ──────────────────────────────────
     _gefilterteEintraege() {
-        const zeitraum = this._verbrauch?.zeitraum_tage ?? 14;
+        const startDatum = this._verbrauch?.start_datum;
+        const endDatum   = this._verbrauch?.end_datum;
+        const zeitraum   = this._verbrauch?.zeitraum_tage ?? 14;
         const feiertageAus  = this._verbrauch?.feiertage_ausschliessen ?? true;
         const sondertageAus = this._verbrauch?.sondertage_ausschliessen ?? true;
         const manuellAus    = new Set(
             (this._verbrauch?.ausgeschlossene_tage ?? []).map(t => t.datum)
         );
 
-        // Nach Datum sortieren, neueste zuerst, dann begrenzen
-        const sortiert = [...this._db].sort((a,b) => b.datum.localeCompare(a.datum));
-        const begrenzt = zeitraum > 0 ? sortiert.slice(0, zeitraum) : sortiert;
+        let begrenzt = [];
+
+        // NEUE LOGIK: Wenn der "Wurm" (Start/Ende) definiert ist
+        if (startDatum && endDatum) {
+            begrenzt = this._db.filter(e => e.datum >= startDatum && e.datum <= endDatum);
+        } 
+        // ALTE LOGIK (Fallback): Nach Datum sortieren und ab heute begrenzen
+        else {
+            const sortiert = [...this._db].sort((a,b) => b.datum.localeCompare(a.datum));
+            begrenzt = zeitraum > 0 ? sortiert.slice(0, zeitraum) : sortiert;
+        }
 
         return begrenzt.filter(e => {
             const datum = e.datum;
             const k = e.kontext || {};
 
-            // Manuell ausgeschlossen
             if (manuellAus.has(datum)) return false;
-
-            // Feiertag
             if (feiertageAus && (FEIERTAGE_NDS.includes(datum) || k.feiertag)) return false;
-
-            // Sondertag — aber nur für Filialprodukte relevant
-            // Hier: kompletter Ausschluss des Tages wenn Sondertag
-            // (feinere Logik pro Produkt kommt in _baueStammdaten)
             if (sondertageAus && (k.ausschluss_sondertag || k.ausschluss_einschraenkung)) {
                 return false;
             }

@@ -32,7 +32,7 @@
     .top-header {
       background: var(--surface);
       border-bottom: 2px solid var(--border);
-      padding: 18px 20px 14px;
+      padding: 18px 20px 10px;
       text-align: center;
       position: sticky;
       top: 0;
@@ -57,6 +57,40 @@
       text-transform: uppercase;
       color: var(--dim);
       margin-top: 5px;
+    }
+
+    /* ─── STATUS DIODEN (COCKPIT) ─── */
+    .status-dioden-leiste {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 28px; 
+      margin-top: 6px;
+    }
+
+    .lampe {
+      font-size: 1.05rem; 
+      color: var(--dim); 
+      opacity: 0.22; 
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .lampe.muffel-lampe {
+      font-size: 1.4rem; 
+    }
+
+    .lampe.leuchtet {
+      color: var(--amber);
+      opacity: 1;
+      text-shadow: 0 0 12px rgba(192, 122, 16, 0.55);
+    }
+
+    .lampe.muffel-lampe.leuchtet {
+      color: #e74c3c; 
+      text-shadow: 0 0 14px rgba(231, 76, 60, 0.6);
+      transform: scale(1.1); 
     }
 
     /* ─── TAB VIEWS ─── */
@@ -209,8 +243,6 @@
       box-shadow: 0 4px 18px rgba(192,122,16,0.25);
     }
     .tab-direct-hint a:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(192,122,16,0.35); }
-
-    /* ─── ASSISTENT TAB ─── */
 
     /* ─── MEHR TAB ─── */
     .mehr-section-label {
@@ -536,26 +568,34 @@
     }
     .top-header { animation: fadeUp 0.3s ease both; }
   
-      /* ── FOLDER AKKORDEON ── */
-      .tool-folder { border: 1.5px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 0; background: var(--surface); }
-      .tool-folder-toggle { border: none !important; border-radius: 0 !important; margin-bottom: 0 !important; position: relative; cursor: pointer; }
-      .folder-arrow { margin-left: auto; font-size: 1rem; color: var(--amber); transition: transform 0.25s ease; padding-right: 4px; }
-      .tool-folder.open .folder-arrow { transform: rotate(90deg); }
-      .folder-children { display: none; border-top: 1px solid var(--border); }
-      .tool-folder.open .folder-children { display: block; }
-      .tool-child { border-radius: 0 !important; border: none !important; border-bottom: 1px solid var(--border) !important; padding-left: 28px !important; background: var(--bg) !important; }
-      .tool-child:last-child { border-bottom: none !important; }
-</style>
+    /* ── FOLDER AKKORDEON ── */
+    .tool-folder { border: 1.5px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 0; background: var(--surface); }
+    .tool-folder-toggle { border: none !important; border-radius: 0 !important; margin-bottom: 0 !important; position: relative; cursor: pointer; }
+    .folder-arrow { margin-left: auto; font-size: 1rem; color: var(--amber); transition: transform 0.25s ease; padding-right: 4px; }
+    .tool-folder.open .folder-arrow { transform: rotate(90deg); }
+    .folder-children { display: none; border-top: 1px solid var(--border); }
+    .tool-folder.open .folder-children { display: block; }
+    .tool-child { border-radius: 0 !important; border: none !important; border-bottom: 1px solid var(--border) !important; padding-left: 28px !important; background: var(--bg) !important; }
+    .tool-child:last-child { border-bottom: none !important; }
+  </style>
 </head>
 <body>
 
-  <!-- TOP HEADER -->
   <div class="top-header">
     <h1 class="brand-logo">Bäckerei<span>OS</span></h1>
     <div class="brand-slogan">Dein digitaler Backstuben-Manager</div>
+    
+    <div class="status-dioden-leiste">
+      <i class="ph-fill ph-grains lampe" id="diode-koerner" onclick="toggleDiode('diode-koerner')" title="Körner einweichen"></i>
+      <i class="ph-fill ph-package lampe" id="diode-bestellung" onclick="toggleDiode('diode-bestellung')" title="BÄKO Bestellung"></i>
+      
+      <i class="ph-fill ph-warning-octagon lampe muffel-lampe" id="diode-muffel" onclick="toggleDiode('diode-muffel')" title="Datensatz veraltet!"></i>
+      
+      <i class="ph-fill ph-cake lampe" id="diode-team" onclick="toggleDiode('diode-team')" title="Team-Radar (Geburtstage)"></i>
+      <i class="ph-fill ph-calendar-x lampe" id="diode-feiertag" onclick="toggleDiode('diode-feiertag')" title="Feiertags-Radar"></i>
+    </div>
   </div>
 
-  <!-- TAB: START (Einfach-Ansicht) -->
   <div class="tab-view active" id="tab-start">
     <div style="padding: 16px 16px 8px;">
       <div class="einfach-grid" id="einfach-grid-main">
@@ -564,15 +604,15 @@
         <div class="einfach-name">Stangenrechner</div>
         <div class="einfach-sub">Baguette &amp; Zwiebel</div>
       </a>
-      <a href="setup.html" class="einfach-kachel satellit" style="--kachel-color:#1d4ed8;">
-        <div class="einfach-icon"><i class="ph-duotone ph-clipboard-text"></i></div>
-        <div class="einfach-name">Produktionsplaner</div>
-        <div class="einfach-sub">Schicht vorbereiten</div>
+      <a href="druckzentrale/druckzentrale.html" class="einfach-kachel satellit" style="--kachel-color:#92400e;">
+        <div class="einfach-icon"><i class="ph-duotone ph-printer"></i></div>
+        <div class="einfach-name">Druckzentrale</div>
+        <div class="einfach-sub">Formulare &amp; Listen</div>
       </a>
-      <a href="baeko_bestellung/lager_inventur.html" class="einfach-kachel satellit" style="--kachel-color:#065f46;">
-        <div class="einfach-icon"><i class="ph-duotone ph-package"></i></div>
-        <div class="einfach-name">BÄKO Inventur</div>
-        <div class="einfach-sub">Lager &amp; Bestellung</div>
+      <a href="schlawiner_rechner/schlawiner_rechner.html" class="einfach-kachel satellit" style="--kachel-color:#c07a10;">
+        <div class="einfach-icon"><i class="ph-duotone ph-scissors"></i></div>
+        <div class="einfach-name">SchlawinerRechner</div>
+        <div class="einfach-sub">Sorten &amp; Bleche</div>
       </a>
       <a href="durchschnittsverbauch/wetter_planung.html" class="einfach-kachel satellit" style="--kachel-color:#0369a1;">
         <div class="einfach-icon"><i class="ph-duotone ph-cloud-sun"></i></div>
@@ -594,24 +634,41 @@
         <div class="einfach-name">14-Tage Logbuch</div>
         <div class="einfach-sub">Backmengen</div>
       </a>
-      <a href="https://my.hidrive.com/share/0a5xcrfaf8" target="_blank" class="einfach-kachel satellit" style="--kachel-color:#854d0e;">
-        <div class="einfach-icon"><i class="ph-duotone ph-folder-open"></i></div>
-        <div class="einfach-name">Teamordner</div>
-        <div class="einfach-sub">Geteilte Dokumente</div>
+      <a href="archiv/archiv.html" class="einfach-kachel satellit" style="--kachel-color:#475569;">
+        <div class="einfach-icon"><i class="ph-duotone ph-archive"></i></div>
+        <div class="einfach-name">Archiv</div>
+        <div class="einfach-sub">Auswertungen</div>
       </a>
       <a href="produktion_melden.html" class="einfach-kachel satellit" style="--kachel-color:#9f1239;">
         <div class="einfach-icon"><i class="ph-duotone ph-megaphone"></i></div>
         <div class="einfach-name">Produktion melden</div>
         <div class="einfach-sub">Was kam rein?</div>
       </a>
-      <a href="verbrauchsuebersicht.html" class="einfach-kachel wide" style="grid-column: 1 / -1; --kachel-color:#475569;">
-        <div class="einfach-icon"><i class="ph-duotone ph-chart-line"></i></div>
-        <div style="text-align:left;"><div class="einfach-name">Mengenübersicht</div><div class="einfach-sub">Aktuelle Berechnungsgrundlage · nur Info</div></div>
+      <a href="inventur_dateneingabe.html" class="einfach-kachel satellit" style="--kachel-color:#065f46;">
+        <div class="einfach-icon"><i class="ph-duotone ph-snowflake"></i></div>
+        <div class="einfach-name">Froster Inventur</div>
+        <div class="einfach-sub">Bestände erfassen</div>
       </a>
-      <a href="inventur_dateneingabe.html" class="einfach-kachel wide" style="grid-column: 1 / -1; --kachel-color:#065f46;">
-        <div class="einfach-icon"><i class="ph-duotone ph-archive-box"></i></div>
-        <div style="text-align:left;"><div class="einfach-name">Inventur-Eingabe</div><div class="einfach-sub">Bestände erfassen · Lager aktualisieren</div></div>
+      <a href="lieferanten_auswertung.html" class="einfach-kachel satellit" style="--kachel-color:#0369a1;">
+        <div class="einfach-icon"><i class="ph-duotone ph-chart-bar"></i></div>
+        <div class="einfach-name">Lieferanten</div>
+        <div class="einfach-sub">Verbrauch &amp; Bestellung</div>
       </a>
+      <a href="lieferanten_inventur.html" class="einfach-kachel satellit" style="--kachel-color:#065f46;">
+        <div class="einfach-icon"><i class="ph-duotone ph-package"></i></div>
+        <div class="einfach-name">BÄKO Inventur</div>
+        <div class="einfach-sub">Lager &amp; Bestellung</div>
+      </a>
+      <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <a href="verbrauchsuebersicht.html" class="einfach-kachel wide" style="--kachel-color:#475569;">
+          <div class="einfach-icon"><i class="ph-duotone ph-chart-line"></i></div>
+          <div style="text-align:left;"><div class="einfach-name">Mengenübersicht</div><div class="einfach-sub">Berechnungsgrundlage</div></div>
+        </a>
+        <a href="https://my.hidrive.com/share/0a5xcrfaf8" target="_blank" class="einfach-kachel wide" style="--kachel-color:#854d0e;">
+          <div class="einfach-icon"><i class="ph-duotone ph-folder-open"></i></div>
+          <div style="text-align:left;"><div class="einfach-name">Teamordner</div><div class="einfach-sub">Geteilte Dokumente</div></div>
+        </a>
+      </div>
       <div class="einfach-kachel wide admin-kachel" onclick="openAdminGate()" style="grid-column: 1 / -1; --kachel-color:#e67e22;">
         <div class="einfach-icon"><i class="ph-duotone ph-gear-six"></i></div>
         <div style="text-align:left;"><div class="einfach-name">Admin</div><div class="einfach-sub">Einstellungen &amp; Verwaltung</div></div>
@@ -620,7 +677,6 @@
     </div>
   </div>
 
-  <!-- TAB: BRETT -->
   <div class="tab-view" id="tab-brett">
     <div class="container">
       <div class="brett-header" style="display:flex;justify-content:space-between;align-items:center;">
@@ -633,7 +689,6 @@
     </div>
   </div>
 
-  <!-- TAB: SCHNELLRECHNER -->
   <div class="tab-view" id="tab-rechner">
     <div class="tab-direct-hint">
       <div>Direkt weiter zum</div>
@@ -641,13 +696,11 @@
     </div>
   </div>
 
-  <!-- SIDEBAR: MEHR -->
   <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
   <div class="sidebar" id="sidebar-mehr">
     <div class="sidebar-header">Mehr</div>
     <div class="container" style="padding:8px 12px;">
 
-      <!-- 1. WERKZEUGE -->
       <div class="tool-folder" id="folder-werkzeuge" style="--folder-color:#c07a10;">
         <div class="tool-link tool-folder-toggle" onclick="toggleFolder('folder-werkzeuge')">
           <div class="tool-icon"><i class="ph-duotone ph-wrench"></i></div>
@@ -655,14 +708,6 @@
           <div class="folder-arrow">▸</div>
         </div>
         <div class="folder-children" id="folder-werkzeuge-children">
-          <a href="baeko_bestellung/blechrechner.html" class="tool-link tool-child">
-            <div class="tool-icon"><i class="ph-duotone ph-ruler"></i></div>
-            <div><div class="tool-name">BlechRechner</div><div class="tool-sub">Pressen &amp; Bleche umrechnen</div></div>
-          </a>
-          <a href="baeko_bestellung/croissant_rechner.html" class="tool-link tool-child">
-            <div class="tool-icon"><i class="ph-duotone ph-croissant"></i></div>
-            <div><div class="tool-name">CroissantRechner</div><div class="tool-sub">Froster-Kartons berechnen</div></div>
-          </a>
           <a href="ofenangriff.html" class="tool-link tool-child">
             <div class="tool-icon"><i class="ph-duotone ph-fire"></i></div>
             <div><div class="tool-name">Ofenangriff</div><div class="tool-sub">Backprogramme &amp; Zeiten</div></div>
@@ -678,7 +723,6 @@
         </div>
       </div>
 
-      <!-- 2. BÄKO -->
       <div class="tool-folder" id="folder-baeko" style="--folder-color:#065f46;">
         <div class="tool-link tool-folder-toggle" onclick="toggleFolder('folder-baeko')">
           <div class="tool-icon"><i class="ph-duotone ph-package"></i></div>
@@ -686,18 +730,17 @@
           <div class="folder-arrow">▸</div>
         </div>
         <div class="folder-children" id="folder-baeko-children">
-          <a href="baeko_bestellung/lager_inventur.html" class="tool-link tool-child">
+          <a href="lieferanten_inventur.html" class="tool-link tool-child">
             <div class="tool-icon"><i class="ph-duotone ph-clipboard-text"></i></div>
-            <div><div class="tool-name">Lager-Inventur</div><div class="tool-sub">Inventur &amp; Bestellvorbereitung</div></div>
+            <div><div class="tool-name">BÄKO Inventur</div><div class="tool-sub">Bestände erfassen &amp; Bestellung vorbereiten</div></div>
           </a>
-          <a href="baeko_bestellung/lager_auswertung.html" class="tool-link tool-child">
-            <div class="tool-icon"><i class="ph-duotone ph-chat-circle-dots"></i></div>
-            <div><div class="tool-name">Bestellvorschlag</div><div class="tool-sub">Was muss bestellt werden · WhatsApp an Chef</div></div>
+          <a href="lieferanten_auswertung.html" class="tool-link tool-child">
+            <div class="tool-icon"><i class="ph-duotone ph-chart-bar"></i></div>
+            <div><div class="tool-name">Bestellvorschlag</div><div class="tool-sub">Verbrauch &amp; Bestellempfehlung · WhatsApp</div></div>
           </a>
         </div>
       </div>
 
-      <!-- 3. PLANUNG & ENTSCHEIDUNG -->
       <div class="tool-folder" id="folder-planung" style="--folder-color:#1d4ed8;">
         <div class="tool-link tool-folder-toggle" onclick="toggleFolder('folder-planung')">
           <div class="tool-icon"><i class="ph-duotone ph-target"></i></div>
@@ -737,18 +780,9 @@
             <div class="tool-icon"><i class="ph-duotone ph-chart-line"></i></div>
             <div><div class="tool-name">Mengenangaben</div><div class="tool-sub">Bedarfs-Basis einsehen</div></div>
           </a>
-          <a href="frosterliste.html" class="tool-link tool-child">
-            <div class="tool-icon"><i class="ph-duotone ph-list-checks"></i></div>
-            <div><div class="tool-name">Frosterliste</div><div class="tool-sub">Druckvorlage · A4</div></div>
-          </a>
-          <a href="organisation/frosterliste_wochentag.html" class="tool-link tool-child">
-            <div class="tool-icon"><i class="ph-duotone ph-calendar-check"></i></div>
-            <div><div class="tool-name">Frosterliste · Wochentag</div><div class="tool-sub">Soll-Werte automatisch · Mo–So wählbar</div></div>
-          </a>
         </div>
       </div>
 
-      <!-- 5. INTERNES -->
       <div class="tool-folder" id="folder-internes" style="--folder-color:#854d0e;">
         <div class="tool-link tool-folder-toggle" onclick="toggleFolder('folder-internes')">
           <div class="tool-icon"><i class="ph-duotone ph-house-simple"></i></div>
@@ -767,7 +801,6 @@
         </div>
       </div>
 
-      <!-- 6. NACHTSCHICHT -->
       <div class="tool-folder" id="folder-nacht" style="--folder-color:#1e40af;">
         <div class="tool-link tool-folder-toggle" onclick="toggleFolder('folder-nacht')">
           <div class="tool-icon"><i class="ph-duotone ph-moon-stars"></i></div>
@@ -786,7 +819,6 @@
         </div>
       </div>
 
-      <!-- 7. ASSISTENTEN -->
       <div class="tool-folder" id="folder-assistenten" style="--folder-color:#7e22ce;">
         <div class="tool-link tool-folder-toggle" onclick="toggleFolder('folder-assistenten')">
           <div class="tool-icon"><i class="ph-duotone ph-rocket-launch"></i></div>
@@ -794,10 +826,6 @@
           <div class="folder-arrow">▸</div>
         </div>
         <div class="folder-children" id="folder-assistenten-children">
-          <a href="setup.html" class="tool-link tool-child">
-            <div class="tool-icon"><i class="ph-duotone ph-clipboard-text"></i></div>
-            <div><div class="tool-name">PlanungsAssistent</div><div class="tool-sub">Schicht &amp; Produktion planen</div></div>
-          </a>
         </div>
       </div>
 
@@ -815,7 +843,6 @@
     </div>
   </div>
 
-  <!-- Admin-Passwort Modal (global, außerhalb aller Tabs) -->
   <div id="admin-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
     <div style="background:var(--surface); border-radius:20px; padding:28px 24px; width:min(340px, 90vw); box-shadow:0 20px 60px rgba(0,0,0,0.4);">
       <div style="font-family:'Barlow Condensed'; font-weight:900; font-size:1.1rem; letter-spacing:1px; text-transform:uppercase; color:var(--amber); margin-bottom:6px;">⚙️ Admin-Bereich</div>
@@ -831,10 +858,8 @@
     </div>
   </div>
 
-  <!-- BOTTOM NAVIGATION -->
   <div class="bottom-nav-wrap">
 
-    <!-- Statusstreifen -->
     <div class="status-strip">
       <div class="status-item" style="flex-direction:column; align-items:flex-start; gap:1px;">
         <span style="font-size:0.58rem; text-transform:uppercase; letter-spacing:0.8px; color:var(--dim); opacity:0.7;">Datensatz bis</span>
@@ -847,7 +872,6 @@
       </div>
     </div>
 
-    <!-- Tab Bar -->
     <div class="tab-bar">
       <button class="tab-btn active" data-tab="start" onclick="switchTab('start', this)">
         <span class="tab-icon"><i class="ph-duotone ph-bread"></i></span>
@@ -1135,6 +1159,14 @@
       document.head.appendChild(s);
     }
 
+    /* ── DIODEN: Quittierung ── */
+    function toggleDiode(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('leuchtet');
+      el.style.opacity = '0.05';
+    }
+
     window.onload = () => {
       // Alten Einfach-Modus aus localStorage entfernen — nicht mehr gebraucht
       localStorage.removeItem('BOS_EINFACH');
@@ -1155,5 +1187,9 @@
       navigator.serviceWorker.register('/Planer/service-worker.js');
     }
   </script>
+
+  <script src="feiertage_nds.js"></script>
+  <script src="dioden_config.js"></script>
+  <script src="AdminTools/dioden_gehirn.js"></script>
 </body>
 </html>

@@ -144,7 +144,7 @@
 
     <div class="info-banner">
         <strong>Was du hier siehst:</strong> Die Ø-Bedarfswerte die Schnellrechner und Planer aktuell verwenden —
-        live berechnet aus den letzten <span id="zeitraumLabel">14</span> Tagen der Backmengen-Datenbank.
+        live berechnet aus dem konfigurierten Zeitfenster (<span id="zeitraumLabel">14</span> Tage).
         Feiertage und markierte Sondertage werden automatisch ausgeschlossen laut
         <strong style="color:var(--amber,#e67e22);">taeglicher_verbrauch.json</strong>.
         Grau = kein BackTag für diesen Wochentag.
@@ -178,7 +178,6 @@
         </button>
     </div>
 
-    <!-- Slider -->
     <div class="slider-card">
         <div class="slider-titel">Summe berechnen — Starttag antippen</div>
 
@@ -190,7 +189,6 @@
             Tage
         </div>
 
-        <!-- Wochenanzeige -->
         <div class="wochen-wrap">
             <div class="wochen-zeile">
                 <div class="wt-kopf">Mo</div><div class="wt-kopf">Di</div>
@@ -235,6 +233,7 @@ const FEIERTAGE_NDS = [
 
 let db=[], config=[], verbrauchConfig=null;
 let zeitraumTage=14, anzeigeEinheit="stueck";
+let wurmDeaktiviert=false; // true wenn Nutzer manuell einen Zeitraum-Button klickt
 let starttagBosIdx = null; // null = morgen (default)
 let sliderAb=0, sliderBis=6; // BOS-Indizes Mo=0..So=6
 
@@ -427,6 +426,7 @@ function setEinheit(e,btn) {
 
 function setZeitraum(tage,btn) {
     zeitraumTage=tage;
+    wurmDeaktiviert=true; // Manueller Eingriff → Wurm ignorieren
     document.querySelectorAll('.zt-btn').forEach(b=>b.classList.remove('aktiv'));
     if(btn) btn.classList.add('aktiv');
     document.getElementById('zeitraumLabel').textContent=tage===0?'allen':tage;
@@ -449,8 +449,19 @@ function istAusgeschlossen(eintrag) {
 }
 
 function berechneAvg() {
-    const sortiert=[...db].sort((a,b)=>b.datum.localeCompare(a.datum));
-    const begrenzt=zeitraumTage>0?sortiert.slice(0,zeitraumTage):sortiert;
+    let begrenzt = [];
+
+    // Wurm (fixes Datum-Fenster) hat immer Vorrang — unabhängig vom aktiven Button.
+    // Die manuellen Buttons überschreiben nur wenn explizit kein Wurm in der Config ist.
+    const wurmAktiv = verbrauchConfig && verbrauchConfig.start_datum && verbrauchConfig.end_datum && !wurmDeaktiviert;
+    if (wurmAktiv) {
+        begrenzt = db.filter(e => e.datum >= verbrauchConfig.start_datum && e.datum <= verbrauchConfig.end_datum);
+    } else {
+        // Manuelle Buttons: rückwärts ab heute
+        const sortiert=[...db].sort((a,b)=>b.datum.localeCompare(a.datum));
+        begrenzt=zeitraumTage>0?sortiert.slice(0,zeitraumTage):sortiert;
+    }
+
     // Ausgeschlossene Tage rausfiltern
     const gefiltert=begrenzt.filter(e=>!istAusgeschlossen(e));
     const ausgeschlossen=begrenzt.length-gefiltert.length;
@@ -568,12 +579,21 @@ function render() {
 
 function updateBasisBanner() {
     if(!db.length) return;
-    const sortiert = [...db].sort((a,b) => a.datum.localeCompare(b.datum));
-    const begrenzt = zeitraumTage > 0 ? sortiert.slice(-zeitraumTage) : sortiert;
-    const gefiltert = begrenzt.filter(e => !istAusgeschlossen(e));
+    const fmt = d => { const p=d.split('-'); return p[2]+'.'+p[1]+'.'+p[0].slice(2); };
+
+    const wurmAktiv = verbrauchConfig && verbrauchConfig.start_datum && verbrauchConfig.end_datum && !wurmDeaktiviert;
+    let gefiltert;
+    if (wurmAktiv) {
+        const begrenzt = db.filter(e => e.datum >= verbrauchConfig.start_datum && e.datum <= verbrauchConfig.end_datum);
+        gefiltert = begrenzt.filter(e => !istAusgeschlossen(e));
+    } else {
+        const sortiert = [...db].sort((a,b) => a.datum.localeCompare(b.datum));
+        const begrenzt = zeitraumTage > 0 ? sortiert.slice(-zeitraumTage) : sortiert;
+        gefiltert = begrenzt.filter(e => !istAusgeschlossen(e));
+    }
+
     const von = gefiltert.length ? gefiltert[0].datum : '–';
     const bis = gefiltert.length ? gefiltert[gefiltert.length-1].datum : '–';
-    const fmt = d => { const p=d.split('-'); return p[2]+'.'+p[1]+'.'+p[0].slice(2); };
     document.getElementById('basis-von').textContent = von !== '–' ? fmt(von) : '–';
     document.getElementById('basis-bis').textContent = bis !== '–' ? fmt(bis) : '–';
     document.getElementById('basis-anzahl').textContent = gefiltert.length + ' Tage gewertet';
@@ -584,7 +604,6 @@ function toggleInfoFooter() {
 }
 document.addEventListener('DOMContentLoaded', () => { init(); });
 </script>
-    <!-- Info-Footer Button -->
     <button class="info-footer-btn" onclick="toggleInfoFooter()" title="Datenquellen">ℹ</button>
     <div class="info-footer-panel" id="info-footer-panel">
         <strong>Diese Seite verwendet:</strong>
