@@ -223,22 +223,3 @@ body { padding-bottom: 100px; background: var(--bg); }
 .bk-prod-basis { font-size: 0.68rem; color: #9ca3af; }
 .bk-prod-empf-leer { font-style: italic; color: #9ca3af; }
 
-
-/* ══════════════════════════════════════ TAB-NAVIGATION */
-.dz-tabs {
-    display: flex; gap: 0; margin-top: 16px;
-    border-bottom: 2px solid var(--border);
-}
-.dz-tab {
-    flex: 1; padding: 10px 0;
-    background: none; border: none; cursor: pointer;
-    font-family: 'Barlow Condensed'; font-weight: 900;
-    font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase;
-    color: var(--dim); border-bottom: 3px solid transparent;
-    margin-bottom: -2px; transition: color 0.15s, border-color 0.15s;
-}
-.dz-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
-.dz-tab:hover:not(.active) { color: var(--text); }
-
-.dz-tab-content { display: none; }
-.dz-tab-content.active { display: block; }

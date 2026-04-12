@@ -11,24 +11,38 @@
   .container { max-width: 680px; margin: 0 auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
 
   /* Tab Navigation */
-  .tab-wrap { display: flex; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e5e0d8); border-radius: 12px; padding: 4px; margin-bottom: 6px; gap: 4px; }
+  .tab-wrap { display: flex; align-items: center; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e5e0d8); border-radius: 12px; padding: 4px; margin-bottom: 6px; gap: 4px; }
   .tab-btn { flex: 1; padding: 12px; text-align: center; font-size: 0.85rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  
-  /* Spezifische Tab-Farben im aktiven Zustand */
-  .tab-btn.active.tab-inv { background: #1e293b; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-  .tab-btn.active.tab-lief { background: #059669; color: #fff; box-shadow: 0 2px 8px rgba(5,150,105,0.2); }
-  .tab-btn.inactive { background: transparent; color: var(--text-secondary, #6b7280); }
 
-  /* Arbeitsbereiche (Rahmen & Hintergrund) */
+  /* Trennlinie zwischen Arbeits-Tabs und Ergebnis-Tab */
+  .tab-btn-sep { width: 1px; height: 28px; background: var(--border-color, #e5e0d8); flex-shrink: 0; margin: 0 2px; }
+
+  /* Inventur + Lieferung: gleiche Farbe — gehören zusammen */
+  .tab-btn.active.tab-inv  { background: #1e293b; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  .tab-btn.active.tab-lief { background: #1e293b; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+
+  /* Bestand: warm abgesetzt — Ergebnis der anderen beiden */
+  .tab-btn.active.tab-bestand { background: #6d4c7d; color: #fff; box-shadow: 0 2px 8px rgba(109,76,125,0.25); }
+
+  .tab-btn.inactive { background: transparent; color: var(--text-secondary, #6b7280); }
+  .tab-btn.inactive.tab-bestand { background: rgba(109, 76, 125, 0.08); color: #6d4c7d; }
+
+  /* Arbeitsbereiche */
   #view-inventur {
-    background: rgba(59, 130, 246, 0.04); /* Dezent Blau */
-    border: 2px solid #bfdbfe;
+    background: rgba(30, 41, 59, 0.03);
+    border: 2px solid #cbd5e1;
     border-radius: 14px;
     padding: 12px;
   }
   #view-lieferung {
-    background: rgba(16, 185, 129, 0.04); /* Dezent Grün */
-    border: 2px solid #a7f3d0;
+    background: rgba(30, 41, 59, 0.03);
+    border: 2px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 12px;
+  }
+  #view-bestand {
+    background: rgba(109, 76, 125, 0.04);
+    border: 2px solid #d8b4e8;
     border-radius: 14px;
     padding: 12px;
   }
@@ -101,8 +115,10 @@
   <h1 style="margin:0 0 4px; font-size:1.4rem; font-weight:900;">📦 Inventur & Wareneingang</h1>
 
   <div class="tab-wrap">
-    <div class="tab-btn active tab-inv" id="tab-inventur" onclick="switchTab('inventur')">📋 Inventur Zählung</div>
+    <div class="tab-btn active tab-inv" id="tab-inventur" onclick="switchTab('inventur')">📋 Inventur</div>
     <div class="tab-btn inactive tab-lief" id="tab-lieferung" onclick="switchTab('lieferung')">🚚 Lieferung</div>
+    <div class="tab-btn-sep"></div>
+    <div class="tab-btn inactive tab-bestand" id="tab-bestand" onclick="switchTab('bestand')">📊 Bestand</div>
   </div>
 
   <div id="view-inventur">
@@ -129,6 +145,10 @@
     </div>
 
     <div id="main-list" style="display:flex; flex-direction:column;"></div>
+  </div>
+
+  <div id="view-bestand" style="display:none;">
+    <div id="bestand-content"></div>
   </div>
 
   <div id="view-lieferung" style="display:none;">
@@ -186,20 +206,121 @@ window.onload = async function() {
 };
 
 function switchTab(tab) {
-  var tabInv = document.getElementById('tab-inventur');
-  var tabLief = document.getElementById('tab-lieferung');
-  
-  if (tab === 'inventur') {
-    tabInv.className = 'tab-btn active tab-inv';
-    tabLief.className = 'tab-btn inactive tab-lief';
-    document.getElementById('view-inventur').style.display = 'block';
-    document.getElementById('view-lieferung').style.display = 'none';
-  } else {
-    tabInv.className = 'tab-btn inactive tab-inv';
-    tabLief.className = 'tab-btn active tab-lief';
-    document.getElementById('view-inventur').style.display = 'none';
-    document.getElementById('view-lieferung').style.display = 'block';
+  var tabInv     = document.getElementById('tab-inventur');
+  var tabBest    = document.getElementById('tab-bestand');
+  var tabLief    = document.getElementById('tab-lieferung');
+
+  tabInv.className  = 'tab-btn ' + (tab === 'inventur' ? 'active' : 'inactive') + ' tab-inv';
+  tabBest.className = 'tab-btn ' + (tab === 'bestand'  ? 'active' : 'inactive') + ' tab-bestand';
+  tabLief.className = 'tab-btn ' + (tab === 'lieferung'? 'active' : 'inactive') + ' tab-lief';
+
+  document.getElementById('view-inventur').style.display = tab === 'inventur' ? 'block' : 'none';
+  document.getElementById('view-bestand').style.display  = tab === 'bestand'  ? 'block' : 'none';
+  document.getElementById('view-lieferung').style.display= tab === 'lieferung'? 'block' : 'none';
+
+  if (tab === 'bestand') renderBestand();
+}
+
+function renderBestand() {
+  var el = document.getElementById('bestand-content');
+  if (!el) return;
+
+  // Neuesten Bestand-Snapshot finden
+  var snapshot = null;
+  for (var i = bestandDb.length - 1; i >= 0; i--) {
+    if (bestandDb[i].typ === 'bestand' && bestandDb[i].bestaende) {
+      snapshot = bestandDb[i];
+      break;
+    }
   }
+
+  // Kein Snapshot vorhanden
+  if (!snapshot) {
+    el.innerHTML =
+      '<div style="text-align:center;padding:40px 16px;">' +
+        '<div style="font-size:2.5rem;margin-bottom:12px;">📭</div>' +
+        '<div style="font-weight:800;font-size:1rem;color:var(--text-primary,#1a1a1a);margin-bottom:6px;">Noch keine Inventur erfasst</div>' +
+        '<div style="font-size:0.8rem;color:var(--text-secondary,#6b7280);">Zähle im Tab "Inventur Zählung" und speichere den Bestand.</div>' +
+      '</div>';
+    return;
+  }
+
+  // Alter prüfen — Grenze 18 Stunden
+  var jetzt     = Date.now();
+  var tsSnap    = snapshot.timestamp || 0;
+  var alterH    = tsSnap > 0 ? (jetzt - tsSnap) / 3600000 : 9999;
+  var snapDatum = snapshot.datum || '?';
+  var snapZeit  = tsSnap > 0
+    ? new Date(tsSnap).toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr'
+    : '';
+
+  if (alterH > 18) {
+    el.innerHTML =
+      '<div style="text-align:center;padding:40px 16px;">' +
+        '<div style="font-size:2.5rem;margin-bottom:12px;">⏰</div>' +
+        '<div style="font-weight:800;font-size:1rem;color:#b45309;margin-bottom:6px;">Inventur zu alt</div>' +
+        '<div style="font-size:0.82rem;color:var(--text-secondary,#6b7280);margin-bottom:4px;">' +
+          'Letzte Zählung: ' + snapDatum.split('-').reverse().join('.') + (snapZeit ? ' · ' + snapZeit : '') +
+        '</div>' +
+        '<div style="font-size:0.78rem;color:var(--text-secondary,#6b7280);">Zähle erneut um den Bestand anzuzeigen.</div>' +
+      '</div>';
+    return;
+  }
+
+  // Bestand anzeigen
+  var pad = function(n) { return n < 10 ? '0' + n : '' + n; };
+  var tsD = new Date(tsSnap);
+  var zeitStr = pad(tsD.getDate()) + '.' + pad(tsD.getMonth()+1) + '.' + tsD.getFullYear()
+              + ' · ' + pad(tsD.getHours()) + ':' + pad(tsD.getMinutes()) + ' Uhr';
+
+  var html =
+    '<div style="font-size:0.72rem;font-weight:700;color:var(--text-secondary,#6b7280);' +
+    'text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;padding:8px 10px;' +
+    'background:var(--card-bg,#fff);border:1px solid var(--border-color,#e5e0d8);border-radius:10px;">' +
+      '📅 Gezählt am ' + zeitStr +
+    '</div>';
+
+  LAGERTYP_ORDER.forEach(function(typ) {
+    var gruppe = config.filter(function(p) {
+      return (p.lagertyp || 'sonstiges') === typ && snapshot.bestaende[p.id] !== undefined;
+    });
+    if (!gruppe.length) return;
+
+    html +=
+      '<div class="lagertyp-header">' +
+        '<span class="lagertyp-badge badge-' + typ + '">' + (LAGERTYP_LABEL[typ] || typ) + '</span>' +
+        '<span class="lagertyp-count">' + gruppe.length + ' Produkt' + (gruppe.length !== 1 ? 'e' : '') + '</span>' +
+      '</div>';
+
+    gruppe.forEach(function(p) {
+      var b        = snapshot.bestaende[p.id];
+      var menge    = b.menge !== undefined ? b.menge : '–';
+      var einheit  = cap(b.einheit || p.soll_einheit || '');
+
+      var subParts = [];
+      if (p.lieferant) subParts.push(p.lieferant);
+      if (p.gebinde && p.gebinde.form) {
+        var geb = cap(p.gebinde.form);
+        if (p.gebinde.inhalt_stueck && p.gebinde.inhalt_einheit) {
+          geb += ' à ' + p.gebinde.inhalt_stueck + '\u202f' + p.gebinde.inhalt_einheit;
+        }
+        subParts.push(geb);
+      }
+
+      html +=
+        '<div class="list-row typ-' + typ + '">' +
+          '<div class="row-info">' +
+            '<div class="row-title">' + esc(p.name) + '</div>' +
+            (subParts.length ? '<div class="row-sub">' + esc(subParts.join(' · ')) + '</div>' : '') +
+          '</div>' +
+          '<div style="font-size:1.25rem;font-weight:900;color:var(--text-primary,#1a1a1a);flex-shrink:0;text-align:right;">' +
+            menge + '<span style="font-size:0.72rem;font-weight:600;color:var(--text-secondary,#6b7280);margin-left:4px;">' + einheit + '</span>' +
+          '</div>' +
+        '</div>';
+    });
+  });
+
+  el.innerHTML = html;
 }
 
 function checkDeliveryDay() {
@@ -208,19 +329,22 @@ function checkDeliveryDay() {
     if ((p.liefertage||[]).includes(heute)) isDeliveryDay = true;
   });
   
-  var tabInv = document.getElementById('tab-inventur');
+  var tabInv  = document.getElementById('tab-inventur');
+  var tabBest = document.getElementById('tab-bestand');
   var tabLief = document.getElementById('tab-lieferung');
 
   if (isDeliveryDay) {
     document.getElementById('poka-yoke-box').style.display = 'block';
-    tabInv.style.flex = "1";
+    tabInv.style.flex  = "1";
+    tabBest.style.flex = "1";
     tabLief.style.flex = "1";
-    tabLief.innerHTML = "🚚 Lieferung";
+    tabLief.innerHTML  = "🚚 Lieferung";
   } else {
-    tabInv.style.flex = "3";
-    tabLief.style.flex = "1";
-    tabLief.innerHTML = "🚚"; 
-    tabLief.title = "Außerplanmäßige Lieferung erfassen";
+    tabInv.style.flex  = "1.5";
+    tabLief.style.flex = "0.5";
+    tabBest.style.flex = "1";
+    tabLief.innerHTML  = "🚚";
+    tabLief.title      = "Außerplanmäßige Lieferung erfassen";
   }
 }
 

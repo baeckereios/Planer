@@ -7,6 +7,15 @@
  * Einbinden: <script src="produktions_gehirn.js"></script>
  * Verwenden: await window.BOS_GEHIRN.init();
  * // danach ist window.BOS_STAMMDATEN befüllt
+ *
+ * WURM-MODUS (wurm_aktiv: true in taeglicher_verbrauch.json):
+ * Das Berechnungsfenster folgt automatisch dem aktuellen Datum.
+ * Einfrieren: wenn ein Feiertag im Rückblick-Fenster liegt.
+ * Auftauen:   wenn der letzte Feiertag vollständig aus dem Fenster
+ *             herausgefallen ist (d.h. alle zeitraum_tage Tage sind feiertagsfrei).
+ * Eingefroren hält der Wurm den letzten sauberen Schnitt.
+ * Feiertags-Check läuft gegen die interne FEIERTAGE_NDS-Liste.
+ * Ferien und sonstige Sondertage lösen kein Einfrieren aus.
  */
 
 (function() {
@@ -28,6 +37,88 @@ const JS_ZU_BOS = [6,0,1,2,3,4,5];
 // ── MINDEST-EINTRÄGE FÜR FAIL-FAST ───────────────────────
 const MIN_EINTRAEGE = 7;
 
+// ── DATUM-HELPER ──────────────────────────────────────────
+function datumZuISO(d) {
+    const p = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+
+function isoZuDatum(s) {
+    const [y, m, d] = s.split('-').map(Number);
+    return new Date(y, m - 1, d);
+}
+
+// ── WURM: Berechnungsfenster ermitteln ────────────────────
+//
+// Gibt {start, ende, eingefroren} zurück.
+// start/ende sind ISO-Strings (YYYY-MM-DD).
+//
+// Logik:
+//   Normalfall:   ende = gestern, start = gestern - (zeitraum_tage - 1)
+//   Eingefroren:  wenn das aktuelle Fenster [heute-zeitraum, heute-1]
+//                 mindestens einen Feiertag enthält, wird das Fenster
+//                 so weit nach hinten verschoben, bis es feiertagsfrei ist —
+//                 oder bis kein feiertagsfreies Fenster mehr gefunden wird
+//                 (dann bleibt es beim letzten sauberen Stand).
+//
+function wurmFenster(zeitraum) {
+    const heute = new Date();
+    heute.setHours(0, 0, 0, 0);
+
+    // Kandidaten-Ende: gestern
+    const gestern = new Date(heute);
+    gestern.setDate(heute.getDate() - 1);
+
+    // Prüfen ob das ideale Fenster [gestern-(zeitraum-1) .. gestern] feiertagsfrei ist
+    function fensterFeiertagsfrei(endeDatum) {
+        for (let i = 0; i < zeitraum; i++) {
+            const tag = new Date(endeDatum);
+            tag.setDate(endeDatum.getDate() - i);
+            if (FEIERTAGE_NDS.includes(datumZuISO(tag))) return false;
+        }
+        return true;
+    }
+
+    // Ideales Fenster: läuft
+    if (fensterFeiertagsfrei(gestern)) {
+        const start = new Date(gestern);
+        start.setDate(gestern.getDate() - (zeitraum - 1));
+        return {
+            start:       datumZuISO(start),
+            ende:        datumZuISO(gestern),
+            eingefroren: false
+        };
+    }
+
+    // Eingefroren: letzten Feiertag im Fenster finden, dann
+    // Fenster so weit zurückschieben bis der letzte Feiertag
+    // vollständig draußen ist.
+    // Suche rückwärts: maximal 365 Tage zurück, um das letzte
+    // saubere Fenster zu finden.
+    for (let versatz = 1; versatz <= 365; versatz++) {
+        const kandidatEnde = new Date(gestern);
+        kandidatEnde.setDate(gestern.getDate() - versatz);
+        if (fensterFeiertagsfrei(kandidatEnde)) {
+            const kandidatStart = new Date(kandidatEnde);
+            kandidatStart.setDate(kandidatEnde.getDate() - (zeitraum - 1));
+            return {
+                start:       datumZuISO(kandidatStart),
+                ende:        datumZuISO(kandidatEnde),
+                eingefroren: true
+            };
+        }
+    }
+
+    // Fallback (sollte nie eintreten): letztes Fenster ohne Garantie
+    const fallbackStart = new Date(gestern);
+    fallbackStart.setDate(gestern.getDate() - (zeitraum - 1));
+    return {
+        start:       datumZuISO(fallbackStart),
+        ende:        datumZuISO(gestern),
+        eingefroren: false
+    };
+}
+
 // ═════════════════════════════════════════════════════════
 // GEHIRN
 // ═════════════════════════════════════════════════════════
@@ -40,17 +131,18 @@ const GEHIRN = {
     _bereit:   false,
     _fehler:   null,
 
+    // Wurm-Status (öffentlich lesbar für Dioden etc.)
+    _wurmStatus: null,  // { aktiv, eingefroren, start, ende } | null
+
     // ── INIT ──────────────────────────────────────────────
     async init(basePath) {
         this._bereit = false;
         this._fehler = null;
+        this._wurmStatus = null;
 
-        // Basis-Pfad automatisch ermitteln wenn nicht angegeben
-        // Erkennt ob die Seite aus einem Unterordner aufgerufen wird
         const base = basePath || this._autoBasePath();
 
         try {
-            // Alle drei Dateien parallel laden
             const [r1, r2, r3] = await Promise.all([
                 fetch(base + 'backmengen_db.json',       { cache: 'no-store' }),
                 fetch(base + 'produkt_config.json',      { cache: 'no-store' }),
@@ -86,10 +178,20 @@ const GEHIRN = {
         this._baueStammdaten(gefiltert);
         this._bereit = true;
 
+        const ws = this._wurmStatus;
+        const wurmInfo = ws
+            ? (ws.aktiv
+                ? (ws.eingefroren
+                    ? `· Wurm ❄ eingefroren (${ws.start} – ${ws.ende})`
+                    : `· Wurm ↝ läuft (${ws.start} – ${ws.ende})`)
+                : '· Wurm inaktiv (manuell)')
+            : '';
+
         console.log(
             `[BOS_GEHIRN] ✓ ${Object.keys(window.BOS_STAMMDATEN).length} Produkte ` +
             `· Basis: ${gefiltert.length} Tage ` +
-            `· Zeitraum: ${this._verbrauch?.zeitraum_tage ?? 'alle'} Tage`
+            `· Zeitraum: ${this._verbrauch?.zeitraum_tage ?? 'alle'} Tage ` +
+            wurmInfo
         );
 
         return true;
@@ -97,23 +199,41 @@ const GEHIRN = {
 
     // ── EINTRÄGE FILTERN ──────────────────────────────────
     _gefilterteEintraege() {
-        const startDatum = this._verbrauch?.start_datum;
-        const endDatum   = this._verbrauch?.end_datum;
-        const zeitraum   = this._verbrauch?.zeitraum_tage ?? 14;
+        const zeitraum      = this._verbrauch?.zeitraum_tage ?? 14;
         const feiertageAus  = this._verbrauch?.feiertage_ausschliessen ?? true;
         const sondertageAus = this._verbrauch?.sondertage_ausschliessen ?? true;
         const manuellAus    = new Set(
             (this._verbrauch?.ausgeschlossene_tage ?? []).map(t => t.datum)
         );
+        const wurmAktiv     = this._verbrauch?.wurm_aktiv ?? false;
+
+        // Statisch definierte Grenzen (manueller Modus mit explizitem Fenster)
+        const startDatum = this._verbrauch?.start_datum;
+        const endDatum   = this._verbrauch?.end_datum;
 
         let begrenzt = [];
 
-        // NEUE LOGIK: Wenn der "Wurm" (Start/Ende) definiert ist
-        if (startDatum && endDatum) {
+        if (wurmAktiv && zeitraum > 0) {
+            // ── WURM-MODUS ────────────────────────────────
+            const fenster = wurmFenster(zeitraum);
+            this._wurmStatus = {
+                aktiv:       true,
+                eingefroren: fenster.eingefroren,
+                start:       fenster.start,
+                ende:        fenster.ende
+            };
+            begrenzt = this._db.filter(e =>
+                e.datum >= fenster.start && e.datum <= fenster.ende
+            );
+
+        } else if (startDatum && endDatum) {
+            // ── MANUELLES FENSTER (explizite Grenzen) ─────
+            this._wurmStatus = { aktiv: false, eingefroren: false, start: startDatum, ende: endDatum };
             begrenzt = this._db.filter(e => e.datum >= startDatum && e.datum <= endDatum);
-        } 
-        // ALTE LOGIK (Fallback): Nach Datum sortieren und ab heute begrenzen
-        else {
+
+        } else {
+            // ── FALLBACK: N jüngste Einträge ──────────────
+            this._wurmStatus = { aktiv: false, eingefroren: false, start: null, ende: null };
             const sortiert = [...this._db].sort((a,b) => b.datum.localeCompare(a.datum));
             begrenzt = zeitraum > 0 ? sortiert.slice(0, zeitraum) : sortiert;
         }
@@ -136,13 +256,10 @@ const GEHIRN = {
     _baueStammdaten(gefiltert) {
         const stammdaten = {};
 
-        // Pro Produkt: Durchschnitte pro Wochentag berechnen
         this._config.forEach((prod, idx) => {
             if (!prod.legacyKey) return;
 
-            const key = prod.legacyKey; // z.B. "hasenberger_stueck"
-
-            // Sammle Werte pro BOS-Wochentag
+            const key = prod.legacyKey;
             const sammlung = [[], [], [], [], [], [], []]; // Mo=0..So=6
 
             gefiltert.forEach(e => {
@@ -152,11 +269,8 @@ const GEHIRN = {
                 if (wert > 0) sammlung[bosWT].push(wert);
             });
 
-            // Durchschnitt pro Wochentag → needs Array
-            // Durch Charge teilen wenn charge > 1 — DB speichert immer Stück
-            // Schnellrechner und Planer erwarten immer Bleche/Container-Einheiten
             const charge = prod.charge || 1;
-            const alsBlech = charge > 1; // immer teilen wenn Charge gesetzt
+            const alsBlech = charge > 1;
 
             const needs = sammlung.map(arr => {
                 if (!arr.length) return 0;
@@ -164,10 +278,8 @@ const GEHIRN = {
                 return alsBlech ? Math.round(avg / charge) : Math.round(avg);
             });
 
-            // Wenn alle needs = 0 → Produkt überspringen, AUSSER es ist inventurRelevant
             if (needs.every(n => n === 0) && !prod.inventurRelevant) return;
 
-            // BOS-ID: p1, p2, ... oder legacyKey als Fallback
             const bosId = 'p' + (idx + 1);
 
             stammdaten[bosId] = {
@@ -196,20 +308,16 @@ const GEHIRN = {
 
     // ── BASIS-PFAD ERKENNUNG ──────────────────────────────
     _autoBasePath() {
-        // Pfad aus dem eigenen Script-Tag lesen — zuverlässigste Methode
         const scripts = document.querySelectorAll('script[src*="produktions_gehirn.js"]');
         if (scripts.length > 0) {
             const src = scripts[0].getAttribute('src');
-            // Alles vor "produktions_gehirn.js" ist der Basis-Pfad
-            const base = src.replace('produktions_gehirn.js', '');
-            return base;
+            return src.replace('produktions_gehirn.js', '');
         }
         return '';
     },
 
     // ── FAIL FAST FEHLERANZEIGE ───────────────────────────
     _zeigeKritischenFehler(titel, detail) {
-        // Alle bekannten Container die Tools benutzen mit Fehlermeldung befüllen
         const ids = ['main-list','overview-body','sandbox-grid','ergebnis'];
         ids.forEach(id => {
             const el = document.getElementById(id);
@@ -223,7 +331,6 @@ const GEHIRN = {
             }
         });
 
-        // Falls noch kein Container gefunden: Document-Level Banner
         const banner = document.createElement('div');
         banner.style.cssText =
             'position:fixed;top:0;left:0;right:0;z-index:9999;' +
@@ -237,7 +344,6 @@ const GEHIRN = {
 
     // ── HILFSFUNKTIONEN FÜR ANDERE TOOLS ─────────────────
 
-    // LegacyKey → BOS-ID
     bosIdFuerKey(legacyKey) {
         if (!window.BOS_STAMMDATEN) return null;
         for (const [id, p] of Object.entries(window.BOS_STAMMDATEN)) {
@@ -246,15 +352,16 @@ const GEHIRN = {
         return null;
     },
 
-    // BOS-ID → LegacyKey
     keyFuerBosId(bosId) {
         return window.BOS_STAMMDATEN?.[bosId]?.legacyKey || null;
     },
 
-    // Ist das Gehirn bereit?
-    get bereit() { return this._bereit; },
-    get fehler()  { return this._fehler; },
-    get anzahlProdukte() {
+    // Wurm-Status für Dioden und andere Konsumenten
+    get wurmStatus() { return this._wurmStatus; },
+
+    get bereit()          { return this._bereit; },
+    get fehler()          { return this._fehler; },
+    get anzahlProdukte()  {
         return window.BOS_STAMMDATEN ? Object.keys(window.BOS_STAMMDATEN).length : 0;
     }
 };

@@ -241,8 +241,25 @@
         <div class="einst-hinweis">Feiertage verfälschen den Durchschnitt. Sondertage betreffen nur manche Produkte.</div>
       </div>
     </div>
+
+    <div style="margin-top:20px;">
+      <div class="einst-section-label">〰 Automatisches Berechnungsfenster (Wurm)</div>
+      <label class="einst-toggle" id="tog-wurm" style="margin-bottom:6px;">
+        <input type="checkbox" id="einst-wurm" onchange="einstToggle('wurm')">
+        Wurm-Modus aktiv — Fenster folgt automatisch dem aktuellen Datum
+      </label>
+      <div id="wurm-modus-hinweis" class="einst-hinweis" style="display:none;">
+        Das Berechnungsfenster bewegt sich täglich automatisch mit. Bei einem Feiertag
+        im Fenster friert der Wurm ein und hält den letzten sauberen Schnitt —
+        bis der Feiertag vollständig aus dem Zeitraum herausgefallen ist.
+        Im Wurm-Modus werden start_datum / end_datum nicht gespeichert.
+      </div>
+      <div id="wurm-modus-hinweis-aus" class="einst-hinweis">
+        Manueller Modus: Das Fenster wird über den Kalender unten fest eingestellt.
+      </div>
+    </div>
     
-    <div class="kalender-wrap">
+    <div class="kalender-wrap" id="kalender-wrap-manuell">
       <div class="einst-section-label" style="margin-top:16px;">Zeitraum wählen & Einzelne Tage ausschließen</div>
       <div class="kalender-hinweis">
         <span style="color:var(--cyan); font-weight:bold;">Tippen außerhalb der cyan Markierung:</span> Verschiebt den Startpunkt des Zeitraums dorthin.<br>
@@ -317,7 +334,8 @@ let tageConfig = {};
 
 // ══ BERECHNUNGSGRUNDLAGE ══════════════════════════════
 let einstDaten = { 
-    zeitraum_tage: 14, 
+    zeitraum_tage: 14,
+    wurm_aktiv: false,
     start_datum: "", 
     end_datum: "", 
     feiertage_ausschliessen: true, 
@@ -344,6 +362,13 @@ async function ladeEinstellungen() {
   document.getElementById('einst-sondertage').checked = einstDaten.sondertage_ausschliessen;
   document.getElementById('tog-feiertage').classList.toggle('aktiv', einstDaten.feiertage_ausschliessen);
   document.getElementById('tog-sondertage').classList.toggle('aktiv', einstDaten.sondertage_ausschliessen);
+  // Wurm-Toggle
+  const wurmToggle = document.getElementById('einst-wurm');
+  if (wurmToggle) {
+      wurmToggle.checked = einstDaten.wurm_aktiv ?? false;
+      document.getElementById('tog-wurm').classList.toggle('aktiv', wurmToggle.checked);
+      _wurmToggleUI(wurmToggle.checked);
+  }
   einstKalenderRender(); einstListeRender();
 }
 
@@ -361,9 +386,28 @@ function einstAktualisiere() {
 }
 
 function einstToggle(feld) {
-  if(feld==='feiertage'){einstDaten.feiertage_ausschliessen=document.getElementById('einst-feiertage').checked;document.getElementById('tog-feiertage').classList.toggle('aktiv',einstDaten.feiertage_ausschliessen);}
-  else{einstDaten.sondertage_ausschliessen=document.getElementById('einst-sondertage').checked;document.getElementById('tog-sondertage').classList.toggle('aktiv',einstDaten.sondertage_ausschliessen);}
-  einstKalenderRender(); // Render neu, um Auffälligkeiten upzudaten
+  if (feld === 'feiertage') {
+      einstDaten.feiertage_ausschliessen = document.getElementById('einst-feiertage').checked;
+      document.getElementById('tog-feiertage').classList.toggle('aktiv', einstDaten.feiertage_ausschliessen);
+  } else if (feld === 'sondertage') {
+      einstDaten.sondertage_ausschliessen = document.getElementById('einst-sondertage').checked;
+      document.getElementById('tog-sondertage').classList.toggle('aktiv', einstDaten.sondertage_ausschliessen);
+  } else if (feld === 'wurm') {
+      einstDaten.wurm_aktiv = document.getElementById('einst-wurm').checked;
+      document.getElementById('tog-wurm').classList.toggle('aktiv', einstDaten.wurm_aktiv);
+      _wurmToggleUI(einstDaten.wurm_aktiv);
+  }
+  einstKalenderRender();
+}
+
+// Kalender und Hinweistexte je nach Wurm-Modus zeigen/verstecken
+function _wurmToggleUI(aktiv) {
+  const hinweisAn  = document.getElementById('wurm-modus-hinweis');
+  const hinweisAus = document.getElementById('wurm-modus-hinweis-aus');
+  const kalenderWrap = document.getElementById('kalender-wrap-manuell');
+  if (hinweisAn)  hinweisAn.style.display  = aktiv ? 'block' : 'none';
+  if (hinweisAus) hinweisAus.style.display = aktiv ? 'none'  : 'block';
+  if (kalenderWrap) kalenderWrap.style.display = aktiv ? 'none' : 'block';
 }
 
 function einstKalenderRender() {
@@ -380,9 +424,43 @@ function einstKalenderRender() {
 
   // Wurm Info aktualisieren
   wurmBox.style.display = 'block';
-  const startD = new Date(einstDaten.start_datum + 'T12:00:00');
-  const endD = new Date(einstDaten.end_datum + 'T12:00:00');
-  wurmBox.innerHTML = `Gewählter Zeitraum: ${startD.getDate()}.${startD.getMonth()+1}.${startD.getFullYear()} <span style="color:var(--text); opacity:0.5; margin:0 6px;">bis</span> ${endD.getDate()}.${endD.getMonth()+1}.${endD.getFullYear()}`;
+  if (einstDaten.wurm_aktiv) {
+      // Dynamisches Fenster berechnen wie produktions_gehirn.js
+      const FEIERTAGE_JS = (window.BOS_FEIERTAGE?.feiertage || []).map(f => f.datum);
+      const zeitraum = einstDaten.zeitraum_tage || 14;
+      const heute = new Date(); heute.setHours(0,0,0,0);
+      const gestern = new Date(heute); gestern.setDate(heute.getDate() - 1);
+      const _toISO = d => { const p = n => String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); };
+      function _fensterFrei(ende) {
+          for (let i = 0; i < zeitraum; i++) {
+              const t = new Date(ende); t.setDate(ende.getDate() - i);
+              if (FEIERTAGE_NDS.includes(_toISO(t)) || FEIERTAGE_JS.includes(_toISO(t))) return false;
+          }
+          return true;
+      }
+      let eingefroren = false;
+      let effEnde = new Date(gestern);
+      if (!_fensterFrei(gestern)) {
+          eingefroren = true;
+          for (let v = 1; v <= 365; v++) {
+              const k = new Date(gestern); k.setDate(gestern.getDate() - v);
+              if (_fensterFrei(k)) { effEnde = k; break; }
+          }
+      }
+      const effStart = new Date(effEnde); effStart.setDate(effEnde.getDate() - (zeitraum - 1));
+      const fmt = d => `${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}`;
+      const statusIcon = eingefroren ? '❄ eingefroren' : '↝ läuft';
+      const statusFarbe = eingefroren ? 'var(--amber)' : 'var(--cyan)';
+      wurmBox.innerHTML = `<span style="color:${statusFarbe}; font-weight:900;">${statusIcon}</span> &nbsp;·&nbsp; Aktuelles Fenster: ${fmt(effStart)} <span style="opacity:0.5;margin:0 6px;">bis</span> ${fmt(effEnde)}`;
+      wurmBox.style.borderColor = eingefroren ? 'rgba(245,158,11,0.4)' : 'rgba(6,182,212,0.3)';
+      wurmBox.style.background  = eingefroren ? 'rgba(245,158,11,0.08)' : 'rgba(6,182,212,0.1)';
+  } else {
+      const startD = new Date(einstDaten.start_datum + 'T12:00:00');
+      const endD   = new Date(einstDaten.end_datum   + 'T12:00:00');
+      wurmBox.innerHTML = `Manuelles Fenster: ${startD.getDate()}.${startD.getMonth()+1}.${startD.getFullYear()} <span style="color:var(--text); opacity:0.5; margin:0 6px;">bis</span> ${endD.getDate()}.${endD.getMonth()+1}.${endD.getFullYear()}`;
+      wurmBox.style.borderColor = 'rgba(6,182,212,0.3)';
+      wurmBox.style.background  = 'rgba(6,182,212,0.1)';
+  }
 
   let sondertageTexte = [];
   let html = '';
@@ -521,9 +599,26 @@ function einstListeRender() {
 }
 
 function einstSpeichern() {
-  einstDaten.zeitraum_tage=parseInt(document.getElementById('einst-zeitraum').value)||14;
-  dl(JSON.stringify(einstDaten,null,2),'taeglicher_verbrauch.json');
-  status('taeglicher_verbrauch.json gespeichert','ok');
+  einstDaten.zeitraum_tage = parseInt(document.getElementById('einst-zeitraum').value) || 14;
+  einstDaten.wurm_aktiv = document.getElementById('einst-wurm')?.checked ?? false;
+
+  // Im Wurm-Modus keine fixen Datumsgrenzen speichern —
+  // produktions_gehirn.js berechnet das Fenster dynamisch.
+  const output = {
+      zeitraum_tage:           einstDaten.zeitraum_tage,
+      wurm_aktiv:              einstDaten.wurm_aktiv,
+      feiertage_ausschliessen: einstDaten.feiertage_ausschliessen,
+      sondertage_ausschliessen: einstDaten.sondertage_ausschliessen,
+      ausgeschlossene_tage:    einstDaten.ausgeschlossene_tage
+  };
+  // Nur im manuellen Modus werden start/end_datum mit gespeichert
+  if (!einstDaten.wurm_aktiv && einstDaten.start_datum && einstDaten.end_datum) {
+      output.start_datum = einstDaten.start_datum;
+      output.end_datum   = einstDaten.end_datum;
+  }
+
+  dl(JSON.stringify(output, null, 2), 'taeglicher_verbrauch.json');
+  status('taeglicher_verbrauch.json gespeichert', 'ok');
 }
 
 // ══ WOCHENPLANUNG ═════════════════════════════════════

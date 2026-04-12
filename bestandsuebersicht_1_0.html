@@ -283,24 +283,17 @@
             border: 1px solid var(--border-s);
         }
         .lb-pflicht-zone {
-            flex: 1; display: flex;
+            width: 65%; display: flex;
             border-right: 2px solid rgba(0,0,0,0.18);
         }
-        .lb-pflicht-zone:last-child { border-right: none; }
         .lb-ueberhang-zone {
-            display: flex; flex-shrink: 0;
+            width: 35%; display: flex;
             background: rgba(0,0,0,0.02);
         }
         .lb-cell {
             flex: 1; border-right: 1px solid rgba(0,0,0,0.05);
             transition: background 0.3s;
         }
-        .lb-cell-small {
-            width: 14px; flex-shrink: 0;
-            border-right: 1px solid rgba(0,0,0,0.05);
-            transition: background 0.3s;
-        }
-        .lb-cell-small:last-child { border-right: none; }
         .lb-cell:last-child { border-right: none; }
         .lb-cell.lb-filled-green   { background: #2d9e5f; }
         .lb-cell.lb-filled-yellow  { background: #d4a017; }
@@ -312,16 +305,11 @@
         .lb-cell.lb-froster { background: rgba(0,0,0,0.04); display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:var(--dim); }
         .lb-cell.lb-zu { background: rgba(0,0,0,0.04); display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:var(--dim); }
         .ladebalken-labels { display: flex; width: 100%; margin-top: 3px; }
-        .lb-labels-pflicht { flex: 1; display: flex; }
-        .lb-labels-ueberhang { display: flex; flex-shrink: 0; }
+        .lb-labels-pflicht { width: 65%; display: flex; }
+        .lb-labels-ueberhang { width: 35%; display: flex; }
         .lb-label-cell {
             flex: 1; text-align: center;
             font-family: 'Barlow Condensed'; font-size: 0.6rem;
-            font-weight: 800; color: var(--dim);
-        }
-        .lb-label-cell-small {
-            width: 14px; flex-shrink: 0; text-align: center;
-            font-family: 'Barlow Condensed'; font-size: 0.55rem;
             font-weight: 800; color: var(--dim);
         }
         .lb-label-cell.lb-label-mon { color: var(--text); font-weight: 900; font-size: 0.65rem; }
@@ -1286,69 +1274,49 @@ function buildCard(k, name, stock, need, colorClass, statusText, reachDays, pfli
     card.onclick = function() { toggleAccordion(k); };
 
     var DAY_LABELS = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    // Balken startet immer von HEUTE — Froster-Tage ausgegraut mit ❄
+    var totalCells = 10;
+    var fo = frosterOffset; // 1 oder 2 Froster-Tage
+    var pflichtCells = pflichtDays + 1; // ab anchorDate bis Mo
+    var ueberhangCells = totalCells - fo - pflichtCells;
+    if (ueberhangCells < 0) ueberhangCells = 0;
 
-    // ── PFLICHTZONE: immer Mo–Di–Mi–Do–Fr–Sa–So–Mo (8 Zellen fix) ──
-    // Startpunkt: letzter Montag (oder heute wenn heute Montag)
-    var heute = new Date(); heute.setHours(0,0,0,0);
-    var wochentag = heute.getDay(); // 0=So,1=Mo,...,6=Sa
-    var tageZurueckZuMo = wochentag === 0 ? 6 : wochentag - 1;
-    var balkMo = new Date(heute); balkMo.setDate(balkMo.getDate() - tageZurueckZuMo);
-
-    // anchorDate: ab wann wird produziert (heute + frosterOffset)
-    var anchorDateBalken = new Date(heute);
-    anchorDateBalken.setDate(anchorDateBalken.getDate() + frosterOffset);
-
-    // reachDays relativ zu anchorDate → umrechnen auf Balken-Index (ab balkMo)
-    var anchorOffsetInBalken = Math.round((anchorDateBalken - balkMo) / 86400000);
-    // reachDays ist ab anchorDate gezählt → absoluter Tag im Balken = anchorOffsetInBalken + reachDays
-    var reachAbsIdx = (reachDays >= 0) ? anchorOffsetInBalken + reachDays : -1;
-
+    // Froster-Zellen (65% Pflichtzone)
     var pflichtBar = '', pflichtLabels = '';
-    var d = new Date(balkMo);
-    for (var i = 0; i < 8; i++) {
+    var d = new Date(); d.setHours(0,0,0,0);
+    for (var fi = 0; fi < fo; fi++) {
+        pflichtBar += '<div class="lb-cell lb-froster">❄</div>';
+        pflichtLabels += '<div class="lb-label-cell">' + DAY_LABELS[d.getDay()] + '</div>';
+        d.setDate(d.getDate() + 1);
+    }
+    // Pflicht-Zellen (ab anchorDate bis Mo)
+    for (var i = 0; i < pflichtCells; i++) {
         var dateStrPf = d.toISOString().split('T')[0];
         var isClosed = wochenconfig[dateStrPf] === 'zu';
-        var isMonTag = (i === 7); // letzte Zelle = Folge-Montag
-        var isPast   = d < heute;
-        var isFroster = (d >= heute && d < anchorDateBalken);
-        var cls;
-        if (isClosed) {
-            cls = 'lb-cell lb-zu';
-        } else if (isPast) {
-            cls = 'lb-cell'; // leer, keine Farbe
-        } else if (isFroster) {
-            cls = 'lb-cell lb-froster';
-        } else if (isMonTag) {
-            cls = 'lb-cell lb-filled-' + colorClass;
-        } else {
-            var gedeckt = (reachAbsIdx >= 0 && i < reachAbsIdx);
-            cls = 'lb-cell lb-filled-' + (gedeckt ? 'green' : 'red');
-        }
-        var cellContent = isClosed ? '🔒' : (isFroster ? '❄' : '');
-        pflichtBar += '<div class="' + cls + '">' + cellContent + '</div>';
-        var lCls = 'lb-label-cell' + (isMonTag ? ' lb-label-mon' : '');
+        var isFilled = (reachDays >= 0 && i < reachDays);
+        var isEmpty = !isFilled && !isClosed;
+        var cls = isClosed
+            ? 'lb-cell lb-zu'
+            : 'lb-cell lb-filled-' + colorClass;
+        pflichtBar += '<div class="' + cls + '">' + (isClosed ? '🔒' : '') + '</div>';
+        var lCls = 'lb-label-cell' + (i === pflichtCells - 1 ? ' lb-label-mon' : '');
         pflichtLabels += '<div class="' + lCls + '">' + DAY_LABELS[d.getDay()] + '</div>';
         d.setDate(d.getDate() + 1);
     }
 
-    // ── ÜBERHANG (1/3): Tage nach Folge-Montag ──
-    // d zeigt jetzt auf Dienstag nach Folge-Montag
+    // Überhang cells (35%)
     var ueberhangBar = '', ueberhangLabels = '';
-    var isUeberschuss = (colorClass === 'green');
-    if (isUeberschuss && reachAbsIdx > 8) {
-        // Überschuss: Tage Di, Mi, Do... bis reachAbsIdx (max 4)
-        var extraDays = Math.min(reachAbsIdx - 8, 4);
-        for (var j = 0; j < extraDays; j++) {
-            var isClosedU = wochenconfig[d.toISOString().split('T')[0]] === 'zu';
-            var clsU = isClosedU ? 'lb-cell-small lb-zu' : 'lb-cell-small lb-filled-overhang';
-            ueberhangBar += '<div class="' + clsU + '"></div>';
-            ueberhangLabels += '<div class="lb-label-cell-small">' + DAY_LABELS[d.getDay()] + '</div>';
-            d.setDate(d.getDate() + 1);
-        }
-    } else if (!isUeberschuss) {
-        // Defizit: ein leerer Di als Signal
-        ueberhangBar = '<div class="lb-cell-small"></div>';
-        ueberhangLabels = '<div class="lb-label-cell-small">' + DAY_LABELS[d.getDay()] + '</div>';
+    for (var j = 0; j < ueberhangCells; j++) {
+        var dateStrUe = d.toISOString().split('T')[0];
+        var isClosedU = wochenconfig[dateStrUe] === 'zu';
+        var cellIdx = pflichtCells + j;
+        var isFilledU = (reachDays >= 0 && cellIdx < reachDays);
+        var isReachEnd = (reachDays >= 0 && cellIdx === reachDays - 1 && reachDays > pflichtCells);
+        var clsU = isClosedU ? 'lb-cell lb-zu' : ('lb-cell' + (isFilledU ? ' lb-filled-overhang' : ''));
+        ueberhangBar += '<div class="' + clsU + '">' + (isClosedU ? '🔒' : '') + '</div>';
+        var lClsU = 'lb-label-cell' + (isReachEnd ? ' lb-label-reach' : '');
+        ueberhangLabels += '<div class="' + lClsU + '">' + DAY_LABELS[d.getDay()] + '</div>';
+        d.setDate(d.getDate() + 1);
     }
 
     // Akkordeon Tagesaufschlüsselung

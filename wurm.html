@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Der Wurm – BäckereiOS</title>
+  <link rel="stylesheet" href="systemdesign.css">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+  <script src="feiertage_nds.js"></script>
+  <script src="produktions_gehirn.js"></script>
+  <script src="shell.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding-bottom: 100px;
+      background: var(--bg);
+      font-family: 'Barlow', sans-serif;
+      min-height: 100vh;
+    }
+
+    .page-wrap {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+
+    /* ── HERO ── */
+    .wurm-hero {
+      text-align: center;
+      padding: 28px 16px 20px;
+      position: relative;
+    }
+    .wurm-hero-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 8px;
+    }
+    .wurm-hero-title {
+      font-family: 'Fraunces', serif;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--text);
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+    .wurm-hero-title span { color: var(--amber); font-style: italic; }
+
+    /* ── STATUS CHIP ── */
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 0.78rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 12px;
+      transition: all 0.3s ease;
+    }
+    .status-chip.laeuft {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1.5px solid rgba(34, 197, 94, 0.4);
+      color: #16a34a;
+    }
+    .status-chip.eingefroren {
+      background: rgba(212, 154, 54, 0.12);
+      border: 1.5px solid rgba(212, 154, 54, 0.4);
+      color: var(--amber);
+    }
+    .status-chip.inaktiv {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      color: var(--dim);
+    }
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .laeuft .status-dot   { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.2); animation: puls-gruen 2s ease-in-out infinite; }
+    .eingefroren .status-dot { background: var(--amber); }
+    .inaktiv .status-dot  { background: var(--dim); }
+    @keyframes puls-gruen {
+      0%,100% { box-shadow: 0 0 0 3px rgba(34,197,94,0.2); }
+      50%      { box-shadow: 0 0 0 6px rgba(34,197,94,0.05); }
+    }
+
+    /* ── WURM ANIMATION STAGE ── */
+    .wurm-stage {
+      position: relative;
+      height: 80px;
+      margin: 20px 0 8px;
+      overflow: visible;
+    }
+    .wurm-stage svg {
+      position: absolute;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      overflow: visible;
+    }
+
+    /* ── PERSÖNLICHKEITS-KARTE ── */
+    .personality-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-left: 4px solid var(--amber);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      animation: fadeUp 0.4s ease both;
+    }
+    .personality-card.eingefroren { border-left-color: var(--amber); }
+    .personality-card.laeuft      { border-left-color: #22c55e; }
+    .personality-card.inaktiv     { border-left-color: var(--dim); }
+    .personality-icon {
+      font-size: 1.6rem;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .personality-text {
+      font-family: 'Fraunces', serif;
+      font-style: italic;
+      font-size: 0.95rem;
+      font-weight: 300;
+      color: var(--text);
+      line-height: 1.5;
+      flex: 1;
+    }
+    .personality-erklaerung {
+      font-family: 'Barlow', sans-serif;
+      font-style: normal;
+      font-size: 0.78rem;
+      color: var(--dim);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    /* ── FENSTER-CARD ── */
+    .section-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 0.7rem;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .fenster-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 20px;
+      animation: fadeUp 0.4s 0.1s ease both;
+    }
+    .fenster-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+    .fenster-row:last-child { border-bottom: none; }
+    .fenster-row-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .fenster-row-value {
+      font-weight: 800;
+      color: var(--text);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.95rem;
+    }
+    .fenster-row-value.amber { color: var(--amber); }
+    .fenster-row-value.gruen { color: #16a34a; }
+    .fenster-row-value.rot   { color: #ef4444; }
+
+    /* ── KALENDER ── */
+    .kalender-wrap {
+      animation: fadeUp 0.4s 0.15s ease both;
+    }
+    .kal-monat-titel {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 0.82rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text);
+      margin: 16px 0 8px;
+    }
+    .kal-wt-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+    .kal-wt-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: var(--dim);
+      text-transform: uppercase;
+      padding: 3px 0;
+    }
+    .kal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+    }
+    .kal-tag {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--dim);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: default;
+      transition: all 0.15s;
+      position: relative;
+      min-height: 36px;
+    }
+    .kal-tag.hat-daten {
+      color: var(--text);
+      background: var(--surface);
+      border-color: var(--border);
+    }
+    .kal-tag.in-wurm {
+      background: rgba(212, 154, 54, 0.18);
+      border-color: rgba(212, 154, 54, 0.55);
+      border-width: 1.5px;
+      color: var(--text);
+      font-weight: 700;
+    }
+    .kal-tag.in-wurm.hat-daten {
+      background: rgba(212, 154, 54, 0.26);
+      border-color: rgba(212, 154, 54, 0.7);
+    }
+    /* Wurm-Kopf (letzter Tag = Ende des Zeitraums = aktuellster Datenpunkt) */
+    .kal-tag.wurm-ende {
+      background: var(--amber) !important;
+      border-color: var(--amber) !important;
+      color: #fff !important;
+      font-weight: 900;
+      box-shadow: 0 0 0 3px rgba(212,154,54,0.25), 0 2px 8px rgba(212,154,54,0.4);
+      transform: scale(1.08);
+      z-index: 2;
+      position: relative;
+    }
+    /* Wurm-Schwanz (erster Tag = ältester Datenpunkt) */
+    .kal-tag.wurm-start {
+      background: rgba(212, 154, 54, 0.22);
+      border: 2px dashed rgba(212, 154, 54, 0.8);
+      color: var(--text);
+      font-weight: 900;
+    }
+    /* Ausgeschlossen */
+    .kal-tag.ausgeschlossen {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      cursor: pointer;
+    }
+    .kal-tag.ausgeschlossen .kal-num { text-decoration: line-through; opacity: 0.7; }
+    /* Feiertag */
+    .kal-tag.feiertag {
+      background: rgba(139, 92, 246, 0.08);
+      border-color: rgba(139, 92, 246, 0.3);
+      color: #7c3aed;
+      cursor: pointer;
+    }
+    .kal-tag.in-wurm.feiertag {
+      background: rgba(139, 92, 246, 0.18);
+      border-color: rgba(139, 92, 246, 0.5);
+    }
+    /* Heute */
+    .kal-tag.heute {
+      box-shadow: 0 0 0 2px var(--amber);
+    }
+    .kal-sym {
+      font-size: 0.55rem;
+      line-height: 1;
+      margin-top: 1px;
+    }
+
+    /* ── LEGENDE ── */
+    .legende {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      margin-top: 14px;
+      animation: fadeUp 0.4s 0.2s ease both;
+    }
+    .leg-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--dim);
+    }
+    .leg-dot {
+      width: 10px; height: 10px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    /* ── POPUP ── */
+    .popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 300;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0 0 80px;
+    }
+    .popup-overlay.open { display: flex; }
+    .popup-sheet {
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      padding: 20px 20px 28px;
+      width: 100%;
+      max-width: 560px;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .popup-handle {
+      width: 36px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto 16px;
+    }
+    .popup-titel {
+      font-family: 'Fraunces', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .popup-datum {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 12px;
+    }
+    .popup-text {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--text);
+    }
+    .popup-close {
+      width: 100%;
+      margin-top: 16px;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 11px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    /* ── EINGEFROREN-OVERLAY auf dem Kalender ── */
+    .eingefroren-banner {
+      background: rgba(212, 154, 54, 0.08);
+      border: 1.5px solid rgba(212, 154, 54, 0.3);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      font-size: 0.82rem;
+      color: var(--amber);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      display: none;
+    }
+    .eingefroren-banner.sichtbar { display: flex; }
+
+    /* ── ANIMATION ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── LADESCREEN ── */
+    .lade-wrap {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--dim);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- HERO -->
+  <div class="wurm-hero">
+    <div class="wurm-hero-label">Berechnungsgrundlage</div>
+    <h1 class="wurm-hero-title">Der <span>Wurm</span></h1>
+
+    <!-- Wurm-Animation Stage -->
+    <div class="wurm-stage" id="wurm-stage">
+      <svg id="wurm-svg" viewBox="0 0 400 80" preserveAspectRatio="xMidYMid meet">
+        <!-- Wird per JS gebaut -->
+      </svg>
+    </div>
+
+    <div id="status-chip" class="status-chip inaktiv">
+      <span class="status-dot"></span>
+      <span id="status-text">Lädt...</span>
+    </div>
+  </div>
+
+  <!-- PERSÖNLICHKEIT -->
+  <div class="personality-card inaktiv" id="personality-card">
+    <div class="personality-icon" id="personality-icon">〰️</div>
+    <div>
+      <div class="personality-text" id="personality-quote">Lädt...</div>
+      <div class="personality-erklaerung" id="personality-erklaerung"></div>
+    </div>
+  </div>
+
+  <!-- FENSTER-DATEN -->
+  <div class="section-label"><i class="ph-duotone ph-calendar-blank"></i> Berechnungsfenster</div>
+  <div class="fenster-card" id="fenster-card">
+    <div class="lade-wrap">Daten werden geladen…</div>
+  </div>
+
+  <!-- KALENDER -->
+  <div class="section-label"><i class="ph-duotone ph-calendar-dots"></i> Wo lebt der Wurm gerade</div>
+
+  <div class="eingefroren-banner" id="eingefroren-banner">
+    <i class="ph-fill ph-snowflake"></i>
+    <span id="eingefroren-text">Eingefroren — Feiertag im Fenster.</span>
+  </div>
+
+  <div class="kalender-wrap" id="kalender-wrap">
+    <div class="lade-wrap">Kalender wird aufgebaut…</div>
+  </div>
+
+  <div class="legende" id="legende" style="display:none;">
+    <div class="leg-item">
+      <div class="leg-dot" style="background:var(--amber);"></div>
+      Kopf des Wurms (Ende des Zeitraums)
+    </div>
+    <div class="leg-item">
+      <div class="leg-dot" style="background:rgba(212,154,54,0.22); border:2px dashed rgba(212,154,54,0.8);"></div>
+      Schwanz (Beginn, ältester Tag)
+    </div>
+    <div class="leg-item">
+      <div class="leg-dot" style="background:rgba(212,154,54,0.15); border:1px solid rgba(212,154,54,0.45);"></div>
+      Im Fenster
+    </div>
+    <div class="leg-item">
+      <div class="leg-dot" style="background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.4);"></div>
+      Feiertag (tippen für Details)
+    </div>
+    <div class="leg-item">
+      <div class="leg-dot" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.4);"></div>
+      Ausgeschlossen (tippen für Grund)
+    </div>
+    <div class="leg-item">
+      <div class="leg-dot" style="background:transparent; border:2px solid var(--amber); border-radius:3px;"></div>
+      Heute
+    </div>
+  </div>
+
+</div>
+
+<!-- POPUP -->
+<div class="popup-overlay" id="popup-overlay" onclick="schliessePopup(event)">
+  <div class="popup-sheet">
+    <div class="popup-handle"></div>
+    <div class="popup-datum" id="popup-datum"></div>
+    <div class="popup-titel" id="popup-titel"></div>
+    <div class="popup-text"  id="popup-text"></div>
+    <button class="popup-close" onclick="schliessePopup()">Schließen</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// WURM.HTML — Statusseite für den automatischen Berechnungs-Wurm
+// Liest seinen Zustand aus window.BOS_GEHIRN nach dem init()
+// ═══════════════════════════════════════════════════════
+
+// Feiertags-Namen für Popups
+const FEIERTAG_NAMEN = {
+  '2025-01-01': 'Neujahr',
+  '2025-04-18': 'Karfreitag',
+  '2025-04-21': 'Ostermontag',
+  '2025-05-01': 'Tag der Arbeit',
+  '2025-05-29': 'Christi Himmelfahrt',
+  '2025-06-09': 'Pfingstmontag',
+  '2025-10-03': 'Tag der Deutschen Einheit',
+  '2025-10-31': 'Reformationstag',
+  '2025-12-25': '1. Weihnachtstag',
+  '2025-12-26': '2. Weihnachtstag',
+  '2026-01-01': 'Neujahr',
+  '2026-04-03': 'Karfreitag',
+  '2026-04-06': 'Ostermontag',
+  '2026-05-01': 'Tag der Arbeit',
+  '2026-05-14': 'Christi Himmelfahrt',
+  '2026-05-25': 'Pfingstmontag',
+  '2026-10-03': 'Tag der Deutschen Einheit',
+  '2026-10-31': 'Reformationstag',
+  '2026-12-25': '1. Weihnachtstag',
+  '2026-12-26': '2. Weihnachtstag',
+  '2027-01-01': 'Neujahr',
+  '2027-04-02': 'Karfreitag',
+  '2027-04-05': 'Ostermontag',
+  '2027-05-01': 'Tag der Arbeit',
+  '2027-05-13': 'Christi Himmelfahrt',
+  '2027-05-24': 'Pfingstmontag',
+  '2027-10-03': 'Tag der Deutschen Einheit',
+  '2027-10-31': 'Reformationstag',
+  '2027-12-25': '1. Weihnachtstag',
+  '2027-12-26': '2. Weihnachtstag',
+};
+
+// Feiertags-Erklärung für Nicht-Bäcker
+const FEIERTAG_ERKLAERUNG =
+  'An gesetzlichen Feiertagen hat die Bäckerei entweder zu oder der ' +
+  'Verkauf läuft ganz anders als normal. Das verfälscht den Durchschnitt. ' +
+  'Der Wurm klammert Feiertage deshalb automatisch aus seiner Rechnung aus — ' +
+  'oder friert ganz ein, wenn er ihnen nicht ausweichen kann.';
+
+// Persönlichkeit je nach Zustand
+const PERSOENLICHKEIT = {
+  laeuft: {
+    icon: '〰️',
+    zitate: [
+      'Alles ruhig. Ich fresse mich gemütlich durch die letzten Tage.',
+      'Keine besonderen Vorkommnisse. Der Durchschnitt bewegt sich.',
+      'Ich krieche. Du kannst dich auf mich verlassen.',
+      'Normalbetrieb. Schön langweilig hier.',
+    ],
+    erklaerung:
+      'Der Wurm läuft im Automatik-Modus. Er schaut sich täglich die letzten ' +
+      '{N} Tage an und berechnet daraus den Durchschnittsbedarf. ' +
+      'Solange keine Feiertage in diesem Fenster liegen, ' +
+      'bewegt er sich jeden Tag einen Tag weiter nach vorn.',
+  },
+  eingefroren: {
+    icon: '❄️',
+    zitate: [
+      'Ein Feiertag war im Fenster. Ich warte.',
+      'Ich stehe still — nicht aus Faulheit, sondern aus Prinzip.',
+      'Feiertage machen den Durchschnitt kaputt. Also warte ich lieber.',
+      'Die Zahlen von Feiertagen taugen nichts. Ich halte meinen letzten sauberen Stand.',
+    ],
+    erklaerung:
+      'Ein gesetzlicher Feiertag liegt im Berechnungsfenster. ' +
+      'An Feiertagen läuft der Verkauf so anders, dass die Zahlen ' +
+      'den echten Bedarf verzerren würden. ' +
+      'Der Wurm hält deshalb seinen letzten sauberen Durchschnitt — ' +
+      'und läuft wieder, sobald der Feiertag vollständig aus dem {N}-Tage-Fenster herausgefallen ist.',
+  },
+  inaktiv: {
+    icon: '😴',
+    zitate: [
+      'Ich schlafe. Jemand hat mich auf manuell gestellt.',
+      'Manueller Modus aktiv. Ich mache nichts.',
+      'Der Zeitraum wurde von Hand festgelegt. Ich bin nicht nötig.',
+    ],
+    erklaerung:
+      'Der automatische Modus ist deaktiviert. ' +
+      'Ein Admin hat den Berechnungszeitraum manuell festgelegt. ' +
+      'Der Wurm ruht, bis der Auto-Modus wieder eingeschaltet wird.',
+  },
+};
+
+// Hilfsfunktionen
+const _pad = n => String(n).padStart(2, '0');
+const _toISO = d => `${d.getFullYear()}-${_pad(d.getMonth()+1)}-${_pad(d.getDate())}`;
+const _fmtDE  = d => `${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}`;
+const WT_KURZ = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+const WT_LANG = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+const MONAT_NAMEN = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+// Zustand
+let _verbrauchCfg = null;
+let _dbTageMap    = {};   // datum → kontext
+let _wurmStatus   = null; // { aktiv, eingefroren, start, ende }
+let _zustand      = 'inaktiv'; // 'laeuft' | 'eingefroren' | 'inaktiv'
+
+// ── WURM SVG ANIMATION ────────────────────────────────
+function zeichneWurm(zustand) {
+  const svg = document.getElementById('wurm-svg');
+  if (!svg) return;
+
+  const farbe = zustand === 'laeuft'
+    ? '#d49a36'
+    : zustand === 'eingefroren'
+      ? '#d49a36'
+      : '#9ca3af';
+
+  const frozen = zustand === 'eingefroren';
+  const schlaeft = zustand === 'inaktiv';
+
+  // Segmente des Wurms (Kreise entlang einer Wellenlinie)
+  const segmente = 12;
+  const breite = 340;
+  const cx = 30; // Startpunkt X
+  const cy = 40; // Mitte Y
+  const amplitude = frozen ? 8 : 18;
+  const wellenlaenge = breite / 2.5;
+
+  let html = `<defs>
+    <radialGradient id="wg" cx="50%" cy="50%">
+      <stop offset="0%" stop-color="${farbe}" stop-opacity="1"/>
+      <stop offset="100%" stop-color="${farbe}" stop-opacity="0.5"/>
+    </radialGradient>
+  </defs>`;
+
+  // Animierter Pfad (nur wenn läuft)
+  if (!frozen && !schlaeft) {
+    html += `<style>
+      @keyframes kriech {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-20px); }
+      }
+      .wurm-body { animation: kriech 1.8s linear infinite; }
+    </style>`;
+  }
+
+  html += `<g class="${(!frozen && !schlaeft) ? 'wurm-body' : ''}">`;
+
+  for (let i = segmente; i >= 0; i--) {
+    const t = i / segmente;
+    const x = cx + t * breite;
+    const y = cy + Math.sin((t * Math.PI * 2.5) + (frozen ? 0.3 : 0)) * amplitude;
+    const r = frozen
+      ? 5 + t * 8
+      : 4 + t * 9;
+    const alpha = 0.3 + t * 0.7;
+
+    html += `<circle cx="${x}" cy="${y}" r="${r}"
+      fill="${farbe}" opacity="${alpha}" />`;
+  }
+
+  // Kopf (letzter Kreis, größer)
+  const headX = cx + breite;
+  const headY = cy + Math.sin(Math.PI * 2.5) * amplitude;
+
+  // Augen
+  html += `<circle cx="${headX - 4}" cy="${headY - 4}" r="2.5" fill="white" opacity="0.9"/>`;
+  html += `<circle cx="${headX - 3}" cy="${headY - 4}" r="1.2" fill="#333"/>`;
+
+  if (frozen) {
+    // Eisflöckchen über dem Kopf
+    html += `<text x="${headX}" y="${headY - 18}" text-anchor="middle"
+      font-size="14" opacity="0.9">❄</text>`;
+  }
+
+  if (schlaeft) {
+    html += `<text x="${headX + 6}" y="${headY - 12}" text-anchor="middle"
+      font-size="11" opacity="0.7">💤</text>`;
+  }
+
+  html += `</g>`;
+  svg.innerHTML = html;
+}
+
+// ── PERSÖNLICHKEIT SETZEN ─────────────────────────────
+function setzePersoenlichkeit(zustand, zeitraumN) {
+  const p = PERSOENLICHKEIT[zustand] || PERSOENLICHKEIT.inaktiv;
+  const card = document.getElementById('personality-card');
+  const icon = document.getElementById('personality-icon');
+  const quote = document.getElementById('personality-quote');
+  const erkl = document.getElementById('personality-erklaerung');
+
+  // Zufälliges Zitat
+  const idx = Math.floor(Math.random() * p.zitate.length);
+
+  card.className = `personality-card ${zustand}`;
+  icon.textContent = p.icon;
+  quote.textContent = '„' + p.zitate[idx] + '"';
+  erkl.textContent = p.erklaerung.replace('{N}', zeitraumN || 14);
+}
+
+// ── STATUS CHIP ───────────────────────────────────────
+function setzeStatusChip(zustand) {
+  const chip = document.getElementById('status-chip');
+  const text = document.getElementById('status-text');
+  chip.className = `status-chip ${zustand}`;
+  const label = {
+    laeuft:       '↝ Läuft',
+    eingefroren:  '❄ Eingefroren',
+    inaktiv:      'Manueller Modus',
+  };
+  text.textContent = label[zustand] || zustand;
+}
+
+// ── FENSTER-CARD ──────────────────────────────────────
+function bauesFensterCard(ws, cfg) {
+  const card = document.getElementById('fenster-card');
+  if (!ws) { card.innerHTML = '<div class="lade-wrap">Keine Daten.</div>'; return; }
+
+  const startD = ws.start ? new Date(ws.start + 'T12:00:00') : null;
+  const endeD  = ws.ende  ? new Date(ws.ende  + 'T12:00:00') : null;
+
+  const fmtRow = (label, value, klasse='') => `
+    <div class="fenster-row">
+      <div class="fenster-row-label">${label}</div>
+      <div class="fenster-row-value ${klasse}">${value}</div>
+    </div>`;
+
+  let html = '';
+  html += fmtRow('Modus', ws.aktiv ? 'Automatisch (Wurm)' : 'Manuell', ws.aktiv ? 'gruen' : '');
+  if (startD) html += fmtRow('Beginn des Fensters', _fmtDE(startD) + ' (' + WT_LANG[startD.getDay()] + ')');
+  if (endeD)  html += fmtRow('Ende des Fensters',   _fmtDE(endeD)  + ' (' + WT_LANG[endeD.getDay()]  + ')');
+  html += fmtRow('Länge', (cfg?.zeitraum_tage || 14) + ' Tage');
+  html += fmtRow('Feiertage ausgeschlossen', (cfg?.feiertage_ausschliessen ?? true) ? 'Ja' : 'Nein');
+  html += fmtRow('Sondertage ausgeschlossen', (cfg?.sondertage_ausschliessen ?? true) ? 'Ja' : 'Nein');
+
+  const manuellAus = (cfg?.ausgeschlossene_tage || []).length;
+  if (manuellAus > 0) {
+    html += fmtRow('Manuell ausgeschlossen', manuellAus + ' Tag' + (manuellAus > 1 ? 'e' : ''), 'amber');
+  }
+
+  if (ws.eingefroren) {
+    html += fmtRow('Status', '❄ Eingefroren — Feiertag im Fenster', 'amber');
+  }
+
+  card.innerHTML = html;
+}
+
+// ── KALENDER BAUEN ────────────────────────────────────
+function baueKalender(ws, cfg) {
+  const wrap = document.getElementById('kalender-wrap');
+  const banner = document.getElementById('eingefroren-banner');
+  const legende = document.getElementById('legende');
+
+  if (!ws || !ws.start || !ws.ende) {
+    wrap.innerHTML = '<div style="color:var(--dim);font-size:0.85rem;padding:16px 0;">Kein Zeitraum definiert.</div>';
+    return;
+  }
+
+  // Eingefroren-Banner
+  if (ws.eingefroren) {
+    banner.classList.add('sichtbar');
+    // Welcher Feiertag ist schuld?
+    const startD = new Date(ws.start + 'T12:00:00');
+    const endeD  = new Date(ws.ende  + 'T12:00:00');
+    const zeitraum = cfg?.zeitraum_tage || 14;
+    const heute = new Date(); heute.setHours(0,0,0,0);
+    const gestern = new Date(heute); gestern.setDate(heute.getDate()-1);
+
+    // Finde Feiertage im idealen Fenster (gestern - N .. gestern)
+    const schuldige = [];
+    for (let i = 0; i < zeitraum; i++) {
+      const t = new Date(gestern); t.setDate(gestern.getDate() - i);
+      const iso = _toISO(t);
+      if (FEIERTAG_NAMEN[iso]) schuldige.push(FEIERTAG_NAMEN[iso]);
+    }
+    const grund = schuldige.length
+      ? schuldige.join(' & ') + ' liegt noch im Fenster.'
+      : 'Ein Feiertag liegt noch im Berechnungsfenster.';
+    document.getElementById('eingefroren-text').textContent = '❄ Eingefroren — ' + grund;
+  }
+
+  const manuellAus = new Set((cfg?.ausgeschlossene_tage || []).map(t => t.datum));
+  const ausGruende = {};
+  (cfg?.ausgeschlossene_tage || []).forEach(t => { ausGruende[t.datum] = t.grund || ''; });
+
+  const startD = new Date(ws.start + 'T12:00:00');
+  const endeD  = new Date(ws.ende  + 'T12:00:00');
+
+  // Berechne welche Monate wir brauchen — aktueller Monat zuerst
+  const heute = new Date(); heute.setHours(0,0,0,0);
+  const monateArr = [];
+  {
+    const cur = new Date(startD.getFullYear(), startD.getMonth(), 1);
+    const lim = new Date(endeD.getFullYear(),  endeD.getMonth(),  1);
+    while (cur <= lim) {
+      monateArr.push(cur.getFullYear() + '-' + cur.getMonth());
+      cur.setMonth(cur.getMonth() + 1);
+    }
+  }
+  // Umkehren: neuester Monat oben
+  monateArr.reverse();
+
+  let html = '';
+
+  for (const monatKey of monateArr) {
+    const [y, m] = monatKey.split('-').map(Number);
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const firstDay = (new Date(y, m, 1).getDay() + 6) % 7; // Mo=0
+
+    html += `<div class="kal-monat-titel">${MONAT_NAMEN[m]} ${y}</div>`;
+    html += `<div class="kal-wt-header">`;
+    ['Mo','Di','Mi','Do','Fr','Sa','So'].forEach(wt => {
+      html += `<div class="kal-wt-label">${wt}</div>`;
+    });
+    html += `</div><div class="kal-grid">`;
+
+    // Leere Zellen
+    for (let i = 0; i < firstDay; i++) html += `<div></div>`;
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const datum = `${y}-${_pad(m+1)}-${_pad(d)}`;
+      const dateObj = new Date(y, m, d);
+      const inWurm = datum >= ws.start && datum <= ws.ende;
+      const istWurmEnde  = datum === ws.ende;
+      const istWurmStart = datum === ws.start;
+      const istFeiertag  = !!FEIERTAG_NAMEN[datum];
+      const istAusgesch  = manuellAus.has(datum);
+      const istHeute     = datum === _toISO(heute);
+      const hatDaten     = !!_dbTageMap[datum];
+
+      let cls = 'kal-tag';
+      if (hatDaten)     cls += ' hat-daten';
+      if (inWurm)       cls += ' in-wurm';
+      if (istWurmEnde)  cls += ' wurm-ende';
+      if (istWurmStart) cls += ' wurm-start';
+      if (istFeiertag && !istAusgesch) cls += ' feiertag';
+      if (istAusgesch)  cls += ' ausgeschlossen';
+      if (istHeute)     cls += ' heute';
+
+      const klickbar = istFeiertag || istAusgesch;
+      const onclick = klickbar
+        ? `onclick="oeffnePopup('${datum}', '${istFeiertag ? 'feiertag' : 'ausgeschlossen'}', '${ausGruende[datum] || ''}')" style="cursor:pointer;"`
+        : '';
+
+      let sym = '';
+      if (istAusgesch)        sym = '<div class="kal-sym">✕</div>';
+      else if (istFeiertag)   sym = '<div class="kal-sym">✦</div>';
+      else if (istWurmEnde)   sym = '<div class="kal-sym">◉</div>';
+
+      html += `<div class="${cls}" ${onclick}>
+        <div class="kal-num">${d}</div>${sym}
+      </div>`;
+    }
+
+    html += `</div>`; // kal-grid
+  }
+
+  wrap.innerHTML = html;
+  legende.style.display = 'flex';
+}
+
+// ── POPUP ─────────────────────────────────────────────
+function oeffnePopup(datum, typ, grund) {
+  const dateObj = new Date(datum + 'T12:00:00');
+  const wt = WT_LANG[dateObj.getDay()];
+  const datumStr = wt + ', ' + _fmtDE(dateObj);
+
+  document.getElementById('popup-datum').textContent = datumStr.toUpperCase();
+
+  if (typ === 'feiertag') {
+    document.getElementById('popup-titel').textContent = FEIERTAG_NAMEN[datum] || 'Gesetzlicher Feiertag';
+    document.getElementById('popup-text').textContent  = FEIERTAG_ERKLAERUNG;
+  } else {
+    const grundText = grund && grund.trim()
+      ? grund
+      : 'Kein Grund hinterlegt.';
+    document.getElementById('popup-titel').textContent = 'Manuell ausgeschlossen';
+    document.getElementById('popup-text').textContent  =
+      'Dieser Tag wurde manuell von der Berechnung ausgeschlossen.\n\nGrund: ' + grundText;
+  }
+
+  document.getElementById('popup-overlay').classList.add('open');
+}
+
+function schliessePopup(evt) {
+  if (evt && evt.target !== document.getElementById('popup-overlay')) return;
+  document.getElementById('popup-overlay').classList.remove('open');
+}
+
+// ── MAIN INIT ─────────────────────────────────────────
+async function init() {
+  // Lade DB-Tage-Map für "hat-daten" Markierung
+  try {
+    const r = await fetch('backmengen_db.json', { cache: 'no-store' });
+    if (r.ok) {
+      const db = await r.json();
+      db.forEach(e => { _dbTageMap[e.datum] = e.kontext || {}; });
+    }
+  } catch(e) {}
+
+  // Lade Verbrauch-Config direkt (brauchen wir unabhängig von BOS_GEHIRN)
+  try {
+    const r = await fetch('taeglicher_verbrauch.json', { cache: 'no-store' });
+    if (r.ok) _verbrauchCfg = await r.json();
+  } catch(e) {}
+
+  // BOS_GEHIRN initialisieren — das berechnet den Wurm-Status
+  let gehirnOk = false;
+  if (window.BOS_GEHIRN) {
+    gehirnOk = await window.BOS_GEHIRN.init();
+  }
+
+  // Wurm-Status auslesen
+  if (gehirnOk && window.BOS_GEHIRN.wurmStatus) {
+    _wurmStatus = window.BOS_GEHIRN.wurmStatus;
+  } else if (_verbrauchCfg) {
+    // Fallback: lokal berechnen
+    _wurmStatus = {
+      aktiv:       _verbrauchCfg.wurm_aktiv ?? false,
+      eingefroren: false,
+      start:       _verbrauchCfg.start_datum || null,
+      ende:        _verbrauchCfg.end_datum   || null,
+    };
+  }
+
+  // Zustand bestimmen
+  if (!_wurmStatus || !_wurmStatus.aktiv) {
+    _zustand = 'inaktiv';
+  } else if (_wurmStatus.eingefroren) {
+    _zustand = 'eingefroren';
+  } else {
+    _zustand = 'laeuft';
+  }
+
+  // UI aufbauen
+  const zeitraumN = _verbrauchCfg?.zeitraum_tage || 14;
+  zeichneWurm(_zustand);
+  setzeStatusChip(_zustand);
+  setzePersoenlichkeit(_zustand, zeitraumN);
+  bauesFensterCard(_wurmStatus, _verbrauchCfg);
+  baueKalender(_wurmStatus, _verbrauchCfg);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const theme = localStorage.getItem('BOS_THEME') || 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  init();
+});
+</script>
+
+</body>
+</html>

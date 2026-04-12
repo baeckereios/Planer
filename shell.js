@@ -35,6 +35,7 @@
         'druckzentrale.html':        { title: 'Druckzentrale',      mode: 'full', tab: 'mehr'       },
         'schlawiner_rechner.html':   { title: 'Schlawiner\nRechner', mode: 'full', tab: 'mehr'      },
         'archiv.html':               { title: 'Archiv',             mode: 'full', tab: 'mehr'       },
+        'wurm.html':                 { title: 'Der Wurm',           mode: 'full', tab: 'start'      },
     };
 
     const filename = window.location.pathname.split('/').pop() || 'index.html';

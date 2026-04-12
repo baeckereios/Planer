@@ -15,8 +15,6 @@
     <script src="../feiertage_nds.js"></script>
     <script src="../produktions_gehirn.js"></script>
     <script src="../inventurdaten.js" defer></script>
-    <script src="druckzentrale_logic.js" defer></script>
-
     <link rel="stylesheet" href="druckzentrale.css">
 </head>
 <body>
@@ -28,623 +26,185 @@
             <span class="page-sub">DRUCKZENTRALE</span>
         </div>
         <div class="brand-logo">Bäckerei<span>OS</span></div>
-        <div class="slogan-bar">📋 Dokumente auswählen &amp; auf einen Schlag drucken</div>
+
+        <!-- Tab-Navigation -->
+        <div class="dz-tabs">
+            <button class="dz-tab active" onclick="DZ_switchTab('tab-dokumente')" id="dz-tab-btn-dokumente">Dokumente</button>
+            <button class="dz-tab" onclick="DZ_switchTab('tab-formular')" id="dz-tab-btn-formular">Bestand & Verbrauch</button>
+        </div>
     </div>
 
-    <div class="container">
+    <!-- TAB 1: Dokumente -->
+    <div class="dz-tab-content active" id="tab-dokumente">
+        <div class="container">
 
-        <div class="inv-bar" id="inv-bar">
-            <div class="inv-dot" id="inv-dot"></div>
-            <span id="inv-text">Inventur wird geprüft…</span>
-        </div>
+            <div class="inv-bar" id="inv-bar">
+                <div class="inv-dot" id="inv-dot"></div>
+                <span id="inv-text">Inventur wird geprüft…</span>
+            </div>
 
-        <div class="ctrl-card" id="ctrl-A">
-            <div class="ctrl-head" onclick="toggleCtrl('A')">
-                <div class="ctrl-check" id="cc-A"></div>
-                <div>
-                    <div class="ctrl-name">Frühschicht-Formular</div>
-                    <div class="ctrl-desc">Absetzen, Belegen, Koma &amp; Froster-Aufgaben</div>
+            <!-- Modul A -->
+            <div class="ctrl-card" id="ctrl-A">
+                <div class="ctrl-head" onclick="toggleCtrl('A')">
+                    <div class="ctrl-check" id="cc-A"></div>
+                    <div>
+                        <div class="ctrl-name">Frühschicht-Formular</div>
+                        <div class="ctrl-desc">Absetzen, Belegen, Koma &amp; Froster-Aufgaben</div>
+                    </div>
+                </div>
+                <div class="ctrl-cfg" id="cfg-A">
+                    <label>Datum (automatisch)</label>
+                    <div class="auto-val" id="cfg-A-date">—</div>
                 </div>
             </div>
-            <div class="ctrl-cfg" id="cfg-A">
-                <label>Datum (automatisch)</label>
-                <div class="auto-val" id="cfg-A-date">—</div>
-            </div>
-        </div>
 
-        <div class="ctrl-card" id="ctrl-B">
-            <div class="ctrl-head" onclick="toggleCtrl('B')">
-                <div class="ctrl-check" id="cc-B"></div>
-                <div>
-                    <div class="ctrl-name">Froster-Bestand</div>
-                    <div class="ctrl-desc">Aktueller Bestand nach Station</div>
-                </div>
-                <div class="ctrl-badge lock" id="badge-B" style="display:none">🔒 GESPERRT</div>
-            </div>
-        </div>
-
-        <div class="ctrl-card" id="ctrl-C">
-            <div class="ctrl-head" onclick="toggleCtrl('C')">
-                <div class="ctrl-check" id="cc-C"></div>
-                <div>
-                    <div class="ctrl-name">Wochenziele + Körner</div>
-                    <div class="ctrl-desc">Bedarfsvergleich für zwei Zieltage + Einweichplan</div>
+            <!-- Modul B -->
+            <div class="ctrl-card" id="ctrl-B">
+                <div class="ctrl-head" onclick="toggleCtrl('B')">
+                    <div class="ctrl-check" id="cc-B"></div>
+                    <div>
+                        <div class="ctrl-name">Froster-Bestand</div>
+                        <div class="ctrl-desc">Aktueller Bestand nach Station</div>
+                    </div>
+                    <div class="ctrl-badge lock" id="badge-B" style="display:none">🔒 GESPERRT</div>
                 </div>
             </div>
-            <div class="ctrl-cfg" id="cfg-C">
-                <label>Ziel 1 berechnen bis</label>
-                <select id="zeit-C1" onchange="onZeitChange('C')"></select>
-                <label style="margin-top: 8px;">Ziel 2 berechnen bis</label>
-                <select id="zeit-C2" onchange="onZeitChange('C')"></select>
-            </div>
-        </div>
 
-        <div class="ctrl-card" id="ctrl-D">
-            <div class="ctrl-head" onclick="toggleCtrl('D')">
-                <div class="ctrl-check" id="cc-D"></div>
-                <div>
-                    <div class="ctrl-name">Verbrauchs-Matrix</div>
-                    <div class="ctrl-desc">Standard-Tagesbedarf (Mo-So + Mo) pro Station</div>
+            <!-- Modul C -->
+            <div class="ctrl-card" id="ctrl-C">
+                <div class="ctrl-head" onclick="toggleCtrl('C')">
+                    <div class="ctrl-check" id="cc-C"></div>
+                    <div>
+                        <div class="ctrl-name">Wochenziele + Körner</div>
+                        <div class="ctrl-desc">Bedarfsvergleich für zwei Zieltage + Einweichplan</div>
+                    </div>
+                </div>
+                <div class="ctrl-cfg" id="cfg-C">
+                    <label>Ziel 1 berechnen bis</label>
+                    <select id="zeit-C1" onchange="onZeitChange('C')"></select>
+                    <label style="margin-top: 8px;">Ziel 2 berechnen bis</label>
+                    <select id="zeit-C2" onchange="onZeitChange('C')"></select>
                 </div>
             </div>
-        </div>
 
-        <div class="ctrl-card" id="ctrl-E">
-            <div class="ctrl-head" onclick="toggleCtrl('E')">
-                <div class="ctrl-check" id="cc-E"></div>
-                <div>
-                    <div class="ctrl-name">Frosterliste (Kopiervorlage)</div>
-                    <div class="ctrl-desc">Manuelle Eingabe & Druckvorlage für den Froster</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="ctrl-card" id="ctrl-F">
-            <div class="ctrl-head" onclick="toggleCtrl('F')">
-                <div class="ctrl-check" id="cc-F"></div>
-                <div>
-                    <div class="ctrl-name">BÄKO-Übersicht</div>
-                    <div class="ctrl-desc">Bestand · Bestellempfehlung · Rechengrundlage</div>
-                </div>
-            </div>
-        </div>
-
-        <button class="btn-print-main" onclick="doPrint()">🖨 &nbsp;Auswahl drucken</button>
-
-        <div style="height: 30px;"></div>
-        
-        <div id="preview-container">
-            
-            <div class="print-module" id="module-A">
-                <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
-                    <span>👁️ Vorschau: Frühschicht-Formular</span>
-                    <span class="pm-arrow">▼</span>
-                </div>
-                <div class="pm-body">
-                    <div class="fs-page">
-                        <div class="fs-top">
-                            <div class="fs-gruss">Guten Morgen liebe Frühschicht,<br><br>Bitte noch:</div>
-                            <div class="fs-datum-box">
-                                <div class="datum-label">Datum:</div>
-                                <div class="fs-datum-val" id="fs-datum-val">—</div>
-                            </div>
-                        </div>
-
-                        <div id="fs-items">
-                            <div class="fs-item fs-zebra" style="background-color:#e8e8e8; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
-                                <span class="fs-name">Mohn + Sesam</span>
-                                <div class="fs-dbl">
-                                    <select class="fs-sel num-dd"></select>
-                                    <span class="fs-dbl-sep" style="margin:0 6px; font-weight:bold;">/</span>
-                                    <select class="fs-sel num-dd"></select>
-                                </div>
-                            </div>
-                            <div class="fs-item">
-                                <span class="fs-name">Schokocroissants</span>
-                                <select class="fs-sel num-dd"></select>
-                                <span class="fs-suffix" style="margin-left:12px;">Bleche absetzen</span>
-                            </div>
-                            <div class="fs-item fs-zebra" style="background-color:#e8e8e8; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
-                                <span class="fs-name">Laugenecken</span>
-                                <select class="fs-sel num-dd"></select>
-                                <span class="fs-suffix" style="margin-left:12px;">Bleche absetzen</span>
-                            </div>
-                            <div class="fs-item">
-                                <span class="fs-name">Buttercroissants</span>
-                                <select class="fs-sel num-dd"></select>
-                                <span class="fs-suffix" style="margin-left:12px;">Bleche absetzen</span>
-                            </div>
-                            <div class="fs-item fs-zebra" style="background-color:#e8e8e8; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
-                                <span class="fs-name">Minibuttercroissants</span>
-                                <select class="fs-sel num-dd"></select>
-                                <span class="fs-suffix" style="margin-left:12px;">Bleche absetzen</span>
-                            </div>
-                            <div class="fs-item">
-                                <span class="fs-name">Minischokocroissants</span>
-                                <select class="fs-sel num-dd"></select>
-                                <span class="fs-suffix" style="margin-left:12px;">Bleche absetzen</span>
-                            </div>
-                            <!-- Dynamisch hinzugefügte Zeilen landen hier -->
-                            <div id="fs-extra-items"></div>
-
-                            <div class="no-print" style="margin: 2px 0 4px;">
-                                <button class="fs-add-btn" onclick="fs_addExtraRow()">+ Zeile hinzufügen</button>
-                            </div>
-
-                            <div class="fs-item fs-zebra" style="background-color:#e8e8e8; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
-                                <span class="fs-name">Käsebrötchen belegen</span>
-                                <select class="fs-sel num-dd"></select>
-                                <span class="fs-suffix" style="margin-left:12px;">Bleche.</span>
-                            </div>
-                        </div>
-
-                        <table class="fs-notiz-table">
-                            <tbody id="fs-notiz-body"></tbody>
-                        </table>
-
-                        <div class="fs-anmerkungen">
-                            <div class="fs-anmerkungen-label">Anmerkungen</div>
-                            <textarea style="width:100%; height:100%; border:none; resize:none; font-family:Arial; font-size:10pt;" class="fs-notiz-input" placeholder=""></textarea>
-                        </div>
+            <!-- Modul D -->
+            <div class="ctrl-card" id="ctrl-D">
+                <div class="ctrl-head" onclick="toggleCtrl('D')">
+                    <div class="ctrl-check" id="cc-D"></div>
+                    <div>
+                        <div class="ctrl-name">Verbrauchs-Matrix</div>
+                        <div class="ctrl-desc">Standard-Tagesbedarf (Mo-So + Mo) pro Station</div>
                     </div>
                 </div>
             </div>
 
-            <div class="print-module" id="module-B">
-                <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
-                    <span>👁️ Vorschau: Froster-Bestand</span>
-                    <span class="pm-arrow">▼</span>
-                </div>
-                <div class="pm-body">
-                    <div id="froster-content">
-                        <div class="dz-loading">Wird geladen…</div>
+            <!-- Modul E -->
+            <div class="ctrl-card" id="ctrl-E">
+                <div class="ctrl-head" onclick="toggleCtrl('E')">
+                    <div class="ctrl-check" id="cc-E"></div>
+                    <div>
+                        <div class="ctrl-name">Frosterliste (Kopiervorlage)</div>
+                        <div class="ctrl-desc">Manuelle Eingabe &amp; Druckvorlage für den Froster</div>
                     </div>
                 </div>
             </div>
 
-            <div class="print-module" id="module-C">
-                <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
-                    <span>👁️ Vorschau: Wochenziele + Körner</span>
-                    <span class="pm-arrow">▼</span>
-                </div>
-                <div class="pm-body">
-                    <div id="wochenziele-content">
-                        <div class="dz-loading">Wird geladen…</div>
-                    </div>
-
-                    <div class="koerner-wrap" style="break-inside: avoid; page-break-inside: avoid; margin-top: 30px;">
-                        <div class="koerner-title">Körner einweichen</div>
-                        <div style="margin-bottom: 12px;">
-                            <table class="koerner-table" style="margin-bottom: 0;">
-                                <tr>
-                                    <td class="kl" style="width: 140px;">Pressen Aufteilung</td>
-                                    <td class="schreib"></td>
-                                    <td class="schreib"></td>
-                                    <td class="schreib"></td>
-                                </tr>
-                            </table>
-                        </div>
-                        <table class="koerner-table">
-                            <tr>
-                                <td class="kl" style="width: 140px;">Einweichen</td>
-                                <td class="schreib"></td>
-                                <td class="schreib"></td>
-                                <td class="schreib"></td>
-                                <td class="schreib"></td>
-                                <td class="schreib"></td>
-                                <td class="schreib"></td>
-                            </tr>
-                            <tr>
-                                <td></td>
-                                <td class="day">Mo</td>
-                                <td class="day">Di</td>
-                                <td class="day">Mi</td>
-                                <td class="day">Do</td>
-                                <td class="day">Fr</td>
-                                <td class="day">Sa</td>
-                            </tr>
-                            <tr>
-                                <td class="kl">Produktion</td>
-                                <td class="schreib"></td>
-                                <td class="schreib"></td>
-                                <td class="schreib"></td>
-                                <td class="schreib"></td>
-                                <td class="schreib"></td>
-                                <td class="schreib"></td>
-                            </tr>
-                        </table>
+            <!-- Modul F -->
+            <div class="ctrl-card" id="ctrl-F">
+                <div class="ctrl-head" onclick="toggleCtrl('F')">
+                    <div class="ctrl-check" id="cc-F"></div>
+                    <div>
+                        <div class="ctrl-name">BÄKO-Übersicht</div>
+                        <div class="ctrl-desc">Bestand · Bestellempfehlung · Rechengrundlage</div>
                     </div>
                 </div>
             </div>
 
-            <div class="print-module" id="module-D">
-                <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
-                    <span>👁️ Vorschau: Verbrauchs-Matrix</span>
-                    <span class="pm-arrow">▼</span>
+            <button class="btn-print-main" onclick="doPrint()">🖨 &nbsp;Auswahl drucken</button>
+
+            <div style="height: 30px;"></div>
+
+            <!-- Vorschau-Container -->
+            <div id="preview-container">
+                <div class="print-module" id="module-A">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Frühschicht-Formular</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body" id="module-A-body"></div>
                 </div>
-                <div class="pm-body">
-                    <div id="matrix-content">
-                        <div class="dz-loading">Wird geladen…</div>
+
+                <div class="print-module" id="module-B">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Froster-Bestand</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body">
+                        <div id="froster-content"><div class="dz-loading">Wird geladen…</div></div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="print-module" id="module-E">
-                <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
-                    <span>👁️ Vorschau: Frosterliste</span>
-                    <span class="pm-arrow">▼</span>
+
+                <div class="print-module" id="module-C">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Wochenziele + Körner</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body" id="module-C-body"></div>
                 </div>
-                <div class="pm-body">
-                    <div class="fl-page">
-                        
-                        <div class="fl-header">
-                            <div class="fl-title">Froster<span>liste</span></div>
-                            <div class="fl-meta">
-                                <div class="fl-meta-lbl">Datum:</div>
-                                <div class="fl-meta-val" contenteditable="true">___ . ___ . 20___</div>
-                            </div>
-                        </div>
 
-                        <div class="fl-table-responsive">
-                            <table class="fl-table" id="fl-table">
-                                <thead>
-                                    <tr>
-                                        <th colspan="2" class="col-produkt">Produkt</th>
-                                        <th rowspan="2" class="col-zahlen">Bestand</th>
-                                        <th rowspan="2" class="col-zahlen sep-r">Zu&shy;viel</th>
-                                        <th rowspan="2" class="col-zahlen sep-r">Soll<br>nä. Tag</th>
-                                        <th rowspan="2" class="col-zahlen">Fehlt</th>
-                                        <th rowspan="2" class="col-zahlen">Wohin</th>
-                                    </tr>
-                                    <tr>
-                                        <th class="col-mosa">MoSa</th>
-                                        <th class="col-so">Sonntag</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="fl-tbody">
-                                    <!-- wird per fl_renderTable() befüllt -->
-                                </tbody>
-                            </table>
-                        </div> 
-                        
-                        <div class="no-print" style="margin: 10px 0 20px;">
-                            <button class="fl-btn-add" onclick="fl_addRow()">+ Zeile hinzufügen</button>
-                            <button class="fl-btn-remove" onclick="fl_removeRow()">− Letzte Zeile entfernen</button>
-                        </div>
-
-                        <div class="fl-notes-lbl">Notizen / Sonderbestellungen</div>
-                        <div class="fl-notes-box" contenteditable="true"></div>
+                <div class="print-module" id="module-D">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Verbrauchs-Matrix</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body">
+                        <div id="matrix-content"><div class="dz-loading">Wird geladen…</div></div>
                     </div>
                 </div>
-            </div>
 
-            <div class="print-module" id="module-F">
-                <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
-                    <span>👁️ Vorschau: BÄKO-Übersicht</span>
-                    <span class="pm-arrow">▼</span>
+                <div class="print-module" id="module-E">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Frosterliste</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body" id="module-E-body"></div>
                 </div>
-                <div class="pm-body">
-                    <div id="baeko-content">
-                        <div class="dz-loading">Wird geladen…</div>
+
+                <div class="print-module" id="module-F">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: BÄKO-Übersicht</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body">
+                        <div id="baeko-content"><div class="dz-loading">Wird geladen…</div></div>
                     </div>
                 </div>
             </div>
 
         </div>
+    </div>
+
+    <!-- TAB 2: Bestand & Verbrauch (Scaffold) -->
+    <div class="dz-tab-content" id="tab-formular">
+        <div class="container" id="tab2-container">
+            <!-- wird von druckzentrale_modul_g.js befüllt -->
+        </div>
+    </div>
 
 </div>
-<script src="druckzentrale_baeko.js"></script>
+
+<!-- Logik -->
+<script src="druckzentrale_logic.js"></script>
+<script src="druckzentrale_modul_a.js"></script>
+<script src="druckzentrale_modul_b.js"></script>
+<script src="druckzentrale_modul_c.js"></script>
+<script src="druckzentrale_modul_d.js"></script>
+<script src="../frosterliste_produkte.js"></script>
+<script src="druckzentrale_modul_e.js"></script>
+<script src="druckzentrale_modul_f.js"></script>
+<script src="druckzentrale_modul_g.js"></script>
 <script src="druckzentrale_ui.js"></script>
 <script src="../shell.js"></script>
-<script src="../frosterliste_produkte.js"></script>
-<!-- ═══════════════════════════════════════════════════
-     FROSTERLISTE – Persistenz & Render-Engine
-     Abhängigkeit: ../frosterliste_produkte.js (FL_PRODUKTE)
-═══════════════════════════════════════════════════ -->
-<script>
-(function() {
-    var LS_KEY  = 'BOS_FL_STATE_v1';
-    var LS_ROWS = 'BOS_FL_ROWS_v1';
 
-    // Lesbarer Klartext für wohin-Werte aus der Config
-    var WOHIN_LABELS = {
-        'koma7':          'Koma 7',
-        'schrippen_koma': 'Schrippen Koma',
-        'froster':        'Froster',
-        'kuehlung':       'Kühlung',
-        '':               ''
-    };
-
-    /* ── State laden / speichern ── */
-    function loadState() {
-        try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch(e) { return {}; }
-    }
-    function saveState() {
-        var state = {};
-        var tbody = document.getElementById('fl-tbody');
-        if (!tbody) return;
-        tbody.querySelectorAll('tr').forEach(function(tr, i) {
-            var mosa  = tr.querySelector('.produkt-mosa');
-            var so    = tr.querySelector('.produkt-so');
-            var wohin = tr.querySelector('.produkt-wohin');
-            state['row_' + i] = {
-                mosa:  mosa  ? mosa.textContent  : null,
-                so:    so    ? so.textContent    : null,
-                wohin: wohin ? wohin.textContent : ''
-            };
-        });
-        try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e) {}
-    }
-    function loadRowCount() {
-        try { return parseInt(localStorage.getItem(LS_ROWS)) || 0; } catch(e) { return 0; }
-    }
-    function saveRowCount(n) {
-        try { localStorage.setItem(LS_ROWS, String(n)); } catch(e) {}
-    }
-
-    /* ── Einzelne Zeile erzeugen ── */
-    function makeRow(mosaText, soText, wohinText) {
-        var tr = document.createElement('tr');
-        var isMosaOnly = (soText === null);
-
-        // MoSa
-        var tdMosa = document.createElement('td');
-        tdMosa.className = 'produkt-mosa';
-        tdMosa.contentEditable = 'true';
-        tdMosa.textContent = mosaText || '';
-        tdMosa.addEventListener('input', saveState);
-        tr.appendChild(tdMosa);
-
-        // So
-        var tdSo = document.createElement('td');
-        if (isMosaOnly) {
-            tdSo.className = 'no-sunday';
-        } else {
-            tdSo.className = 'produkt-so';
-            tdSo.contentEditable = 'true';
-            tdSo.textContent = soText || '';
-            tdSo.addEventListener('input', saveState);
-        }
-        tr.appendChild(tdSo);
-
-        // Bestand
-        tr.appendChild(document.createElement('td'));
-
-        // Zuviel
-        var tdZ = document.createElement('td'); tdZ.className = 'sep-r';
-        tr.appendChild(tdZ);
-
-        // Soll nä. Tag
-        var tdS = document.createElement('td'); tdS.className = 'sep-r';
-        tr.appendChild(tdS);
-
-        // Fehlt
-        tr.appendChild(document.createElement('td'));
-
-        // Wohin – contenteditable, vorausgefüllt aus Config
-        var tdW = document.createElement('td');
-        tdW.className = 'produkt-wohin';
-        tdW.contentEditable = 'true';
-        tdW.textContent = wohinText || '';
-        tdW.addEventListener('input', saveState);
-        tr.appendChild(tdW);
-
-        return tr;
-    }
-
-    /* ── Tabelle rendern ── */
-    window.fl_renderTable = function() {
-        var tbody = document.getElementById('fl-tbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-
-        var state     = loadState();
-        var extraRows = loadRowCount();
-        var produkte  = (typeof FL_PRODUKTE !== 'undefined') ? FL_PRODUKTE : [];
-
-        produkte.forEach(function(p, i) {
-            var saved = state['row_' + i];
-            var mosa  = saved ? saved.mosa  : p.mosa;
-            var so    = saved ? saved.so    : (p.so !== undefined ? p.so : null);
-            // Wohin: gespeicherter Text hat Vorrang; sonst Config-Wert in Klartext übersetzen
-            var wohin = saved ? saved.wohin : (WOHIN_LABELS[p.wohin || ''] || p.wohin || '');
-            var soVal = (p.so === null) ? null : so;
-            tbody.appendChild(makeRow(mosa, soVal, wohin));
-        });
-
-        // Zusätzliche Zeilen
-        var base = produkte.length;
-        for (var j = 0; j < extraRows; j++) {
-            var idx   = base + j;
-            var saved = state['row_' + idx] || {};
-            tbody.appendChild(makeRow(saved.mosa || '', saved.so || '', saved.wohin || ''));
-        }
-    };
-
-    /* ── Zeile hinzufügen / entfernen ── */
-    window.fl_addRow = function() {
-        var extra = loadRowCount() + 1;
-        saveRowCount(extra);
-        var tbody = document.getElementById('fl-tbody');
-        if (!tbody) return;
-        var base  = (typeof FL_PRODUKTE !== 'undefined') ? FL_PRODUKTE.length : 0;
-        var saved = loadState()['row_' + (base + extra - 1)] || {};
-        tbody.appendChild(makeRow(saved.mosa || '', saved.so || '', saved.wohin || ''));
-    };
-
-    window.fl_removeRow = function() {
-        var extra = loadRowCount();
-        if (extra <= 0) return;
-        saveRowCount(extra - 1);
-        var state = loadState();
-        var base  = (typeof FL_PRODUKTE !== 'undefined') ? FL_PRODUKTE.length : 0;
-        delete state['row_' + (base + extra - 1)];
-        try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e) {}
-        var tbody = document.getElementById('fl-tbody');
-        if (tbody && tbody.lastElementChild) tbody.removeChild(tbody.lastElementChild);
-    };
-
-    /* ── Init ── robuster Start, kein DOMContentLoaded nötig da Script am Body-Ende ── */
-    function init() {
-        var tbody = document.getElementById('fl-tbody');
-        if (!tbody) {
-            // DOM noch nicht bereit (sollte nicht passieren) – kurz warten
-            setTimeout(init, 50);
-            return;
-        }
-        if (typeof FL_PRODUKTE === 'undefined') {
-            // frosterliste_produkte.js nicht geladen – sichtbarer Hinweis in der Tabelle
-            var tr = document.createElement('tr');
-            var td = document.createElement('td');
-            td.colSpan = 7;
-            td.style.cssText = 'padding:12px; color:#c0392b; font-size:11pt; text-align:center;';
-            td.textContent = '⚠ frosterliste_produkte.js nicht gefunden – Datei im Hauptordner ablegen';
-            tr.appendChild(td);
-            tbody.appendChild(tr);
-            return;
-        }
-        fl_renderTable();
-    }
-    init();
-})();
-</script>
-
-<style>
-/* ── Frühschicht: Zebra – screen + print ── */
-.fs-item.fs-zebra,
-.fs-extra-item.fs-zebra {
-    background-color: #e8e8e8 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    color-adjust: exact !important;
-}
-
-/* ── Abstand zwischen Dropdown und "Bleche"-Text ── */
-.fs-suffix {
-    margin-left: 12px !important;
-    white-space: nowrap;
-}
-
-/* ── Mohn/Sesam Trenner ── */
-.fs-dbl-sep {
-    margin: 0 6px;
-    font-weight: bold;
-}
-
-/* ── Extra-Zeilen (dynamisch) ── */
-.fs-extra-item {
-    display: flex;
-    align-items: center;
-    padding: 4px 6px;
-    min-height: 32px;
-}
-.fs-extra-name {
-    flex: 1;
-    border: none;
-    border-bottom: 1.5px solid #888;
-    font-family: Arial, sans-serif;
-    font-size: 10pt;
-    font-weight: bold;
-    background: transparent;
-    padding: 2px 4px;
-    min-width: 80px;
-}
-.fs-extra-name:focus { outline: none; }
-
-/* ── Im Druck: Buttons/Placeholder ausblenden ── */
-@media print {
-    .no-print            { display: none !important; }
-    .fs-extra-name       { border-bottom: 1px solid #666; }
-    input::placeholder   { color: transparent !important; }
-    select               { -webkit-appearance: none; appearance: none; border: 1px solid #999; }
-}
-</style>
-
-<script>
-/* ── Frühschicht Extra-Zeilen ── */
-(function() {
-    var LS_KEY     = 'BOS_FS_EXTRA_v2'; // v2 = sauberer Reset ohne alten State
-    var FIXED_ROWS = 6; // Mohn+Sesam, Schoko, Lauge, Butter, MiniButt, MiniSchoko
-
-    function loadExtra() {
-        try {
-            var d = JSON.parse(localStorage.getItem(LS_KEY));
-            // Nur gültige Einträge (name oder val gesetzt)
-            return Array.isArray(d) ? d.filter(function(x) { return x && (x.name || x.val > 0); }) : [];
-        } catch(e) { return []; }
-    }
-    function saveExtra() {
-        var items = document.querySelectorAll('.fs-extra-item');
-        var data = [];
-        items.forEach(function(el) {
-            var name = el.querySelector('.fs-extra-name');
-            var sel  = el.querySelector('.fs-sel');
-            data.push({ name: name ? name.value : '', val: sel ? sel.value : '0' });
-        });
-        try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch(e) {}
-    }
-
-    function zebraForIndex(i) {
-        // Käsebrötchen ist Zeile FIXED_ROWS+1 (Index 6), also Extra ab Index 6
-        return (FIXED_ROWS + i) % 2 !== 0;
-    }
-
-    function makeExtraRow(name, val, isZebra) {
-        var div = document.createElement('div');
-        div.className = 'fs-extra-item' + (isZebra ? ' fs-zebra' : '');
-        if (isZebra) {
-            div.style.cssText = 'background-color:#e8e8e8; -webkit-print-color-adjust:exact; print-color-adjust:exact; display:flex; align-items:center; padding:4px 6px; min-height:32px;';
-        } else {
-            div.style.cssText = 'display:flex; align-items:center; padding:4px 6px; min-height:32px;';
-        }
-
-        var inp = document.createElement('input');
-        inp.type = 'text';
-        inp.className = 'fs-extra-name';
-        inp.value = name || '';
-        inp.setAttribute('placeholder', 'Produkt…');
-        inp.style.cssText = 'flex:1; border:none; border-bottom:1.5px solid #888; font-family:Arial,sans-serif; font-size:10pt; font-weight:bold; background:transparent; padding:2px 4px; min-width:80px;';
-        inp.oninput = saveExtra;
-
-        var sel = document.createElement('select');
-        sel.className = 'fs-sel num-dd';
-        sel.style.marginLeft = '8px';
-        for (var i = 0; i <= 20; i++) {
-            var o = document.createElement('option');
-            o.value = i; o.textContent = i;
-            if (String(i) === String(val || '0')) o.selected = true;
-            sel.appendChild(o);
-        }
-        sel.onchange = saveExtra;
-
-        var suf = document.createElement('span');
-        suf.className = 'fs-suffix';
-        suf.style.marginLeft = '12px';
-        suf.textContent = 'Bleche absetzen';
-
-        div.appendChild(inp);
-        div.appendChild(sel);
-        div.appendChild(suf);
-        return div;
-    }
-
-    window.fs_addExtraRow = function() {
-        var container = document.getElementById('fs-extra-items');
-        if (!container) return;
-        var n = container.children.length;
-        container.appendChild(makeExtraRow('', '0', zebraForIndex(n)));
-        saveExtra();
-    };
-
-    function initExtra() {
-        var container = document.getElementById('fs-extra-items');
-        if (!container) { setTimeout(initExtra, 50); return; }
-        loadExtra().forEach(function(item, i) {
-            container.appendChild(makeExtraRow(item.name, item.val, zebraForIndex(i)));
-        });
-    }
-    initExtra();
-})();
-</script>
 </body>
 </html>

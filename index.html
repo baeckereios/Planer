@@ -93,6 +93,21 @@
       transform: scale(1.1); 
     }
 
+    /* Wurm-Diode: läuft = grün, eingefroren = amber (Standard) */
+    .lampe.leuchtet-gruen {
+      color: #22c55e;
+      text-shadow: 0 0 12px rgba(34, 197, 94, 0.55);
+    }
+    .lampe.wurm-eingefroren {
+      color: var(--amber);
+      text-shadow: 0 0 12px rgba(192, 122, 16, 0.55);
+      animation: wurm-puls 2.4s ease-in-out infinite;
+    }
+    @keyframes wurm-puls {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.45; }
+    }
+
     /* ─── TAB VIEWS ─── */
     .tab-view { display: none; }
     .tab-view.active { display: block; }
@@ -593,6 +608,7 @@
       
       <i class="ph-fill ph-cake lampe" id="diode-team" onclick="toggleDiode('diode-team')" title="Team-Radar (Geburtstage)"></i>
       <i class="ph-fill ph-calendar-x lampe" id="diode-feiertag" onclick="toggleDiode('diode-feiertag')" title="Feiertags-Radar"></i>
+      <i class="ph-fill ph-wave-sine lampe" id="diode-wurm" title="Berechnungs-Wurm"></i>
     </div>
   </div>
 
@@ -669,6 +685,44 @@
           <div style="text-align:left;"><div class="einfach-name">Teamordner</div><div class="einfach-sub">Geteilte Dokumente</div></div>
         </a>
       </div>
+      <!-- WURM HABITAT BANNER -->
+      <a href="wurm.html" id="wurm-banner" style="grid-column: 1 / -1; text-decoration:none; display:block;">
+        <div style="
+          background: var(--surface);
+          border: 1.5px solid var(--border);
+          border-radius: 14px;
+          padding: 10px 14px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          transition: border-color 0.2s;
+          overflow: hidden;
+          position: relative;
+        " id="wurm-banner-inner">
+          <!-- Wurm-Animation (mini) -->
+          <div style="flex-shrink:0; width:52px; height:32px; position:relative;">
+            <svg id="wurm-mini-svg" viewBox="0 0 60 32" width="52" height="32" style="overflow:visible;">
+            </svg>
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div style="
+              font-family:'Barlow Condensed',sans-serif;
+              font-weight:900; font-size:0.8rem;
+              letter-spacing:1.5px; text-transform:uppercase;
+              color:var(--text);
+            ">Berechnungs-Wurm</div>
+            <div id="wurm-banner-status" style="
+              font-family:'Barlow Condensed',sans-serif;
+              font-size:0.72rem; font-weight:700;
+              color:var(--dim); margin-top:1px;
+            ">Lädt…</div>
+          </div>
+          <div style="color:var(--dim); font-size:0.9rem; flex-shrink:0;">
+            <i class="ph ph-caret-right"></i>
+          </div>
+        </div>
+      </a>
+
       <div class="einfach-kachel wide admin-kachel" onclick="openAdminGate()" style="grid-column: 1 / -1; --kachel-color:#e67e22;">
         <div class="einfach-icon"><i class="ph-duotone ph-gear-six"></i></div>
         <div style="text-align:left;"><div class="einfach-name">Admin</div><div class="einfach-sub">Einstellungen &amp; Verwaltung</div></div>
@@ -1109,6 +1163,82 @@
       }
     }
 
+    /* ── WURM BANNER ─────────────────────────────────────── */
+    function initWurmBanner() {
+      // Mini-Wurm zeichnen
+      const svg = document.getElementById('wurm-mini-svg');
+      if (svg) {
+        const farbe = '#d49a36';
+        const segs = 7;
+        let html = '';
+        for (let i = segs; i >= 0; i--) {
+          const t = i / segs;
+          const x = 4 + t * 52;
+          const y = 16 + Math.sin(t * Math.PI * 2) * 7;
+          const r = 2.5 + t * 4;
+          const alpha = 0.3 + t * 0.7;
+          html += `<circle cx="${x}" cy="${y}" r="${r}" fill="${farbe}" opacity="${alpha}"/>`;
+        }
+        // Auge
+        html += `<circle cx="56" cy="${16 + Math.sin(Math.PI * 2) * 7 - 3}" r="1.5" fill="white" opacity="0.9"/>`;
+        html += `<circle cx="56.5" cy="${16 + Math.sin(Math.PI * 2) * 7 - 3}" r="0.7" fill="#333"/>`;
+        // Kriech-Animation
+        html = `<style>@keyframes mini-kriech{0%{transform:translateX(0)}100%{transform:translateX(-8px)}}.wm{animation:mini-kriech 1.6s linear infinite}</style><g class="wm">${html}</g>`;
+        svg.innerHTML = html;
+      }
+
+      // Status-Text aus taeglicher_verbrauch.json
+      fetch('taeglicher_verbrauch.json', { cache: 'no-store' })
+        .then(r => r.json())
+        .then(cfg => {
+          const banner = document.getElementById('wurm-banner-inner');
+          const statusEl = document.getElementById('wurm-banner-status');
+          if (!statusEl) return;
+
+          if (!cfg.wurm_aktiv) {
+            statusEl.textContent = 'Manueller Modus';
+            return;
+          }
+
+          // Feiertags-Check
+          const FEIERTAGE = [
+            '2026-01-01','2026-04-03','2026-04-06','2026-05-01','2026-05-14',
+            '2026-05-25','2026-10-03','2026-10-31','2026-12-25','2026-12-26',
+            '2025-01-01','2025-04-18','2025-04-21','2025-05-01','2025-05-29',
+            '2025-06-09','2025-10-03','2025-10-31','2025-12-25','2025-12-26',
+            '2027-01-01','2027-04-02','2027-04-05','2027-05-01','2027-05-13',
+            '2027-05-24','2027-10-03','2027-10-31','2027-12-25','2027-12-26'
+          ];
+          const z = cfg.zeitraum_tage || 14;
+          const h = new Date(); h.setHours(0,0,0,0);
+          const g = new Date(h); g.setDate(h.getDate()-1);
+          const p = n => String(n).padStart(2,'0');
+          const iso = d => d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+          let eingefroren = false;
+          for (let i = 0; i < z; i++) {
+            const t = new Date(g); t.setDate(g.getDate()-i);
+            if (FEIERTAGE.includes(iso(t))) { eingefroren = true; break; }
+          }
+
+          if (eingefroren) {
+            statusEl.textContent = '❄ Eingefroren — Feiertag im Fenster';
+            statusEl.style.color = 'var(--amber)';
+            if (banner) banner.style.borderColor = 'rgba(212,154,54,0.4)';
+          } else {
+            statusEl.textContent = '↝ Läuft — ' + z + '-Tage-Fenster aktiv';
+            statusEl.style.color = '#16a34a';
+            if (banner) banner.style.borderColor = 'rgba(34,197,94,0.3)';
+            // Mini-Wurm-Auge grün
+            const wSvg = document.getElementById('wurm-mini-svg');
+            if (wSvg) wSvg.style.filter = 'hue-rotate(0deg)';
+          }
+        })
+        .catch(() => {
+          const el = document.getElementById('wurm-banner-status');
+          if (el) el.textContent = 'Manueller Modus';
+        });
+    }
+
     /* ── INIT ── */
     // #mehr Anker: direkt den Mehr-Tab öffnen wenn von Unterseite zurück
     function checkHashTab() {
@@ -1179,6 +1309,7 @@
       buildStatus();
       checkHashTab();
       checkBrettBadge();
+      initWurmBanner();
     };
   </script>
 
