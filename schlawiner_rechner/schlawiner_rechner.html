@@ -794,18 +794,19 @@ function renderSchnittGruppiert(vals) {
     var sorten = SORTEN.filter(function(s){
       return (s.typ === 'stange' || s.typ === 'brot') && s.tpe === g.tpe;
     });
-    var mehlT = 0, keinT = 0;
+    var mehlT = 0, keinT = 0, mehlStk = 0, keinStk = 0;
     sorten.forEach(function(s){
       var t = vals[s.id] * s.tpe;
-      if (s.mehl) mehlT += t; else keinT += t;
+      if (s.mehl) { mehlT += t; mehlStk += vals[s.id]; }
+      else        { keinT += t; keinStk += vals[s.id]; }
     });
     var total = mehlT + keinT;
     if (!total) return;
     hatWas = true;
 
     var splitHtml = '<div class="sg-split">';
-    if (mehlT) splitHtml += '<div class="sg-chip mehl"><small>mit Mehl</small>' + fmt(mehlT/48, 2) + ' Bleche</div>';
-    if (keinT) splitHtml += '<div class="sg-chip kein"><small>ohne Mehl</small>' + fmt(keinT/48, 2) + ' Bleche</div>';
+    if (mehlT) splitHtml += '<div class="sg-chip mehl"><small>mit Mehl</small>' + fmt(mehlT/48, 2) + ' Bleche<span style="display:block;font-size:0.6rem;font-weight:600;color:#4b5563;margin-top:1px;">' + fmt(mehlStk, 0) + ' Stk.</span></div>';
+    if (keinT) splitHtml += '<div class="sg-chip kein"><small>ohne Mehl</small>' + fmt(keinT/48, 2) + ' Bleche<span style="display:block;font-size:0.6rem;font-weight:600;color:#4b5563;margin-top:1px;">' + fmt(keinStk, 0) + ' Stk.</span></div>';
     splitHtml += '</div>';
 
     var block = document.createElement('div');
@@ -922,8 +923,8 @@ function drucken() {
   p1 += '<div class="pp-section"><div class="pp-section-title">Schnittarbeit — Stangen &amp; Brote</div>';
   gruppen.forEach(function(g) {
     var sorten = SORTEN.filter(function(s){ return (s.typ==='stange'||s.typ==='brot') && s.tpe===g.tpe; });
-    var mehlT=0, keinT=0;
-    sorten.forEach(function(s){ var t=vals[s.id]*s.tpe; if(s.mehl) mehlT+=t; else keinT+=t; });
+    var mehlT=0, keinT=0, mehlStk=0, keinStk=0;
+    sorten.forEach(function(s){ var t=vals[s.id]*s.tpe; if(s.mehl){ mehlT+=t; mehlStk+=vals[s.id]; } else{ keinT+=t; keinStk+=vals[s.id]; } });
     var total=mehlT+keinT;
     if (!total) return;
     p1 += '<div class="pp-schnitt-group">'
@@ -935,8 +936,8 @@ function drucken() {
         + '</div></div>';
     if (mehlT || keinT) {
       p1 += '<div class="pp-split">';
-      if (mehlT) p1 += '<div class="pp-chip"><span class="pp-chip-label">mit Mehl</span><span class="pp-chip-val">' + fmt(mehlT/48,2) + '</span><span class="pp-chip-unit">Bl.</span></div>';
-      if (keinT) p1 += '<div class="pp-chip"><span class="pp-chip-label">ohne Mehl</span><span class="pp-chip-val">' + fmt(keinT/48,2) + '</span><span class="pp-chip-unit">Bl.</span></div>';
+      if (mehlT) p1 += '<div class="pp-chip"><span class="pp-chip-label">mit Mehl</span><span class="pp-chip-val">' + fmt(mehlT/48,2) + '</span><span class="pp-chip-unit">Bl.</span><span style="display:block;font-size:5pt;font-weight:700;color:#666;margin-top:1px;">' + fmt(mehlStk,0) + ' Stk.</span></div>';
+      if (keinT) p1 += '<div class="pp-chip"><span class="pp-chip-label">ohne Mehl</span><span class="pp-chip-val">' + fmt(keinT/48,2) + '</span><span class="pp-chip-unit">Bl.</span><span style="display:block;font-size:5pt;font-weight:700;color:#666;margin-top:1px;">' + fmt(keinStk,0) + ' Stk.</span></div>';
       p1 += '</div>';
     }
     p1 += '</div>';
@@ -1070,6 +1071,11 @@ function importVals() {
   var b64 = idx !== -1 ? raw.substring(idx + marker.length).trim() : raw;
   try {
     var vals = JSON.parse(decodeURIComponent(escape(atob(b64))));
+    // Erst alle Felder nullen — Import ist Autorität
+    SORTEN.forEach(function(s){
+      var inp = document.getElementById('inp_' + s.id);
+      if (inp) inp.value = 0;
+    });
     var count = 0;
     SORTEN.forEach(function(s){
       if (vals[s.id] !== undefined) {
@@ -1155,6 +1161,11 @@ function ladeDBManuell(input) {
     try {
       var db = JSON.parse(e.target.result);
       if (!db || !db.produkte) throw new Error('Kein gültiges schlawiner_db.json Format.');
+      // Erst alle Felder nullen — DB ist Autorität
+      SORTEN.forEach(function(s) {
+        var inp = document.getElementById('inp_' + s.id);
+        if (inp) inp.value = 0;
+      });
       var gefunden = 0;
       SORTEN.forEach(function(s) {
         var dbKey = DB_KEY_MAP[s.id];
@@ -1205,6 +1216,11 @@ function dbpFuelleFelder(db) {
   if (!db || !db.gespeichert_am || !db.produkte) return;
   var alter = Date.now() - new Date(db.gespeichert_am).getTime();
   if (alter > 12 * 60 * 60 * 1000) return; // älter als 12h → Nullen lassen
+  // Erst alle Felder nullen — DB ist Autorität, kein localStorage-Überrest bleibt
+  SORTEN.forEach(function(s) {
+    var inp = document.getElementById('inp_' + s.id);
+    if (inp) inp.value = 0;
+  });
   var gefunden = 0;
   SORTEN.forEach(function(s) {
     var dbKey = DB_KEY_MAP[s.id];

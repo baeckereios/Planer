@@ -118,10 +118,20 @@ h1 { font-size: 1.3rem; font-weight: 900; color: var(--amber,#e67e22); margin: 0
 
 .kein-bedarf { text-align: center; padding: 20px; color: var(--dim,#6b7280); font-size: 0.85rem; }
 
-/* Basis-Info */
-.basis-banner { font-size: 0.72rem; color: var(--dim,#6b7280); margin-bottom: 14px;
-    padding: 7px 12px; background: var(--card-bg,#fff);
-    border: 1px solid var(--border-color,#e5e0d8); border-radius: 8px; }
+/* Basis-Info — jetzt innerhalb der Einstellungs-Card */
+.basis-banner { font-size: 0.7rem; color: var(--dim,#6b7280);
+    padding: 0 0 10px 0; border-bottom: 1px solid var(--border-color,#e5e0d8);
+    margin-bottom: 12px; }
+
+/* Verlauf-Sprungbrett-Button */
+.ziel-btn.verlauf {
+    border-color: var(--amber,#d49a36);
+    color: var(--amber,#d49a36);
+    background: #fffbf0;
+    flex: 0 0 auto;
+    padding: 10px 14px;
+}
+.ziel-btn.verlauf:active { background: var(--amber,#d49a36); color: #fff; }
 </style>
 </head>
 <body>
@@ -129,16 +139,18 @@ h1 { font-size: 1.3rem; font-weight: 900; color: var(--amber,#e67e22); margin: 0
     <h1>🥖 Stangenrechner</h1>
     <p class="sub">Baguette & Zwiebelstangen — Teigling-Bedarf berechnen</p>
 
-    <!-- Basis-Info -->
-    <div class="basis-banner" id="basis-banner">Lade Daten…</div>
-
-    <!-- Inventur-Warnung -->
-    <div id="inv-warn" style="display:none;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:0.78rem;font-weight:700;color:#991b1b;">
-        ⚠ Inventur älter als 24 Std. — Bestände bitte manuell eintragen
-    </div>
-
-    <!-- Zeitraum Dropdowns -->
+    <!-- Einstellungs-Card: DB-Info + Inventur-Warn + Zeitraum + Tabs — alles in einem Block -->
     <div class="card" id="slider-card">
+
+        <!-- DB-Info (war: basis-banner) -->
+        <div class="basis-banner" id="basis-banner">Lade Daten…</div>
+
+        <!-- Inventur-Warnung -->
+        <div id="inv-warn" style="display:none;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:0.78rem;font-weight:700;color:#991b1b;">
+            ⚠ Inventur älter als 24 Std. — Bestände bitte manuell eintragen
+        </div>
+
+        <!-- Zeitraum Von · Bis -->
         <div class="card-titel">Zeitraum — Von · Bis</div>
         <div class="zeitraum-wrap">
             <div class="zeitraum-gruppe">
@@ -150,13 +162,23 @@ h1 { font-size: 1.3rem; font-weight: 900; color: var(--amber,#e67e22); margin: 0
                 <select class="zeitraum-select" id="dd-bis" onchange="dropdownUpdate()"></select>
             </div>
         </div>
-        <div id="lbl-spanne" style="margin-top:8px;text-align:center;font-size:0.78rem;font-weight:700;color:var(--amber,#e67e22);"></div>
-    </div>
+        <div id="lbl-spanne" style="margin-top:8px;text-align:center;font-size:0.78rem;font-weight:700;color:var(--amber,#e67e22);margin-bottom:14px;"></div>
 
-    <!-- UMSCHALTER -->
-    <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <button class="ziel-btn aktiv" id="tab-baguette" onclick="setTab('baguette')">🥖 Baguette</button>
-        <button class="ziel-btn" id="tab-zwiebel" onclick="setTab('zwiebel')">🧅 Zwiebel</button>
+        <!-- Trennlinie -->
+        <div style="border-top:1px solid var(--border-color,#e5e0d8);margin-bottom:12px;"></div>
+
+        <!-- Tab-Buttons -->
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <button class="ziel-btn aktiv" id="tab-baguette" onclick="setTab('baguette')">🥖 Baguette</button>
+            <button class="ziel-btn" id="tab-zwiebel" onclick="setTab('zwiebel')">🧅 Zwiebel</button>
+        </div>
+
+        <!-- Verlauf-Sprungbrett — volle Breite, etwas flacher -->
+        <button class="ziel-btn verlauf" onclick="window.location='produktionsverlauf_baguette.html'"
+            style="width:100%;padding:8px;font-size:0.8rem;">
+            📋 Produktionsverlauf öffnen
+        </button>
+
     </div>
 
     <!-- EINHEITLICHE KARTE -->
@@ -459,7 +481,7 @@ function getStartTag() {
 function getTageAnzahl() {
     const vonOffset = parseInt(document.getElementById('dd-von').value) || 0;
     const bisOffset = parseInt(document.getElementById('dd-bis').value) || 1;
-    return Math.max(1, bisOffset - vonOffset + 1);
+    return Math.max(1, bisOffset - vonOffset);
 }
 
 const WT_LANG = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];

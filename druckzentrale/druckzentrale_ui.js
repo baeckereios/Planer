@@ -49,6 +49,8 @@ function onZeitChange(id) {
 }
 
 function _rerender(id) {
+    // Anchor-Datum immer frisch berechnen bevor gerendert wird
+    if (typeof DZ_refreshAnchorDate === 'function') DZ_refreshAnchorDate();
     if (id === 'B' && typeof DZ_renderFroster       === 'function') DZ_renderFroster();
     if (id === 'D' && typeof DZ_renderVerbrauchsMatrix === 'function') DZ_renderVerbrauchsMatrix();
     if (id === 'F' && typeof DZ_renderBaeko          === 'function') DZ_renderBaeko();
@@ -249,8 +251,8 @@ window.addEventListener('DOMContentLoaded', function() {
 
         var selC1 = document.getElementById('zeit-C1');
         var selC2 = document.getElementById('zeit-C2');
-        if (selC1) DZ_buildZeitspanneOptions(selC1, 3);
-        if (selC2) DZ_buildZeitspanneOptions(selC2, 6);
+        if (selC1) DZ_buildZeitspanneOptions(selC1, 1, false);  // nächster Montag
+        if (selC2) DZ_buildZeitspanneOptions(selC2, 1, true);   // übernächster Montag
 
         _rerenderAllActive();
     });

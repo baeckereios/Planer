@@ -60,7 +60,7 @@
         .inv-card.from-file .btn-zaehlen { background: #dbeafe; border: 1px solid #3b82f6; color: #1e40af; }
 
         /* Eingabe Grid */
-        .inv-inputs { display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 6px; align-items: center; }
+        .inv-inputs { display: grid; grid-template-columns: repeat(4, 1fr) auto auto; gap: 6px; align-items: center; }
         .loc-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
         .loc-label { font-size: 0.62rem; font-weight: 700; color: #94a3b8; }
         .loc-inp { text-align: center; padding: 10px 2px; border: 1.5px solid var(--border-color, #e5e0d8);
@@ -75,6 +75,15 @@
         .inv-sum { min-width: 38px; text-align: center; padding: 8px 4px; background: var(--background, #f8f6f2);
             color: #e67e22; font-weight: 900; font-size: 1.05rem; border-radius: 8px;
             border: 1px solid var(--border-color, #e5e0d8); }
+
+        /* Fehlmenge */
+        .fehl-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; margin-left: 4px; padding-left: 10px; border-left: 1px solid var(--border-color, #e5e0d8); }
+        .fehl-label { font-size: 0.62rem; font-weight: 800; color: #ef4444; text-transform: uppercase; }
+        .fehl-inp { text-align: center; padding: 8px 2px; border: 1.5px solid #fecdd3;
+            font-weight: 700; font-size: 1.05rem; margin: 0; border-radius: 8px; width: 48px;
+            background: #fff; color: #ef4444; font-family: inherit; transition: border-color 0.15s; }
+        .fehl-inp:focus { border-color: #ef4444; outline: none; background: #fef2f2; }
+        .fehl-inp.hat-fehl { border-color: #ef4444; background: #fef2f2; }
 
         /* Generieren Button */
         .btn-generate { width: 100%; background: #10b981; color: #fff; font-size: 1rem; padding: 16px;
@@ -261,6 +270,7 @@ function prepareData() {
             station: p.station || '',
             locs: [0,0,0,0],
             stock: 0, ts: 0,
+            fehlmenge: 0,
             counted: false, _fromFile: false
         };
     });
@@ -394,6 +404,29 @@ function renderList() {
         sumWrap.appendChild(sumVal);
         inputs.appendChild(sumWrap);
 
+        // Fehlmenge
+        var fehlWrap = document.createElement('div');
+        fehlWrap.className = 'fehl-wrap';
+        var fehlLabel = document.createElement('div');
+        fehlLabel.className = 'fehl-label';
+        fehlLabel.textContent = 'Fehlt';
+        var fehlInp = document.createElement('input');
+        fehlInp.type = 'number';
+        fehlInp.inputMode = 'numeric';
+        fehlInp.className = 'fehl-inp' + (d.fehlmenge > 0 ? ' hat-fehl' : '');
+        fehlInp.id = 'fehl_' + k;
+        fehlInp.placeholder = '0';
+        fehlInp.value = d.fehlmenge > 0 ? d.fehlmenge : '';
+        fehlInp.dataset.key = k;
+        fehlInp.addEventListener('input', function() {
+            var val = parseInt(this.value) || 0;
+            workingData[this.dataset.key].fehlmenge = val;
+            this.classList.toggle('hat-fehl', val > 0);
+        });
+        fehlWrap.appendChild(fehlLabel);
+        fehlWrap.appendChild(fehlInp);
+        inputs.appendChild(fehlWrap);
+
         card.appendChild(inputs);
         container.appendChild(card);
     });
@@ -449,7 +482,7 @@ function resetAll() {
     if (!confirm('Alle Zählungen zurücksetzen?')) return;
     (window.BOS_INVENTUR_PRODUKTE||[]).forEach(function(p) {
         var k = p.legacyKey;
-        workingData[k] = {name:p.name, station:p.station||'', locs:[0,0,0,0], stock:0, ts:0, counted:false, _fromFile:false};
+        workingData[k] = {name:p.name, station:p.station||'', locs:[0,0,0,0], stock:0, ts:0, fehlmenge:0, counted:false, _fromFile:false};
     });
     renderList();
 }
@@ -473,7 +506,7 @@ function importInventurJS(input) {
                 if (!lp || workingData[k].counted) return;
                 var locs = lp.locs || [0,0,0,0];
                 if (locs.reduce(function(a,b){return a+b;},0) === 0 && lp.stock > 0) locs = [lp.stock,0,0,0];
-                workingData[k] = {name:prod.name, station:prod.station||'', locs:locs, stock:locs.reduce(function(a,b){return a+b;},0), ts:lp.ts||0, counted:false, _fromFile:true};
+                workingData[k] = {name:prod.name, station:prod.station||'', locs:locs, stock:locs.reduce(function(a,b){return a+b;},0), ts:lp.ts||0, fehlmenge:lp.fehlmenge||0, counted:false, _fromFile:true};
                 count++;
             });
             renderList();
@@ -495,7 +528,7 @@ function generateInventurJS() {
         var d = workingData[k];
         if (!d) return;
         stocks[k] = d.stock;
-        cleanProducts[k] = {locs:d.locs, stock:d.stock, ts:d.ts};
+        cleanProducts[k] = {locs:d.locs, stock:d.stock, ts:d.ts, fehlmenge:d.fehlmenge||0};
     });
     var js = 'window.BOS_INVENTUR = ' + JSON.stringify({products:cleanProducts, stocks:stocks}, null, 2) + ';';
     var blob = new Blob([js], {type:'text/javascript'});
@@ -610,7 +643,7 @@ function shareInventur() {
         var d = workingData[k];
         if (!d) return;
         stocks[k] = d.stock;
-        cleanProducts[k] = {locs:d.locs, stock:d.stock, ts:d.ts};
+        cleanProducts[k] = {locs:d.locs, stock:d.stock, ts:d.ts, fehlmenge:d.fehlmenge||0};
     });
 
     var now = new Date();

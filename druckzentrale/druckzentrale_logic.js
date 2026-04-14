@@ -48,7 +48,8 @@ function DZ_calcNeed(prodId, zielDate) {
         var jsDay  = d.getDay();
         var bosIdx = (jsDay === 0) ? 6 : jsDay - 1;
         var need   = (p.needs && p.needs[bosIdx]) || 0;
-        var typ    = DZ_wochenconfig[d.toISOString().split('T')[0]] || 'normal';
+        var dateStr = d.getFullYear() + '-' + DZ_pad(d.getMonth() + 1) + '-' + DZ_pad(d.getDate());
+        var typ    = DZ_wochenconfig[dateStr] || 'normal';
         if      (typ === 'zu')        need = 0;
         else if (typ === 'hamster_1') need = Math.ceil((p.needs[5] + need) / 2);
         else if (typ === 'hamster_2') need = p.needs[5];
@@ -76,17 +77,25 @@ function DZ_getEinheit(p) {
 
 // ── ZEITSPANNE ──────────────────────────────────────────────────────
 
-function DZ_buildZeitspanneOptions(sel, defaultDay) {
+function DZ_buildZeitspanneOptions(sel, defaultDay, skipFirst) {
     sel.innerHTML = '';
     var DAYS = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
     var d = new Date(DZ_anchorDate || new Date()); d.setHours(0, 0, 0, 0);
     var defaultSet = false;
-    for (var i = 0; i < 14; i++) {
+    var matchCount = 0; // zählt wie oft defaultDay bereits gefunden wurde
+    for (var i = 0; i < 21; i++) {
         var opt   = document.createElement('option');
         var label = DAYS[d.getDay()] + ', ' + DZ_pad(d.getDate()) + '.' + DZ_pad(d.getMonth() + 1) + '.';
-        opt.value       = d.toISOString().split('T')[0];
+        opt.value       = d.getFullYear() + '-' + DZ_pad(d.getMonth() + 1) + '-' + DZ_pad(d.getDate());
         opt.textContent = label;
-        if (!defaultSet && d.getDay() === defaultDay) { opt.selected = true; defaultSet = true; }
+        if (!defaultSet && d.getDay() === defaultDay) {
+            matchCount++;
+            // skipFirst=true: ersten Treffer überspringen, zweiten nehmen
+            if (!skipFirst || matchCount > 1) {
+                opt.selected = true;
+                defaultSet = true;
+            }
+        }
         sel.appendChild(opt);
         d.setDate(d.getDate() + 1);
     }
@@ -352,12 +361,18 @@ function _DZ_doInit(cb) {
 
     DZ_latestInvTs = DZ_getLatestInvTs();
 
+    DZ_refreshAnchorDate();
+
+    cb && cb();
+}
+
+// Anchor-Datum immer frisch berechnen — darf nicht eingefroren sein.
+// Wird beim Init UND direkt vor jedem Render aufgerufen.
+function DZ_refreshAnchorDate() {
     var jetzt  = new Date();
     var minNow = jetzt.getHours() * 60 + jetzt.getMinutes();
     var fDone  = (minNow >= 90 && minNow <= 1200);
     DZ_anchorDate = new Date();
     DZ_anchorDate.setHours(0, 0, 0, 0);
     DZ_anchorDate.setDate(DZ_anchorDate.getDate() + (fDone ? 2 : 1));
-
-    cb && cb();
 }

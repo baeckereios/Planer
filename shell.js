@@ -10,6 +10,7 @@
         'setup.html':                { title: 'PlanungsAssistent',  mode: 'minimal'                  },
         'schnellrechner.html':       { title: 'Schnellrechner',     mode: 'full', tab: 'rechner'    },
         'baguette_rechner.html':     { title: 'Stangenrechner',     mode: 'full', tab: 'mehr'       },
+        'produktionsverlauf_baguette.html': { title: 'Produktions\nverlauf', mode: 'full', tab: 'mehr' },
         'frosterliste.html':         { title: 'Frosterliste',       mode: 'full', tab: 'mehr'       },
         'frosterliste_wochentag.html': { title: 'Frosterliste\nWochentag', mode: 'full', tab: 'mehr'  },
         'ofenangriff.html':          { title: 'Ofenangriff',        mode: 'full', tab: 'mehr'       },

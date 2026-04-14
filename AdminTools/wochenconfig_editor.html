@@ -327,7 +327,15 @@
 <script>
 const WT_KURZ = ['So','Mo','Di','Mi','Do','Fr','Sa'];
 const WT_LANG = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-const FEIERTAGE_NDS = (window.BOS_FEIERTAGE?.feiertage || []).map(f => f.datum);
+// Statische Feiertags-Liste NDS (identisch zu produktions_gehirn.js)
+const FEIERTAGE_NDS = [
+    '2025-01-01','2025-04-18','2025-04-21','2025-05-01','2025-05-29',
+    '2025-06-09','2025-10-03','2025-10-31','2025-12-25','2025-12-26',
+    '2026-01-01','2026-04-03','2026-04-06','2026-05-01','2026-05-14',
+    '2026-05-25','2026-10-03','2026-10-31','2026-12-25','2026-12-26',
+    '2027-01-01','2027-04-02','2027-04-05','2027-05-01','2027-05-13',
+    '2027-05-24','2027-10-03','2027-10-31','2027-12-25','2027-12-26'
+];
 const TAGE = 14;
 let startDatum = new Date(); startDatum.setHours(0,0,0,0);
 let tageConfig = {};
@@ -346,7 +354,11 @@ let dbTageMap = {};
 
 async function ladeEinstellungen() {
   try { const r = await fetch('../taeglicher_verbrauch.json',{cache:'no-store'}); if(r.ok) einstDaten=await r.json(); } catch(e){}
-  try { const r2 = await fetch('../backmengen_db.json',{cache:'no-store'}); if(r2.ok){const db=await r2.json();db.forEach(e=>{dbTageMap[e.datum]=e.kontext||{};});} } catch(e){}
+  try {
+    let r2 = await fetch('../backmengen_db.json',{cache:'no-store'}).catch(()=>null);
+    if (!r2 || !r2.ok) r2 = await fetch('backmengen_db.json',{cache:'no-store'}).catch(()=>null);
+    if (r2 && r2.ok) { const db=await r2.json(); db.forEach(e=>{ dbTageMap[e.datum]=e.kontext||true; }); }
+  } catch(e){}
   
   // Fallback: Wenn noch kein fixes Datum im JSON ist, von heute rückwärts rechnen
   if (!einstDaten.start_datum && einstDaten.zeitraum_tage > 0) {
@@ -502,8 +514,8 @@ function einstKalenderRender() {
           let datumStr = lds(dateObj);
           let wt = WT_KURZ[dateObj.getDay()];
 
-          let k = dbTageMap[datumStr] || {};
-          let hatDaten = !!dbTageMap[datumStr]; // <-- NEUE LOGIK
+          let k = (typeof dbTageMap[datumStr] === 'object') ? dbTageMap[datumStr] : {};
+          let hatDaten = datumStr in dbTageMap;
 
           let istFeiertag = FEIERTAGE_NDS.includes(datumStr) || k.feiertag;
           let istSondertag = k.besonderheit || k.ausschluss_sondertag || k.ausschluss_einschraenkung;
