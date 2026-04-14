@@ -1133,9 +1133,9 @@ async function loadConfig() {
           config[f] = json[f];
         }
       }
-      // urlaub und fruehschichtEinsaetze immer aus JSON — die kommen vom Deploy
-      if (json.urlaub) config.urlaub = json.urlaub;
-      if (json.fruehschichtEinsaetze) config.fruehschichtEinsaetze = json.fruehschichtEinsaetze;
+      // urlaub und fruehschichtEinsaetze aus JSON nur wenn dort wirklich Inhalte stehen
+      if (json.urlaub && Object.keys(json.urlaub).length > 0) config.urlaub = json.urlaub;
+      if (json.fruehschichtEinsaetze && json.fruehschichtEinsaetze.length > 0) config.fruehschichtEinsaetze = json.fruehschichtEinsaetze;
     }
   } catch(e) {
     if (!config) {

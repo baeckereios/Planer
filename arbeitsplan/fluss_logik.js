@@ -147,6 +147,9 @@ var FLUSS_LOGIK = (function () {
     if ((person.gesperrt || []).includes(tagName)) return 'gesperrt';
     const fehlGrund = getFehlzeitGrund(person.id, dateISO, config.fehlzeiten);
     if (fehlGrund) return fehlGrund;
+    // Geplanter Urlaub aus Config
+    const urlaubEintraege = (config.urlaub || {})[person.id] || [];
+    if (urlaubEintraege.some(e => e.von && e.bis && dateISO >= e.von && dateISO <= e.bis)) return 'urlaub';
     const frei = getFreierTag(person.id, weekKey, config.freieTage);
     const freiTyp = getFreierTagTyp(person.id, weekKey, config.freieTage);
     if (frei === tagName) return freiTyp === 'wunsch' ? 'frei (Wunsch)' : 'frei';
