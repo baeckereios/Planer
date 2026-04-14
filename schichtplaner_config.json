@@ -178,5 +178,16 @@
       "azubi": false
     }
   ],
-  "joker": "Hein Blöd "
+  "joker": "Hein Blöd ",
+  "urlaub": {
+    "lars": [],
+    "dominik": [
+      {
+        "von": "2026-04-19",
+        "bis": "2026-05-03",
+        "notiz": ""
+      }
+    ]
+  },
+  "fruehschichtEinsaetze": []
 }

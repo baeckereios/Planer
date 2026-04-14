@@ -1319,7 +1319,14 @@ function renderArchiv() {
 
 // ── Daten ────────────────────────────────────────────────
 function exportConfig() {
-  const exp = { positionen: config.positionen, personen: config.personen, joker: config.joker };
+  const exp = {
+    positionen: config.positionen,
+    personen: config.personen,
+    joker: config.joker,
+    azubiGesperrteAttribute: config.azubiGesperrteAttribute,
+    urlaub: config.urlaub || {},
+    fruehschichtEinsaetze: config.fruehschichtEinsaetze || []
+  };
   const blob = new Blob([JSON.stringify(exp, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1337,6 +1344,9 @@ function importConfig(event) {
       if (imp.positionen) config.positionen = imp.positionen;
       if (imp.personen) config.personen = imp.personen;
       if (imp.joker !== undefined) config.joker = imp.joker;
+      if (imp.azubiGesperrteAttribute) config.azubiGesperrteAttribute = imp.azubiGesperrteAttribute;
+      if (imp.urlaub) config.urlaub = imp.urlaub;
+      if (imp.fruehschichtEinsaetze) config.fruehschichtEinsaetze = imp.fruehschichtEinsaetze;
       saveToStorage();
       renderPersonenListe();
       renderPositionenListe();

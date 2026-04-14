@@ -1115,14 +1115,32 @@ let currentMonday = FLUSS_LOGIK.getMondayOfWeek(new Date());
 async function loadConfig() {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
-    try { config = JSON.parse(stored); return; } catch(e) {}
+    try { config = JSON.parse(stored); } catch(e) { config = null; }
   }
-  // Fallback: schichtplaner_config.json laden (Root)
+
+  // JSON immer nachladen — neue Felder (urlaub, fruehschichtEinsaetze etc.)
+  // überschreiben localStorage wenn dort noch nicht vorhanden
   try {
     const res = await fetch('../schichtplaner_config.json', { cache: 'no-store' });
-    config = await res.json();
+    const json = await res.json();
+    if (!config) {
+      config = json;
+    } else {
+      // Nur Stammdaten aus JSON übernehmen wenn im localStorage leer/fehlend
+      const syncFelder = ['positionen','personen','joker','azubiGesperrteAttribute','urlaub','fruehschichtEinsaetze'];
+      for (const f of syncFelder) {
+        if (json[f] !== undefined && (config[f] === undefined || config[f] === null)) {
+          config[f] = json[f];
+        }
+      }
+      // urlaub und fruehschichtEinsaetze immer aus JSON — die kommen vom Deploy
+      if (json.urlaub) config.urlaub = json.urlaub;
+      if (json.fruehschichtEinsaetze) config.fruehschichtEinsaetze = json.fruehschichtEinsaetze;
+    }
   } catch(e) {
-    config = { positionen: [], personen: [], joker: '', fehlzeiten: [], freieTage: {} };
+    if (!config) {
+      config = { positionen: [], personen: [], joker: '', fehlzeiten: [], freieTage: {} };
+    }
   }
   saveToStorage();
 }
