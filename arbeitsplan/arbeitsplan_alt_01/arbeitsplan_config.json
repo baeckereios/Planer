@@ -1,0 +1,134 @@
+{
+  "mitarbeiter": [
+    {
+      "id": "mnwseyp8x6sk",
+      "name": "Lars"
+    },
+    {
+      "id": "mnwsf0xdt3ry",
+      "name": "Ulf"
+    },
+    {
+      "id": "mnwsf3816i4k",
+      "name": "Jörg"
+    },
+    {
+      "id": "mnwsf5t5alm7",
+      "name": "Heinzi"
+    },
+    {
+      "id": "mnwsf8owv8vy",
+      "name": "Marcel"
+    },
+    {
+      "id": "mnwsfcvgaior",
+      "name": "Pastor"
+    },
+    {
+      "id": "mnwsffxieuqb",
+      "name": "Harrison"
+    },
+    {
+      "id": "mnwsfhx58c3l",
+      "name": "Rosa"
+    },
+    {
+      "id": "mnwsfpm7iljn",
+      "name": "Dominik"
+    }
+  ],
+  "joker": [],
+  "posten": [
+    {
+      "id": "mnwsfza6wyqe",
+      "name": "Versand 1",
+      "samstag": true,
+      "jokerErlaubt": true,
+      "hierarchie": [
+        "mnwsfhx58c3l",
+        "mnwsffxieuqb",
+        "mnwsfcvgaior",
+        "mnwsf8owv8vy",
+        null
+      ]
+    },
+    {
+      "id": "mnwsgtc7faxt",
+      "name": "Versand 2",
+      "samstag": true,
+      "jokerErlaubt": true,
+      "hierarchie": [
+        "mnwsffxieuqb",
+        "mnwsfhx58c3l",
+        "mnwsfcvgaior",
+        "mnwsf8owv8vy",
+        null
+      ]
+    },
+    {
+      "id": "mnwshu2hirgf",
+      "name": "Teigmacher",
+      "samstag": true,
+      "jokerErlaubt": true,
+      "hierarchie": [
+        "mnwsf3816i4k",
+        "mnwseyp8x6sk",
+        "mnwsf8owv8vy",
+        "mnwsf0xdt3ry",
+        null
+      ]
+    },
+    {
+      "id": "mnwsia7hcx6q",
+      "name": "Rheon",
+      "samstag": true,
+      "jokerErlaubt": true,
+      "hierarchie": [
+        "mnwseyp8x6sk",
+        "mnwsf5t5alm7",
+        "mnwsf8owv8vy",
+        null,
+        null
+      ]
+    },
+    {
+      "id": "mnwsiqlo1dry",
+      "name": "Ofen",
+      "samstag": true,
+      "jokerErlaubt": true,
+      "hierarchie": [
+        "mnwsf0xdt3ry",
+        "mnwsf8owv8vy",
+        "mnwsf5t5alm7",
+        null,
+        null
+      ]
+    },
+    {
+      "id": "mnwsj22c9ici",
+      "name": "22uhr",
+      "samstag": true,
+      "jokerErlaubt": true,
+      "hierarchie": [
+        "mnwsfcvgaior",
+        "mnwsf8owv8vy",
+        "mnwsf5t5alm7",
+        "mnwseyp8x6sk",
+        null
+      ]
+    },
+    {
+      "id": "mnwsjoawljqn",
+      "name": "Kamut",
+      "samstag": false,
+      "jokerErlaubt": true,
+      "hierarchie": [
+        "mnwsfpm7iljn",
+        "mnwsf8owv8vy",
+        "mnwseyp8x6sk",
+        "mnwsf3816i4k",
+        null
+      ]
+    }
+  ]
+}

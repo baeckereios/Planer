@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SchichtPlaner — Hilfe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700;900&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+  <style>
+    :root {
+      --amber:    #b8790a;
+      --bg:       #e8e4de;
+      --bg2:      #ffffff;
+      --bg3:      #ddd8d1;
+      --border:   #c8c2b8;
+      --text:     #1e1a16;
+      --text-dim: #7a6e64;
+      --green:    #2e6b42;
+      --green-bg: #e8f5ec;
+      --red:      #9b2c2c;
+      --red-bg:   #fdf0f0;
+      --blue:     #2a4e7a;
+      --blue-bg:  #eef4fb;
+      --radius:   8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    /* ── Header ──────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+      background: var(--bg2);
+      border-bottom: 2px solid var(--amber);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header a {
+      color: var(--amber);
+      text-decoration: none;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+    }
+    .header h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      color: var(--text);
+      flex: 1;
+    }
+    .header h1 span { color: var(--amber); }
+    .header-sub {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+    }
+
+    /* ── Inhalt ──────────────────────────── */
+    .content {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 20px 16px 60px;
+    }
+
+    /* ── Kapitel ─────────────────────────── */
+    .kapitel {
+      background: var(--bg2);
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .kapitel-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.12s;
+    }
+    .kapitel-header:hover { background: var(--bg); }
+    .kapitel-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .kapitel-title {
+      flex: 1;
+      font-family: 'Fraunces', serif;
+      font-size: 17px;
+      font-weight: 700;
+    }
+    .kapitel-body {
+      padding: 0 16px 18px;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+    .kapitel-body.open { display: block; }
+    .kapitel-body p, .kapitel-body li {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .kapitel-body ul, .kapitel-body ol {
+      padding-left: 20px;
+      margin-bottom: 10px;
+    }
+    .kapitel-body h3 {
+      font-family: 'Fraunces', serif;
+      font-size: 15px;
+      color: var(--amber);
+      margin: 18px 0 8px;
+    }
+    .kapitel-body h3:first-child { margin-top: 14px; }
+
+    /* ── Status-Badges ───────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge-gruen   { background: var(--green-bg); color: var(--green); border: 1px solid #b0d8bc; }
+    .badge-gelb    { background: #fff8e8; color: #7a5200; border: 1px solid #e8d090; }
+    .badge-blau    { background: var(--blue-bg); color: var(--blue); border: 1px solid #b8d0e8; }
+    .badge-rot     { background: var(--red-bg); color: var(--red); border: 1px solid #e8b0b0; }
+    .badge-grau    { background: #f0ede8; color: #a09080; border: 1px solid #ddd8d0; }
+    .badge-lila    { background: #f0eafa; color: #5a2d8a; border: 1px solid #c8a8e8; }
+
+    /* ── Hinweis-Boxen ───────────────────── */
+    .hinweis {
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin: 12px 0;
+      font-size: 14px;
+      line-height: 1.5;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .hinweis i { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .hinweis-info  { background: var(--blue-bg); color: var(--blue); }
+    .hinweis-tipp  { background: #fffbf0; color: #7a5200; border: 1px solid #e8d090; }
+    .hinweis-warn  { background: var(--red-bg); color: var(--red); }
+
+    /* ── Beispiel-Tabelle ────────────────── */
+    .demo-cell {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.3;
+      margin: 3px;
+    }
+    .demo-cell .sub { font-size: 10px; opacity: 0.7; font-weight: 400; }
+
+    /* ── Trenner ─────────────────────────── */
+    .trenner {
+      height: 1px;
+      background: var(--border);
+      margin: 14px 0;
+    }
+
+    /* ── Schritt-Liste ───────────────────── */
+    .schritte { list-style: none; padding: 0; }
+    .schritte li {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      align-items: flex-start;
+    }
+    .schritt-nr {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--amber);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .schritt-text { flex: 1; padding-top: 3px; font-size: 15px; }
+
+    /* ── Intro ───────────────────────────── */
+    .intro {
+      background: var(--bg2);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    }
+    .intro h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+    .intro h2 span { color: var(--amber); }
+    .intro p { font-size: 15px; color: var(--text-dim); line-height: 1.6; }
+  </style>
+</head>
+<body>
+<script src="../shell.js"></script>
+
+<div class="content">
+
+  <!-- ── Einleitung ──────────────────────────────── -->
+  <div class="intro">
+    <h2>Was ist der <span>SchichtPlaner</span>?</h2>
+    <p>
+      Der SchichtPlaner beantwortet täglich eine Frage: <strong>Wer macht was heute Nacht?</strong>
+      Er kennt alle Positionen, alle Qualifikationen und alle Einschränkungen —
+      und baut daraus automatisch den bestmöglichen Plan.
+      Du kannst jederzeit eingreifen, überschreiben und anpassen.
+    </p>
+  </div>
+
+  <!-- ── 1. Der Wochenplan ──────────────────────── -->
+  <div class="kapitel">
+    <div class="kapitel-header" onclick="toggle(this)">
+      <div class="kapitel-icon" style="background:#e8f5ec"><i class="ph ph-table" style="color:#2e6b42"></i></div>
+      <div class="kapitel-title">Den Wochenplan lesen</div>
+      <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+    </div>
+    <div class="kapitel-body">
+      <p>
+        Die Tabelle zeigt die ganze Woche auf einen Blick.
+        Jede Zeile ist eine <strong>Position</strong> (z.B. Ofen, Rheon, Versand).
+        Jede Spalte ist ein <strong>Wochentag</strong> von Montag bis Samstag.
+        In jeder Zelle steht, wer an diesem Tag diese Position besetzt.
+      </p>
+
+      <h3>Die Zellen-Farben</h3>
+      <p>Die Farbe zeigt, <em>warum</em> jemand dort sitzt:</p>
+
+      <p>
+        <span class="badge badge-gruen">Stammkraft</span>
+        — Das ist die Person, die normalerweise immer dort steht.
+        Grün = alles wie geplant.
+      </p>
+      <p>
+        <span class="badge badge-gelb">Kaskade</span>
+        — Die Stammkraft fehlt heute. Diese Person springt ein —
+        und hat selbst eine eigene Stammkraft-Position.
+        Das System hat einen internen Tausch vorgenommen.
+      </p>
+      <p>
+        <span class="badge badge-blau">Wolke</span>
+        — Jemand aus der flexiblen Reserve. Diese Person hat
+        keine feste Stammkraft-Position, kann aber viele Dinge.
+        Mehr dazu im Kapitel "Die Wolke".
+      </p>
+      <p>
+        <span class="badge badge-rot">Joker</span>
+        — Kein einziger qualifizierter Mitarbeiter war verfügbar.
+        Der Joker (meistens Heinrich) muss einspringen.
+        Das ist eine Warnung — nicht der Normalzustand.
+      </p>
+      <p>
+        <span class="badge badge-grau">Gesperrt</span>
+        — Diese Position wird an diesem Tag grundsätzlich nicht besetzt.
+        Kamut zum Beispiel ist samstags immer gesperrt.
+      </p>
+      <p>
+        <span class="badge badge-lila">Manuell</span>
+        — Du hast diese Zelle von Hand überschrieben.
+        Das System respektiert deine Entscheidung und plant um sie herum.
+      </p>
+
+      <h3>Unter der Tabelle</h3>
+      <p>
+        <strong>Verfügbar</strong> — Person ist da, wird aber gerade nicht gebraucht.
+        Kein Problem, aber es lohnt sich zu überlegen ob der freie Tag sinnvoll sitzt.
+      </p>
+      <p>
+        <strong>Azubi</strong> — Zeigt wo der Azubi heute eingeplant ist,
+        oder ob er lernt, Schule hat oder frei ist.
+      </p>
+      <p>
+        <strong>Frei</strong> — Wer hat heute seinen freien Tag?
+        Rote Chips = regulär frei. Graue Chips = Sperrtag (z.B. Azubi Fr/Sa).
+      </p>
+      <p>
+        <strong>Krank/Urlaub</strong> — Eingetragene Fehlzeiten. 🤒 = krank, 🌴 = Urlaub.
+        Erscheint nur wenn tatsächlich jemand fehlt.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 2. Die Aktionszentrale ─────────────────── -->
+  <div class="kapitel">
+    <div class="kapitel-header" onclick="toggle(this)">
+      <div class="kapitel-icon" style="background:#fffbf0"><i class="ph ph-bell-ringing" style="color:#b8790a"></i></div>
+      <div class="kapitel-title">Die Aktionszentrale</div>
+      <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+    </div>
+    <div class="kapitel-body">
+      <p>
+        Die grüne oder farbige Box direkt unterhalb der Tabelle ist die <strong>Aktionszentrale</strong>.
+        Sie ist immer sichtbar und zeigt dir auf einen Blick ob Handlungsbedarf besteht.
+      </p>
+      <p>
+        <strong>✓ Alles in Ordnung</strong> — grün. Plan ist vollständig, kein Joker, kein Problem.
+      </p>
+      <p>
+        <strong>⚠ Joker-Warnung</strong> — rot. Eine Position hat keinen qualifizierten Mitarbeiter.
+        Darunter erscheinen meist direkt Lösungsvorschläge.
+      </p>
+      <p>
+        <strong>💡 Lösungsvorschläge</strong> — gelb. Das System hat berechnet,
+        welcher freie Tag verschoben werden müsste, damit der Joker verschwindet.
+        Einfach "Übernehmen" tippen.
+      </p>
+      <p>
+        <strong>🔀 Verdrängungshinweis</strong> — gelb. Du hast manuell jemanden auf eine Position gesetzt
+        und dabei eine andere Person verdrängt. Das System fragt ob die verdrängte Person
+        den betreffenden Tag als freien Tag bekommen soll.
+      </p>
+      <p>
+        <strong>📅 Freier Tag verloren</strong> — gelb. Jemand hat eingesprungen und dabei
+        seinen eigenen freien Tag geopfert. Das System schlägt einen Ersatztag vor.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 3. Die Wolke ───────────────────────────── -->
+  <div class="kapitel">
+    <div class="kapitel-header" onclick="toggle(this)">
+      <div class="kapitel-icon" style="background:var(--blue-bg)"><i class="ph ph-cloud" style="color:#2a4e7a"></i></div>
+      <div class="kapitel-title">Was ist die Wolke?</div>
+      <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+    </div>
+    <div class="kapitel-body">
+      <p>
+        Im System gibt es zwei Typen von Mitarbeitern: <strong>Stammkräfte</strong> und <strong>Wolke</strong>.
+      </p>
+      <p>
+        Eine <strong>Stammkraft</strong> hat eine feste Heimat-Position.
+        Jörg ist Stammkraft am Teigmacher. Ulf ist Stammkraft am Ofen.
+        Sie sind die erste Wahl für ihre Position — immer.
+      </p>
+      <p>
+        Die <strong>Wolke</strong> sind Mitarbeiter ohne feste Position.
+        Lars, Marcel, Heinzi — sie können vieles, haben aber kein "Zuhause".
+        Das System setzt sie dort ein wo sie gerade gebraucht werden.
+      </p>
+      <div class="hinweis hinweis-info">
+        <i class="ph ph-info"></i>
+        <span>Wolke ist kein Nachteil — im Gegenteil. Wolken-Mitarbeiter sind das flexible Rückgrat.
+        Wenn Stammkräfte fehlen, sind sie es die den Plan retten.</span>
+      </div>
+      <p>
+        In der Zelle erkennst du Wolken-Einsätze an der <span class="badge badge-blau">blauen Farbe</span>.
+        Bei Kaskade (gelb) weiß das System: diese Person hat selbst eine Stammkraft-Position
+        und steht gerade woanders. Bei Wolke (blau): völlig freie Einteilung.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 4. Stammkraft und Kaskade ─────────────── -->
+  <div class="kapitel">
+    <div class="kapitel-header" onclick="toggle(this)">
+      <div class="kapitel-icon" style="background:var(--green-bg)"><i class="ph ph-flow-arrow" style="color:#2e6b42"></i></div>
+      <div class="kapitel-title">Stammkraft, Kaskade und der Algorithmus</div>
+      <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+    </div>
+    <div class="kapitel-body">
+      <p>
+        Wenn das System jeden Morgen den Plan berechnet, arbeitet es nach einer klaren Rangfolge.
+        Stell dir vor, jede Position ruft ihren Bewerber auf:
+      </p>
+      <ol class="schritte">
+        <li>
+          <div class="schritt-nr">1</div>
+          <div class="schritt-text"><strong>Stammkraft da?</strong> — Sie bekommt ihre Position. Fertig.</div>
+        </li>
+        <li>
+          <div class="schritt-nr">2</div>
+          <div class="schritt-text"><strong>Stammkraft fehlt?</strong> — Das System sucht jemanden aus der Wolke
+          der das Attribut dieser Position hat. Die kritischsten Positionen (Priorität 1) rufen zuerst.</div>
+        </li>
+        <li>
+          <div class="schritt-nr">3</div>
+          <div class="schritt-text"><strong>Azubi?</strong> — Er wird immer zuletzt eingesetzt.
+          Erst wenn alle anderen Optionen erschöpft sind.</div>
+        </li>
+        <li>
+          <div class="schritt-nr">4</div>
+          <div class="schritt-text"><strong>Niemand verfügbar?</strong> — Der Joker springt ein.
+          Das ist ein Signal: hier fehlt jemand mit der richtigen Qualifikation.</div>
+        </li>
+      </ol>
+      <h3>Der Fix-up-Pass</h3>
+      <p>
+        Nach diesem ersten Durchlauf versucht das System noch einmal einen Joker aufzulösen.
+        Es prüft: gibt es einen Tausch der hilft?
+        Beispiel: Felix sitzt auf 22 Uhr, Rheon hat einen Joker.
+        Heinzi kann sowohl 22 Uhr als auch Rheon.
+        → System tauscht: Heinzi geht zu Rheon, Felix bleibt auf 22 Uhr.
+        Joker weg.
+      </p>
+      <div class="hinweis hinweis-tipp">
+        <i class="ph ph-lightbulb"></i>
+        <span>Der Fix-up-Pass löst einfache Tauschketten automatisch.
+        Komplexe Dreier-Ketten (A springt für B, B für C) muss man noch manuell lösen —
+        dafür gibt es die Lösungsvorschläge in der Aktionszentrale.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 5. Freie Tage ──────────────────────────── -->
+  <div class="kapitel">
+    <div class="kapitel-header" onclick="toggle(this)">
+      <div class="kapitel-icon" style="background:#fff8e8"><i class="ph ph-calendar-blank" style="color:#b8790a"></i></div>
+      <div class="kapitel-title">Freie Tage — wie funktioniert die Verteilung?</div>
+      <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+    </div>
+    <div class="kapitel-body">
+      <p>
+        Jede Woche bekommt jede Person einen freien Tag.
+        Wer wann frei bekommt, entscheidet ein Score-System — kein Zufall, keine Gunst.
+      </p>
+      <h3>Wie der Score funktioniert</h3>
+      <p>
+        Für jeden möglichen Tag berechnet das System einen Wert.
+        <strong>Niedrigster Wert gewinnt.</strong> Der Score setzt sich zusammen aus:
+      </p>
+      <ul>
+        <li><strong>Wie viele haben diesen Tag schon?</strong> — Gleichverteilung über die Woche.</li>
+        <li><strong>Wie oft hatte diese Person diesen Tag historisch?</strong> — Wer Samstag oft hatte, bekommt ihn seltener. Fairer Rhythmus über Monate.</li>
+        <li><strong>Kleiner Bonus</strong> wenn der Tag ein Sperrtag der eigenen Stammkraft-Position ist (z.B. Dominik bekommt leicht bevorzugt Samstag frei, weil Kamut samstags eh gesperrt ist).</li>
+      </ul>
+      <h3>Wunsch-Freier-Tag</h3>
+      <p>
+        Jede Person kann einen Wunschtag hinterlegen (Konfiguration → Personen).
+        Das System versucht diesen zu berücksichtigen — garantiert ist es nicht.
+        Ein ✓ in der Freie-Tage-Übersicht bedeutet: Wunsch erfüllt.
+      </p>
+      <h3>Varianten</h3>
+      <p>
+        "Auto-Verteilen" zeigt manchmal bis zu 3 Varianten.
+        Das passiert wenn mehrere Personen exakt den gleichen Score haben —
+        dann spielt die Reihenfolge eine Rolle und das System rechnet mehrere Möglichkeiten durch.
+      </p>
+      <h3>Manuell anpassen</h3>
+      <p>
+        Unter "Freie Tage Wünsche" kann der freie Tag pro Person per Dropdown direkt geändert werden.
+        Der Typ wird automatisch auf "Manuell" gesetzt.
+        Manuell gesetzte Tage werden beim nächsten Auto-Verteilen nicht überschrieben.
+      </p>
+      <h3>Samstag-Rotation</h3>
+      <p>
+        Samstag frei zu haben ist besonders. Das System zählt automatisch mit
+        wer wie oft Samstag hatte (sichtbar im Archiv).
+        Wer Samstag zu oft hatte, bekommt ihn seltener — automatisch, ohne manuelle Eingriffe.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 6. Sonderschicht ───────────────────────── -->
+  <div class="kapitel">
+    <div class="kapitel-header" onclick="toggle(this)">
+      <div class="kapitel-icon" style="background:var(--blue-bg)"><i class="ph ph-star" style="color:#2a4e7a"></i></div>
+      <div class="kapitel-title">Sonderschicht und Verfügbar</div>
+      <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+    </div>
+    <div class="kapitel-body">
+      <p>
+        Die <strong>Verfügbar</strong>-Zeile zeigt Personen die an diesem Tag nicht eingeplant wurden,
+        aber grundsätzlich da wären. Sie sind ein Signal: hier ist Kapazität.
+      </p>
+      <p>
+        Die <strong>Sonderschicht</strong> ist ein Samstag-Phänomen.
+        Sie erscheint wenn jemand samstags verfügbar ist UND seinen freien Tag
+        bereits unter der Woche (Mo–Fr) hatte. Diese Person könnte samstags
+        freiwillig eine Zusatzschicht machen — daher "optional".
+      </p>
+      <div class="hinweis hinweis-tipp">
+        <i class="ph ph-lightbulb"></i>
+        <span>Damit Lars samstags als Sonderschicht erscheint, muss sein freier Tag
+        unter der Woche liegen — nicht Samstag. Wenn er Samstag frei hat, ist er einfach abwesend.
+        Wenn er Freitag frei hat und samstags nicht gebraucht wird, zeigt ihn das System als optional.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 7. Fehlzeiten ──────────────────────────── -->
+  <div class="kapitel">
+    <div class="kapitel-header" onclick="toggle(this)">
+      <div class="kapitel-icon" style="background:var(--red-bg)"><i class="ph ph-thermometer" style="color:#9b2c2c"></i></div>
+      <div class="kapitel-title">Fehlzeiten — Krank und Urlaub erfassen</div>
+      <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+    </div>
+    <div class="kapitel-body">
+      <p>
+        Fehlzeiten können auf zwei Wegen eingetragen werden:
+      </p>
+      <h3>Weg 1: Tap auf eine Planerzelle</h3>
+      <ol class="schritte">
+        <li>
+          <div class="schritt-nr">1</div>
+          <div class="schritt-text">Auf den Namen in der Tabelle tippen.</div>
+        </li>
+        <li>
+          <div class="schritt-nr">2</div>
+          <div class="schritt-text">Tab "🤒 Fehlzeit" wählen.</div>
+        </li>
+        <li>
+          <div class="schritt-nr">3</div>
+          <div class="schritt-text">Art (Krank/Urlaub) und Zeitraum eingeben.
+          Schnellbuttons: <em>Nur heute</em>, <em>+1 Tag</em>, <em>Bis Sa</em>, <em>+1 Woche</em>.</div>
+        </li>
+        <li>
+          <div class="schritt-nr">4</div>
+          <div class="schritt-text">"Eintragen" — Plan wird sofort neu berechnet.</div>
+        </li>
+      </ol>
+      <h3>Weg 2: Tab "Fehlzeiten"</h3>
+      <p>
+        Unten im Tab "Fehlzeiten" kann man Person, Art und Zeitraum direkt eingeben.
+        Gut für längere Abwesenheiten oder wenn man mehrere Personen nacheinander einträgt.
+      </p>
+      <div class="hinweis hinweis-warn">
+        <i class="ph ph-warning"></i>
+        <span>Fehlzeiten blockieren auch manuelle Overrides.
+        Wenn jemand als krank eingetragen ist, kann er nicht manuell auf eine Position gesetzt werden.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 8. Manuelle Eingriffe ──────────────────── -->
+  <div class="kapitel">
+    <div class="kapitel-header" onclick="toggle(this)">
+      <div class="kapitel-icon" style="background:#f0eafa"><i class="ph ph-pencil" style="color:#5a2d8a"></i></div>
+      <div class="kapitel-title">Manuell eingreifen — Position überschreiben</div>
+      <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+    </div>
+    <div class="kapitel-body">
+      <p>
+        Manchmal weiß man mehr als der Algorithmus.
+        Vielleicht ist jemand eingesprungen, hat einen Tausch angeboten
+        oder die Situation ist einfach besonderer Natur.
+        Dann kann man manuell eingreifen.
+      </p>
+      <ol class="schritte">
+        <li>
+          <div class="schritt-nr">1</div>
+          <div class="schritt-text">Auf eine Planerzelle tippen.</div>
+        </li>
+        <li>
+          <div class="schritt-nr">2</div>
+          <div class="schritt-text">Tab "✏️ Person ändern" wählen.</div>
+        </li>
+        <li>
+          <div class="schritt-nr">3</div>
+          <div class="schritt-text">Gewünschte Person aus der Liste wählen.</div>
+        </li>
+        <li>
+          <div class="schritt-nr">4</div>
+          <div class="schritt-text">"Übernehmen" — die Zelle wird lila,
+          der Plan rechnet sofort neu um die manuelle Entscheidung herum.</div>
+        </li>
+      </ol>
+      <div class="hinweis hinweis-info">
+        <i class="ph ph-info"></i>
+        <span>Wichtig: Die manuelle Person wird <em>vor</em> dem Algorithmus gesetzt.
+        Das System füllt alle anderen offenen Positionen dann mit den verbleibenden Personen.
+        Es entsteht kein Loch — der Algorithmus repariert den Rest automatisch.</span>
+      </div>
+      <h3>Manuelle Eingriffe zurücksetzen</h3>
+      <p>
+        Einzeln: Zelle antippen → "✏️ Person ändern" → "Zurücksetzen".<br>
+        Ganze Woche: Tab "Freie Tage" → "Zurücksetzen" (löscht freie Tage <em>und</em> alle manuellen Overrides).
+      </p>
+      <h3>Was passiert wenn ich jemanden auf seinen eigenen freien Tag setze?</h3>
+      <p>
+        Das System erlaubt das — manuell ist eine bewusste Entscheidung.
+        Der freie Tag wird automatisch annulliert.
+        In der Aktionszentrale erscheint ein Vorschlag für einen Ersatztag.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 9. Joker ───────────────────────────────── -->
+  <div class="kapitel">
+    <div class="kapitel-header" onclick="toggle(this)">
+      <div class="kapitel-icon" style="background:var(--red-bg)"><i class="ph ph-warning" style="color:#9b2c2c"></i></div>
+      <div class="kapitel-title">Der Joker — was bedeutet er?</div>
+      <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+    </div>
+    <div class="kapitel-body">
+      <p>
+        Ein Joker bedeutet: für diese Position war kein einziger qualifizierter Mitarbeiter verfügbar.
+        Alle die das Attribut hätten, sind entweder krank, haben frei oder sind bereits anderswo eingeplant.
+      </p>
+      <p>
+        Der Joker ist benannt nach der Person die im Notfall einspringt (z.B. Heinrich).
+        Er ist <strong>kein Funktionsausfall</strong> — die Position wird besetzt,
+        aber eben von jemandem der normalerweise nicht dafür vorgesehen ist.
+      </p>
+      <h3>Was tun bei einem Joker?</h3>
+      <p>
+        Die Aktionszentrale zeigt sofort Lösungsvorschläge.
+        Meistens genügt es, den freien Tag einer Person zu verschieben —
+        dann ist die blockierte Stelle plötzlich wieder besetzt.
+        Einfach "Übernehmen" tippen und der Plan rechnet neu.
+      </p>
+      <div class="hinweis hinweis-tipp">
+        <i class="ph ph-lightbulb"></i>
+        <span>Wenn regelmäßig Joker auftauchen: das ist ein Zeichen dass eine Position
+        zu wenig qualifizierte Personen hat. Lösung: weitere Personen das entsprechende
+        Attribut geben (in der Konfiguration).</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 10. Plan speichern ─────────────────────── -->
+  <div class="kapitel">
+    <div class="kapitel-header" onclick="toggle(this)">
+      <div class="kapitel-icon" style="background:#fffbf0"><i class="ph ph-floppy-disk" style="color:#b8790a"></i></div>
+      <div class="kapitel-title">Drucken und Speichern</div>
+      <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+    </div>
+    <div class="kapitel-body">
+      <h3>Drucken</h3>
+      <p>
+        Der "Drucken"-Button oben rechts öffnet den Druckdialog.
+        Das Layout schaltet automatisch auf A4 Querformat um:
+        oben der vollständige Plan, unten ein kompakter Streifen mit freien Tagen und Status.
+        Alles auf einer Seite.
+      </p>
+      <h3>Plan speichern</h3>
+      <p>
+        "Plan speichern" exportiert den aktuellen Plan als JS-Datei.
+        Diese Datei kann archiviert oder geteilt werden.
+        Mit "Plan laden" kann ein gespeicherter Plan wieder importiert werden.
+      </p>
+      <div class="hinweis hinweis-info">
+        <i class="ph ph-info"></i>
+        <span>Der Plan wird automatisch im Browser-Speicher (localStorage) gehalten.
+        Solange du denselben Browser und dasselbe Gerät nutzt, sind alle Daten — auch ältere Wochen — vorhanden.
+        Für langfristige Sicherung: regelmäßig "Plan speichern" nutzen.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="trenner" style="margin: 24px 0 20px"></div>
+  <p style="font-family:'Fraunces',serif;font-size:20px;font-weight:700;margin-bottom:16px;color:var(--amber)">Konfiguration</p>
+
+  <!-- ── 11. Personen ───────────────────────────── -->
+  <div class="kapitel">
+    <div class="kapitel-header" onclick="toggle(this)">
+      <div class="kapitel-icon" style="background:#e8f5ec"><i class="ph ph-users" style="color:#2e6b42"></i></div>
+      <div class="kapitel-title">Personen verwalten</div>
+      <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+    </div>
+    <div class="kapitel-body">
+      <p>
+        Jede Person hat folgende Einstellungen:
+      </p>
+      <h3>Name</h3>
+      <p>Anzeigename in der Tabelle.</p>
+      <h3>Stammkraft von</h3>
+      <p>
+        Gibt es eine Position die diese Person "besitzt"? Dann hier einstellen.
+        Stammkräfte bekommen ihre Position automatisch als erste Wahl.
+        Personen ohne Stammkraft-Zuordnung sind Teil der Wolke.
+      </p>
+      <h3>Wunsch-Freier-Tag</h3>
+      <p>
+        Welchen Tag möchte die Person am liebsten frei haben?
+        Das System versucht das zu berücksichtigen — es ist ein Wunsch, keine Garantie.
+        Im Plan erkennst du erfüllte Wünsche an einem ✓.
+      </p>
+      <h3>Attribute (Qualifikationen)</h3>
+      <p>
+        Was kann diese Person? Attribute verknüpfen Personen mit Positionen.
+        Nur wer das passende Attribut hat, kann eine Position besetzen.
+      </p>
+      <p>
+        Die <strong>Reihenfolge</strong> der Attribute ist wichtig: Attribut 1 ist die bevorzugte
+        Einsatzposition, Attribut 2 die nächste Wahl und so weiter.
+        Das beeinflusst subtil wohin das System jemanden zieht wenn mehrere Optionen offen sind.
+      </p>
+      <h3>Sperrtage</h3>
+      <p>
+        Tage an denen diese Person grundsätzlich nicht arbeitet.
+        Beim Azubi sind das Freitag und Samstag (Berufsschule / Freiheit).
+        Gesperrte Personen werden an diesen Tagen aus dem Pool entfernt — 
+        auch manuelle Overrides respektieren Sperrtage.
+      </p>
+      <h3>Azubi</h3>
+      <p>
+        Azubis werden im Algorithmus immer als letzter Griff eingesetzt.
+        Außerdem dürfen sie standardmäßig keine Versand-Positionen besetzen
+        (konfigurierbar unter Einstellungen → Azubi-Sperren).
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 12. Positionen ─────────────────────────── -->
+  <div class="kapitel">
+    <div class="kapitel-header" onclick="toggle(this)">
+      <div class="kapitel-icon" style="background:#fff8e8"><i class="ph ph-squares-four" style="color:#b8790a"></i></div>
+      <div class="kapitel-title">Positionen verwalten</div>
+      <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+    </div>
+    <div class="kapitel-body">
+      <p>
+        Positionen sind die Stellen die jeden Tag besetzt werden müssen.
+        Jede Position hat folgende Einstellungen:
+      </p>
+      <h3>Bezeichnung</h3>
+      <p>Anzeigename in der Tabelle (z.B. "Ofen", "Versand E1", "22 Uhr").</p>
+      <h3>Attribut</h3>
+      <p>
+        Das Qualifikations-Stichwort. Personen mit diesem Attribut in ihrer Liste
+        können diese Position besetzen.
+        Kleinschreibung, keine Leerzeichen. Beispiel: <code>ofen</code>, <code>versand</code>, <code>22uhr</code>.
+      </p>
+      <div class="hinweis hinweis-tipp">
+        <i class="ph ph-lightbulb"></i>
+        <span>Das Attribut verknüpft Position und Person. "Ofen" als Position hat Attribut <code>ofen</code>.
+        Ulf hat in seiner Personen-Liste das Attribut <code>ofen</code>.
+        Deshalb ist Ulf Stammkraft am Ofen — weil er genau das Attribut hat, das der Ofen verlangt.</span>
+      </div>
+      <h3>Priorität</h3>
+      <p>
+        Wie wichtig ist diese Position?
+      </p>
+      <ul>
+        <li><strong>1 — Kritisch:</strong> Muss besetzt sein. Joker hier ist ein echtes Problem.</li>
+        <li><strong>2 — Mittel:</strong> Sollte besetzt sein.</li>
+        <li><strong>3 — Joker-OK:</strong> Kann im Notfall mit Joker laufen. Das System platziert Joker bevorzugt hier.</li>
+      </ul>
+      <p>
+        Kritische Positionen (Prio 1) werden zuerst versorgt.
+        Damit stellt das System sicher: wenn knapp, leiden zuerst die unwichtigsten Positionen.
+      </p>
+      <h3>Gesperrt am</h3>
+      <p>
+        Tage an denen diese Position grundsätzlich nicht besetzt wird.
+        Kamut ist z.B. samstags gesperrt — das steht hier.
+        Gesperrte Positionen erscheinen in der Tabelle grau mit einem Strich.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 13. Einstellungen ──────────────────────── -->
+  <div class="kapitel">
+    <div class="kapitel-header" onclick="toggle(this)">
+      <div class="kapitel-icon" style="background:var(--bg3)"><i class="ph ph-gear" style="color:var(--text-dim)"></i></div>
+      <div class="kapitel-title">Einstellungen</div>
+      <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+    </div>
+    <div class="kapitel-body">
+      <h3>Joker-Name</h3>
+      <p>
+        Wie heißt die Person die als letzter Ausweg einspringt?
+        Dieser Name erscheint in roten Joker-Zellen im Plan.
+        Standard: Heinrich.
+      </p>
+      <h3>Azubi-Sperren</h3>
+      <p>
+        Welche Positions-Attribute darf ein Azubi nicht besetzen?
+        Standard: <code>versand</code> — Azubis dürfen keine Versand-Positionen übernehmen.
+      </p>
+      <p>
+        Wenn du weitere Positionen hinzufügst die für Azubis nicht geeignet sind
+        (z.B. <code>teigmacher</code>), kannst du das hier ergänzen.
+        Das Attribut muss genau so geschrieben sein wie in der Position hinterlegt.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 14. Archiv und Übersicht ───────────────── -->
+  <div class="kapitel">
+    <div class="kapitel-header" onclick="toggle(this)">
+      <div class="kapitel-icon" style="background:#e8f5ec"><i class="ph ph-chart-bar" style="color:#2e6b42"></i></div>
+      <div class="kapitel-title">Übersicht und Archiv</div>
+      <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+    </div>
+    <div class="kapitel-body">
+      <h3>Übersicht</h3>
+      <p>
+        Zeigt alle Mitarbeiter auf einen Blick: Stammkraft-Position, Attribute,
+        Sperrtage, Wunschtag und wie oft jemand bisher Samstag frei hatte.
+        Gut als schnelle Orientierung wenn man eine Person konfigurieren will.
+      </p>
+      <h3>Archiv</h3>
+      <p>
+        Die letzten 12 Wochen auf einen Blick.
+        Samstag-Einträge sind gelb hervorgehoben —
+        damit sieht man sofort wer die Samstag-Last trägt.
+      </p>
+      <p>
+        Das Archiv ist kein Rückblick-Feature, es ist ein <strong>Steuerungsinstrument</strong>.
+        Der Score-Algorithmus für die Samstag-Rotation basiert genau auf diesen Daten.
+        Je mehr Wochen gesammelt sind, desto fairer die Verteilung.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── 15. Daten ──────────────────────────────── -->
+  <div class="kapitel">
+    <div class="kapitel-header" onclick="toggle(this)">
+      <div class="kapitel-icon" style="background:var(--blue-bg)"><i class="ph ph-database" style="color:#2a4e7a"></i></div>
+      <div class="kapitel-title">Daten — Export, Import, Sicherung</div>
+      <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+    </div>
+    <div class="kapitel-body">
+      <h3>Config exportieren</h3>
+      <p>
+        Exportiert nur die Stammdaten: Positionen, Personen, Einstellungen.
+        Kein Wochendaten. Gut um die Konfiguration auf ein anderes Gerät zu übertragen
+        oder als Backup der Struktur.
+      </p>
+      <h3>Vollexport</h3>
+      <p>
+        Exportiert alles: Config + alle gespeicherten Wochen, freie Tage, Fehlzeiten.
+        Das ist das vollständige Backup. Regelmäßig empfohlen.
+      </p>
+      <h3>Alles zurücksetzen</h3>
+      <p>
+        Löscht alle Daten und startet mit der Standard-Konfiguration neu.
+        <strong>Nicht umkehrbar</strong> — nur nach Vollexport verwenden.
+      </p>
+      <div class="hinweis hinweis-warn">
+        <i class="ph ph-warning"></i>
+        <span>Alle Daten liegen im Browser-Speicher dieses Geräts.
+        Ein anderer Browser oder ein anderes Gerät sieht nichts davon.
+        Für Teamnutzung: Vollexport und Import auf jedem Gerät, oder Plan-Speichern/Laden über die JS-Datei.</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggle(header) {
+  const body = header.nextElementSibling;
+  const icon = header.querySelector('.ph-caret-down');
+  body.classList.toggle('open');
+  if (icon) icon.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+</script>
+</body>
+</html>

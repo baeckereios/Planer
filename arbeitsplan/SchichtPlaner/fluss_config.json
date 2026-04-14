@@ -1,0 +1,230 @@
+{
+  "positionen": [
+    {
+      "id": "teigmacher",
+      "label": "Teigmacher",
+      "attribut": "teigmacher",
+      "gesperrtAm": [],
+      "prioritaet": 1
+    },
+    {
+      "id": "kamut",
+      "label": "Kamut",
+      "attribut": "kamut",
+      "gesperrtAm": [
+        "samstag"
+      ],
+      "prioritaet": 1
+    },
+    {
+      "id": "ofen",
+      "label": "Ofen",
+      "attribut": "ofen",
+      "gesperrtAm": [],
+      "prioritaet": 1
+    },
+    {
+      "id": "rheon",
+      "label": "Rheon",
+      "attribut": "rheon",
+      "gesperrtAm": [],
+      "prioritaet": 2
+    },
+    {
+      "id": "versand_e1",
+      "label": "Versand E1",
+      "attribut": "versand",
+      "gesperrtAm": [],
+      "prioritaet": 3
+    },
+    {
+      "id": "versand_e2",
+      "label": "Versand E2",
+      "attribut": "versand",
+      "gesperrtAm": [],
+      "prioritaet": 3
+    },
+    {
+      "id": "versand_e3",
+      "label": "22 Uhr",
+      "attribut": "22uhr",
+      "gesperrtAm": [],
+      "prioritaet": 3
+    }
+  ],
+  "personen": [
+    {
+      "id": "rosa",
+      "name": "Rosa",
+      "attribute": [
+        "versand"
+      ],
+      "stammkraft_von": "versand_e1",
+      "wunschFreierTag": null,
+      "gesperrt": [],
+      "azubi": false
+    },
+    {
+      "id": "harrison",
+      "name": "Harrison",
+      "attribute": [
+        "versand"
+      ],
+      "stammkraft_von": "versand_e2",
+      "wunschFreierTag": null,
+      "gesperrt": [],
+      "azubi": false
+    },
+    {
+      "id": "pastor",
+      "name": "Pastor",
+      "attribute": [
+        "versand",
+        "22uhr"
+      ],
+      "wunschFreierTag": null,
+      "gesperrt": [],
+      "azubi": false
+    },
+    {
+      "id": "felix",
+      "name": "Felix",
+      "attribute": [
+        "22uhr"
+      ],
+      "stammkraft_von": null,
+      "wunschFreierTag": null,
+      "gesperrt": [
+        "freitag",
+        "samstag"
+      ],
+      "azubi": true
+    },
+    {
+      "id": "lars",
+      "name": "Lars",
+      "attribute": [
+        "teigmacher",
+        "rheon",
+        "22uhr",
+        "kamut"
+      ],
+      "stammkraft_von": null,
+      "wunschFreierTag": null,
+      "gesperrt": [],
+      "azubi": false
+    },
+    {
+      "id": "marcel",
+      "name": "Marcel",
+      "attribute": [
+        "rheon",
+        "teigmacher",
+        "22uhr",
+        "versand",
+        "kamut",
+        "ofen"
+      ],
+      "stammkraft_von": null,
+      "wunschFreierTag": null,
+      "gesperrt": [],
+      "azubi": false
+    },
+    {
+      "id": "heinzi",
+      "name": "Heinzi",
+      "attribute": [
+        "rheon",
+        "22uhr"
+      ],
+      "stammkraft_von": null,
+      "wunschFreierTag": null,
+      "gesperrt": [],
+      "azubi": false
+    },
+    {
+      "id": "dominik",
+      "name": "Dominik",
+      "attribute": [
+        "kamut",
+        "22uhr",
+        "rheon"
+      ],
+      "stammkraft_von": "kamut",
+      "wunschFreierTag": null,
+      "gesperrt": [],
+      "azubi": false
+    },
+    {
+      "id": "joerg",
+      "name": "Jörg",
+      "attribute": [
+        "teigmacher"
+      ],
+      "stammkraft_von": "teigmacher",
+      "wunschFreierTag": null,
+      "gesperrt": [],
+      "azubi": false
+    },
+    {
+      "id": "ulf",
+      "name": "Ulf",
+      "attribute": [
+        "ofen"
+      ],
+      "stammkraft_von": "ofen",
+      "wunschFreierTag": null,
+      "gesperrt": [],
+      "azubi": false
+    }
+  ],
+  "joker": "Hein Blöd ",
+  "fehlzeiten": [
+    {
+      "personId": "dominik",
+      "typ": "urlaub",
+      "von": "2026-04-19",
+      "bis": "2026-05-03"
+    }
+  ],
+  "freieTage": {
+    "2026-W17": {
+      "rosa": {
+        "tag": "montag",
+        "typ": "auto"
+      },
+      "harrison": {
+        "tag": "dienstag",
+        "typ": "auto"
+      },
+      "pastor": {
+        "tag": "mittwoch",
+        "typ": "auto"
+      },
+      "lars": {
+        "tag": "donnerstag",
+        "typ": "auto"
+      },
+      "marcel": {
+        "tag": "freitag",
+        "typ": "auto"
+      },
+      "heinzi": {
+        "tag": "samstag",
+        "typ": "auto"
+      },
+      "dominik": {
+        "tag": "samstag",
+        "typ": "auto"
+      },
+      "joerg": {
+        "tag": "montag",
+        "typ": "auto"
+      },
+      "ulf": {
+        "tag": "dienstag",
+        "typ": "auto"
+      }
+    }
+  }
+}

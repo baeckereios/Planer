@@ -8,7 +8,7 @@
 
         const PAGE_CONFIG = {
         'setup.html':                { title: 'PlanungsAssistent',  mode: 'minimal'                  },
-        'schnellrechner.html':       { title: 'Schnellrechner',     mode: 'full', tab: 'rechner'    },
+        'schnellrechner.html':       { title: 'Schnellrechner',     mode: 'full', tab: 'start'    },
         'baguette_rechner.html':     { title: 'Stangenrechner',     mode: 'full', tab: 'mehr'       },
         'produktionsverlauf_baguette.html': { title: 'Produktions\nverlauf', mode: 'full', tab: 'mehr' },
         'frosterliste.html':         { title: 'Frosterliste',       mode: 'full', tab: 'mehr'       },
@@ -33,17 +33,20 @@
         'lieferanten_inventur.html': { title: 'BÄKO Inventur',      mode: 'full', tab: 'mehr'       },
         'lieferanten_auswertung.html':{ title: 'Lieferanten',        mode: 'full', tab: 'mehr'       },
         'lieferanten_config_editor.html':{ title: 'Lieferanten-Config', mode: 'full', tab: 'mehr'   },
-        'druckzentrale.html':        { title: 'Druckzentrale',      mode: 'full', tab: 'mehr'       },
+        'druckzentrale.html':        { title: 'Druckzentrale',      mode: 'full', tab: 'druck'      },
         'schlawiner_rechner.html':   { title: 'Schlawiner\nRechner', mode: 'full', tab: 'mehr'      },
         'archiv.html':               { title: 'Archiv',             mode: 'full', tab: 'mehr'       },
         'wurm.html':                 { title: 'Der Wurm',           mode: 'full', tab: 'start'      },
+        'schichtplaner.html':        { title: 'SchichtPlaner',      mode: 'full', tab: 'start'      },
+        'schichtplaner_config.html': { title: 'Konfiguration',      mode: 'full', tab: 'start'      },
+        'schichtplaner_hilfe.html':  { title: 'Hilfe',              mode: 'full', tab: 'start'      },
     };
 
     const filename = window.location.pathname.split('/').pop() || 'index.html';
     const config   = PAGE_CONFIG[filename] || { title: '', mode: 'full', tab: 'mehr' };
 
     // NEU: Die intelligente Ordner-Erkennung
-    const isSubfolder = window.location.href.includes('/baeko_bestellung/') || window.location.href.includes('/news_rohstoffe/') || window.location.href.includes('/azubi_meisterhaft/') || window.location.href.includes('/games/') || window.location.href.includes('/nachtschicht/') || window.location.href.includes('/durchschnittsverbauch/') || window.location.href.includes('/organisation/') || window.location.href.includes('/druckzentrale/') || window.location.href.includes('/schlawiner_rechner/') || window.location.href.includes('/archiv/');
+    const isSubfolder = window.location.href.includes('/baeko_bestellung/') || window.location.href.includes('/news_rohstoffe/') || window.location.href.includes('/azubi_meisterhaft/') || window.location.href.includes('/games/') || window.location.href.includes('/nachtschicht/') || window.location.href.includes('/durchschnittsverbauch/') || window.location.href.includes('/organisation/') || window.location.href.includes('/druckzentrale/') || window.location.href.includes('/schlawiner_rechner/') || window.location.href.includes('/archiv/') || window.location.href.includes('/arbeitsplan/') || window.location.href.includes('/AdminTools/');
     const base = isSubfolder ? '../' : '';
 
     const isMinimal = config.mode === 'minimal';
@@ -128,10 +131,10 @@
         }
 
         const tabs = [
-            { id: 'start',   icon: 'ph ph-bread',            iconActive: 'ph-duotone ph-bread',            label: 'Start',     href: base + 'index.html'          },
-            { id: 'rechner', icon: 'ph ph-calculator',        iconActive: 'ph-duotone ph-calculator',        label: 'Rechner',   href: base + 'schnellrechner.html' },
-            { id: 'brett',   icon: 'ph ph-chat-circle-dots',  iconActive: 'ph-duotone ph-chat-circle-dots',  label: 'Brett',     href: base + 'index.html#brett'    },
-            { id: 'mehr',    icon: 'ph ph-squares-four',      iconActive: 'ph-duotone ph-squares-four',      label: 'Mehr',      href: base + 'index.html#mehr'     },
+            { id: 'start',   icon: 'ph ph-bread',            iconActive: 'ph-duotone ph-bread',            label: 'Start',     href: base + 'index.html'                       },
+            { id: 'druck',   icon: 'ph ph-printer',           iconActive: 'ph-duotone ph-printer',           label: 'Druck',     href: base + 'druckzentrale/druckzentrale.html' },
+            { id: 'brett',   icon: 'ph ph-chat-circle-dots',  iconActive: 'ph-duotone ph-chat-circle-dots',  label: 'Brett',     href: base + 'index.html#brett'                },
+            { id: 'mehr',    icon: 'ph ph-squares-four',      iconActive: 'ph-duotone ph-squares-four',      label: 'Mehr',      href: base + 'index.html#mehr'                 },
         ];
 
         const tabsHTML = tabs.map(t => {

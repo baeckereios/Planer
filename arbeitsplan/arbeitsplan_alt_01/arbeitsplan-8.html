@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arbeitsplan – Nachtschicht</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700&family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--amber:#d49a36;--amber-dim:#b07f22;--bg:#f2ece0;--surface:#faf7f2;--surface2:#ede8df;--border:#d8cdb8;--border2:#c8bda8;--text:#1c1710;--muted:#7a7060;--danger:#b83030;--success:#2e7d52;--warn:#a06010;--r:5px;--sh:0 2px 8px rgba(0,0,0,.07)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+header{background:#1a1510;padding:0 20px;height:50px;display:flex;align-items:center;gap:16px;border-bottom:2px solid var(--amber)}
+.logo{font-family:'Fraunces',serif;font-size:17px;color:var(--amber)}
+.tabs-bar{background:#241f17;padding:0 20px;display:flex;gap:2px;border-bottom:1px solid #3a3020}
+.tab-btn{padding:10px 16px;background:none;border:none;border-bottom:2px solid transparent;color:#888070;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;transition:color .15s;margin-bottom:-1px}
+.tab-btn:hover{color:#c8b890}
+.tab-btn.active{color:var(--amber);border-bottom-color:var(--amber)}
+.content{padding:20px;max-width:1150px;margin:0 auto}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+@media(max-width:680px){.two-col{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;box-shadow:var(--sh)}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+input[type=text],input[type=date],input[type=week],select{padding:6px 10px;border:1px solid var(--border);border-radius:var(--r);font-family:'Barlow',sans-serif;font-size:13px;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--amber)}
+.toggle-wrap{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.toggle{position:relative;display:inline-block;width:34px;height:19px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.tog-sl{position:absolute;cursor:pointer;inset:0;background:#bbb;border-radius:20px;transition:.2s}
+.tog-sl:before{position:absolute;content:'';height:13px;width:13px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.tog-sl{background:var(--amber)}
+.toggle input:checked+.tog-sl:before{transform:translateX(15px)}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border:none;border-radius:var(--r);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:.04em;transition:all .13s;white-space:nowrap}
+.btn-primary{background:var(--amber);color:#fff}
+.btn-primary:hover{background:var(--amber-dim)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--amber);color:var(--amber)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#922424}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{background:#235e3e}
+.btn-ghost{background:none;border:1px solid var(--border2);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--amber);color:var(--amber)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-lg{padding:11px 28px;font-size:16px}
+.list-item{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border:1px solid var(--border);border-radius:var(--r);margin-bottom:5px;background:var(--bg)}
+.list-item:hover{border-color:#d4c090}
+.list-item input[type=text]{border:none;background:transparent;flex:1;font-size:13px;font-weight:500;padding:0}
+.list-item input[type=text]:focus{background:var(--surface2);padding:2px 6px;border-radius:3px}
+.add-form{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:9px 12px;background:var(--surface2);border:1px dashed var(--border2);border-radius:var(--r);margin-bottom:10px}
+/* Posten cards */
+.pcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;box-shadow:var(--sh)}
+.pcard-head{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.pcard-body{padding:12px 14px}
+.pname-inp{border:none;background:transparent;font-size:14px;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:.04em;text-transform:uppercase;color:var(--text);outline:none;min-width:120px}
+.pname-inp:focus{background:var(--bg);padding:2px 6px;border-radius:3px;border:1px solid var(--amber)}
+.hier-row{display:grid;grid-template-columns:160px 1fr;gap:6px;align-items:center;margin-bottom:5px}
+.hier-lbl{font-size:12px;font-weight:600;font-family:'Barlow Condensed',sans-serif;letter-spacing:.04em;text-align:right;padding-right:4px}
+.lbl-stamm{color:var(--amber)}
+.lbl-norm{color:var(--muted)}
+.lbl-warn{color:var(--warn)}
+.lbl-danger{color:var(--danger)}
+/* Badges */
+.badge{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;font-family:'Barlow Condensed',sans-serif;letter-spacing:.04em;text-transform:uppercase}
+.badge-urlaub{background:#ddeeff;color:#1a5080}
+.badge-krank{background:#ffecec;color:#aa2222}
+.badge-wunsch{background:#fff5d0;color:#886010}
+/* Alerts */
+.alert{padding:10px 14px;border-radius:var(--r);font-size:13px;margin-bottom:10px}
+.alert-warn{background:#fff8e0;border:1px solid #ddb840;color:var(--warn)}
+.alert-error{background:#fff0f0;border:1px solid var(--danger);color:var(--danger)}
+/* Plan table */
+.plan-wrap{overflow-x:auto}
+.plan-table{width:100%;border-collapse:collapse;font-size:13px}
+.plan-table th{background:#1a1510;color:var(--amber);padding:9px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
+.plan-table th.pos-th{text-align:left;min-width:130px;background:#241f17}
+.plan-table td{padding:8px 10px;border:1px solid var(--border);text-align:center;vertical-align:middle;min-width:90px}
+.plan-table td.pos-td{text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.04em;text-transform:uppercase;background:var(--surface2);border-right:2px solid var(--border2)}
+.plan-table td.r1{}
+.plan-table td.r2{background:#eff6ff}
+.plan-table td.r3{background:#fefce4}
+.plan-table td.r4{background:#fff3c0}
+.plan-table td.r5{background:#ffe8a0}
+.plan-table td.joker-td{background:#ffe0e0;color:var(--danger);font-weight:700}
+.plan-table td.fehlt-td{background:#ffaaaa;color:#800000;font-weight:800;font-size:12px}
+.plan-table td.frei-td{background:#e4f5ea;color:var(--success);font-size:12px;text-align:left;padding:6px 8px}
+.plan-table td.abw-td{background:#f2f2f2;color:#999;font-style:italic;font-size:11px;text-align:left;padding:6px 8px}
+.plan-table td.sa-off{background:#f8f8f8;color:#ccc;font-size:11px}
+.plan-table tr.frei-row td{background:#e4f5ea}
+.plan-table tr.frei-row td.pos-td{background:#c8ead4;color:var(--success)}
+.plan-table tr.abw-row td{background:#f2f2f2}
+.plan-table tr.abw-row td.pos-td{background:#e8e8e8;color:#888}
+.rdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px;vertical-align:middle}
+.rd1{background:#2e7d52}.rd2{background:#4a8acc}.rd3{background:#c8a020}.rd4{background:#e07010}.rd5{background:#c84010}.rdj{background:var(--danger)}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:12px;margin:1px 0}
+.plan-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:var(--muted)}
+.plan-legend span{display:flex;align-items:center;gap:3px}
+/* Chronik */
+.chro-table{width:100%;border-collapse:collapse;font-size:13px}
+.chro-table th{padding:8px 14px;background:var(--surface2);border-bottom:2px solid var(--amber);text-align:left;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--amber)}
+.chro-table td{padding:8px 14px;border-bottom:1px solid var(--border)}
+.chro-table tr:last-child td{border-bottom:none}
+.pbar{display:inline-block;height:8px;border-radius:4px;vertical-align:middle;min-width:3px}
+/* Misc */
+.empty-state{text-align:center;padding:28px 16px;color:var(--muted);font-style:italic;font-size:13px}
+.kw-lbl{font-family:'Fraunces',serif;font-size:18px;color:var(--text);margin-bottom:14px}
+.kw-lbl span{color:var(--amber)}
+.muted{color:var(--muted);font-size:12px}
+@media print{
+  header,.tabs-bar,.no-print{display:none!important}
+  .tab-panel{display:none!important}
+  #tab-plan{display:block!important}
+  body,.card{box-shadow:none!important}
+  .content{padding:0;max-width:100%}
+  .plan-table th{background:#333!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .plan-table td.r4,.plan-table td.r5,.plan-table td.joker-td,.plan-table td.fehlt-td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<header><span class="logo">Arbeitsplan · Nachtschicht</span></header>
+
+<div class="tabs-bar no-print">
+  <button class="tab-btn active" onclick="switchTab('stamm',this)">Personal</button>
+  <button class="tab-btn"        onclick="switchTab('posten',this)">Posten</button>
+  <button class="tab-btn"        onclick="switchTab('woche',this)">Woche</button>
+  <button class="tab-btn"        onclick="switchTab('plan',this)">Plan</button>
+  <button class="tab-btn"        onclick="switchTab('chronik',this)">Chronik</button>
+</div>
+
+<div class="content">
+
+<!-- ── PERSONAL ── -->
+<div class="tab-panel active" id="tab-stamm">
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Nachtschicht · Mitarbeiter</div>
+      <div class="add-form">
+        <input type="text" id="new-ma" placeholder="Name …" style="flex:1" onkeydown="if(event.key==='Enter')addMa()">
+        <button class="btn btn-primary btn-sm" onclick="addMa()">+ Hinzufügen</button>
+      </div>
+      <div id="ma-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Joker-Pool · Frühschicht</div>
+      <p class="muted" style="margin-bottom:10px">Letzter Ausweg. Pro Joker festlegen welche Posten er übernehmen darf.</p>
+      <div class="add-form">
+        <input type="text" id="new-joker" placeholder="Name (Früh) …" style="flex:1" onkeydown="if(event.key==='Enter')addJoker()">
+        <button class="btn btn-primary btn-sm" onclick="addJoker()">+ Hinzufügen</button>
+      </div>
+      <div id="joker-list"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Azubi</div>
+    <div class="row" style="gap:16px;flex-wrap:wrap;margin-bottom:10px">
+      <label class="toggle-wrap" style="font-size:13px">
+        <span class="toggle"><input type="checkbox" id="azubi-aktiv" onchange="saveAzubi('aktiv',this.checked)"><span class="tog-sl"></span></span>
+        Azubi aktiv
+      </label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <label style="font-size:13px;font-weight:600">Name:</label>
+        <input type="text" id="azubi-name" placeholder="Name …" style="width:140px" onchange="saveAzubi('name',this.value.trim())">
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <label style="font-size:13px;font-weight:600">Schultag:</label>
+        <select id="azubi-schultag" onchange="saveAzubi('schultag',parseInt(this.value))">
+          <option value="0">Montag</option><option value="1">Dienstag</option>
+          <option value="2">Mittwoch</option><option value="3">Donnerstag</option>
+          <option value="4">Freitag</option><option value="5">Samstag</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <label style="font-size:13px;font-weight:600">Schicht (Notfall):</label>
+        <select id="azubi-schicht" onchange="saveAzubi('schicht',this.value||null)">
+          <option value="">— kein —</option>
+        </select>
+      </div>
+    </div>
+    <p class="muted">Schultag = absent. Tag danach = automatisch frei. Schicht = Posten den er im absoluten Notfall übernimmt (nach Joker). Sonst erscheint er als "Lernt" im Plan.</p>
+  </div>
+  <div class="card no-print">
+    <div class="card-title">Konfiguration</div>
+    <div class="row">
+      <button class="btn btn-secondary" onclick="exportCfg()">↓ arbeitsplan_config.json</button>
+      <label class="btn btn-ghost" style="cursor:pointer">↑ Config laden<input type="file" accept=".json" style="display:none" onchange="importCfg(this)"></label>
+      <span class="muted" id="cfg-msg"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ── POSTEN ── -->
+<div class="tab-panel" id="tab-posten">
+  <div class="card">
+    <div class="card-title">Posten-Konfiguration</div>
+    <p class="muted" style="margin-bottom:12px">
+      Rang 1 = Stammkraft · Rang 2–3 = Vertretung · Rang 4–5 = letzter Ausweg (gelb/orange markiert im Plan)<br>
+      "Sa –" = Posten samstags inaktiv · Joker-Qualifikationen werden im Personal-Tab pro Joker eingestellt
+    </p>
+    <button class="btn btn-primary no-print" onclick="addPosten()">+ Neuer Posten</button>
+  </div>
+  <div id="posten-list"></div>
+</div>
+
+<!-- ── WOCHE ── -->
+<div class="tab-panel" id="tab-woche">
+  <div class="card">
+    <div class="card-title">Kalenderwoche</div>
+    <div class="row">
+      <label style="font-weight:600">Woche:</label>
+      <input type="week" id="week-inp" onchange="onWeekChange(this.value)">
+      <span class="muted" id="week-lbl"></span>
+    </div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Abwesenheiten · Urlaub / Krank</div>
+      <div class="add-form">
+        <select id="abw-p" style="flex:1"><option value="">Person …</option></select>
+        <input type="date" id="abw-von" title="Von">
+        <input type="date" id="abw-bis" title="Bis (leer = nur 1 Tag)">
+        <select id="abw-typ"><option value="urlaub">Urlaub</option><option value="krank">Krank</option></select>
+        <button class="btn btn-primary btn-sm" onclick="addAbw()">+</button>
+      </div>
+      <div id="abw-list"><div class="empty-state">Keine Abwesenheiten</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Wunsch-freie Tage</div>
+      <p class="muted" style="margin-bottom:10px">Werden stark berücksichtigt — aber nicht garantiert.</p>
+      <div class="add-form">
+        <select id="fw-p" style="flex:1"><option value="">Person …</option></select>
+        <select id="fw-tag">
+          <option value="0">Montag</option><option value="1">Dienstag</option>
+          <option value="2">Mittwoch</option><option value="3">Donnerstag</option>
+          <option value="4">Freitag</option><option value="5">Samstag</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="addFw()">+</button>
+      </div>
+      <div id="fw-list"><div class="empty-state">Keine Wünsche eingetragen</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Samstag-Optionen</div>
+    <label class="toggle-wrap" style="font-size:14px;gap:10px">
+      <span class="toggle"><input type="checkbox" id="springer-tog" onchange="wo.springerAktiv=this.checked;saveWoLS()"><span class="tog-sl"></span></span>
+      <span>Samstag-Springer aktiv</span>
+      <span class="muted">— eine Person arbeitet zusätzlich ohne festen Posten, rotiert fair</span>
+    </label>
+  </div>
+  <div style="text-align:center;margin-top:4px">
+    <button class="btn btn-primary btn-lg no-print" onclick="runGen()">▶ Plan generieren</button>
+  </div>
+</div>
+
+<!-- ── PLAN ── -->
+<div class="tab-panel" id="tab-plan">
+  <div id="plan-alerts"></div>
+  <div class="card">
+    <div id="plan-header"></div>
+    <div id="plan-body"><div class="empty-state">Noch kein Plan generiert.</div></div>
+    <div class="plan-legend no-print" id="plan-legend"></div>
+  </div>
+  <div class="row no-print" style="margin-top:4px">
+    <button class="btn btn-secondary" onclick="window.print()">🖨 Drucken / PDF</button>
+    <button class="btn btn-success" onclick="saveChr()">✓ In Chronik speichern</button>
+    <span class="muted" id="save-msg"></span>
+  </div>
+</div>
+
+<!-- ── CHRONIK ── -->
+<div class="tab-panel" id="tab-chronik">
+  <div class="card">
+    <div class="card-title">Freie-Tage-Chronik</div>
+    <p class="muted" style="margin-bottom:14px">
+      Samstag, Montag und normale Tage werden getrennt gezählt und gewichtet.<br>
+      Rot = 4+ Wochen ohne freien Samstag. Priorität steigt automatisch im nächsten Plan.
+    </p>
+    <div id="chr-body"><div class="empty-state">Noch keine Einträge.</div></div>
+  </div>
+  <div class="card no-print">
+    <div class="card-title">Chronik speichern / laden</div>
+    <div class="row">
+      <button class="btn btn-secondary" onclick="exportChr()">↓ arbeitsplan_chronik.json</button>
+      <label class="btn btn-ghost" style="cursor:pointer">↑ Chronik laden<input type="file" accept=".json" style="display:none" onchange="importChr(this)"></label>
+      <button class="btn btn-ghost btn-sm" onclick="if(confirm('Gesamte Chronik löschen?')){chr={freieTage:[]};saveChrLS();renderChronik()}">Leeren</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ── STATE ──
+let cfg = { mitarbeiter:[], joker:[], posten:[], azubi:{aktiv:false,name:'',schultag:1,schicht:null}, springerPool:[] };
+let chr = { freieTage:[], springer:[] };
+let wo  = { kw:null, year:null, abwesenheiten:[], freiwuensche:[], springerAktiv:false };
+let gplan = null;
+
+// ── STORAGE ──
+function saveCfgLS()  { try{localStorage.setItem('AP2C', JSON.stringify(cfg))}catch(e){} }
+function saveChrLS()  { try{localStorage.setItem('AP2H', JSON.stringify(chr))}catch(e){} }
+function saveWoLS()   { try{localStorage.setItem('AP2W', JSON.stringify(wo))}catch(e){} }
+function loadLS() {
+  try{const x=localStorage.getItem('AP2C'); if(x)cfg=JSON.parse(x)}catch(e){}
+  try{const x=localStorage.getItem('AP2H'); if(x)chr=JSON.parse(x)}catch(e){}
+  try{const x=localStorage.getItem('AP2W'); if(x)wo=JSON.parse(x)}catch(e){}
+  // Backwards compat: ensure azubi exists
+  if(!cfg.azubi) cfg.azubi={aktiv:false,name:'',schultag:1,schicht:null};
+  if(!chr.springer) chr.springer=[];
+  if(!cfg.springerPool) cfg.springerPool=[];
+  cfg.posten.forEach(p=>{ if(p.isFest===undefined) p.isFest=true; });
+}
+
+// ── HELPERS ──
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).substr(2,4) }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+function dstr(d){ return d.toISOString().split('T')[0] }
+function fmtD(d){ return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) }
+const KURZ=['Mo','Di','Mi','Do','Fr','Sa'];
+const VOLL=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+
+function weekDates(yr,kw){
+  const j=new Date(yr,0,4), dow=j.getDay()||7;
+  const m1=new Date(j); m1.setDate(j.getDate()-dow+1);
+  const mn=new Date(m1); mn.setDate(m1.getDate()+(kw-1)*7);
+  return Array.from({length:6},(_,i)=>{ const d=new Date(mn); d.setDate(mn.getDate()+i); return d; });
+}
+function isoWeek(dt){
+  const d=new Date(dt); d.setHours(0,0,0,0); d.setDate(d.getDate()+3-(d.getDay()+6)%7);
+  const w1=new Date(d.getFullYear(),0,4);
+  return 1+Math.round(((d-w1)/86400000-3+(w1.getDay()+6)%7)/7);
+}
+function absent(pid,date){ const ds=dstr(date); return wo.abwesenheiten.some(a=>a.personId===pid&&a.von<=ds&&ds<=a.bis) }
+function absTyp(pid,date){ const ds=dstr(date); const a=wo.abwesenheiten.find(a=>a.personId===pid&&a.von<=ds&&ds<=a.bis); return a?a.typ:null }
+function allPersons(){ return [...cfg.mitarbeiter,...cfg.joker] }
+function pname(id){
+  if(id==='__AZUBI__') return cfg.azubi?.name||'Azubi';
+  const m=allPersons().find(x=>x.id===id); return m?m.name:id
+}
+function posname(id){ const p=cfg.posten.find(x=>x.id===id); return p?p.name:id }
+function ttyp(di){ return di===5?'sa':di===0?'mo':'normal' }
+function twt(t){ return t==='sa'?3:t==='mo'?1.5:1 }
+
+// ── TABS ──
+function switchTab(n,b){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('tab-'+n).classList.add('active');
+  if(b)b.classList.add('active');
+  if(n==='chronik')renderChroniks();
+}
+
+// ── PERSONAL ──
+function addMa(){
+  const i=document.getElementById('new-ma'), n=i.value.trim(); if(!n)return;
+  cfg.mitarbeiter.push({id:uid(),name:n}); i.value='';
+  saveCfgLS(); renderPersonal(); renderPostenUI(); updateSels();
+}
+function delMa(id){
+  if(!confirm('Mitarbeiter löschen?\nWird aus allen Hierarchien entfernt.'))return;
+  cfg.mitarbeiter=cfg.mitarbeiter.filter(m=>m.id!==id);
+  cfg.posten.forEach(p=>{ p.hierarchie=p.hierarchie.map(x=>x===id?null:x); });
+  saveCfgLS(); renderPersonal(); renderPostenUI(); updateSels();
+}
+function renameMa(id,n){ const m=cfg.mitarbeiter.find(x=>x.id===id); if(m&&n.trim()){m.name=n.trim();saveCfgLS();} }
+function addJoker(){
+  const i=document.getElementById('new-joker'), n=i.value.trim(); if(!n)return;
+  cfg.joker.push({id:uid(),name:n}); i.value='';
+  saveCfgLS(); renderPersonal();
+}
+function delJoker(id){ cfg.joker=cfg.joker.filter(j=>j.id!==id); saveCfgLS(); renderPersonal(); }
+function renameJoker(id,n){ const j=cfg.joker.find(x=>x.id===id); if(j&&n.trim()){j.name=n.trim();saveCfgLS();} }
+
+function toggleSpringerPool(id,checked){
+  if(!cfg.springerPool)cfg.springerPool=[];
+  if(checked){if(!cfg.springerPool.includes(id))cfg.springerPool.push(id);}
+  else{cfg.springerPool=cfg.springerPool.filter(x=>x!==id);}
+  saveCfgLS();
+}
+
+function renderPersonal(){
+  const sp=cfg.springerPool||[];
+  document.getElementById('ma-list').innerHTML = cfg.mitarbeiter.length===0
+    ? '<div class="empty-state">Keine Mitarbeiter</div>'
+    : cfg.mitarbeiter.map(m=>`
+        <div class="list-item">
+          <input type="text" value="${esc(m.name)}" onchange="renameMa('${m.id}',this.value)" style="flex:1">
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;margin-right:4px" title="Darf als Samstag-Springer eingesetzt werden?">
+            <input type="checkbox" ${sp.includes(m.id)?'checked':''} style="accent-color:#6040a0;width:14px;height:14px"
+              onchange="toggleSpringerPool('${m.id}',this.checked)">
+            <span style="font-size:11px;color:#6040a0;white-space:nowrap">★ Sa</span>
+          </label>
+          <button class="btn btn-danger btn-sm" onclick="delMa('${m.id}')">✕</button>
+        </div>`).join('');
+
+  if(cfg.joker.length===0){
+    document.getElementById('joker-list').innerHTML='<div class="empty-state">Kein Joker definiert</div>';
+  } else {
+    document.getElementById('joker-list').innerHTML=cfg.joker.map(j=>{
+      const quals=(j.posten||[]);
+      const posChks=cfg.posten.length===0
+        ? '<span class="muted" style="font-size:11px">Erst Posten anlegen</span>'
+        : cfg.posten.map(p=>`
+            <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer">
+              <input type="checkbox" ${quals.includes(p.id)?'checked':''} style="accent-color:var(--amber)"
+                onchange="toggleJokerPosten('${j.id}','${p.id}',this.checked)">
+              ${esc(p.name)}
+            </label>`).join('');
+      return `<div class="list-item" style="flex-direction:column;align-items:stretch;gap:6px;padding:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <input type="text" value="${esc(j.name)}" onchange="renameJoker('${j.id}',this.value)">
+          <button class="btn btn-danger btn-sm" onclick="delJoker('${j.id}')">✕</button>
+        </div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);padding-top:4px;border-top:1px solid var(--border)">Kann machen:</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">${posChks}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Azubi UI sync
+  const az=cfg.azubi||{};
+  const aAkt=document.getElementById('azubi-aktiv'); if(aAkt)aAkt.checked=!!az.aktiv;
+  const aN=document.getElementById('azubi-name'); if(aN)aN.value=az.name||'';
+  const aSt=document.getElementById('azubi-schultag'); if(aSt)aSt.value=az.schultag??1;
+  updateAzubiUI();
+}
+
+function toggleJokerPosten(jokerId,posId,checked){
+  const j=cfg.joker.find(x=>x.id===jokerId); if(!j)return;
+  if(!j.posten)j.posten=[];
+  if(checked){if(!j.posten.includes(posId))j.posten.push(posId);}
+  else{j.posten=j.posten.filter(id=>id!==posId);}
+  saveCfgLS();
+}
+
+function saveAzubi(field,value){
+  if(!cfg.azubi)cfg.azubi={aktiv:false,name:'',schultag:1,schicht:null};
+  cfg.azubi[field]=value;
+  saveCfgLS();
+  if(field==='aktiv'||field==='schultag')updateAzubiUI();
+}
+
+function updateAzubiUI(){
+  const sel=document.getElementById('azubi-schicht'); if(!sel)return;
+  const cur=cfg.azubi?.schicht||'';
+  sel.innerHTML='<option value="">— kein —</option>'+cfg.posten.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  sel.value=cur;
+}
+
+// ── POSTEN ──
+function addPosten(){
+  cfg.posten.push({id:uid(),name:'Neuer Posten',samstag:true,isFest:true,hierarchie:[null,null,null,null,null]});
+  saveCfgLS(); renderPostenUI(); renderPersonal();
+}
+function delPosten(id){
+  if(!confirm('Posten löschen?'))return;
+  cfg.posten=cfg.posten.filter(p=>p.id!==id);
+  // Remove from joker qualifications
+  cfg.joker.forEach(j=>{ if(j.posten)j.posten=j.posten.filter(pid=>pid!==id); });
+  saveCfgLS(); renderPostenUI(); renderPersonal();
+}
+function setPField(id,f,v){ const p=cfg.posten.find(x=>x.id===id); if(p){p[f]=v;saveCfgLS();} }
+function setHier(pid,r,v){ const p=cfg.posten.find(x=>x.id===pid); if(p){p.hierarchie[r]=v||null;saveCfgLS();} }
+
+function renderPostenUI(){
+  const el=document.getElementById('posten-list');
+  if(cfg.posten.length===0){
+    el.innerHTML='<div class="empty-state">Noch keine Posten. Zuerst Personal anlegen, dann Posten erstellen.</div>';
+    return;
+  }
+  const maOpts='<option value="">— leer —</option>'+cfg.mitarbeiter.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('');
+
+  el.innerHTML=cfg.posten.map(p=>{
+    const fest=p.isFest!==false;
+    const RL=fest
+      ? [['lbl-stamm','Feste Kraft'],['lbl-norm','Vertretung V1'],['lbl-norm','Vertretung V2'],['lbl-warn','Vertretung V3 ⚠'],['lbl-danger','Vertretung V4 ⚠']]
+      : [['lbl-norm','Pool · Person 1'],['lbl-norm','Pool · Person 2'],['lbl-norm','Pool · Person 3'],['lbl-norm','Pool · Person 4'],['lbl-norm','Pool · Person 5']];
+    return `
+    <div class="pcard">
+      <div class="pcard-head">
+        <input class="pname-inp" type="text" value="${esc(p.name)}" onchange="setPField('${p.id}','name',this.value)">
+        <label class="toggle-wrap" title="Feste Kraft oder Flex-Pool?">
+          <span class="toggle"><input type="checkbox" ${fest?'checked':''} onchange="setPField('${p.id}','isFest',this.checked);renderPostenUI()"><span class="tog-sl"></span></span>
+          <span style="color:${fest?'var(--amber)':'#4a8acc'}">${fest?'Fest':'Flex-Pool'}</span>
+        </label>
+        <label class="toggle-wrap" title="Posten samstags aktiv?">
+          <span class="toggle"><input type="checkbox" ${p.samstag?'checked':''} onchange="setPField('${p.id}','samstag',this.checked)"><span class="tog-sl"></span></span>Sa aktiv
+        </label>
+        <button class="btn btn-danger btn-sm no-print" onclick="delPosten('${p.id}')">✕</button>
+      </div>
+      <div class="pcard-body" style="border-top:3px solid ${fest?'var(--amber)':'#4a8acc'}">
+        <p class="muted" style="margin-bottom:8px;font-size:11px">${fest?'Feste Kraft arbeitet immer hier — außer krank/frei. Vertretungen greifen nur dann.':'Alle Pool-Mitglieder gleichberechtigt. Generator weist zu wer gebraucht wird.'}</p>
+        ${RL.map(([cls,lbl],i)=>`
+          <div class="hier-row">
+            <span class="hier-lbl ${cls}">${lbl}</span>
+            <select data-pos="${p.id}" data-rang="${i}" onchange="setHier('${p.id}',${i},this.value)">${maOpts}</select>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  cfg.posten.forEach(p=>{
+    el.querySelectorAll(`select[data-pos="${p.id}"]`).forEach((sel,i)=>{ sel.value=p.hierarchie[i]||''; });
+  });
+}
+
+// ── WOCHE ──
+function updateSels(){
+  const opts='<option value="">Person wählen …</option>'+cfg.mitarbeiter.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('');
+  ['abw-p','fw-p'].forEach(id=>{ const s=document.getElementById(id); if(!s)return; const v=s.value; s.innerHTML=opts; if(v)s.value=v; });
+}
+function onWeekChange(v){ if(!v)return; const[y,w]=v.split('-W'); wo.year=parseInt(y); wo.kw=parseInt(w); saveWoLS(); updateWeekLbl(); }
+function updateWeekLbl(){
+  if(!wo.kw)return;
+  const d=weekDates(wo.year,wo.kw);
+  const el=document.getElementById('week-lbl'); if(el)el.textContent=`${fmtD(d[0])} – ${fmtD(d[5])} ${wo.year}`;
+}
+function initWP(){
+  if(!wo.kw){ const n=new Date(); wo.year=n.getFullYear(); wo.kw=isoWeek(n); }
+  const p=document.getElementById('week-inp'); p.value=`${wo.year}-W${String(wo.kw).padStart(2,'0')}`;
+  updateWeekLbl();
+}
+function addAbw(){
+  const pid=document.getElementById('abw-p').value;
+  const von=document.getElementById('abw-von').value;
+  const bis=document.getElementById('abw-bis').value||von;
+  const typ=document.getElementById('abw-typ').value;
+  if(!pid||!von){alert('Person und Datum angeben!');return;}
+  wo.abwesenheiten.push({id:uid(),personId:pid,von,bis,typ}); saveWoLS(); renderAbw();
+}
+function delAbw(id){ wo.abwesenheiten=wo.abwesenheiten.filter(a=>a.id!==id); saveWoLS(); renderAbw(); }
+function renderAbw(){
+  const el=document.getElementById('abw-list');
+  if(wo.abwesenheiten.length===0){el.innerHTML='<div class="empty-state">Keine Abwesenheiten</div>';return;}
+  el.innerHTML=wo.abwesenheiten.map(a=>`<div class="list-item"><div style="flex:1"><strong>${esc(pname(a.personId))}</strong><span class="badge badge-${a.typ}" style="margin-left:6px">${a.typ}</span><span class="muted" style="margin-left:8px">${a.von}${a.von!==a.bis?' → '+a.bis:''}</span></div><button class="btn btn-danger btn-sm" onclick="delAbw('${a.id}')">✕</button></div>`).join('');
+}
+function addFw(){
+  const pid=document.getElementById('fw-p').value; const tag=parseInt(document.getElementById('fw-tag').value);
+  if(!pid){alert('Person angeben!');return;}
+  if(wo.freiwuensche.some(w=>w.personId===pid&&w.tag===tag))return;
+  wo.freiwuensche.push({id:uid(),personId:pid,tag}); saveWoLS(); renderFw();
+}
+function delFw(id){ wo.freiwuensche=wo.freiwuensche.filter(w=>w.id!==id); saveWoLS(); renderFw(); }
+function renderFw(){
+  const el=document.getElementById('fw-list');
+  if(wo.freiwuensche.length===0){el.innerHTML='<div class="empty-state">Keine Wünsche</div>';return;}
+  el.innerHTML=wo.freiwuensche.map(w=>`<div class="list-item"><div style="flex:1"><strong>${esc(pname(w.personId))}</strong><span class="badge badge-wunsch" style="margin-left:6px">${VOLL[w.tag]}</span></div><button class="btn btn-danger btn-sm" onclick="delFw('${w.id}')">✕</button></div>`).join('');
+}
+
+// ── GENERATOR ──
+function runGen(){
+  if(!wo.kw){alert('Bitte Kalenderwoche wählen!');return;}
+  if(cfg.posten.length===0){alert('Bitte zuerst Posten konfigurieren!');return;}
+  if(cfg.mitarbeiter.length===0){alert('Bitte zuerst Mitarbeiter anlegen!');return;}
+  gplan=generate();
+  renderPlan();
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-plan').classList.add('active');
+  document.querySelectorAll('.tab-btn')[3].classList.add('active');
+}
+
+function chrFreiCnt(pid,typ){ return chr.freieTage.filter(f=>f.personId===pid&&f.tagTyp===typ).length }
+function daysSinceFree(pid){
+  const e=chr.freieTage.filter(f=>f.personId===pid).map(f=>new Date(f.datum)).sort((a,b)=>b-a);
+  return e.length===0?999:Math.floor((new Date()-e[0])/86400000);
+}
+
+function weeksSinceLastSpringer(pid){
+  if(!chr.springer||!chr.springer.length)return 52;
+  const e=chr.springer.filter(s=>s.personId===pid).map(s=>new Date(s.datum)).sort((a,b)=>b-a);
+  return e.length===0?52:Math.min(Math.floor((new Date()-e[0])/(7*86400000)),52);
+}
+
+// Simuliert: kann jede Person aus actP besetzt werden wenn 'unavail' nicht verfügbar sind?
+// azubiBoost=true: Azubi darf seinen Schicht-Posten in der Simulation füllen
+function canFreePerson(personId, actP, unavail, azubiBoost=false){
+  const az=cfg.azubi||{};
+  const sim=new Set([...unavail, personId]);
+  const sorted=[...actP].sort((a,b)=>{
+    const avA=a.hierarchie.filter(id=>id&&!sim.has(id)).length;
+    const avB=b.hierarchie.filter(id=>id&&!sim.has(id)).length;
+    return avA-avB;
+  });
+  const used=new Set(sim);
+  let azubiUsed=false;
+  for(const pos of sorted){
+    const person=pos.hierarchie.find(id=>id&&!used.has(id));
+    if(!person){
+      const joker=(cfg.joker||[]).find(j=>!used.has(j.id)&&(j.posten||[]).includes(pos.id));
+      if(!joker){
+        // Azubi als Backup in der Simulation
+        if(azubiBoost&&!azubiUsed&&az.schicht===pos.id){azubiUsed=true;continue;}
+        return false;
+      }
+      used.add(joker.id);
+    } else {
+      used.add(person);
+    }
+  }
+  return true;
+}
+
+function pickFrei(di, verfuegbar, canFree, weekFrei, actP, abwSet, azubiBoost=false){
+  if(canFree<=0) return [];
+  const typ=ttyp(di);
+  const wset=new Set(wo.freiwuensche.filter(w=>w.tag===di).map(w=>w.personId));
+  const freed=new Set();
+  const result=[];
+
+  for(let i=0;i<canFree;i++){
+    const remaining=verfuegbar.filter(m=>!freed.has(m.id));
+    const unavail=new Set([...abwSet,...freed]);
+
+    const scored=remaining.map(m=>{
+      let s=0;
+      if(wset.has(m.id)) s+=500;
+      s+=(50-chrFreiCnt(m.id,typ)*12)*twt(typ);
+      s+=Math.min(daysSinceFree(m.id),40)*2;
+      s-=(weekFrei[m.id]||0)*2000;
+      if(di===5&&wo.springerAktiv){
+        s+=Math.max(0,20-weeksSinceLastSpringer(m.id))*30;
+      }
+      // Feasibility mit Azubi-Wissen
+      if(!canFreePerson(m.id, actP, unavail, azubiBoost)) s-=100000;
+      s+=Math.random()*4;
+      return{m,s};
+    });
+
+    scored.sort((a,b)=>b.s-a.s);
+    freed.add(scored[0].m.id);
+    result.push(scored[0].m.id);
+  }
+  return result;
+}
+
+// Prüft ob mindestens ein Joker einen der aktiven Posts abdecken kann
+function jokerCanCoverAny(actP, unavail){
+  return actP.some(pos=>
+    (cfg.joker||[]).some(j=>!unavail.has(j.id)&&(j.posten||[]).includes(pos.id))
+  );
+}
+
+function generate(){
+  const dates=weekDates(wo.year,wo.kw);
+  const daily=[];
+  const weekFrei={};
+  const weekWorked={};
+  cfg.mitarbeiter.forEach(m=>{ weekFrei[m.id]=0; weekWorked[m.id]=0; });
+  const az=cfg.azubi||{};
+
+  // ── Vorberechnung: wie viele Tage muss der Azubi proaktiv seine Schicht machen? ──
+  // Ziel: jeder aktive Mitarbeiter (nicht ganzeWoche abwesend) bekommt min. 1 Frei-Tag
+  let azubiBoostDaysNeeded=0;
+  if(az.aktiv && az.name && az.schicht){
+    const needFree=cfg.mitarbeiter.filter(m=>!dates.every(d=>absent(m.id,d))).length;
+    let naturalTotal=0;
+    for(let d=0;d<6;d++){
+      const abwC=cfg.mitarbeiter.filter(m=>absent(m.id,dates[d])).length;
+      const avail=cfg.mitarbeiter.length-abwC;
+      const posC=cfg.posten.filter(p=>d===5?p.samstag:true).length;
+      naturalTotal+=Math.max(0,avail-posC);
+    }
+    azubiBoostDaysNeeded=Math.max(0,needFree-naturalTotal);
+  }
+  let azubiBoostDaysUsed=0;
+
+  for(let di=0;di<6;di++){
+    const date=dates[di], isSa=di===5;
+    const abwSet=new Set(cfg.mitarbeiter.filter(m=>absent(m.id,date)).map(m=>m.id));
+    const verfuegbar=cfg.mitarbeiter.filter(m=>!abwSet.has(m.id));
+    const actP=cfg.posten.filter(p=>isSa?p.samstag:true);
+    const naturalFree=Math.max(0,verfuegbar.length-actP.length);
+
+    // Azubi-Status VOR pickFrei (für Boost-Logik)
+    let azubiStatus=null;
+    let azubiBoost=false;
+    if(az.aktiv && az.name){
+      if(di===az.schultag) azubiStatus='schule';
+      else if(di===(az.schultag+1)%6) azubiStatus='frei';
+      else{
+        azubiStatus='lernt';
+        // Proaktiver Einsatz wenn noch Frei-Tage fehlen
+        if(az.schicht && azubiBoostDaysUsed<azubiBoostDaysNeeded){
+          const someoneNeedsFrei=verfuegbar.some(m=>(weekFrei[m.id]||0)===0);
+          if(someoneNeedsFrei){ azubiBoost=true; azubiBoostDaysUsed++; }
+        }
+      }
+    }
+
+    // Joker-Boost: nur Mo/Sa, nur wenn Azubi nicht hilft, nur wenn nötig
+    let jokerBoost=false;
+    if(!azubiBoost && naturalFree===0 && (di===0||di===5)){
+      const someoneNeedsFrei=verfuegbar.some(m=>(weekFrei[m.id]||0)===0);
+      if(someoneNeedsFrei && jokerCanCoverAny(actP,abwSet)) jokerBoost=true;
+    }
+
+    const effectiveFree=naturalFree+(azubiBoost||jokerBoost?1:0);
+
+    const potentialFrei=pickFrei(di,verfuegbar,effectiveFree,weekFrei,actP,abwSet,azubiBoost);
+    const springerAktivHeute=isSa&&wo.springerAktiv&&potentialFrei.some(pid=>(weekFrei[pid]||0)>0);
+    const freiIds=springerAktivHeute
+      ? pickFrei(di,verfuegbar,effectiveFree-1,weekFrei,actP,abwSet,azubiBoost)
+      : potentialFrei;
+
+    freiIds.forEach(pid=>{ weekFrei[pid]=(weekFrei[pid]||0)+1; });
+    const freiSet=new Set(freiIds);
+    const used=new Set([...abwSet,...freiSet]);
+
+    const asgn={};
+    const sortedActP=[...actP].sort((a,b)=>{
+      const avail=pos=>pos.hierarchie.filter(id=>id&&!used.has(id)&&!abwSet.has(id)).length;
+      return avail(a)-avail(b);
+    });
+
+    for(const pos of sortedActP){
+      let a=null;
+      const fest=pos.isFest!==false;
+
+      // Proaktiver Azubi: wenn Boost aktiv und dies sein Schicht-Posten → sofort einsetzen
+      if(azubiBoost && azubiStatus==='lernt' && az.schicht===pos.id){
+        a={personId:'__AZUBI__',rang:1,isJoker:false,isAzubi:true};
+        azubiStatus=pos.name;
+      }
+
+      if(!a){
+        if(fest){
+          for(let r=0;r<5;r++){
+            const pid=pos.hierarchie[r];
+            if(pid&&!used.has(pid)){a={personId:pid,rang:r+1,isJoker:false,isFlex:false};used.add(pid);break;}
+          }
+        } else {
+          const pool=pos.hierarchie.filter(id=>id&&!used.has(id));
+          if(pool.length>0){
+            pool.sort((a,b)=>(weekWorked[a]||0)-(weekWorked[b]||0));
+            a={personId:pool[0],rang:1,isJoker:false,isFlex:true};
+            used.add(pool[0]);
+          }
+        }
+      }
+
+      // Joker-Fallback
+      if(!a){
+        for(const j of(cfg.joker||[])){
+          if(!used.has(j.id)&&(j.posten||[]).includes(pos.id)){
+            a={personId:j.id,rang:99,isJoker:true,isFlex:false};used.add(j.id);break;
+          }
+        }
+      }
+
+      // Azubi als letzter Ausweg (nur wenn NICHT im Boost-Modus)
+      if(!a && !azubiBoost && azubiStatus==='lernt' && az.schicht===pos.id){
+        a={personId:'__AZUBI__',rang:999,isJoker:false,isAzubi:true};
+        azubiStatus=pos.name;
+      }
+
+      asgn[pos.id]=a;
+      if(a&&a.personId!=='__AZUBI__') weekWorked[a.personId]=(weekWorked[a.personId]||0)+1;
+    }
+
+    // Springer
+    let springerId=null;
+    if(springerAktivHeute){
+      const pool=cfg.springerPool||[];
+      const leftover=verfuegbar.filter(m=>!used.has(m.id)&&pool.includes(m.id));
+      if(leftover.length>0){
+        leftover.sort((a,b)=>(weekFrei[b.id]||0)-(weekFrei[a.id]||0));
+        springerId=leftover[0].id;
+        used.add(springerId);
+      }
+    }
+
+    // Ghost-Fix
+    const leftoverPersons=verfuegbar.filter(m=>!used.has(m.id));
+    leftoverPersons.sort((a,b)=>(weekFrei[a.id]||0)-(weekFrei[b.id]||0));
+    const bonusFrei=leftoverPersons.map(m=>m.id);
+    bonusFrei.forEach(pid=>{ weekFrei[pid]=(weekFrei[pid]||0)+1; });
+    const allFreiIds=[...freiIds,...bonusFrei];
+
+    daily.push({date,di,typ:ttyp(di),isSa,abwSet:[...abwSet],freiIds:allFreiIds,asgn,actP,springerId,azubiStatus});
+  }
+  return{daily,dates};
+}
+
+// ── RENDER PLAN ──
+function renderPlan(){
+  if(!gplan)return;
+  const{daily,dates}=gplan;
+  document.getElementById('plan-header').innerHTML=`<div class="kw-lbl">KW <span>${wo.kw}</span> / ${wo.year} &nbsp;·&nbsp; ${fmtD(dates[0])} – ${fmtD(dates[5])}</div>`;
+
+  // Wünsche-Tracking
+  const fulfilled=new Set();
+  daily.forEach(d=>d.freiIds.forEach(pid=>{ if(wo.freiwuensche.some(w=>w.personId===pid&&w.tag===d.di))fulfilled.add(`${d.di}-${pid}`); }));
+  const unful=wo.freiwuensche.filter(w=>!fulfilled.has(`${w.tag}-${w.personId}`));
+
+  let alerts='';
+  const fehlt=daily.flatMap(d=>Object.entries(d.asgn).filter(([,v])=>v===null).map(([pid])=>({day:KURZ[d.di],pos:posname(pid)})));
+  if(fehlt.length)alerts+=`<div class="alert alert-error">⚠ Nicht besetzbar: ${fehlt.map(x=>`<strong>${x.day}: ${x.pos}</strong>`).join(', ')}</div>`;
+  if(unful.length)alerts+=`<div class="alert alert-warn">💬 Wünsche nicht erfüllbar: ${unful.map(w=>`<strong>${pname(w.personId)} (${KURZ[w.tag]})</strong>`).join(', ')}</div>`;
+  document.getElementById('plan-alerts').innerHTML=alerts;
+
+  let h='<div class="plan-wrap"><table class="plan-table"><thead><tr><th class="pos-th">Posten</th>';
+  for(let di=0;di<6;di++) h+=`<th>${KURZ[di]}<br><span style="font-size:10px;font-weight:400;opacity:.75">${fmtD(dates[di])}</span></th>`;
+  h+='</tr></thead><tbody>';
+
+  cfg.posten.forEach(pos=>{
+    h+=`<tr><td class="pos-td">${esc(pos.name)}</td>`;
+    for(let di=0;di<6;di++){
+      const d=daily[di];
+      if(!d.actP.find(p=>p.id===pos.id)){h+=`<td class="sa-off">Sa–</td>`;continue;}
+      const a=d.asgn[pos.id];
+      if(!a){h+=`<td class="fehlt-td">!! FEHLT !!</td>`;}
+      else if(a.isJoker){h+=`<td class="joker-td">⚠ ${esc(pname(a.personId))}<br><span style="font-size:10px">Joker</span></td>`;}
+      else if(a.isFlex){
+        // Flex-Pool: kein Rang-Indikator, nur Name
+        h+=`<td style="text-align:center"><span class="rdot" style="background:#4a8acc;width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:3px;vertical-align:middle"></span>${esc(pname(a.personId))}</td>`;
+      } else {
+        const rc=`r${Math.min(a.rang,5)}`;
+        const dc=`rd${Math.min(a.rang,5)}`;
+        const lbl=a.rang===1?'':`<br><span style="font-size:10px;${a.rang>=4?'color:var(--warn)':'opacity:.55'}">V${a.rang-1}${a.rang>=4?' ⚠':''}</span>`;
+        h+=`<td class="${rc}"><span class="rdot ${dc}"></span>${esc(pname(a.personId))}${lbl}</td>`;
+      }
+    }
+    h+='</tr>';
+  });
+
+  if(wo.abwesenheiten.length>0){
+    h+='<tr class="abw-row"><td class="pos-td">Abwesend</td>';
+    daily.forEach(d=>{
+      const abs=cfg.mitarbeiter.filter(m=>d.abwSet.includes(m.id));
+      h+=abs.length===0?'<td class="abw-td">—</td>':`<td class="abw-td">${abs.map(m=>`<span class="badge badge-${absTyp(m.id,d.date)}" style="display:block;margin:1px 0">${esc(m.name)}</span>`).join('')}</td>`;
+    });
+    h+='</tr>';
+  }
+
+  h+='<tr class="frei-row"><td class="pos-td">Frei</td>';
+  daily.forEach(d=>{
+    if(d.freiIds.length===0){h+='<td class="frei-td" style="color:#aaa">—</td>';return;}
+    h+='<td class="frei-td">'+d.freiIds.map(pid=>{
+      const ok=fulfilled.has(`${d.di}-${pid}`);
+      return `<span class="pill" style="background:${ok?'#b8e8c8':'#d8eedd'}">${esc(pname(pid))}${ok?' ✓':''}</span>`;
+    }).join('')+'</td>';
+  });
+  h+='</tr>';
+
+  // Springer-Zeile
+  if(daily.some(d=>d.springerId)){
+    h+='<tr><td class="pos-td" style="color:#6040a0">★ Springer Sa</td>';
+    daily.forEach(d=>{
+      if(!d.isSa){h+='<td class="sa-off">–</td>';return;}
+      h+=d.springerId
+        ?`<td style="background:#f0e8ff;color:#5030a0;font-weight:600;text-align:center">★ ${esc(pname(d.springerId))}</td>`
+        :'<td class="sa-off">–</td>';
+    });
+    h+='</tr>';
+  }
+
+  // Azubi-Zeile
+  if(cfg.azubi?.aktiv && cfg.azubi.name){
+    const azColors={'schule':'#e8e8ff','frei':'#e4f5ea','lernt':'#faf7f0'};
+    const azText={'schule':'🎓 Schule','frei':'🏖 Frei','lernt':'👀 Lernt'};
+    h+=`<tr><td class="pos-td" style="color:#3060a0">👤 ${esc(cfg.azubi.name)}</td>`;
+    daily.forEach(d=>{
+      const st=d.azubiStatus;
+      if(!st){h+='<td class="sa-off">–</td>';return;}
+      const bg=azColors[st]||'#fff0e8';
+      const txt=azText[st]||`<span style="font-size:11px">📋</span> ${esc(st)}`;
+      h+=`<td style="background:${bg};text-align:center;font-size:12px">${txt}</td>`;
+    });
+    h+='</tr>';
+  }
+
+  h+='</tbody></table></div>';
+  document.getElementById('plan-body').innerHTML=h;
+
+  document.getElementById('plan-legend').innerHTML=`
+    <span><span class="rdot rd1"></span>Feste Kraft</span>
+    <span><span class="rdot rd2"></span>Vertretung V1–V2</span>
+    <span><span class="rdot rd4"></span>Vertretung V3–V4 (letzter Ausweg)</span>
+    <span><span class="rdot" style="background:#4a8acc"></span>Flex-Pool</span>
+    <span><span class="rdot rdj"></span>Joker-Einsatz</span>
+    <span style="color:#6040a0">★ Springer Sa</span>
+    <span style="color:#3060a0">👤 Azubi</span>
+    <span style="color:var(--success)">✓ Wunsch erfüllt</span>`;
+
+  // ── Freie-Tage-Übersicht ──
+  const freiMap={};
+  cfg.mitarbeiter.forEach(m=>freiMap[m.id]=0);
+  daily.forEach(d=>d.freiIds.forEach(pid=>{ if(freiMap[pid]!==undefined) freiMap[pid]++; }));
+
+  // Wer war irgendwann diese Woche abwesend (Urlaub/Krank) → braucht keinen extra Frei-Tag
+  const abwesendTheWeek=new Set();
+  daily.forEach(d=>d.abwSet.forEach(pid=>abwesendTheWeek.add(pid)));
+
+  // Wer hat keinen Frei-Tag UND war nicht abwesend → echter Handlungsbedarf
+  const missingFrei=cfg.mitarbeiter.filter(m=>freiMap[m.id]===0&&!abwesendTheWeek.has(m.id));
+
+  let ov='<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">';
+  ov+='<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:8px">Freie Tage diese Woche</div>';
+
+  if(missingFrei.length>0){
+    ov+=`<div style="background:#fff0f0;border:1px solid var(--danger);border-radius:4px;padding:7px 12px;margin-bottom:8px;font-size:13px;color:var(--danger)">
+      ⚠ Kein freier Tag: <strong>${missingFrei.map(m=>esc(m.name)).join(', ')}</strong>
+      — Joker-Einsatz prüfen oder Plan neu generieren
+    </div>`;
+  }
+
+  ov+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
+  cfg.mitarbeiter.forEach(m=>{
+    const n=freiMap[m.id]||0;
+    const isAbw=abwesendTheWeek.has(m.id);
+    let col,icon,extra='';
+    if(isAbw){
+      col='#999'; icon='○';
+      extra='<span style="font-size:10px;margin-left:2px">(Abw.)</span>';
+    } else if(n===0){
+      col='var(--danger)'; icon='✗';
+    } else if(n===1){
+      col='var(--success)'; icon='✓';
+    } else {
+      col='var(--warn)'; icon='✓';
+      extra=`<span style="font-size:10px">(${n}×)</span>`;
+    }
+    ov+=`<span style="display:inline-flex;align-items:center;gap:3px;padding:3px 10px;border-radius:20px;border:1px solid ${col};color:${col};font-size:13px;font-weight:600">${icon} ${esc(m.name)}${extra}</span>`;
+  });
+  ov+='</div></div>';
+  document.getElementById('plan-legend').insertAdjacentHTML('afterend', ov);
+}
+
+// ── CHRONIK SAVE ──
+function saveChr(){
+  if(!gplan){alert('Kein Plan vorhanden!');return;}
+  if(!chr.springer)chr.springer=[];
+  gplan.daily.forEach(d=>{
+    const ds=dstr(d.date);
+    chr.freieTage=chr.freieTage.filter(f=>f.datum!==ds);
+    d.freiIds.forEach(pid=>chr.freieTage.push({personId:pid,datum:ds,tagTyp:d.typ}));
+    // Springer speichern
+    if(d.springerId){
+      chr.springer=chr.springer.filter(s=>s.datum!==ds);
+      chr.springer.push({personId:d.springerId,datum:ds});
+    }
+  });
+  chr.freieTage.sort((a,b)=>b.datum.localeCompare(a.datum));
+  chr.springer.sort((a,b)=>b.datum.localeCompare(a.datum));
+  saveChrLS();
+  const el=document.getElementById('save-msg'); el.textContent='Gespeichert ✓'; setTimeout(()=>el.textContent='',3500);
+}
+
+function renderChroniks(){
+  const el=document.getElementById('chr-body');
+  if(cfg.mitarbeiter.length===0){el.innerHTML='<div class="empty-state">Keine Mitarbeiter.</div>';return;}
+  const now=new Date();
+  const rows=cfg.mitarbeiter.map(m=>{
+    const sa=chr.freieTage.filter(f=>f.personId===m.id&&f.tagTyp==='sa').sort((a,b)=>b.datum.localeCompare(a.datum));
+    const lastSa=sa[0]?.datum;
+    const wsa=lastSa?Math.floor((now-new Date(lastSa))/(7*86400000)):null;
+    const cmo=chr.freieTage.filter(f=>f.personId===m.id&&f.tagTyp==='mo').length;
+    const cnr=chr.freieTage.filter(f=>f.personId===m.id&&f.tagTyp==='normal').length;
+    const spr=(chr.springer||[]).filter(f=>f.personId===m.id).sort((a,b)=>b.datum.localeCompare(a.datum));
+    const lastSpr=spr[0]?.datum;
+    return{name:m.name,lastSa,wsa,csa:sa.length,cmo,cnr,lastSpr,cspr:spr.length};
+  }).sort((a,b)=>(b.wsa??999)-(a.wsa??999));
+
+  let h='<table class="chro-table"><thead><tr><th>Mitarbeiter</th><th>Letzter freier Sa</th><th>Wochen her</th><th>Priorität</th><th>∑ Sa</th><th>∑ Mo</th><th>∑ Di–Fr</th><th>★ Springer</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    const wo=r.wsa??52, od=wo>=4;
+    const bw=Math.round(Math.min(wo/8,1)*100);
+    const bc=wo>=4?'var(--danger)':wo>=2?'var(--amber)':'var(--success)';
+    h+=`<tr><td><strong>${esc(r.name)}</strong></td><td>${r.lastSa??'<em style="color:var(--muted)">noch nie</em>'}</td><td style="${od?'color:var(--danger);font-weight:700':''}">${r.wsa!=null?r.wsa+' Wo.':'–'}</td><td><div class="pbar" style="width:${bw}px;background:${bc}"></div></td><td class="muted">${r.csa}</td><td class="muted">${r.cmo}</td><td class="muted">${r.cnr}</td><td style="color:#6040a0;font-size:12px">${r.cspr}× ${r.lastSpr?'<span class="muted">('+r.lastSpr+')</span>':''}</td></tr>`;
+  });
+  h+='</tbody></table>';
+  el.innerHTML=h;
+}
+
+// ── IMPORT / EXPORT ──
+function dl(fn,ct){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([ct],{type:'application/json'})); a.download=fn; a.click(); }
+function exportCfg(){ dl('arbeitsplan_config.json',JSON.stringify(cfg,null,2)) }
+function exportChr(){ dl('arbeitsplan_chronik.json',JSON.stringify(chr,null,2)) }
+function importCfg(inp){
+  const f=inp.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{ try{ cfg=JSON.parse(e.target.result); saveCfgLS(); renderAll(); const m=document.getElementById('cfg-msg'); m.textContent='Config geladen ✓'; setTimeout(()=>m.textContent='',3000); }catch{alert('Fehler!');} };
+  r.readAsText(f); inp.value='';
+}
+function importChr(inp){
+  const f=inp.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{ try{ chr=JSON.parse(e.target.result); saveChrLS(); renderChroniks(); alert('Chronik geladen!'); }catch{alert('Fehler!');} };
+  r.readAsText(f); inp.value='';
+}
+
+// ── INIT ──
+function renderAll(){ renderPersonal(); renderPostenUI(); updateSels(); renderAbw(); renderFw(); updateAzubiUI(); }
+loadLS(); renderAll(); initWP();
+const _stog=document.getElementById('springer-tog');
+if(_stog)_stog.checked=!!wo.springerAktiv;
+</script>
+</body>
+</html>

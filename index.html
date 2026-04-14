@@ -620,10 +620,10 @@
         <div class="einfach-name">Stangenrechner</div>
         <div class="einfach-sub">Baguette &amp; Zwiebel</div>
       </a>
-      <a href="druckzentrale/druckzentrale.html" class="einfach-kachel satellit" style="--kachel-color:#92400e;">
-        <div class="einfach-icon"><i class="ph-duotone ph-printer"></i></div>
-        <div class="einfach-name">Druckzentrale</div>
-        <div class="einfach-sub">Formulare &amp; Listen</div>
+      <a href="arbeitsplan/schichtplaner.html" class="einfach-kachel satellit" style="--kachel-color:#2d6a4f;">
+        <div class="einfach-icon"><i class="ph-duotone ph-calendar-check"></i></div>
+        <div class="einfach-name">SchichtPlaner</div>
+        <div class="einfach-sub">Wer macht was?</div>
       </a>
       <a href="schlawiner_rechner/schlawiner_rechner.html" class="einfach-kachel satellit" style="--kachel-color:#c07a10;">
         <div class="einfach-icon"><i class="ph-duotone ph-scissors"></i></div>
@@ -675,7 +675,7 @@
         <div class="einfach-name">BÄKO Inventur</div>
         <div class="einfach-sub">Lager &amp; Bestellung</div>
       </a>
-      <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+      <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
         <a href="verbrauchsuebersicht.html" class="einfach-kachel wide" style="--kachel-color:#475569;">
           <div class="einfach-icon"><i class="ph-duotone ph-chart-line"></i></div>
           <div style="text-align:left;"><div class="einfach-name">Mengenübersicht</div><div class="einfach-sub">Berechnungsgrundlage</div></div>
@@ -683,6 +683,10 @@
         <a href="https://my.hidrive.com/share/0a5xcrfaf8" target="_blank" class="einfach-kachel wide" style="--kachel-color:#854d0e;">
           <div class="einfach-icon"><i class="ph-duotone ph-folder-open"></i></div>
           <div style="text-align:left;"><div class="einfach-name">Teamordner</div><div class="einfach-sub">Geteilte Dokumente</div></div>
+        </a>
+        <a href="druckzentrale/druckzentrale.html" class="einfach-kachel wide" style="--kachel-color:#92400e;">
+          <div class="einfach-icon"><i class="ph-duotone ph-printer"></i></div>
+          <div style="text-align:left;"><div class="einfach-name">Druckzentrale</div><div class="einfach-sub">Formulare &amp; Listen</div></div>
         </a>
       </div>
       <!-- WURM HABITAT BANNER -->
@@ -931,9 +935,9 @@
         <span class="tab-icon"><i class="ph-duotone ph-bread"></i></span>
         <span class="tab-label">Start</span>
       </button>
-      <button class="tab-btn" data-tab="rechner" onclick="switchTab('rechner', this)">
-        <span class="tab-icon"><i class="ph ph-calculator"></i></span>
-        <span class="tab-label">Rechner</span>
+      <button class="tab-btn" data-tab="druck" onclick="switchTab('druck', this)">
+        <span class="tab-icon"><i class="ph ph-printer"></i></span>
+        <span class="tab-label">Druck</span>
       </button>
       <button class="tab-btn" data-tab="brett" onclick="switchTab('brett', this); clearBrettBadge(); buildBrett();" style="position:relative;">
         <span class="tab-icon" style="position:relative; display:inline-block;">
@@ -997,7 +1001,7 @@
       // Phosphor: aktiver Tab = duotone, inaktive = regular
       const iconMap = {
         start:  { active: 'ph-duotone ph-bread',              inactive: 'ph ph-bread' },
-        rechner:{ active: 'ph-duotone ph-calculator',          inactive: 'ph ph-calculator' },
+        druck:  { active: 'ph-duotone ph-printer',             inactive: 'ph ph-printer' },
         brett:  { active: 'ph-duotone ph-chat-circle-dots',    inactive: 'ph ph-chat-circle-dots' },
       };
       document.querySelectorAll('.tab-btn').forEach(b => {
@@ -1006,7 +1010,7 @@
         if (i && iconMap[t]) i.className = (b.classList.contains('active') ? iconMap[t].active : iconMap[t].inactive);
       });
 
-      if (name === 'rechner') { window.location.href = 'schnellrechner.html'; return; }
+      if (name === 'druck') { window.location.href = 'druckzentrale/druckzentrale.html'; return; }
       if (name === '#mehr') { history.replaceState(null, '', window.location.pathname); }
     }
 

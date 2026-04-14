@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arbeitsplan-Generator · Anleitung</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700&family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --amber:#d49a36;--amber-dim:#b07f22;--amber-light:#f0d898;
+  --bg:#f2ece0;--surface:#faf7f2;--surface2:#ede8df;
+  --border:#d8cdb8;--text:#1c1710;--muted:#7a7060;
+  --danger:#b83030;--success:#2e7d52;--warn:#a06010;
+  --blue:#3a6fa8;--purple:#5a3a88;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6}
+
+/* ── HERO ── */
+.hero{background:#1a1510;padding:48px 24px 40px;text-align:center;border-bottom:3px solid var(--amber)}
+.hero-logo{font-family:'Fraunces',serif;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);margin-bottom:12px}
+.hero h1{font-family:'Fraunces',serif;font-size:clamp(28px,6vw,48px);color:#fff;margin-bottom:12px;line-height:1.2}
+.hero h1 span{color:var(--amber)}
+.hero p{color:#b8a888;font-size:16px;max-width:560px;margin:0 auto}
+
+/* ── NAV ── */
+nav{background:#241f17;padding:0 24px;display:flex;gap:0;overflow-x:auto;border-bottom:1px solid #3a3020;position:sticky;top:0;z-index:100}
+nav a{padding:12px 18px;color:#888070;text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s}
+nav a:hover{color:#c8b890}
+nav a.active{color:var(--amber);border-bottom-color:var(--amber)}
+
+/* ── LAYOUT ── */
+.container{max-width:860px;margin:0 auto;padding:40px 24px}
+section{margin-bottom:56px}
+h2{font-family:'Fraunces',serif;font-size:28px;color:var(--text);margin-bottom:6px}
+h2 .num{font-size:14px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);display:block;margin-bottom:4px}
+h3{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin:24px 0 10px}
+p{margin-bottom:12px;color:var(--text)}
+.lead{font-size:17px;color:var(--muted);margin-bottom:20px;line-height:1.7}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;margin-bottom:16px}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+@media(max-width:600px){.card-grid{grid-template-columns:1fr}}
+
+/* ── STEPS ── */
+.step{display:flex;gap:16px;margin-bottom:20px;align-items:flex-start}
+.step-num{width:36px;height:36px;border-radius:50%;background:var(--amber);color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.step-body strong{display:block;font-size:15px;margin-bottom:4px}
+.step-body p{margin:0;font-size:14px;color:var(--muted)}
+
+/* ── BADGES / TAGS ── */
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600;font-family:'Barlow Condensed',sans-serif;letter-spacing:.04em}
+.tag-amber{background:#fff3d0;color:var(--amber-dim)}
+.tag-green{background:#d4edda;color:var(--success)}
+.tag-red{background:#fde8e8;color:var(--danger)}
+.tag-blue{background:#ddeeff;color:var(--blue)}
+.tag-purple{background:#ede0ff;color:var(--purple)}
+.tag-warn{background:#fff3cd;color:var(--warn)}
+
+/* ── FORMULA BOX ── */
+.formula{background:#1a1510;border-radius:6px;padding:16px 20px;margin:12px 0;font-family:monospace;font-size:13px;color:#e8d8a8;line-height:1.8;overflow-x:auto}
+.formula .comment{color:#6a5a3a}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}
+th{background:var(--surface2);padding:8px 12px;text-align:left;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--amber);border-bottom:2px solid var(--amber)}
+td{padding:8px 12px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+
+/* ── ALERT BOXES ── */
+.alert{padding:14px 18px;border-radius:6px;margin:16px 0;font-size:14px}
+.alert-warn{background:#fff8e0;border-left:4px solid var(--amber);color:var(--warn)}
+.alert-danger{background:#fff0f0;border-left:4px solid var(--danger);color:var(--danger)}
+.alert-info{background:#e8f2ff;border-left:4px solid var(--blue);color:var(--blue)}
+.alert strong{display:block;margin-bottom:4px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.06em;text-transform:uppercase;font-size:12px}
+
+/* ── LIMIT CARDS ── */
+.limit-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--danger);border-radius:6px;padding:16px 20px;margin-bottom:12px}
+.limit-card h4{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--danger);margin-bottom:6px}
+.limit-card p{margin:0;font-size:14px;color:var(--muted)}
+.limit-card .workaround{margin-top:8px;font-size:13px;color:var(--success);font-style:italic}
+.limit-card .workaround::before{content:"→ "}
+
+/* ── COLOR LEGEND ── */
+.color-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:14px}
+.color-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.color-swatch{width:28px;height:20px;border-radius:3px;flex-shrink:0;border:1px solid #ccc}
+
+/* ── DIVIDER ── */
+.divider{border:none;border-top:2px solid var(--border);margin:40px 0}
+
+/* ── FOOTER ── */
+footer{background:#1a1510;color:#6a5a3a;padding:24px;text-align:center;font-size:13px;border-top:2px solid var(--amber-dim)}
+footer span{color:var(--amber)}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-logo">Nachtschicht · BäckereiOS</div>
+  <h1>Arbeitsplan-<span>Generator</span></h1>
+  <p>Anleitung, Funktionsweise und bekannte Grenzen — Stand April 2026</p>
+</div>
+
+<nav>
+  <a href="#einrichtung" class="active">Einrichtung</a>
+  <a href="#woche">Woche planen</a>
+  <a href="#algorithmus">Wie er denkt</a>
+  <a href="#plan">Den Plan lesen</a>
+  <a href="#grenzen">Grenzen</a>
+  <a href="#tipps">Tipps</a>
+</nav>
+
+<div class="container">
+
+<!-- ── EINRICHTUNG ── -->
+<section id="einrichtung">
+  <h2><span class="num">01</span>Einrichtung</h2>
+  <p class="lead">Einmalig konfigurieren — dann läuft es. Du brauchst zwei Dinge: wer ist da, und wer macht was.</p>
+
+  <h3>Personal-Tab</h3>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <strong>Nachtschicht-Mitarbeiter anlegen</strong>
+      <p>Alle Personen der Nachtschicht eintragen. Reihenfolge egal. Pro Person gibt es eine <span class="tag tag-purple">★ Sa</span>-Checkbox — damit legst du fest, wer Samstag als Springer eingesetzt werden darf.</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <strong>Joker-Pool anlegen (optional)</strong>
+      <p>Frühschicht-Personen die im absoluten Notfall einspringen. Pro Joker anklicken welche Posten er übernehmen darf. Leere Liste = Joker effektiv inaktiv. Teigecke, Ofen, Rheon sollten nie angehakt sein.</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <strong>Azubi konfigurieren (optional)</strong>
+      <p>Name, Schultag, und welchen Posten er im äußersten Notfall übernehmen kann. Im Plan erscheint er als eigene Zeile mit Status pro Tag.</p>
+    </div>
+  </div>
+
+  <h3>Posten-Tab</h3>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <strong>7 Posten anlegen (6 für Samstag)</strong>
+      <p>Pro Posten: Name, ob er samstags aktiv ist, und das entscheidende: <strong>Fest oder Flex?</strong></p>
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card" style="border-top:3px solid var(--amber)">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:13px;color:var(--amber);margin-bottom:8px">Fest-Posten</div>
+      <p style="font-size:14px;margin-bottom:8px">Eine Person gehört hierher. Immer. Nur bei Krankheit/Urlaub greifen Vertretungen (V1 → V2 → V3 → V4).</p>
+      <p style="font-size:13px;color:var(--muted)">Beispiel: Ulf am Ofen, Jörg am Teig, Dominik an Kamut</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--blue)">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:13px;color:var(--blue);margin-bottom:8px">Flex-Pool</div>
+      <p style="font-size:14px;margin-bottom:8px">Mehrere gleichberechtigte Personen. Wer am wenigsten Tage diese Woche gearbeitet hat, bekommt den Posten heute.</p>
+      <p style="font-size:13px;color:var(--muted)">Beispiel: Rheon mit Lars + Heinzi, Versand mit Rosa + Harrison</p>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    <strong>Tipp</strong>
+    Konfiguration einmal fertig → <strong>arbeitsplan_config.json</strong> herunterladen und sicher aufbewahren. Bei jedem neuen Browser/Gerät: Config wieder hochladen. localStorage wird beim Löschen von Browser-Daten gelöscht.
+  </div>
+
+  <h3>Daten speichern</h3>
+  <p>Es gibt zwei separate Dateien:</p>
+  <table>
+    <tr><th>Datei</th><th>Inhalt</th><th>Wann speichern?</th></tr>
+    <tr><td><strong>arbeitsplan_config.json</strong></td><td>Personal, Posten, Joker, Azubi</td><td>Nach jeder Konfigurationsänderung</td></tr>
+    <tr><td><strong>arbeitsplan_chronik.json</strong></td><td>Frei-Tage-Historie</td><td>Nach jedem gespeicherten Wochenplan</td></tr>
+  </table>
+</section>
+
+<hr class="divider">
+
+<!-- ── WOCHE PLANEN ── -->
+<section id="woche">
+  <h2><span class="num">02</span>Woche planen</h2>
+  <p class="lead">Jede Woche neu: KW wählen, Abwesenheiten eintragen, optional Wünsche — dann generieren.</p>
+
+  <h3>Abwesenheiten</h3>
+  <p>Urlaub und Krankheit als Datumsbereich eintragen. Abwesende Personen werden vollständig aus der Berechnung ausgeschlossen — sie erscheinen im Plan in der Abwesenheits-Zeile.</p>
+
+  <h3>Wunsch-freie Tage</h3>
+  <p>Pro Person und Wochentag eintragbar. Wünsche werden <strong>stark gewichtet (+500 Punkte)</strong>, aber nicht bedingungslos erfüllt. Zwei Bedingungen müssen gleichzeitig gelten:</p>
+  <ul style="margin:8px 0 12px 20px;font-size:14px;color:var(--muted)">
+    <li>Der Tag muss mathematisch als freier Tag verfügbar sein</li>
+    <li>Die Person darf an diesem Tag keinen kritischen Posten gefährden</li>
+  </ul>
+  <p>Nicht erfüllbare Wünsche erscheinen als <span class="tag tag-warn">Warnung</span> im Plan.</p>
+
+  <h3>Samstag-Springer</h3>
+  <p>Wenn aktiviert: arbeitet samstags eine Person <em>extra</em> ohne festen Posten — aber nur wenn diese Person diese Woche bereits einen freien Tag hatte. Der Springer ist kein Ersatz für einen fehlenden Mitarbeiter, sondern ein Luxus wenn jemand ohnehin einen zweiten Frei-Tag bekäme.</p>
+
+  <div class="alert alert-warn">
+    <strong>Wichtig zum Springer</strong>
+    Springer ist nur aus dem <strong>Springer-Pool</strong> (★ Sa Checkbox im Personal-Tab) wählbar. Wenn der Pool leer ist oder keine qualifizierte Person einen zweiten Frei-Tag hätte, passiert nichts — auch wenn der Toggle aktiv ist.
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── ALGORITHMUS ── -->
+<section id="algorithmus">
+  <h2><span class="num">03</span>Wie der Generator denkt</h2>
+  <p class="lead">Zwei getrennte Fragen, täglich neu beantwortet — von Mo bis Sa.</p>
+
+  <h3>Schritt 1 — Wer bekommt frei?</h3>
+  <p>Zunächst wird berechnet wie viele Personen heute überhaupt frei sein <em>können</em>:</p>
+  <div class="formula">
+freie_Slots = max(0, verfügbare_Personen − aktive_Posten)
+<span class="comment">// Beispiel: 8 verfügbar, 7 Posten → 1 Person kann frei sein</span>
+  </div>
+  <p>Dann wird für jede Kandidatin ein Score berechnet — höher = mehr Anrecht auf Frei:</p>
+
+  <table>
+    <tr><th>Faktor</th><th>Punkte</th><th>Bedeutung</th></tr>
+    <tr><td>Freiwunsch heute</td><td>+500</td><td>Stark berücksichtigt</td></tr>
+    <tr><td>Sa-Rotation</td><td>bis +150</td><td>Wer lange keinen Sa-Frei hatte</td></tr>
+    <tr><td>Mo-Rotation</td><td>bis +75</td><td>Wer lange keinen Mo-Frei hatte</td></tr>
+    <tr><td>Inaktivität</td><td>bis +80</td><td>Wer allgemein lange gearbeitet hat</td></tr>
+    <tr><td>2. Frei-Tag</td><td>−2.000</td><td>Wer diese Woche schon frei hatte</td></tr>
+    <tr><td>Posten-Veto</td><td>−100.000</td><td>Wenn Freistellen heute FEHLT verursacht</td></tr>
+  </table>
+
+  <p>Das Posten-Veto ist das wichtigste: bevor jemand als frei eingetragen wird, simuliert der Generator kurz ob alle Posten ohne diese Person noch besetzt werden können. Falls nicht — Person bleibt im Dienst.</p>
+
+  <h3>Schritt 2 — Wer sitzt wo?</h3>
+  <p>Posts werden nach Schwierigkeit sortiert (wer am wenigsten Optionen hat, zuerst) — damit keine Flex-Pools Vertretungspersonen "wegnehmen".</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:12px;color:var(--amber);margin-bottom:8px">Fest-Posten — Kaskade</div>
+      <p style="font-size:13px;margin:0">Feste Kraft → V1 → V2 → V3 → V4 → Joker → Azubi → <strong style="color:var(--danger)">FEHLT</strong></p>
+    </div>
+    <div class="card">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:12px;color:var(--blue);margin-bottom:8px">Flex-Post — Pool</div>
+      <p style="font-size:13px;margin:0">Pool-Mitglied mit wenigsten Arbeitstagen diese Woche → Joker → Azubi → <strong style="color:var(--danger)">FEHLT</strong></p>
+    </div>
+  </div>
+
+  <h3>Bonus-Frei (Ghost-Fix)</h3>
+  <p>Wenn nach allen Zuweisungen noch Personen übrig sind (verfügbar, aber kein offener Posten), werden sie automatisch als Bonus-Frei markiert. Bevorzugt werden dabei Personen, die diese Woche noch keinen Frei-Tag hatten.</p>
+
+  <h3>Chronik & Rotation</h3>
+  <p>Nach jeder Woche auf "In Chronik speichern" drücken. Die Chronik lernt wer zuletzt einen Samstag frei hatte, und gewichtet die Frei-Auswahl der folgenden Woche entsprechend. Je länger kein Samstag-Frei → desto höhere Priorität.</p>
+</section>
+
+<hr class="divider">
+
+<!-- ── PLAN LESEN ── -->
+<section id="plan">
+  <h2><span class="num">04</span>Den Plan lesen</h2>
+  <p class="lead">Farben und Symbole geben sofort Auskunft über den Zustand der Besetzung.</p>
+
+  <h3>Postenzeilen — Farbcodierung</h3>
+  <div class="color-row"><div class="color-swatch" style="background:#fff;border-color:#ccc"></div> <strong>Feste Kraft</strong> — Stammbesetzung, alles normal</div>
+  <div class="color-row"><div class="color-swatch" style="background:#eff6ff"></div> <strong style="color:#4a6a9a">Vertretung V1–V2</strong> — Stammkraft heute absent oder frei</div>
+  <div class="color-row"><div class="color-swatch" style="background:#fff3c0"></div> <strong style="color:var(--warn)">Vertretung V3 ⚠</strong> — letzter Ausweg, aufmerksam sein</div>
+  <div class="color-row"><div class="color-swatch" style="background:#ffe8a0"></div> <strong style="color:#c07010">Vertretung V4 ⚠</strong> — äußerster Notfall</div>
+  <div class="color-row"><div class="color-swatch" style="background:#ffe0e0"></div> <strong style="color:var(--danger)">⚠ Joker</strong> — Frühschicht eingesprungen</div>
+  <div class="color-row"><div class="color-swatch" style="background:#ffaaaa"></div> <strong style="color:#800000">!! FEHLT !!</strong> — Posten unbesetzt, manueller Eingriff nötig</div>
+  <div class="color-row"><div class="color-dot" style="background:#4a8acc"></div> <strong style="color:#4a8acc">Blauer Punkt</strong> — Flex-Pool Besetzung (gleichberechtigt, kein Rang)</div>
+
+  <h3>Sonderzeilen</h3>
+  <table>
+    <tr><th>Zeile</th><th>Bedeutung</th></tr>
+    <tr><td><strong style="color:var(--success)">Frei</strong></td><td>Personen mit freiem Tag heute. Grüner Haken = Wunsch erfüllt.</td></tr>
+    <tr><td><strong>Abwesend</strong></td><td>Urlaub/Krank — nicht in Besetzung, nicht in Frei-Rotation</td></tr>
+    <tr><td><strong style="color:#6040a0">★ Springer Sa</strong></td><td>Lila — arbeitet als Extra ohne festen Posten</td></tr>
+    <tr><td><strong style="color:#3060a0">👤 Azubi</strong></td><td>Status: Lernt / Schule / Frei / [Postenname wenn Notfall]</td></tr>
+  </table>
+
+  <h3>Freie-Tage-Übersicht (unter Legende)</h3>
+  <div class="color-row"><div class="color-dot" style="background:var(--success)"></div> <span class="tag tag-green">✓ Rosa</span> — genau 1 freier Tag diese Woche</div>
+  <div class="color-row"><div class="color-dot" style="background:var(--danger)"></div> <span class="tag tag-red">✗ Lars</span> — kein freier Tag — Handlungsbedarf!</div>
+  <div class="color-row"><div class="color-dot" style="background:var(--warn)"></div> <span class="tag tag-warn">✓ Heinzi (2×)</span> — 2 freie Tage — mathematisch unvermeidbar, aber wird minimiert</div>
+</section>
+
+<hr class="divider">
+
+<!-- ── GRENZEN ── -->
+<section id="grenzen">
+  <h2><span class="num">05</span>Bekannte Grenzen</h2>
+  <p class="lead">Der Generator ist kein Zauberer. Diese Dinge kann er strukturell nicht lösen.</p>
+
+  <div class="limit-card">
+    <h4>Die Mathematik der Doppel-Freitage</h4>
+    <p>Mit 9 Mitarbeitern, 7 Posten Mo–Fr und 6 Sa-Posten entstehen pro Woche <strong>13 Frei-Slots</strong> (2×Mo–Fr + 3×Sa). Neun Personen × 1 Frei-Tag = nur 9 Slots. Die übrigen 4 Slots müssen auf Personen verteilt werden die dann einen zweiten Frei-Tag bekommen. Das ist reine Mathematik — kein Bug.</p>
+    <p class="workaround">Der Springer Sa reduziert dies auf 12 Slots — 3 Personen mit doppelt frei statt 4.</p>
+  </div>
+
+  <div class="limit-card">
+    <h4>Kein Mehrtages-Look-ahead</h4>
+    <p>Der Generator plant jeden Tag ohne zu wissen was die Folgetage brauchen. Wenn am Montag jemand frei gegeben wird, der am Donnerstag die einzige Vertretung für einen kritischen Posten wäre — das wird nicht erkannt. Die Feasibility-Prüfung gilt nur für den jeweiligen Tag.</p>
+    <p class="workaround">Wenn FEHLT-Zellen erscheinen: Plan neu generieren. Manchmal hilft ein zweiter Durchlauf durch den Zufalls-Tiebreaker.</p>
+  </div>
+
+  <div class="limit-card">
+    <h4>Keine manuelle Plan-Korrektur in der App</h4>
+    <p>Der generierte Plan ist im Browser nicht editierbar. Alle Anpassungen erfordern entweder Neu-Generierung oder handschriftliche Korrektur auf dem Ausdruck.</p>
+    <p class="workaround">Plan drucken, Korrekturen per Hand eintragen.</p>
+  </div>
+
+  <div class="limit-card">
+    <h4>Flex-Pool ohne Postenrotations-Chronik</h4>
+    <p>Die Chronik trackt ob jemand samstags frei hatte — aber nicht ob Lars diese Woche immer Rheon gemacht hat und mal Abwechslung bei 22Uhr verdient hätte. Postenrotation innerhalb von Flex-Pools findet algorithmisch nicht statt.</p>
+    <p class="workaround">Wird über den weekWorked-Zähler teilweise ausgeglichen — wer mehr gearbeitet hat kriegt Flex-Posten weniger zugeteilt.</p>
+  </div>
+
+  <div class="limit-card">
+    <h4>Joker-Reihenfolge ist nicht rotierend</h4>
+    <p>Gibt es mehrere qualifizierte Joker für einen Posten, wird immer der erste in der Liste genommen. Kein fairer Wechsel zwischen Jokern.</p>
+    <p class="workaround">Joker-Reihenfolge im Personal-Tab manuell variieren, oder nur einen Joker pro Qualifikation eintragen.</p>
+  </div>
+
+  <div class="limit-card">
+    <h4>Springer nur bei echtem Überschuss</h4>
+    <p>Der Springer aktiviert sich nur wenn jemand seinen <em>zweiten</em> Frei-Tag dieser Woche bekäme. Wenn alle Personen noch keinen Frei-Tag hatten, passiert nichts — auch wenn der Toggle aktiv ist. Das ist Absicht, kann aber überraschen wenn man Samstag besonders stark besetzen möchte.</p>
+    <p class="workaround">Springer-Pool sorgfältig befüllen. Nur Personen die wirklich als Extra einspringen können.</p>
+  </div>
+
+  <div class="alert alert-danger">
+    <strong>Bei !! FEHLT !!</strong>
+    Ein roter FEHLT-Block bedeutet: kein Mitarbeiter, kein Joker, kein Azubi war für diesen Posten verfügbar. Das erfordert immer manuellen Eingriff — entweder Hierarchie erweitern, Joker-Pool ergänzen, oder die Abwesenheit überbrücken.
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── TIPPS ── -->
+<section id="tipps">
+  <h2><span class="num">06</span>Tipps für bessere Pläne</h2>
+
+  <h3>Hierarchien vollständig befüllen</h3>
+  <p>Je mehr Vertretungsstufen ein Fest-Posten hat, desto robuster der Plan. Besonders kritische Posten (Ofen, Teig, Rheon) sollten mindestens V1 und V2 definiert haben. V3–V4 schaden nicht — sie greifen nur im absoluten Notfall.</p>
+
+  <h3>Flex-Pools großzügig besetzen</h3>
+  <p>Mehr Pool-Mitglieder = bessere Rotation = weniger Doppel-Freitage = weniger FEHLT. Wenn Lars und Heinzi beide Rheon können, aber auch Marcel für 22Uhr qualifiziert ist, dann hat der Generator mehr Spielraum.</p>
+
+  <h3>Chronik konsequent pflegen</h3>
+  <p>Nach jeder Woche "In Chronik speichern" und danach <strong>arbeitsplan_chronik.json herunterladen</strong>. Ohne gespeicherte Chronik behandelt der Generator jeden als hätte er noch nie einen Samstag frei gehabt — die Rotation startet dann von vorne.</p>
+
+  <h3>Config nach Änderungen sichern</h3>
+  <p>localStorage geht bei Browser-Reset verloren. Nach jeder Änderung an Posten oder Personal sofort <strong>arbeitsplan_config.json</strong> herunterladen.</p>
+
+  <h3>Mehrfach generieren bei FEHLT</h3>
+  <p>Ein kleiner Zufalls-Tiebreaker sorgt dafür dass jede Generierung leicht anders ausfallen kann. Bei FEHLT-Zellen: einfach nochmal generieren. Manchmal reicht das.</p>
+
+  <h3>Samstag-Posten gezielt reduzieren</h3>
+  <p>Posten die samstags nicht nötig sind auf "Sa –" setzen. Das erhöht die natürlichen Frei-Slots am Samstag und verringert Druck auf die Besetzung.</p>
+
+  <div class="alert alert-info">
+    <strong>Workflow-Empfehlung</strong>
+    1. Montag: KW wählen, Abwesenheiten der aktuellen Woche eintragen → Plan generieren<br>
+    2. Wenn zufrieden: Plan drucken / PDF speichern<br>
+    3. "In Chronik speichern" → arbeitsplan_chronik.json herunterladen<br>
+    4. Fertig bis nächste Woche
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <p>Arbeitsplan-Generator · Nachtschicht &nbsp;·&nbsp; <span>BäckereiOS</span> &nbsp;·&nbsp; Stand April 2026</p>
+  <p style="margin-top:6px;color:#4a3a22">Entwickelt für die Realitäten einer Nachtschicht-Bäckerei — mit allen ihren Zwiterlogiken.</p>
+</footer>
+
+<script>
+// Aktiven Nav-Link hervorheben beim Scrollen
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('nav a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if(window.scrollY >= s.offsetTop - 80) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#'+current);
+  });
+});
+</script>
+</body>
+</html>
