@@ -967,6 +967,10 @@
     Wunsch-Freitag pro Person. Kann nicht immer garantiert werden — zeigt nur den Wunsch.
     Gesetzt wird pro Woche.
   </p>
+
+  <!-- Status: hat jeder einen freien Tag? -->
+  <div id="freiStatusBanner" style="margin-bottom:10px"></div>
+
   <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap">
     <button class="btn btn-secondary" id="btnAutoVerteilen" onclick="autoVerteilen()">
       <i class="ph ph-magic-wand"></i> Auto-Verteilen
@@ -1673,13 +1677,16 @@ function renderWochenplan() {
         html += `<tr><td style="color:var(--blue-bright);font-size:11px;padding-left:8px">Verfügbar</td>`;
         wochenplan.forEach((tag, i) => {
           const liste = i === 5
-            ? (tag.sonderschicht || [])
-            : (tag.verfuegbarUnbesetzt || []);
+            ? [...(tag.sonderschicht || []).map(p => ({...p, optional: true})),
+               ...(tag.verfuegbarUnbesetzt || []).filter(p =>
+                 !(tag.sonderschicht || []).some(s => s.id === p.id)
+               ).map(p => ({...p, optional: false}))]
+            : (tag.verfuegbarUnbesetzt || []).map(p => ({...p, optional: false}));
           if (liste.length === 0) { html += '<td></td>'; return; }
           const namen = liste.map(p =>
             `<div class="plan-cell wolke" style="cursor:default;margin-bottom:2px">
               <span class="cell-name">${p.name}</span>
-              ${i === 5 ? '<span class="cell-sub">optional</span>' : ''}
+              ${p.optional ? '<span class="cell-sub">optional</span>' : ''}
             </div>`
           ).join('');
           html += `<td>${namen}</td>`;
@@ -2086,7 +2093,7 @@ function switchTab(id, btn) {
   document.getElementById('tab-' + id).classList.add('active');
   btn.classList.add('active');
 
-  if (id === 'freieTage') { renderFreieTage(); renderWocheStatus(); renderVorschlaege(); }
+  if (id === 'freieTage') { renderFreieTage(); renderWocheStatus(); renderFreiStatus(); renderFreiStatus(); renderVorschlaege(); }
   if (id === 'konfiguration') renderKonfiguration();
   if (id === 'fehlzeiten') renderFehlzeiten();
   if (id === 'uebersicht') renderUebersicht();
@@ -2393,6 +2400,38 @@ function wocheBestaetigen() {
   renderVorschlaege();
 }
 
+function renderFreiStatus() {
+  const banner = document.getElementById('freiStatusBanner');
+  if (!banner) return;
+  const weekKey = FLUSS_LOGIK.getWeekKey(currentMonday);
+  const personen = (config.personen || []).filter(p => !p.azubi);
+
+  const ohneFrei = personen.filter(p => {
+    // Kein freier Tag gesetzt
+    const tag = FLUSS_LOGIK.getFreierTag(p.id, weekKey, config.freieTage);
+    if (tag) return false;
+    // Auch kein Urlaubszeitraum der diese Woche abdeckt (wäre kein normaler Schicht-Tag)
+    const wochentage = FLUSS_LOGIK.getWeekDates(currentMonday).map(d => FLUSS_LOGIK.dateToISO(d));
+    const hatUrlaub = (config.urlaub?.[p.id] || []).some(e =>
+      e.von && e.bis && wochentage.some(d => d >= e.von && d <= e.bis)
+    );
+    return !hatUrlaub;
+  });
+
+  if (ohneFrei.length === 0) {
+    banner.innerHTML = `<div style="display:flex;align-items:center;gap:8px;background:var(--green-bg);border:1px solid #b0d8bc;border-radius:8px;padding:8px 12px;font-size:13px;color:var(--green)">
+      <i class="ph ph-check-circle" style="font-size:16px;flex-shrink:0"></i>
+      <span><strong>Alle haben einen freien Tag</strong> diese Woche.</span>
+    </div>`;
+  } else {
+    const namen = ohneFrei.map(p => `<strong>${p.name}</strong>`).join(', ');
+    banner.innerHTML = `<div style="display:flex;align-items:center;gap:8px;background:#fff8e8;border:1px solid #e8d090;border-radius:8px;padding:8px 12px;font-size:13px;color:#7a5200">
+      <i class="ph ph-warning" style="font-size:16px;flex-shrink:0"></i>
+      <span>${namen} ${ohneFrei.length === 1 ? 'hat' : 'haben'} noch keinen freien Tag.</span>
+    </div>`;
+  }
+}
+
 function renderWocheStatus() {
   const banner = document.getElementById('wocheStatusBanner');
   if (banner) banner.innerHTML = '';
@@ -2451,7 +2490,7 @@ function liveFreierTag(personId, val) {
   saveToStorage();
   renderWochenplan();
   renderFreieTage();
-  renderWocheStatus();
+  renderWocheStatus(); renderFreiStatus();
   renderVorschlaege();
 }
 
@@ -2497,7 +2536,7 @@ function varianteUebernehmen(idx) {
   saveToStorage();
   renderFreieTage();
   renderWochenplan();
-  renderWocheStatus();
+  renderWocheStatus(); renderFreiStatus();
   renderVorschlaege();
   document.getElementById('variantenBanner').innerHTML = '';
 }
@@ -2592,7 +2631,7 @@ function autoVerteilen() {
   saveToStorage();
   renderFreieTage();
   renderWochenplan();
-  renderWocheStatus();
+  renderWocheStatus(); renderFreiStatus();
   renderVorschlaege();
   // Varianten anzeigen wenn es mehrere gibt
   renderVarianten(varianten);
@@ -2777,7 +2816,7 @@ function renderAll() {
   renderFehlzeiten();
   renderPersonSelect('fz-person');
   if (document.getElementById('tab-freieTage').classList.contains('active')) {
-    renderFreieTage(); renderWocheStatus(); renderVorschlaege();
+    renderFreieTage(); renderWocheStatus(); renderFreiStatus(); renderVorschlaege();
   }
   if (document.getElementById('tab-uebersicht').classList.contains('active')) renderUebersicht();
   if (document.getElementById('tab-archiv').classList.contains('active')) renderArchiv();
