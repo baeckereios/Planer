@@ -13,14 +13,13 @@ window.BOS_INVENTUR = {
     },
     "kaesebroetchen_stueck": {
       "locs": [
-        0,
+        26,
         0,
         0,
         0
       ],
-      "stock": 0,
-      "ts": 1777252315632,
-      "fehlmenge": 3
+      "stock": 26,
+      "ts": 1777272269295
     },
     "kornknacker_stueck": {
       "locs": [
@@ -46,36 +45,33 @@ window.BOS_INVENTUR = {
     },
     "laugenstangen_stueck": {
       "locs": [
-        0,
+        24,
         0,
         0,
         0
       ],
-      "stock": 0,
-      "ts": 1777252191267,
-      "fehlmenge": 11
+      "stock": 24,
+      "ts": 1777272269295
     },
     "rosinen_hedwig_stueck": {
       "locs": [
-        0,
+        32,
         0,
         0,
         0
       ],
-      "stock": 0,
-      "ts": 1777252337734,
-      "fehlmenge": 4
+      "stock": 32,
+      "ts": 1777272269295
     },
     "hasenpfoetchen_stueck": {
       "locs": [
-        14,
+        62,
         0,
         0,
         0
       ],
-      "stock": 14,
-      "ts": 1777252349600,
-      "fehlmenge": 0
+      "stock": 62,
+      "ts": 1777272269295
     },
     "rosinen_batzen_stueck": {
       "locs": [
@@ -245,12 +241,12 @@ window.BOS_INVENTUR = {
   },
   "stocks": {
     "hasenberger_stueck": 0,
-    "kaesebroetchen_stueck": 0,
+    "kaesebroetchen_stueck": 26,
     "kornknacker_stueck": 0,
     "dinkel_zwerg_stueck": 2,
-    "laugenstangen_stueck": 0,
-    "rosinen_hedwig_stueck": 0,
-    "hasenpfoetchen_stueck": 14,
+    "laugenstangen_stueck": 24,
+    "rosinen_hedwig_stueck": 32,
+    "hasenpfoetchen_stueck": 62,
     "rosinen_batzen_stueck": 14,
     "schoko_batzen_stueck": 15,
     "zimt_woelkchen_stueck": 51,
