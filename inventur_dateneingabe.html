@@ -180,9 +180,12 @@
             <textarea class="b64-area" id="decoder-nachricht"
                 placeholder="Gesamte Nachricht vom Kollegen hier einfügen (inkl. ---PRODUKTIONSDATEN--- Block)..."></textarea>
 
-            <button class="akk-btn primary" style="width:100%;margin-top:8px;" onclick="decoderVerarbeiten()">
+            <button id="decoder-verarbeiten-btn" class="akk-btn primary" style="width:100%;margin-top:8px;opacity:0.4;cursor:not-allowed;" onclick="decoderVerarbeiten()" disabled>
                 ⚙ Verarbeiten &amp; neue inventurdaten.js downloaden
             </button>
+            <div id="decoder-basis-fehler" style="display:none;font-size:0.72rem;color:#ef4444;margin-top:6px;font-weight:700;">
+                ⚠ Bitte zuerst die aktuelle inventurdaten.js laden (Schritt 1).
+            </div>
             <div id="decoder-ergebnis" style="display:none;margin-top:10px;font-size:0.78rem;line-height:1.6;"></div>
         </div>
     </div>
@@ -571,6 +574,11 @@ function decoderBasisLaden(input) {
             status.style.display = 'block';
             status.style.color = '#10b981';
             status.textContent = '✓ Basis geladen: ' + anzahl + ' Produkte';
+            var btn = document.getElementById('decoder-verarbeiten-btn');
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+            document.getElementById('decoder-basis-fehler').style.display = 'none';
         } catch(e) { alert('Fehler: ' + e.message); }
         input.value = '';
     };
@@ -578,6 +586,10 @@ function decoderBasisLaden(input) {
 }
 
 function decoderVerarbeiten() {
+    if (!decoderBasis) {
+        document.getElementById('decoder-basis-fehler').style.display = 'block';
+        return;
+    }
     var text = document.getElementById('decoder-nachricht').value.trim();
     if (!text) { alert('Bitte Nachricht einfügen.'); return; }
     var marker = '---PRODUKTIONSDATEN---';
