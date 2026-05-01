@@ -1,4 +1,5 @@
-const CACHE_NAME = 'planer-cache-v111';
+
+const CACHE_NAME = 'planer-cache-v110';
 
 const STATIC_ASSETS = [
     './index.html',
@@ -17,7 +18,7 @@ self.addEventListener('install', e => {
     e.waitUntil(
         caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
     );
-    console.log('Service Worker V111 installiert');
+    console.log('Service Worker V110 installiert');
 });
 
 self.addEventListener('activate', e => {
@@ -26,15 +27,20 @@ self.addEventListener('activate', e => {
             keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
         ))
     );
+    // Neue Seiten sofort unter Kontrolle nehmen
     self.clients.claim();
 });
 
 self.addEventListener('fetch', e => {
     const url = e.request.url;
+
+    // Datendateien: HTTP-Cache umgehen, immer direkt vom Server
     if (BYPASS_CACHE.some(f => url.includes(f))) {
         e.respondWith(fetch(e.request, { cache: 'no-store' }));
         return;
     }
+
+    // Statische Assets: cache-first
     e.respondWith(
         caches.match(e.request).then(res => res || fetch(e.request))
     );
