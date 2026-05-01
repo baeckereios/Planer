@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚙️ AdminTool: Dashboard-Gehirn Generator</title>
+    
+    <link rel="stylesheet" href="admin_design.css">
+    
+    <style>
+        /* --- GRUNDDESIGN & FARBEN --- */
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-body: #f3f4f6;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --card-bg: #ffffff;
+            --border-light: #e5e7eb;
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg-body); color: var(--text-main); }
+        .admin-container { max-width: 1000px; margin: 30px auto; padding: 40px; background: var(--card-bg); border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        
+        h1 { font-size: 2em; margin-bottom: 0.2em; color: var(--text-main); text-align: center; font-weight: 800; letter-spacing: -0.02em; }
+        .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 40px; font-size: 1.1em; }
+
+        /* --- PHASEN-LOGIK --- */
+        .phase { display: none; }
+        .phase.aktiv { display: block; animation: fadeInUp 0.4s ease-out; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- FORTSCHRITTSANZEIGE --- */
+        .fortschritt { display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 2px solid var(--border-light); padding-bottom: 15px; color: #9ca3af; font-weight: bold; text-transform: uppercase; font-size: 0.9em; letter-spacing: 0.05em;}
+        .fortschritt .aktiv { color: var(--primary); }
+
+        /* --- SCHRITT 1: SEXY KACHELN --- */
+        .check-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-bottom: 30px; }
+        
+        .produkt-karte-label input[type="checkbox"] { display: none; }
+        
+        .karte-inhalt {
+            display: flex; align-items: center; gap: 15px; padding: 16px 20px; background: var(--card-bg); border: 2px solid var(--border-light); border-radius: 12px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .karte-inhalt:hover { border-color: #cbd5e1; background: #f8fafc; transform: translateY(-2px); }
+        .produkt-karte-label input[type="checkbox"]:checked + .karte-inhalt { border-color: var(--primary); background: #eff6ff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15); }
+
+        .check-kreis { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #cbd5e1; background: #fff; position: relative; flex-shrink: 0; transition: all 0.2s ease; }
+        .produkt-karte-label input[type="checkbox"]:checked + .karte-inhalt .check-kreis { background: var(--primary); border-color: var(--primary); }
+        .produkt-karte-label input[type="checkbox"]:checked + .karte-inhalt .check-kreis::after { content: '✓'; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: bold; font-size: 14px; }
+
+        .texte { display: flex; flex-direction: column; }
+        .schicker-name { font-weight: 700; color: var(--text-main); font-size: 1.1em; }
+        .db-name-klein { font-family: monospace; font-size: 0.75em; color: var(--text-muted); margin-top: 4px; }
+
+        /* --- SCHRITT 2: LISTEN-DESIGN --- */
+        .produkt-zeile { display: flex; align-items: center; justify-content: space-between; padding: 20px; background: #f9fafb; border-radius: 12px; margin-bottom: 12px; border: 1px solid var(--border-light); transition: background 0.2s; }
+        .produkt-zeile:hover { background: #f3f4f6; }
+        
+        .steuerung { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        input[type="number"], select { padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; background: white; font-size: 0.95em; outline: none; transition: border-color 0.2s; }
+        input[type="number"]:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        input[type="number"] { width: 100px; }
+
+        /* --- BUTTONS & CODE --- */
+        .btn-container { display: flex; gap: 15px; margin-top: 35px; flex-wrap: wrap; }
+        .btn { padding: 16px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.1em; flex-grow: 1; transition: 0.2s; text-align: center; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2); }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-secondary { background: #e5e7eb; color: var(--text-main); flex-grow: 0; }
+        .btn-secondary:hover { background: #d1d5db; }
+        
+        .code-box { width: 100%; height: 300px; margin-top: 20px; font-family: 'Courier New', Courier, monospace; padding: 20px; background: #1e293b; color: #34d399; border-radius: 12px; border: none; font-size: 0.9em; line-height: 1.5; resize: vertical; }
+        .hinweis-box { background: #eff6ff; border-left: 4px solid var(--primary); padding: 16px; margin-top: 30px; border-radius: 0 8px 8px 0; color: #1e3a8a; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-container">
+        <h1>🧠 Dashboard-Gehirn Generator</h1>
+        <p class="subtitle">Konfiguriere das "Schaufenster" für die Backstube</p>
+        
+        <div id="phase-0" class="phase aktiv">
+            <div style="text-align: center; padding: 20px; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; margin-bottom: 30px;">
+                <div style="font-size: 3rem; margin-bottom: 10px;">📱</div>
+                <h2 style="color: var(--text-main); font-size: 1.4em; margin-bottom: 15px;">Was machst du hier?</h2>
+                <p style="color: var(--text-main); font-size: 1.05em; line-height: 1.6; max-width: 650px; margin: 0 auto 10px auto;">
+                    Dieser Assistent generiert <strong>nur die Ansicht</strong> für das Durchschnitts-Dashboard der Filiale.<br>
+                    Du legst hier fest, welche Produkte dort auftauchen sollen und ob sie für das Auge in Stück oder Blechen dargestellt werden.
+                </p>
+                <p style="color: #b91c1c; font-weight: bold; background: #fef2f2; padding: 10px; border-radius: 8px; display: inline-block; margin-top: 10px;">
+                    ⚠️ Dies verändert NICHT die echte System-Planung!
+                </p>
+            </div>
+
+            <div class="btn-container" style="justify-content: center; max-width: 500px; margin: 0 auto;">
+                <button class="btn btn-primary" onclick="startePhase1()">✔️ Verstanden, Ansicht konfigurieren</button>
+            </div>
+
+            <div style="margin-top: 50px; padding-top: 30px; border-top: 2px solid var(--border-light); text-align: center;">
+                <p style="color: var(--text-muted); font-size: 0.95em; margin-bottom: 15px; font-weight: bold;">
+                    Falsches Tool erwischt? Willst du stattdessen die ECHTE Planung ändern?
+                </p>
+                <button class="btn btn-secondary" onclick="window.location.href='stammdaten_autosync.html'" style="background: #10b981; color: white; border: none; box-shadow: 0 4px 6px rgba(16,185,129,0.2);">
+                    📊 Zum Stammdaten AutoSync wechseln
+                </button>
+            </div>
+        </div>
+
+        <div id="lade-status" style="text-align: center; color: var(--text-muted); padding: 40px; font-style: italic; display: none;">
+            Durchsuche ../backmengen_db.json nach Produkten...
+        </div>
+
+        <div id="phase-1" class="phase">
+            <div class="fortschritt">
+                <span class="aktiv">1. Vorauswahl treffen</span>
+                <span>2. Details konfigurieren</span>
+            </div>
+            
+            <p style="margin-bottom: 25px; color: var(--text-muted);">Tippe auf die Produkte, die im Dashboard (Ansicht) analysiert werden sollen. Reine Blech-Einträge wurden bereits herausgefiltert.</p>
+            
+            <div id="produkt-liste-simpel" class="check-raster"></div>
+            
+            <div class="btn-container">
+                <button id="btn-weiter" class="btn btn-primary">Auswahl bestätigen & weiter ➡️</button>
+            </div>
+        </div>
+
+        <div id="phase-2" class="phase">
+            <div class="fortschritt">
+                <span>1. Vorauswahl treffen ✓</span>
+                <span class="aktiv">2. Details konfigurieren</span>
+            </div>
+            
+            <p style="margin-bottom: 25px; color: var(--text-muted);">Lege nun für deine ausgewählten Produkte die Kategorie und die Anzeige-Zählweise (Stück/Blech) fest.</p>
+            
+            <div id="produkt-liste-detail"></div>
+
+            <div class="btn-container">
+                <button id="btn-zurueck" class="btn btn-secondary">⬅️ Zurück</button>
+                <button id="btn-generieren" class="btn btn-primary">⚙️ JS-Code generieren</button>
+            </div>
+
+            <div id="ausgabe-bereich" style="display: none;">
+                <div class="hinweis-box">
+                    <strong>📋 Anleitung zum Update:</strong><br>
+                    Lade die Datei herunter oder kopiere den Code und ersetze damit den Inhalt in der Datei <code>durchschnittsverbrauch/durchschnittsverbrauch_gehirn.js</code>.
+                </div>
+                <textarea id="code-ausgabe" class="code-box" readonly></textarea>
+                
+                <div class="btn-container" style="margin-top: 15px;">
+                    <button class="btn btn-secondary" id="btn-copy" onclick="copyCode()" style="flex: 0 0 auto; padding: 12px 20px; font-size: 1rem;">📋 Code kopieren</button>
+                    <button class="btn btn-primary" onclick="downloadJS()" style="padding: 12px 20px; font-size: 1rem; background: #10b981;">⬇️ durchschnittsverbrauch_gehirn.js herunterladen</button>
+                </div>
+                </div>
+        </div>
+    </div>
+
+    <script>
+        let alleProdukte = new Set();
+        let ausgewaehlteProdukte = []; 
+
+        const kategorieOptionen = [
+            "Brötchen", "Brot", "süßes Kleingebäck", "Kuchen", "Blechkuchen", "Konditorei", "sonstiges"
+        ];
+
+        function bereinigeName(dbName) {
+            return dbName.replace('_stueck', '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()); 
+        }
+
+        document.addEventListener('DOMContentLoaded', ladeDatenbank);
+
+        async function ladeDatenbank() {
+            try {
+                const response = await fetch('../backmengen_db.json');
+                if (!response.ok) throw new Error('Konnte ../backmengen_db.json nicht laden.');
+                const datenbank = await response.json();
+                
+                datenbank.forEach(eintrag => {
+                    Object.keys(eintrag.produkte).forEach(produktName => {
+                        if (produktName.includes('_bleche')) return; 
+                        alleProdukte.add(produktName);
+                    });
+                });
+
+                bauePhase1(Array.from(alleProdukte).sort());
+            } catch (fehler) {
+                document.getElementById('lade-status').innerHTML = `<span style="color:red; font-weight:bold;">Fehler: ${fehler.message}</span>`;
+                document.getElementById('lade-status').style.display = 'block';
+            }
+        }
+
+        function bauePhase1(produkte) {
+            const listeSimpel = document.getElementById('produkt-liste-simpel');
+            listeSimpel.innerHTML = ''; 
+
+            produkte.forEach((produkt, index) => {
+                const schickerName = bereinigeName(produkt);
+                const label = document.createElement('label');
+                label.className = 'produkt-karte-label';
+                
+                label.innerHTML = `
+                    <input type="checkbox" id="vorauswahl-${index}" value="${produkt}">
+                    <div class="karte-inhalt">
+                        <div class="check-kreis"></div>
+                        <div class="texte">
+                            <span class="schicker-name">${schickerName}</span>
+                            <span class="db-name-klein">[DB: ${produkt}]</span>
+                        </div>
+                    </div>
+                `;
+                listeSimpel.appendChild(label);
+            });
+        }
+
+        function startePhase1() {
+            document.getElementById('phase-0').classList.remove('aktiv');
+            document.getElementById('phase-1').classList.add('aktiv');
+        }
+
+        document.getElementById('btn-weiter').addEventListener('click', () => {
+            ausgewaehlteProdukte = []; 
+            
+            const checkboxes = document.querySelectorAll('#produkt-liste-simpel input[type="checkbox"]');
+            checkboxes.forEach(box => {
+                if (box.checked) ausgewaehlteProdukte.push(box.value);
+            });
+
+            if (ausgewaehlteProdukte.length === 0) {
+                alert("Bitte wähle mindestens ein Produkt aus!");
+                return;
+            }
+
+            bauePhase2(ausgewaehlteProdukte);
+            document.getElementById('phase-1').classList.remove('aktiv');
+            document.getElementById('phase-2').classList.add('aktiv');
+        });
+
+        document.getElementById('btn-zurueck').addEventListener('click', () => {
+            document.getElementById('phase-2').classList.remove('aktiv');
+            document.getElementById('ausgabe-bereich').style.display = 'none'; 
+            document.getElementById('phase-1').classList.add('aktiv');
+        });
+
+        function bauePhase2(produkte) {
+            const listeDetail = document.getElementById('produkt-liste-detail');
+            listeDetail.innerHTML = ''; 
+
+            const kategorieHTML = kategorieOptionen.map(kat => `<option value="${kat}">${kat}</option>`).join('');
+
+            produkte.forEach((produkt, index) => {
+                const schickerName = bereinigeName(produkt);
+                const zeile = document.createElement('div');
+                zeile.className = 'produkt-zeile';
+                
+                zeile.innerHTML = `
+                    <div class="texte">
+                        <span class="schicker-name">${schickerName}</span>
+                        <span class="db-name-klein">${produkt}</span>
+                    </div>
+                    <div class="steuerung">
+                        <select id="kategorie-${index}" title="Kategorie wählen">
+                            ${kategorieHTML}
+                        </select>
+                        <select id="einheit-${index}" onchange="toggleBlechFeld(${index})" title="Einheit wählen">
+                            <option value="stueck">Zählen in: Stück</option>
+                            <option value="blech">Zählen in: Blechen</option>
+                        </select>
+                        <input type="number" id="blechgroesse-${index}" placeholder="Stk/Blech" disabled min="1" title="Wie viele Stück passen auf ein Blech?">
+                    </div>
+                `;
+                listeDetail.appendChild(zeile);
+            });
+        }
+
+        function toggleBlechFeld(index) {
+            const einheit = document.getElementById(`einheit-${index}`).value;
+            const feld = document.getElementById(`blechgroesse-${index}`);
+            if (einheit === 'blech') {
+                feld.disabled = false;
+                feld.required = true;
+                feld.focus();
+            } else {
+                feld.disabled = true;
+                feld.value = '';
+            }
+        }
+
+        document.getElementById('btn-generieren').addEventListener('click', () => {
+            const woerterbuch = {};
+            const produktKategorien = {};
+            
+            ausgewaehlteProdukte.forEach((name, index) => {
+                const kategorie = document.getElementById(`kategorie-${index}`).value;
+                produktKategorien[name] = kategorie;
+                
+                const einheit = document.getElementById(`einheit-${index}`).value;
+                if (einheit === 'blech') {
+                    const groesse = document.getElementById(`blechgroesse-${index}`).value || 1;
+                    woerterbuch[name] = { einheit: "blech", stueckProBlech: parseInt(groesse) };
+                }
+            });
+
+            const generierterCode = `/**
+ * AUTOGENERIERTES DURCHSCHNITTSVERBRAUCH GEHIRN
+ * Generiert am: ${new Date().toLocaleString()}
+ */
+
+const erlaubteProdukte = ${JSON.stringify(ausgewaehlteProdukte)};
+const produktEinstellungen = ${JSON.stringify(woerterbuch, null, 4)};
+const produktKategorien = ${JSON.stringify(produktKategorien, null, 4)};
+
+const kategorieReihenfolge = ["Brötchen", "Brot", "süßes Kleingebäck", "Kuchen", "Blechkuchen", "Konditorei", "sonstiges"];
+
+function bereinigeAnzeigeName(dbName) {
+    return dbName.replace('_stueck', '').replace(/_/g, ' ').replace(/\\b\\w/g, l => l.toUpperCase()); 
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    datenLadenUndBerechnen();
+    const berechnenButton = document.getElementById('btn-berechnen');
+    if (berechnenButton) berechnenButton.addEventListener('click', datenLadenUndBerechnen);
+});
+
+async function datenLadenUndBerechnen() {
+    const ergebnisContainer = document.getElementById('ergebnis-container');
+    ergebnisContainer.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">Lade aktuelle Daten...</p>';
+
+    try {
+        const response = await fetch('../backmengen_db.json');
+        if (!response.ok) throw new Error('Datenbank konnte nicht gefunden werden.');
+        const datenbank = await response.json();
+        datenVerarbeiten(datenbank);
+    } catch (fehler) {
+        ergebnisContainer.innerHTML = \`<p style="color: red; text-align: center;">Fehler: \\${fehler.message}</p>\`;
+    }
+}
+
+function datenVerarbeiten(datenbank) {
+    const ausgewaehlteTage = [];
+    if (document.getElementById('check-mo').checked) ausgewaehlteTage.push(1);
+    if (document.getElementById('check-di').checked) ausgewaehlteTage.push(2);
+    if (document.getElementById('check-mi').checked) ausgewaehlteTage.push(3);
+    if (document.getElementById('check-do').checked) ausgewaehlteTage.push(4);
+    if (document.getElementById('check-fr').checked) ausgewaehlteTage.push(5);
+    if (document.getElementById('check-sa').checked) ausgewaehlteTage.push(6);
+    if (document.getElementById('check-so').checked) ausgewaehlteTage.push(0);
+
+    const tageRueckblick = parseInt(document.getElementById('tage-rueckblick').value) || 14;
+    
+    // ZEITZONEN FIX: Mitten-in-der-Nacht Bug verhindern
+    const heute = new Date();
+    heute.setHours(0,0,0,0);
+    const startDatum = new Date(heute.getTime() - (tageRueckblick * 24 * 60 * 60 * 1000));
+
+    const produktErgebnisse = {};
+
+    datenbank.forEach(eintrag => {
+        const eintragDatum = new Date(eintrag.datum);
+        const wochentag = eintragDatum.getDay(); 
+
+        if (eintragDatum >= startDatum && ausgewaehlteTage.includes(wochentag)) {
+            for (const [produktName, menge] of Object.entries(eintrag.produkte)) {
+                if (!erlaubteProdukte.includes(produktName)) continue;
+
+                const gepruefteMenge = parseInt(menge);
+                if (isNaN(gepruefteMenge) || gepruefteMenge === 0) continue; 
+
+                if (!produktErgebnisse[produktName]) {
+                    produktErgebnisse[produktName] = { gesamtMenge: 0, anzahlTage: 0, historie: [] };
+                }
+
+                produktErgebnisse[produktName].gesamtMenge += gepruefteMenge;
+                produktErgebnisse[produktName].anzahlTage += 1;
+                produktErgebnisse[produktName].historie.push(gepruefteMenge);
+            }
+        }
+    });
+
+    htmlKartenZeichnen(produktErgebnisse);
+}
+
+function htmlKartenZeichnen(produktErgebnisse) {
+    const ergebnisContainer = document.getElementById('ergebnis-container');
+    ergebnisContainer.innerHTML = ''; 
+    const modusStueckErzwingen = document.getElementById('modus-stueck').checked;
+
+    if (Object.keys(produktErgebnisse).length === 0) {
+        ergebnisContainer.innerHTML = '<p style="text-align: center;">Keine Daten gefunden.</p>';
+        return;
+    }
+
+    const htmlNachKategorie = {};
+    kategorieReihenfolge.forEach(kat => htmlNachKategorie[kat] = "");
+
+    for (const [produktName, daten] of Object.entries(produktErgebnisse)) {
+        const stueckDurchschnitt = daten.gesamtMenge / daten.anzahlTage;
+        let anzeigeText = "";
+        let zusatzText = "";
+
+        if (produktEinstellungen[produktName] && produktEinstellungen[produktName].einheit === "blech" && !modusStueckErzwingen) {
+            const teiler = produktEinstellungen[produktName].stueckProBlech;
+            const blechDurchschnitt = (stueckDurchschnitt / teiler).toFixed(1);
+            anzeigeText = \`Ø \\${blechDurchschnitt} Bleche\`;
+            zusatzText = \`(Entspricht ca. \\${Math.round(stueckDurchschnitt)} Stück à \\${teiler}er Blech)\`;
+        } else {
+            anzeigeText = \`Ø \\${Math.round(stueckDurchschnitt)} Stück\`;
+        }
+
+        let trendSymbol = "➡️"; 
+        if (daten.historie.length >= 2) {
+            const letzterWert = daten.historie[daten.historie.length - 1];
+            const vorletzterWert = daten.historie[daten.historie.length - 2];
+            if (letzterWert > vorletzterWert) trendSymbol = "📈"; 
+            else if (letzterWert < vorletzterWert) trendSymbol = "📉"; 
+        }
+
+        const schickerAnzeigeName = bereinigeAnzeigeName(produktName);
+
+        const karteHTML = \`
+            <details class="produkt-karte">
+                <summary class="produkt-kopf">
+                    <span>\\${schickerAnzeigeName}</span>
+                    <span class="trend-anzeige">\\${trendSymbol}</span>
+                </summary>
+                <div style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px;">
+                    <p class="durchschnitts-wert"><strong>\\${anzeigeText}</strong></p>
+                    <p class="zusatz-info">\\${zusatzText}</p>
+                    <p class="zusatz-info">Berechnet aus \\${daten.anzahlTage} relevanten Backtagen.</p>
+                </div>
+            </details>
+        \`;
+
+        const kat = produktKategorien[produktName] || "sonstiges";
+        htmlNachKategorie[kat] += karteHTML;
+    }
+
+    let finalesHTML = "";
+    kategorieReihenfolge.forEach(kat => {
+        if (htmlNachKategorie[kat] !== "") {
+            finalesHTML += \`
+                <div style="margin-top: 25px; margin-bottom: 10px; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px;">
+                    <h2 style="font-size: 1.2em; color: #374151; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">\\${kat}</h2>
+                </div>
+            \`;
+            finalesHTML += htmlNachKategorie[kat];
+        }
+    });
+
+    ergebnisContainer.innerHTML = finalesHTML;
+}`;
+            
+            const ausgabeBereich = document.getElementById('ausgabe-bereich');
+            ausgabeBereich.style.display = 'block';
+            document.getElementById('code-ausgabe').value = generierterCode;
+            
+            const btn = document.getElementById('btn-generieren');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "✅ Code erfolgreich generiert!";
+            btn.style.backgroundColor = "#10b981";
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.backgroundColor = "#3b82f6";
+            }, 3000);
+            
+            ausgabeBereich.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // --- NEUE FUNKTIONEN FÜR KOMFORT ---
+        function copyCode() {
+            const codeBox = document.getElementById('code-ausgabe');
+            codeBox.select();
+            document.execCommand('copy');
+            
+            const btn = document.getElementById('btn-copy');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "✅ In Zwischenablage kopiert!";
+            btn.style.backgroundColor = "#10b981";
+            btn.style.color = "white";
+            btn.style.border = "none";
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.backgroundColor = "#e5e7eb";
+                btn.style.color = "var(--text-main)";
+            }, 2000);
+        }
+
+        function downloadJS() {
+            const code = document.getElementById('code-ausgabe').value;
+            const blob = new Blob([code], { type: 'application/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'durchschnittsverbrauch_gehirn.js';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

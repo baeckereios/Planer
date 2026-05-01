@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BäckereiOS — Lieferanten-Config Editor</title>
+<link rel="stylesheet" href="admin_design.css">
+<style>
+  .lager-badge {
+    display: inline-block; font-size: 0.7rem; font-weight: 800;
+    padding: 2px 8px; border-radius: 20px; margin-left: 6px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .badge-tk      { background: #dbeafe; color: #1d4ed8; }
+  .badge-kuehl   { background: #dcfce7; color: #166534; }
+  .badge-trocken { background: #fef9c3; color: #854d0e; }
+  .badge-sonstiges { background: #f3f4f6; color: #374151; }
+
+  .zb { margin-bottom: 10px; border: 1px solid var(--border-color,#e2e8f0); border-radius: 10px; overflow: hidden; }
+  .zh { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; cursor: pointer; background: var(--bg-color,#f8fafc); font-weight: 700; font-size: 0.92rem; user-select: none; }
+  .zh:hover { background: var(--surface2,#f1f5f9); }
+  .zb-body { padding: 14px; display: none; border-top: 1px solid var(--border-color,#e2e8f0); }
+  .zb-body.open { display: block; }
+
+  .feld-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .feld-full  { grid-column: 1 / -1; }
+  .feld label { font-size: 0.72rem; font-weight: 800; color: var(--text-muted,#64748b); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
+  .feld input, .feld select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-color,#e2e8f0); font-size: 0.9rem; background: var(--bg-color,#fff); color: var(--text-main); font-family: inherit; box-sizing: border-box; }
+  .feld input:focus, .feld select:focus { outline: none; border-color: var(--btn-primary,#c07a10); }
+
+  .bestelltage-wrap { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .bt-btn { padding: 8px 12px; border-radius: 6px; border: 1.5px solid var(--border-color,#e2e8f0); background: var(--bg-color,#fff); font-size: 0.82rem; font-weight: 800; cursor: pointer; font-family: inherit; flex: 1; min-width: 36px; text-align: center; }
+  .bt-btn.aktiv { background: var(--btn-primary,#c07a10); border-color: var(--btn-primary,#c07a10); color: #fff; }
+
+  .toggle-wrap { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .toggle-wrap input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--btn-primary,#c07a10); cursor: pointer; }
+  .toggle-wrap label { font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+
+  .btn-del { background: #fef2f2; color: #ef4444; border: 1px solid #fecdd3; border-radius: 6px; padding: 6px 12px; font-size: 0.78rem; font-weight: 700; cursor: pointer; margin-top: 10px; font-family: inherit; }
+  .btn-add { width: 100%; padding: 12px; background: var(--btn-primary,#c07a10); color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 800; cursor: pointer; margin-bottom: 12px; font-family: inherit; }
+  .btn-save { width: 100%; padding: 14px; background: #22c55e; color: #fff; border: none; border-radius: 10px; font-size: 1rem; font-weight: 800; cursor: pointer; font-family: inherit; }
+
+  .section-label { font-size: 0.68rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--btn-primary,#c07a10); margin: 16px 0 8px; display: flex; align-items: center; gap: 8px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border-color,#e2e8f0); }
+
+  .hint { font-size: 0.75rem; color: var(--text-muted,#64748b); margin-top: 4px; }
+  .crosslink-info { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 8px 10px; font-size: 0.78rem; color: #1e40af; margin-top: 6px; display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+    <h1 style="margin:0;font-size:1.4rem;font-weight:800;">📦 Lieferanten-Config</h1>
+    <a href="admin_landing.html" style="text-decoration:none;color:var(--text-muted);font-size:0.8rem;font-weight:bold;padding:5px 10px;border-radius:6px;background:#fff;border:1px solid var(--border-color);">Zurück</a>
+  </div>
+  <p style="color:var(--text-muted);font-size:0.82rem;margin:0 0 14px;">Externe Waren · Lieferanten · Gebinde · Soll-Bestände</p>
+
+  <!-- Datei laden -->
+  <div class="card" style="margin-bottom:14px;">
+    <div style="font-size:0.75rem;font-weight:800;color:var(--text-muted);margin-bottom:8px;">1. LIEFERANTEN_CONFIG.JSON LADEN</div>
+    <input type="file" id="fileInput" accept=".json" onchange="ladeConfig(this)">
+    <div class="hint" style="margin-top:6px;">Oder neu beginnen — Beispiele sind bereits geladen.</div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px; background:#f0fdf4; border-color:#bbf7d0;">
+    <div style="font-size:0.75rem;font-weight:800;color:#166534;margin-bottom:8px;">2. PRODUKT_CONFIG.JSON LADEN (für Dropdowns)</div>
+    <input type="file" id="fileInputProd" accept=".json" onchange="ladeProduktConfig(this)">
+    <div class="hint" style="margin-top:6px;color:#15803d;">Nur nötig wenn die Dropdowns leer bleiben.</div>
+  </div>
+
+  <div id="editor-wrap"></div>
+
+  <button class="btn-add" onclick="neuesProdukt()">+ Neues Produkt hinzufügen</button>
+  <button class="btn-save" onclick="speichern()">⬇️ lieferanten_config.json herunterladen</button>
+
+</div>
+
+<script>
+const WT = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+const LAGERTYPEN = ['tk','kuehl','trocken','sonstiges'];
+const LAGERTYP_LABEL = { tk:'Tiefkühl', kuehl:'Kühl', trocken:'Trocken', sonstiges:'Sonstiges' };
+const GEBINDE_FORMEN   = ['karton','sack','eimer','paket','palette','beutel','flasche','dose','sonstiges'];
+const INHALT_EINHEITEN = ['Stück','kg','g','l','ml'];
+const SOLL_EINHEITEN   = ['karton','sack','eimer','palette','paket','beutel','flasche','dose','stück'];
+
+let config = [];
+let produktConfig = []; // aus produkt_config.json für Crosslinks
+
+// produkt_config laden — erst ../produkt_config.json, dann fallback
+async function ladeProdukteConfig() {
+  const pfade = ['../produkt_config.json', 'produkt_config.json'];
+  for (const pfad of pfade) {
+    try {
+      const r = await fetch(pfad, { cache:'no-store' });
+      if (r.ok) { produktConfig = await r.json(); console.log('produktConfig geladen von', pfad, produktConfig.length); return; }
+    } catch(e) { console.warn(pfad, 'fehlgeschlagen:', e.message); }
+  }
+  console.error('produkt_config.json nicht gefunden');
+}
+
+ladeProdukteConfig().then(() => {
+  fetch('../lieferanten_config.json', { cache:'no-store' })
+    .then(r => r.json())
+    .then(d => { config = d; render(); })
+    .catch(() => {
+      fetch('lieferanten_config.json', { cache:'no-store' })
+        .then(r => r.json())
+        .then(d => { config = d; render(); })
+        .catch(() => { config = []; render(); });
+    });
+});
+
+function ladeProduktConfig(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try { produktConfig = JSON.parse(e.target.result); render(); }
+    catch(err) { alert('Fehler beim Laden der Produkt-Config: ' + err.message); }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function ladeConfig(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try { config = JSON.parse(e.target.result); render(); }
+    catch(err) { alert('Fehler beim Laden: ' + err.message); }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function render() {
+  const wrap = document.getElementById('editor-wrap');
+  wrap.innerHTML = '';
+
+  // Nach Lagertyp gruppieren
+  const gruppen = { tk:[], kuehl:[], trocken:[], sonstiges:[] };
+  config.forEach((p, idx) => { (gruppen[p.lagertyp] || gruppen.sonstiges).push({ p, idx }); });
+
+  LAGERTYPEN.forEach(typ => {
+    if (!gruppen[typ].length) return;
+    const label = document.createElement('div');
+    label.className = 'section-label';
+    label.innerHTML = `<span class="lager-badge badge-${typ}">${LAGERTYP_LABEL[typ]}</span>`;
+    wrap.appendChild(label);
+
+    gruppen[typ].forEach(({ p, idx }) => {
+      wrap.appendChild(buildKarte(p, idx));
+    });
+  });
+}
+
+function buildKarte(p, idx) {
+  const wrap = document.createElement('div');
+  wrap.className = 'zb';
+  wrap.id = 'karte_' + idx;
+
+  const btLabels = WT.map((w, i) =>
+    `<button class="bt-btn ${(p.bestelltage||[]).includes(i)?'aktiv':''}"
+      onclick="toggleBT(${idx},${i},this)">${w}</button>`
+  ).join('');
+
+  // Crosslink Info
+  let crossInfo = '';
+  if (p.wird_produziert && p.produkt_config_key) {
+    const pk = produktConfig.find(x => x.legacyKey === p.produkt_config_key);
+    if (pk) crossInfo = `<div class="crosslink-info" style="display:block;">🔗 Verbunden mit <strong>${pk.name}</strong> · Charge: ${pk.charge} Stk/Blech</div>`;
+  }
+
+  wrap.innerHTML = `
+    <div class="zh" onclick="toggleKarte(${idx})">
+      <span>${p.name || 'Neues Produkt'} <span class="lager-badge badge-${p.lagertyp||'sonstiges'}">${LAGERTYP_LABEL[p.lagertyp]||'?'}</span></span>
+      <span id="arrow_${idx}">▼</span>
+    </div>
+    <div class="zb-body" id="body_${idx}">
+      <div class="feld-grid">
+        <div class="feld feld-full">
+          <label>Produktname</label>
+          <input type="text" value="${esc(p.name||'')}" oninput="upd(${idx},'name',this.value)">
+        </div>
+        <div class="feld">
+          <label>Lagertyp</label>
+          <select onchange="upd(${idx},'lagertyp',this.value);render();">
+            ${LAGERTYPEN.map(t => `<option value="${t}" ${p.lagertyp===t?'selected':''}>${LAGERTYP_LABEL[t]}</option>`).join('')}
+          </select>
+        </div>
+        <div class="feld">
+          <label>Lieferant</label>
+          <input type="text" value="${esc(p.lieferant||'')}" placeholder="z.B. BÄKO, offen" oninput="upd(${idx},'lieferant',this.value)">
+        </div>
+      </div>
+
+      <div class="section-label">Gebinde</div>
+      <div class="feld-grid">
+        <div class="feld">
+          <label>Gebindeform</label>
+          <select onchange="updGebinde(${idx},'form',this.value)">
+            ${GEBINDE_FORMEN.map(f => `<option value="${f}" ${(p.gebinde?.form||'')=== f?'selected':''}>${f.charAt(0).toUpperCase()+f.slice(1)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="feld">
+          <label>Einheit (Inhalt)</label>
+          <select onchange="updGebinde(${idx},'inhalt_einheit',this.value)">
+            ${INHALT_EINHEITEN.map(e => `<option value="${e}" ${(p.gebinde?.inhalt_einheit||'Stück')===e?'selected':''}>${e}</option>`).join('')}
+          </select>
+        </div>
+        <div class="feld">
+          <label>Inhalt pro Gebinde</label>
+          <input type="number" min="1" value="${p.gebinde?.inhalt_stueck||1}" oninput="updGebinde(${idx},'inhalt_stueck',parseFloat(this.value)||1)">
+        </div>
+        <div class="feld">
+          <label>Soll-Einheit</label>
+          <select onchange="upd(${idx},'soll_einheit',this.value)">
+            ${SOLL_EINHEITEN.map(e => `<option value="${e}" ${(p.soll_einheit||'karton')===e?'selected':''}>${e.charAt(0).toUpperCase()+e.slice(1)}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="feld-grid">
+        <div class="feld">
+          <label>Soll-Bestand</label>
+          <input type="number" min="0" value="${p.soll_bestand||0}" oninput="upd(${idx},'soll_bestand',parseFloat(this.value)||0)">
+        </div>
+        <div class="feld">
+          <label>Soll-Bestand Feiertag</label>
+          <input type="number" min="0" value="${p.soll_bestand_ft||''}" placeholder="leer = wie normal" oninput="upd(${idx},'soll_bestand_ft',this.value?parseFloat(this.value):null)">
+        </div>
+      </div>
+
+      <div class="section-label">Bestelltage (Lieferant)</div>
+      <div class="bestelltage-wrap">${btLabels}</div>
+
+      <div class="section-label">Produktion</div>
+      <div class="toggle-wrap">
+        <input type="checkbox" id="prod_${idx}" ${p.wird_produziert?'checked':''} onchange="upd(${idx},'wird_produziert',this.checked);render();">
+        <label for="prod_${idx}">Wird in der Backstube verarbeitet/produziert</label>
+      </div>
+      ${p.wird_produziert ? `
+        <div class="feld" style="margin-top:10px;">
+          <label>Verbindung zu produkt_config</label>
+          <select onchange="upd(${idx},'produkt_config_key',this.value);zeigeCrosslink(${idx},this.value)">
+            <option value="">— kein Produkt gewählt —</option>
+            ${produktConfig.map(pk => `<option value="${pk.legacyKey||''}" ${p.produkt_config_key===pk.legacyKey?'selected':''}>${pk.name}</option>`).join('')}
+          </select>
+        </div>
+        <div id="crosslink_${idx}">${crossInfo}</div>
+      ` : ''}
+
+      <div class="feld" style="margin-top:10px;">
+        <label>Hinweis</label>
+        <input type="text" value="${esc(p.hinweis||'')}" placeholder="Optionaler Hinweis" oninput="upd(${idx},'hinweis',this.value)">
+      </div>
+
+      <button class="btn-del" onclick="loeschen(${idx})">🗑 Produkt löschen</button>
+    </div>`;
+  return wrap;
+}
+
+function toggleKarte(idx) {
+  const body = document.getElementById('body_' + idx);
+  const arrow = document.getElementById('arrow_' + idx);
+  body.classList.toggle('open');
+  arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+function upd(idx, feld, wert) {
+  config[idx][feld] = wert;
+  // Header-Name aktualisieren
+  const zh = document.querySelector('#karte_' + idx + ' .zh span:first-child');
+  if (zh) zh.childNodes[0].textContent = config[idx].name || 'Neues Produkt';
+}
+
+function updGebinde(idx, feld, wert) {
+  if (!config[idx].gebinde) config[idx].gebinde = {};
+  config[idx].gebinde[feld] = wert;
+}
+
+function toggleBT(idx, tag, btn) {
+  if (!config[idx].bestelltage) config[idx].bestelltage = [];
+  const i = config[idx].bestelltage.indexOf(tag);
+  if (i === -1) { config[idx].bestelltage.push(tag); btn.classList.add('aktiv'); }
+  else { config[idx].bestelltage.splice(i, 1); btn.classList.remove('aktiv'); }
+  config[idx].bestelltage.sort();
+}
+
+function zeigeCrosslink(idx, key) {
+  const div = document.getElementById('crosslink_' + idx);
+  if (!div) return;
+  const pk = produktConfig.find(x => x.legacyKey === key);
+  div.innerHTML = pk
+    ? `<div class="crosslink-info" style="display:block;">🔗 Verbunden mit <strong>${pk.name}</strong> · Charge: ${pk.charge} Stk/Blech</div>`
+    : (key ? '<div class="crosslink-info" style="display:block;background:#fef2f2;border-color:#fecdd3;color:#991b1b;">⚠ Key nicht in produkt_config gefunden</div>' : '');
+}
+
+function loeschen(idx) {
+  if (!confirm('Produkt "' + config[idx].name + '" löschen?')) return;
+  config.splice(idx, 1);
+  render();
+}
+
+function neuesProdukt() {
+  config.push({
+    id: 'neu_' + Date.now(),
+    name: '',
+    lagertyp: 'trocken',
+    lieferant: '',
+    bestelltage: [],
+    gebinde: { form: 'karton', inhalt_stueck: 1, inhalt_einheit: 'Stück' },
+    soll_bestand: 0,
+    soll_einheit: 'karton',
+    wird_produziert: false,
+    produkt_config_key: '',
+    hinweis: ''
+  });
+  render();
+  // Letzte Karte öffnen
+  const letzteIdx = config.length - 1;
+  setTimeout(() => {
+    const body = document.getElementById('body_' + letzteIdx);
+    const arrow = document.getElementById('arrow_' + letzteIdx);
+    if (body) { body.classList.add('open'); arrow.textContent = '▲'; }
+    document.getElementById('karte_' + letzteIdx)?.scrollIntoView({ behavior: 'smooth' });
+  }, 50);
+}
+
+function speichern() {
+  // IDs normalisieren
+  config.forEach(p => {
+    if (!p.id || p.id.startsWith('neu_')) {
+      p.id = (p.name || 'produkt').toLowerCase()
+        .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+        .replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'')
+        + '_' + p.lagertyp;
+    }
+  });
+  const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'lieferanten_config.json';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(a.href);
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+</script>
+</body>
+</html>

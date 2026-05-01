@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BOS - BlechRechner</title>
+    <link rel="stylesheet" href="../systemdesign.css">
+    <style>
+        body { background: var(--background,#f8f6f2); color: var(--text-primary,#1a1a1a); padding-bottom: 100px; }
+        .container { max-width: 680px; margin: 0 auto; padding: 14px 12px; }
+        h1 { font-size: 1.3rem; font-weight: 900; color: var(--amber,#e67e22); margin: 0 0 4px; }
+        .sub { font-size: 0.8rem; color: var(--dim,#6b7280); margin: 0 0 16px; }
+        .card { background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+        .card-titel { font-size: 0.68rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim,#6b7280); margin-bottom: 12px; }
+
+        /* Tabs */
+        .tab-umschalter { display: flex; gap: 8px; margin-bottom: 12px; }
+        .tab-btn { flex: 1; font-family: inherit; font-size: 0.82rem; font-weight: 800; padding: 10px 6px; border-radius: 10px; border: 2px solid var(--border-color,#e5e0d8); background: var(--card-bg,#fff); color: var(--dim,#6b7280); cursor: pointer; }
+        .tab-btn.aktiv { background: #1e293b; border-color: #1e293b; color: #fff; }
+        .tab-view { display: none; }
+        .tab-view.aktiv { display: block; }
+
+        .basis-banner { font-size: 0.72rem; color: var(--dim,#6b7280); margin-bottom: 12px;
+            padding: 7px 12px; background: var(--card-bg,#fff);
+            border: 1px solid var(--border-color,#e5e0d8); border-radius: 8px; }
+        /* Slider */
+        .slider-haupt-row { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+        .slider-haupt-row input[type=range] { flex: 1; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px; outline: none; cursor: pointer; background: linear-gradient(to right, var(--amber,#e67e22) 0%, var(--amber,#e67e22) var(--val,28%), var(--border-color,#e5e0d8) var(--val,28%)); }
+        .slider-haupt-row input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: white; border: 3px solid var(--amber,#e67e22); box-shadow: 0 2px 6px rgba(0,0,0,0.15); cursor: pointer; }
+        .slider-zahl-box { min-width: 36px; height: 36px; border-radius: 8px; background: var(--amber,#e67e22); color: white; font-size: 1rem; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .wochen-wrap { display: flex; flex-direction: column; gap: 4px; }
+        .wochen-zeile { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+        .wt-kopf { font-size: 0.65rem; font-weight: 800; text-align: center; color: var(--dim,#6b7280); padding: 2px 0; }
+        .wt-box { height: 22px; border-radius: 4px; border: 1.5px solid var(--border-color,#e5e0d8); background: var(--background,#f8f6f2); transition: all 0.15s; cursor: pointer; }
+        .wt-box.start  { border: 2.5px solid #1e293b; background: #1e293b !important; }
+        .wt-box.aktiv-1 { background: var(--amber,#e67e22); border-color: var(--amber,#e67e22); }
+        .wt-box.aktiv-2 { background: #f59e0b88; border-color: var(--amber,#e67e22); }
+        .wt-box.heute  { border-color: #1e293b; border-width: 2px; }
+        .lbl-spanne { margin-top: 10px; text-align: center; font-size: 0.78rem; font-weight: 700; color: var(--amber,#e67e22); }
+
+        /* Bestand */
+        .inp-label { font-size: 0.68rem; font-weight: 800; color: var(--dim,#6b7280); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .inp-sub   { font-size: 0.62rem; color: #94a3b8; margin-bottom: 6px; }
+        .inp-feld  { font-family: inherit; font-size: 1.1rem; font-weight: 700; text-align: center; padding: 12px 8px; border: 2px solid var(--border-color,#e5e0d8); border-radius: 10px; background: var(--card-bg,#fff); color: var(--text-primary,#1a1a1a); width: 100%; box-sizing: border-box; }
+        .inp-feld:focus { outline: none; border-color: var(--amber,#e67e22); }
+
+        /* Ergebnis */
+        .ergebnis-box { text-align: center; padding: 18px; border-radius: 12px; margin-bottom: 10px; }
+        .ergebnis-box.ok   { background: #166534; }
+        .ergebnis-box.nein { background: #1e293b; }
+        .erg-zahl  { font-size: 3rem; font-weight: 900; line-height: 1; color: #fff; }
+        .erg-label { font-size: 0.72rem; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-top: 4px; }
+        .erg-sub   { font-size: 0.65rem; color: #86efac; margin-top: 4px; }
+
+        /* Pressen */
+        .pressen-box { background: var(--background,#f8f6f2); border: 1.5px solid var(--border-color,#e5e0d8); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .pressen-label  { font-size: 0.72rem; font-weight: 700; color: var(--dim,#6b7280); }
+        .pressen-formel { font-size: 0.65rem; color: #94a3b8; margin-top: 2px; }
+        .pressen-zahl   { font-size: 1.4rem; font-weight: 900; color: var(--text-primary,#1a1a1a); }
+        .pressen-einheit { font-size: 0.75rem; font-weight: 700; color: var(--dim,#6b7280); }
+
+        /* Abrechnung */
+        .abr-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; font-weight: 700; margin-top: 12px; }
+        .abr-table th { font-size: 0.7rem; font-weight: 900; color: var(--dim,#6b7280); text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 4px 8px; border-bottom: 2px solid var(--border-color,#e5e0d8); text-align: right; }
+        .abr-table th:first-child { text-align: left; }
+        .abr-table td { padding: 9px 4px; border-bottom: 1px solid var(--border-color,#e5e0d8); }
+        .abr-table td:not(:first-child) { text-align: right; }
+        .abr-total td { border-top: 2px solid var(--border-color,#e5e0d8); border-bottom: none; font-weight: 900; }
+        .abr-stock td { color: #10b981; border-bottom: none; }
+        .abr-result td { font-weight: 900; font-size: 1rem; }
+        .abr-ok { color: #10b981; }
+        .abr-x  { color: #ef4444; font-weight: 900; }
+
+        /* Inventur-Warnung */
+        .inv-warn { display: none; background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; font-size: 0.78rem; font-weight: 700; color: #991b1b; }
+
+        /* Kreuz & Quer */
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        .blech-input { width: 100%; padding: 15px; border: 2px solid var(--border-color,#e5e0d8); border-radius: 12px; font-family: inherit; font-weight: 800; font-size: 1.2rem; text-align: center; background: var(--card-bg,#fff); color: var(--text-primary,#1a1a1a); box-sizing: border-box; }
+        .blech-input:focus { border-color: var(--amber,#e67e22); outline: none; }
+        .special-section { border-left: 6px solid var(--text-primary,#1a1a1a); background: var(--background,#f8f6f2); }
+        .cross-hint { font-size: 0.7rem; color: var(--dim,#6b7280); margin-top: 8px; display: block; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🥐 BlechRechner</h1>
+    <p class="sub">HasenBerger · KornKnacker · Kreuz &amp; Quer</p>
+
+    <div class="tab-umschalter">
+        <button class="tab-btn aktiv" id="tab-btn-hb" onclick="setTab('hb')">🐰 HasenBerger</button>
+        <button class="tab-btn"       id="tab-btn-kk" onclick="setTab('kk')">🌾 KornKnacker</button>
+        <button class="tab-btn"       id="tab-btn-cr" onclick="setTab('cr')">📏 Kreuz &amp; Quer</button>
+    </div>
+
+    <div class="basis-banner" id="basis-banner">Lade Ø-Werte aus DB…</div>
+
+    <!-- ── HASENBERGER ── -->
+    <div class="tab-view aktiv" id="tab-hb">
+        <div class="card">
+            <div class="card-titel">Soll reichen bis einschl. — Starttag antippen</div>
+            <div class="slider-haupt-row">
+                <input type="range" id="slider-hb" min="1" max="14" value="4" oninput="sliderUpdate('hb')">
+                <div class="slider-zahl-box" id="slider-zahl-hb">4</div>
+            </div>
+            <div style="text-align:center;font-size:0.72rem;color:var(--dim,#6b7280);margin-bottom:10px;">Tage</div>
+            <div class="wochen-wrap">
+                <div class="wochen-zeile"><div class="wt-kopf">Mo</div><div class="wt-kopf">Di</div><div class="wt-kopf">Mi</div><div class="wt-kopf">Do</div><div class="wt-kopf">Fr</div><div class="wt-kopf">Sa</div><div class="wt-kopf">So</div></div>
+                <div class="wochen-zeile" id="woche1-hb">
+                    <div class="wt-box" data-p="hb" data-w="1" data-wt="0"></div><div class="wt-box" data-p="hb" data-w="1" data-wt="1"></div><div class="wt-box" data-p="hb" data-w="1" data-wt="2"></div><div class="wt-box" data-p="hb" data-w="1" data-wt="3"></div><div class="wt-box" data-p="hb" data-w="1" data-wt="4"></div><div class="wt-box" data-p="hb" data-w="1" data-wt="5"></div><div class="wt-box" data-p="hb" data-w="1" data-wt="6"></div>
+                </div>
+                <div class="wochen-zeile" id="woche2-hb">
+                    <div class="wt-box" data-p="hb" data-w="2" data-wt="0"></div><div class="wt-box" data-p="hb" data-w="2" data-wt="1"></div><div class="wt-box" data-p="hb" data-w="2" data-wt="2"></div><div class="wt-box" data-p="hb" data-w="2" data-wt="3"></div><div class="wt-box" data-p="hb" data-w="2" data-wt="4"></div><div class="wt-box" data-p="hb" data-w="2" data-wt="5"></div><div class="wt-box" data-p="hb" data-w="2" data-wt="6"></div>
+                </div>
+            </div>
+            <div class="lbl-spanne" id="lbl-spanne-hb"></div>
+        </div>
+        <div class="inv-warn" id="inv-warn-hb">⚠ Inventur älter als 24 Std. — Bestand bitte manuell eintragen</div>
+        <div class="card">
+            <div class="inp-label">HasenBerger — Bestand</div>
+            <div class="inp-sub">Charge: 20 Stk/Blech</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                <input type="number" inputmode="numeric" class="inp-feld" id="bestand-hb" placeholder="0" oninput="berechne('hb')" style="flex:1;">
+                <span style="font-size:0.75rem;font-weight:700;color:var(--dim,#6b7280);">Bl.</span>
+            </div>
+            <div class="ergebnis-box nein" id="erg-box-hb">
+                <div class="erg-zahl" id="erg-zahl-hb">—</div>
+                <div class="erg-label" id="erg-label-hb">Bleche zu produzieren</div>
+                <div class="erg-sub" id="erg-sub-hb"></div>
+            </div>
+            <div class="pressen-box" id="pressen-box-hb" style="display:none;">
+                <div><div class="pressen-label">→ Umrechnung in Pressen</div><div class="pressen-formel" id="pressen-formel-hb"></div></div>
+                <div style="text-align:right;"><div class="pressen-zahl" id="pressen-zahl-hb">—</div><div class="pressen-einheit">Pressen</div></div>
+            </div>
+            <div id="abr-hb"></div>
+        </div>
+    </div>
+
+    <!-- ── KORNKNACKER ── -->
+    <div class="tab-view" id="tab-kk">
+        <div class="card">
+            <div class="card-titel">Soll reichen bis einschl. — Starttag antippen</div>
+            <div class="slider-haupt-row">
+                <input type="range" id="slider-kk" min="1" max="14" value="4" oninput="sliderUpdate('kk')">
+                <div class="slider-zahl-box" id="slider-zahl-kk">4</div>
+            </div>
+            <div style="text-align:center;font-size:0.72rem;color:var(--dim,#6b7280);margin-bottom:10px;">Tage</div>
+            <div class="wochen-wrap">
+                <div class="wochen-zeile"><div class="wt-kopf">Mo</div><div class="wt-kopf">Di</div><div class="wt-kopf">Mi</div><div class="wt-kopf">Do</div><div class="wt-kopf">Fr</div><div class="wt-kopf">Sa</div><div class="wt-kopf">So</div></div>
+                <div class="wochen-zeile" id="woche1-kk">
+                    <div class="wt-box" data-p="kk" data-w="1" data-wt="0"></div><div class="wt-box" data-p="kk" data-w="1" data-wt="1"></div><div class="wt-box" data-p="kk" data-w="1" data-wt="2"></div><div class="wt-box" data-p="kk" data-w="1" data-wt="3"></div><div class="wt-box" data-p="kk" data-w="1" data-wt="4"></div><div class="wt-box" data-p="kk" data-w="1" data-wt="5"></div><div class="wt-box" data-p="kk" data-w="1" data-wt="6"></div>
+                </div>
+                <div class="wochen-zeile" id="woche2-kk">
+                    <div class="wt-box" data-p="kk" data-w="2" data-wt="0"></div><div class="wt-box" data-p="kk" data-w="2" data-wt="1"></div><div class="wt-box" data-p="kk" data-w="2" data-wt="2"></div><div class="wt-box" data-p="kk" data-w="2" data-wt="3"></div><div class="wt-box" data-p="kk" data-w="2" data-wt="4"></div><div class="wt-box" data-p="kk" data-w="2" data-wt="5"></div><div class="wt-box" data-p="kk" data-w="2" data-wt="6"></div>
+                </div>
+            </div>
+            <div class="lbl-spanne" id="lbl-spanne-kk"></div>
+        </div>
+        <div class="inv-warn" id="inv-warn-kk">⚠ Inventur älter als 24 Std. — Bestand bitte manuell eintragen</div>
+        <div class="card">
+            <div class="inp-label">KornKnacker — Bestand</div>
+            <div class="inp-sub">Charge: 25 Stk/Blech · Schlüsselzahl 1.06</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                <input type="number" inputmode="numeric" class="inp-feld" id="bestand-kk" placeholder="0" oninput="berechne('kk')" style="flex:1;">
+                <span style="font-size:0.75rem;font-weight:700;color:var(--dim,#6b7280);">Bl.</span>
+            </div>
+            <div class="ergebnis-box nein" id="erg-box-kk">
+                <div class="erg-zahl" id="erg-zahl-kk">—</div>
+                <div class="erg-label" id="erg-label-kk">Bleche zu produzieren</div>
+                <div class="erg-sub" id="erg-sub-kk"></div>
+            </div>
+            <div class="pressen-box" id="pressen-box-kk" style="display:none;">
+                <div><div class="pressen-label">→ Umrechnung in Pressen</div><div class="pressen-formel" id="pressen-formel-kk"></div></div>
+                <div style="text-align:right;"><div class="pressen-zahl" id="pressen-zahl-kk">—</div><div class="pressen-einheit">Pressen</div></div>
+            </div>
+            <div id="abr-kk"></div>
+        </div>
+    </div>
+
+    <!-- ── KREUZ & QUER ── -->
+    <div class="tab-view" id="tab-cr">
+        <p style="font-size:0.85rem;color:var(--dim,#6b7280);line-height:1.6;margin-bottom:16px;">
+            Pressen und Bleche lassen sich in beide Richtungen umrechnen. Die Schlüsselzahl beim KornKnacker erhöht das Stückgewicht — aus 90 Pressen werden deshalb weniger Bleche als ohne Korrektur.
+        </p>
+        <div id="specialList"></div>
+    </div>
+</div>
+
+<script src="../baeko_bestand.js"></script>
+<script src="../inventurdaten.js"></script>
+<script src="../produktions_gehirn.js"></script>
+<script src="lager_gehirn.js"></script>
+<script>
+const JS_ZU_BOS = [6,0,1,2,3,4,5];
+const WT      = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+const WT_LANG = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+
+const PROD_CFG = {
+    hb: { legacyKey:'hasenberger_stueck',  val_alt:30, val_blech:20, factor:1    },
+    kk: { legacyKey:'kornknacker_stueck',  val_alt:30, val_blech:25, factor:1.06 }
+};
+
+const starttagBos = { hb:null, kk:null };
+
+function heuteBos() { return JS_ZU_BOS[new Date().getDay()]; }
+function getStart(p) { return starttagBos[p] !== null ? starttagBos[p] : (heuteBos() + 1) % 7; }
+
+function getNeedsBlech(p) {
+    var cfg = PROD_CFG[p];
+    var stammdaten = window.BOS_STAMMDATEN;
+    if (!stammdaten || !window.BOS_GEHIRN) return [0,0,0,0,0,0,0];
+    var bosId = window.BOS_GEHIRN.bosIdFuerKey(cfg.legacyKey);
+    if (!bosId || !stammdaten[bosId]) return [0,0,0,0,0,0,0];
+    // needs aus DB sind in Bleche (BOS_STAMMDATEN speichert Bleche für diese Produkte)
+    return stammdaten[bosId].needs || [0,0,0,0,0,0,0];
+}
+
+// ── TABS ─────────────────────────────────────────────────
+function setTab(tab) {
+    ['hb','kk','cr'].forEach(function(t) {
+        document.getElementById('tab-' + t).classList.toggle('aktiv', t === tab);
+        document.getElementById('tab-btn-' + t).classList.toggle('aktiv', t === tab);
+    });
+}
+
+// ── SLIDER ───────────────────────────────────────────────
+function sliderUpdate(p) {
+    var tage  = parseInt(document.getElementById('slider-' + p).value);
+    var start = getStart(p);
+    var heute = heuteBos();
+
+    document.getElementById('slider-zahl-' + p).textContent = tage;
+    document.getElementById('slider-' + p).style.setProperty('--val', ((tage-1)/13*100).toFixed(1) + '%');
+
+    var tageInW1 = 7 - start;
+    for (var wt = 0; wt < 7; wt++) {
+        var b1 = document.querySelector('.wt-box[data-p="'+p+'"][data-w="1"][data-wt="'+wt+'"]');
+        var b2 = document.querySelector('.wt-box[data-p="'+p+'"][data-w="2"][data-wt="'+wt+'"]');
+        if (!b1 || !b2) continue;
+        b1.className = 'wt-box'
+            + (wt === start ? ' start' : '')
+            + (wt === heute ? ' heute' : '')
+            + (wt >= start && (wt - start) < Math.min(tage, tageInW1) ? ' aktiv-1' : '');
+        var rest = tage - tageInW1;
+        b2.className = 'wt-box' + (rest > 0 && wt < rest ? ' aktiv-2' : '');
+        (function(idx) {
+            b1.onclick = function() { starttagBos[p] = idx; sliderUpdate(p); };
+        })(wt);
+    }
+
+    var endIdx = (start + tage - 1) % 7;
+    document.getElementById('lbl-spanne-' + p).textContent =
+        WT[start] + ' → ' + WT[endIdx] + ' · ' + tage + ' Tag' + (tage===1?'':'e');
+
+    berechne(p);
+}
+
+// ── BERECHNUNG ───────────────────────────────────────────
+function berechne(p) {
+    var cfg    = PROD_CFG[p];
+    var tage   = parseInt(document.getElementById('slider-' + p).value) || 1;
+    var start  = getStart(p);
+    var bestand = parseFloat(document.getElementById('bestand-' + p).value) || 0;
+    var needs  = getNeedsBlech(p);
+
+    var sumBl = 0;
+    var zeilen = [];
+    for (var i = 0; i < tage; i++) {
+        var bos = (start + i) % 7;
+        var bl  = needs[bos] || 0;
+        sumBl += bl;
+        zeilen.push({ tag: WT_LANG[bos], bl: bl });
+    }
+
+    var fehl = Math.max(0, sumBl - bestand);
+
+    // Ergebnis-Box
+    var box   = document.getElementById('erg-box-' + p);
+    var zahl  = document.getElementById('erg-zahl-' + p);
+    var label = document.getElementById('erg-label-' + p);
+    var sub   = document.getElementById('erg-sub-' + p);
+
+    if (fehl === 0) {
+        box.className = 'ergebnis-box ok';
+        zahl.textContent  = '✓';
+        label.textContent = 'Genügend produziert';
+        sub.textContent   = 'Noch ' + (bestand - sumBl).toFixed(1) + ' Bl. übrig';
+    } else {
+        box.className = 'ergebnis-box nein';
+        zahl.textContent  = fehl;
+        label.textContent = 'Bleche zu produzieren';
+        sub.textContent   = '';
+    }
+
+    // Pressen-Umrechnung
+    var pressenBox = document.getElementById('pressen-box-' + p);
+    if (fehl > 0) {
+        var pressen = (fehl * cfg.val_blech / cfg.val_alt) * cfg.factor;
+        var prGer   = Math.ceil(pressen * 10) / 10;
+        document.getElementById('pressen-zahl-' + p).textContent = prGer % 1 === 0 ? prGer : prGer.toFixed(1);
+        document.getElementById('pressen-formel-' + p).textContent = cfg.factor !== 1
+            ? fehl + ' Bl. × ' + cfg.val_blech + ' ÷ ' + cfg.val_alt + ' × ' + cfg.factor + ' (Schlüsselzahl)'
+            : fehl + ' Bl. × ' + cfg.val_blech + ' ÷ ' + cfg.val_alt;
+        pressenBox.style.display = 'flex';
+    } else {
+        pressenBox.style.display = 'none';
+    }
+
+    // Tages-Abrechnung
+    var html = '<tr><th></th><th>Bleche</th></tr>';
+    zeilen.forEach(function(z) {
+        html += '<tr><td>' + z.tag + '</td><td>' + (z.bl > 0 ? z.bl : '—') + '</td></tr>';
+    });
+    html += '<tr class="abr-total"><td>Gesamtbedarf</td><td>' + sumBl + '</td></tr>';
+    html += '<tr class="abr-stock"><td>− Bestand</td><td>−' + bestand + '</td></tr>';
+    html += '<tr class="abr-result"><td>Produktion</td><td>'
+        + (fehl > 0 ? '<span class="abr-x">✗ ' + fehl + '</span>' : '<span class="abr-ok">✓</span>')
+        + '</td></tr>';
+    document.getElementById('abr-' + p).innerHTML = '<table class="abr-table">' + html + '</table>';
+}
+
+// ── INVENTUR ─────────────────────────────────────────────
+function ladeInventur() {
+    if (!window.BOS_INVENTUR) return;
+    var prods = window.BOS_INVENTUR.products || {};
+    var neuestesTs = 0;
+    Object.values(prods).forEach(function(p) { if (p.ts > neuestesTs) neuestesTs = p.ts; });
+    var aeltH = neuestesTs > 0 ? (Date.now() - neuestesTs) / 3600000 : 999;
+
+    ['hb','kk'].forEach(function(p) {
+        var cfg  = PROD_CFG[p];
+        var warn = document.getElementById('inv-warn-' + p);
+        var inp  = document.getElementById('bestand-' + p);
+        if (aeltH > 24) { warn.style.display = 'block'; return; }
+        warn.style.display = 'none';
+        var inv = prods[cfg.legacyKey];
+        if (inv) {
+            var bleche = inv.stock !== undefined ? inv.stock : (inv.locs ? inv.locs.reduce(function(a,b){return a+b;},0) : 0);
+            if (bleche > 0) inp.value = bleche;
+        }
+    });
+}
+
+// ── KREUZ & QUER ─────────────────────────────────────────
+function renderCross() {
+    var list = document.getElementById('specialList');
+    if (!window.BOS_BAEKO_CONFIG) { list.innerHTML = '<p style="color:#94a3b8;font-size:0.82rem;">baeko_bestand.js nicht geladen.</p>'; return; }
+    var products = window.BOS_BAEKO_CONFIG.products;
+    list.innerHTML = '';
+    for (var id in products) {
+        var p = products[id];
+        if (!p.show_in_calc || p.type !== 'cross') continue;
+        var card = document.createElement('div');
+        card.className = 'card special-section';
+        var hintHtml = p.factor ? '<span class="cross-hint">ℹ️ Schlüsselzahl ' + p.factor + ' wird in beide Richtungen angewendet</span>' : '';
+        card.innerHTML =
+            '<h2 style="margin:0;font-family:\'Fraunces\',serif;font-weight:900;">' + p.name + '</h2>' +
+            '<div style="display:flex;justify-content:flex-end;font-size:0.75rem;font-weight:700;color:var(--dim,#6b7280);margin-top:10px;font-family:\'Barlow Condensed\';text-transform:uppercase;"><span>1 ' + p.unit_alt + ' = ' + p.val_alt + ' Stk.</span></div>' +
+            '<div class="input-row">' +
+                '<div><div class="label" style="text-align:center;">' + p.unit_alt + '</div><input type="number" class="blech-input" id="cr_' + id + '_alt" oninput="runCross(\'' + id + '\',\'alt\')" placeholder="0"></div>' +
+                '<div><div class="label" style="text-align:center;">Bleche</div><input type="number" class="blech-input" id="cr_' + id + '_blech" oninput="runCross(\'' + id + '\',\'blech\')" placeholder="0"></div>' +
+            '</div>' + hintHtml;
+        list.appendChild(card);
+    }
+}
+
+function runCross(id, source) {
+    var val = parseFloat(document.getElementById('cr_' + id + '_' + source).value || 0);
+    var target = document.getElementById('cr_' + id + '_' + (source === 'alt' ? 'blech' : 'alt'));
+    if (val === 0) { target.value = ''; return; }
+    target.value = Math.round(window.BOS_LAGER_BRAIN.convertCross(id, val, source) * 100) / 100;
+}
+
+// ── INIT ─────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async function() {
+    document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light');
+    renderCross();
+    if (window.BOS_GEHIRN) {
+        await window.BOS_GEHIRN.init();
+        // Basis-Banner
+        var db = window.BOS_GEHIRN._db || [];
+        if (db.length) {
+            var s = [...db].sort(function(a,b){return a.datum.localeCompare(b.datum);});
+            var fmt = function(d) { var p=d.split('-'); return p[2]+'.'+p[1]+'.'+p[0].slice(2); };
+            document.getElementById('basis-banner').textContent =
+                '📅 Ø-Werte aus DB · ' + fmt(s[0].datum) + ' – ' + fmt(s[s.length-1].datum) + ' · ' + db.length + ' Tage';
+        }
+    }
+    ladeInventur();
+    sliderUpdate('hb');
+    sliderUpdate('kk');
+});
+</script>
+<script src="../shell.js"></script>
+</body>
+</html>

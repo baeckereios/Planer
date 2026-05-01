@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SchichtPlaner — Konfiguration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+  <style>
+    :root {
+      --amber:      #b8790a;
+      --amber-pale: #fdf6e8;
+      --bg:         #e8e4de;
+      --bg2:        #ffffff;
+      --bg3:        #d8d3cc;
+      --bg-tools:   #ddd8d1;
+      --border:     #c8c2b8;
+      --text:       #1e1a16;
+      --text-dim:   #7a6e64;
+      --green:      #2e6b42;
+      --green-bg:   #e8f5ec;
+      --red:        #9b2c2c;
+      --red-bright: #c04040;
+      --red-bg:     #fdf0f0;
+      --blue:       #2a4e7a;
+      --blue-bg:    #eef4fb;
+      --radius:     8px;
+      --radius-lg:  12px;
+      --shadow:     0 2px 12px rgba(0,0,0,0.09);
+      --surface:    #ffffff;
+      --surface2:   #f5f2ee;
+      --border-s:   #d8d2c8;
+      --dim:        #7a6e64;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+      background: var(--bg2);
+      border-bottom: 2px solid var(--amber);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header-back {
+      color: var(--amber);
+      text-decoration: none;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+    }
+    .header h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      color: var(--text);
+      flex: 1;
+    }
+    .header h1 span { color: var(--amber); }
+    .header-sub {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+    }
+
+    /* ── Haupt-Container ─────────────────────────── */
+    .container {
+      margin: 12px;
+      background: var(--bg2);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    /* ── Tabs ───────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 10px 12px 0;
+      background: var(--bg-tools);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      border-radius: 6px 6px 0 0;
+      color: var(--text-dim);
+      padding: 8px 14px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.4); }
+    .tab-btn.active {
+      background: var(--bg2);
+      color: var(--text);
+      font-weight: 700;
+      border-bottom: 2px solid var(--amber);
+    }
+    .tab-content { display: none; padding: 20px; }
+    .tab-content.active { display: block; }
+
+    /* ── Formulare ──────────────────────────────── */
+    .section-title {
+      font-family: 'Fraunces', serif;
+      font-size: 16px;
+      color: var(--amber);
+      margin-bottom: 14px;
+    }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: flex-end;
+      margin-bottom: 14px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 120px;
+    }
+    .form-group label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+    }
+    select, input[type="text"], input[type="date"] {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: var(--radius);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      width: 100%;
+      -webkit-appearance: none;
+      transition: border-color 0.15s;
+    }
+    select:focus, input:focus { outline: none; border-color: var(--amber); }
+
+    .btn {
+      background: var(--amber);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: #cc8c12; }
+    .btn-secondary {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-secondary:hover { border-color: var(--amber); color: var(--amber); }
+    .btn-danger {
+      background: none;
+      border: 1px solid var(--red-bright);
+      color: var(--red-bright);
+    }
+    .btn-danger:hover { background: var(--red-bg); }
+
+    /* ── Karten ─────────────────────────────────── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 14px;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .card-header:hover { background: var(--bg); }
+    .card-header-info strong { font-size: 15px; }
+    .card-header-info .sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+    .card-body {
+      padding: 14px;
+      border-top: 1px solid var(--border);
+      display: none;
+      background: var(--bg);
+    }
+    .card-body.open { display: block; }
+    .card-fields { display: flex; flex-direction: column; gap: 12px; }
+
+    /* ── Attribute-Tags ─────────────────────────── */
+    .attr-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .attr-tag {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .attr-tag .prio {
+      font-size: 10px;
+      color: var(--amber);
+      font-weight: 700;
+    }
+    .attr-tag button {
+      background: none;
+      border: none;
+      color: var(--red-bright);
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0;
+    }
+    .azubi-badge {
+      background: var(--blue-bg);
+      color: var(--blue);
+      border: 1px solid #b8d0e8;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 11px;
+      margin-left: 6px;
+    }
+
+    /* ── Übersicht-Grid ─────────────────────────── */
+    .ue-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .ue-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .ue-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px 6px;
+    }
+    .ue-name { font-weight: 700; font-size: 15px; }
+    .ue-rolle {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .ue-rolle.stammkraft { background: var(--green-bg); color: var(--green); }
+    .ue-rolle.wolke { background: var(--blue-bg); color: var(--blue); }
+    .ue-attr-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 0 12px 8px;
+    }
+    .ue-attr {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .ue-attr-num {
+      font-size: 10px;
+      color: var(--amber);
+      font-weight: 700;
+    }
+    .ue-footer {
+      padding: 6px 12px 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      border-top: 1px solid var(--border);
+    }
+    .ue-tag {
+      font-size: 11px;
+      padding: 2px 7px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-dim);
+    }
+    .ue-tag.sperr { color: var(--red); border-color: #e8b0b0; background: var(--red-bg); }
+
+    /* ── Archiv ─────────────────────────────────── */
+    .archiv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .archiv-table th {
+      padding: 6px 8px;
+      text-align: center;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: var(--text-dim);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    .archiv-table td {
+      padding: 5px 6px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .archiv-table td:first-child { text-align: left; font-weight: 700; }
+    .archiv-cell-sa {
+      background: #fff3d0;
+      color: #8a6000;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-weight: 700;
+    }
+    .archiv-cell-tag { color: var(--text-dim); }
+    .archiv-cell-leer { color: #ccc; }
+    .archiv-kw-header.current { color: var(--amber); }
+
+    /* ── Daten-Tab ──────────────────────────────── */
+    .export-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .export-block h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .export-block p {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    /* ── Positionen-Karte ───────────────────────── */
+    .prio-badge {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .prio-1 { background: var(--red-bg); color: var(--red); }
+    .prio-2 { background: #fff8e8; color: #7a5200; }
+    .prio-3 { background: var(--blue-bg); color: var(--blue); }
+
+    /* ── Neue Position / Person Formular ────────── */
+    .add-form {
+      background: var(--bg);
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+    .add-form-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+<script src="../shell.js"></script>
+
+<!-- ── Container ──────────────────────────────────────── -->
+<div class="container">
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('personen',this)">Personen</button>
+    <button class="tab-btn" onclick="switchTab('positionen',this)">Positionen</button>
+    <button class="tab-btn" onclick="switchTab('fruehschicht',this)">Frühschicht</button>
+    <button class="tab-btn" onclick="switchTab('urlaub',this)">Urlaub</button>
+    <button class="tab-btn" onclick="switchTab('einstellungen',this)">Einstellungen</button>
+    <button class="tab-btn" onclick="switchTab('uebersicht',this)">Übersicht</button>
+    <button class="tab-btn" onclick="switchTab('archiv',this)">Archiv</button>
+    <button class="tab-btn" onclick="switchTab('daten',this)">Daten</button>
+  </div>
+
+  <!-- ── Tab: Personen ──────────────────────────────── -->
+  <div class="tab-content active" id="tab-personen">
+    <div class="section-title">Personen</div>
+
+    <!-- Neue Person -->
+    <div class="add-form">
+      <div class="add-form-title"><i class="ph ph-plus-circle"></i> Neue Person</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="neu-person-name" placeholder="z.B. Klaus">
+        </div>
+        <div class="form-group">
+          <label>Stammkraft von</label>
+          <select id="neu-person-stammkraft">
+            <option value="">— Wolke —</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Wunsch-Freier-Tag</label>
+          <select id="neu-person-wunsch">
+            <option value="">— kein Wunsch —</option>
+            <option value="montag">Montag</option>
+            <option value="dienstag">Dienstag</option>
+            <option value="mittwoch">Mittwoch</option>
+            <option value="donnerstag">Donnerstag</option>
+            <option value="freitag">Freitag</option>
+            <option value="samstag">Samstag</option>
+          </select>
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding-bottom:8px">
+            <input type="checkbox" id="neu-person-azubi"> Azubi
+          </label>
+        </div>
+      </div>
+      <button class="btn" onclick="addPerson()">
+        <i class="ph ph-plus"></i> Person hinzufügen
+      </button>
+    </div>
+
+    <div id="personenListe"></div>
+  </div>
+
+  <!-- ── Tab: Positionen ────────────────────────────── -->
+  <div class="tab-content" id="tab-positionen">
+    <div class="section-title">Positionen</div>
+
+    <!-- Neue Position -->
+    <div class="add-form">
+      <div class="add-form-title"><i class="ph ph-plus-circle"></i> Neue Position</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Bezeichnung</label>
+          <input type="text" id="neu-pos-label" placeholder="z.B. Ofen 2">
+        </div>
+        <div class="form-group">
+          <label>Attribut (Qualifikation)</label>
+          <input type="text" id="neu-pos-attribut" placeholder="z.B. ofen" style="text-transform:lowercase">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Priorität</label>
+          <select id="neu-pos-prio">
+            <option value="1">1 — Kritisch</option>
+            <option value="2" selected>2 — Mittel</option>
+            <option value="3">3 — Joker-OK</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Gesperrt am</label>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;padding:8px 0">
+            <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
+              <input type="checkbox" class="neu-pos-gesperrt" value="montag"> Mo
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
+              <input type="checkbox" class="neu-pos-gesperrt" value="dienstag"> Di
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
+              <input type="checkbox" class="neu-pos-gesperrt" value="mittwoch"> Mi
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
+              <input type="checkbox" class="neu-pos-gesperrt" value="donnerstag"> Do
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
+              <input type="checkbox" class="neu-pos-gesperrt" value="freitag"> Fr
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
+              <input type="checkbox" class="neu-pos-gesperrt" value="samstag"> Sa
+            </label>
+          </div>
+        </div>
+      </div>
+      <button class="btn" onclick="addPosition()">
+        <i class="ph ph-plus"></i> Position hinzufügen
+      </button>
+    </div>
+
+    <div id="positionenListe"></div>
+  </div>
+
+  <!-- ── Tab: Frühschicht ──────────────────────────────── -->
+  <div class="tab-content" id="tab-fruehschicht">
+    <div class="section-title">Frühschicht-Einsätze</div>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;line-height:1.5">
+      Wer in einem Frühschicht-Einsatz ist, wird an den konfigurierten Tagen aus der Nachtschicht herausgenommen
+      und erscheint im Plan in der Zeile "Frühschicht". Der Block läuft entweder
+      <strong>Mo/Di/Mi</strong> (Anfang) oder <strong>Do/Fr/Sa</strong> (Ende).
+    </p>
+
+    <div class="add-form">
+      <div class="add-form-title"><i class="ph ph-sun-horizon"></i> Neuer Einsatz</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Person</label>
+          <select id="fs-person"></select>
+        </div>
+        <div class="form-group">
+          <label>Tagesblock</label>
+          <select id="fs-block">
+            <option value="anfang">Mo / Di / Mi — Anfang</option>
+            <option value="ende">Do / Fr / Sa — Ende</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Von</label>
+          <input type="date" id="fs-von">
+        </div>
+        <div class="form-group">
+          <label>Bis</label>
+          <input type="date" id="fs-bis">
+        </div>
+      </div>
+      <button class="btn" onclick="addFruehschicht()">
+        <i class="ph ph-plus"></i> Einsatz hinzufügen
+      </button>
+    </div>
+
+    <div class="section-title" style="margin-top:4px">Eingetragene Einsätze</div>
+    <div id="fruehschichtListe"></div>
+
+    <div class="section-title" style="margin-top:20px">Dokumentation</div>
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px">Wer war wann in der Frühschicht — zur Streitvermeidung.</p>
+    <div id="fruehschichtDoku"></div>
+  </div>
+
+  <!-- ── Tab: Urlaub ───────────────────────────────────── -->
+  <div class="tab-content" id="tab-urlaub">
+    <div class="section-title">Urlaubsplanung</div>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;line-height:1.5">
+      Geplanter Urlaub wird mit der Config gespeichert — beim nächsten Deploy für alle sichtbar.
+      Für spontane Ausfälle (Krankheit) den <strong>Fehlzeiten-Tab</strong> im Planer nutzen.
+    </p>
+    <div id="urlaubListe"></div>
+  </div>
+
+  <!-- ── Tab: Einstellungen ─────────────────────────── -->
+  <div class="tab-content" id="tab-einstellungen">
+    <div class="section-title">Einstellungen</div>
+
+    <div class="export-block">
+      <h3>Joker</h3>
+      <p>Person die einspringt wenn kein qualifizierter Mitarbeiter verfügbar ist. Wird im Plan rot markiert.</p>
+      <div class="form-group" style="max-width:280px">
+        <label>Joker-Name</label>
+        <input type="text" id="jokerName" placeholder="z.B. Heinrich" oninput="saveJoker()">
+      </div>
+    </div>
+
+    <div class="export-block">
+      <h3>Azubi-Sperren</h3>
+      <p>Attribute (Positionstypen) die ein Azubi <strong>nicht</strong> besetzen darf. Standard: <code>versand</code>.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px" id="azubiSperrenListe"></div>
+      <div style="display:flex;gap:8px;max-width:320px">
+        <select id="azubiSperreNeu" style="flex:1">
+          <option value="">— Attribut wählen —</option>
+        </select>
+        <button class="btn btn-secondary" onclick="addAzubiSperre()">+</button>
+      </div>
+      <p style="font-size:12px;margin-top:8px;color:var(--text-dim)">
+        Azubis werden im Algorithmus immer als letzter Griff eingesetzt — unabhängig dieser Sperren.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Tab: Übersicht ─────────────────────────────── -->
+  <div class="tab-content" id="tab-uebersicht">
+    <div class="section-title">Übersicht — Stammbelegschaft</div>
+    <div id="uebersichtGrid"></div>
+  </div>
+
+  <!-- ── Tab: Archiv ────────────────────────────────── -->
+  <div class="tab-content" id="tab-archiv">
+    <div id="archivInhalt"></div>
+  </div>
+
+  <!-- ── Tab: Daten ─────────────────────────────────── -->
+  <div class="tab-content" id="tab-daten">
+    <div class="section-title">Datenverwaltung</div>
+
+    <div class="export-block">
+      <h3>Config exportieren</h3>
+      <p>Alle Positionen, Personen und Einstellungen als JSON-Datei sichern. Keine Wochendaten (freie Tage, Fehlzeiten).</p>
+      <button class="btn btn-secondary" onclick="exportConfig()">
+        <i class="ph ph-download-simple"></i> Config exportieren
+      </button>
+    </div>
+
+    <div class="export-block">
+      <h3>Config importieren</h3>
+      <p>JSON-Datei laden und aktuelle Config ersetzen. Achtung: überschreibt Positionen und Personen.</p>
+      <label class="btn btn-secondary" for="importInput" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+        <i class="ph ph-upload-simple"></i> Config importieren
+      </label>
+      <input type="file" id="importInput" accept=".json" onchange="importConfig(event)" style="display:none">
+    </div>
+
+    <div class="export-block">
+      <h3>Vollständiger Export</h3>
+      <p>Kompletten localStorage-Inhalt exportieren — inkl. aller Wochen, freier Tage und Fehlzeiten.</p>
+      <button class="btn btn-secondary" onclick="exportVollstaendig()">
+        <i class="ph ph-archive"></i> Vollexport
+      </button>
+    </div>
+
+    <div class="export-block" style="border-color:#e8b0b0;background:var(--red-bg)">
+      <h3 style="color:var(--red)">Daten zurücksetzen</h3>
+      <p>Alle gespeicherten Daten löschen und mit der Standard-Config neu starten.</p>
+      <button class="btn btn-danger" onclick="resetAlles()">
+        <i class="ph ph-trash"></i> Alles zurücksetzen
+      </button>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<input type="file" id="importFull" accept=".json" onchange="importVollstaendig(event)" style="display:none">
+
+<script src="../arbeitsplan/fluss_logik.js"></script>
+<script>
+// ── Migration: fluss_config_v1 → schichtplaner_v1 ───────
+(function() {
+  if (!localStorage.getItem('schichtplaner_v1') && localStorage.getItem('fluss_config_v1')) {
+    localStorage.setItem('schichtplaner_v1', localStorage.getItem('fluss_config_v1'));
+    localStorage.removeItem('fluss_config_v1');
+  }
+})();
+
+const STORAGE_KEY = 'schichtplaner_v1';
+const TAGE_NAMEN_LANG = ['sonntag','montag','dienstag','mittwoch','donnerstag','freitag','samstag'];
+const TAGE_NAMEN_KURZ = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+let config = null;
+
+// ── Config laden ────────────────────────────────────────
+async function loadConfig() {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    try { config = JSON.parse(stored); return; } catch(e) {}
+  }
+  try {
+    const res = await fetch('../schichtplaner_config.json', { cache: 'no-store' });
+    config = await res.json();
+  } catch(e) {
+    config = { positionen:[], personen:[], joker:'', fehlzeiten:[], freieTage:{} };
+  }
+  saveToStorage();
+}
+
+function saveToStorage() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+}
+
+// ── Tabs ────────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'personen') renderPersonenListe();
+  if (id === 'positionen') renderPositionenListe();
+  if (id === 'einstellungen') renderEinstellungen();
+  if (id === 'fruehschicht') renderFruehschichtTab();
+  if (id === 'urlaub') renderUrlaubTab();
+  if (id === 'uebersicht') renderUebersicht();
+  if (id === 'archiv') renderArchiv();
+}
+
+// ── Personen ─────────────────────────────────────────────
+function renderPersonenListe() {
+  // Stammkraft-Dropdown für neue Person aktualisieren
+  const sel = document.getElementById('neu-person-stammkraft');
+  sel.innerHTML = '<option value="">— Wolke —</option>' +
+    (config.positionen || []).map(p =>
+      `<option value="${p.id}">${p.label}</option>`
+    ).join('');
+
+  const liste = document.getElementById('personenListe');
+  const positionen = config.positionen || [];
+  liste.innerHTML = (config.personen || []).map((p, idx) => {
+    const stammkraftPos = positionen.find(pp => pp.id === p.stammkraft_von);
+    const azuBadge = p.azubi ? '<span class="azubi-badge">Azubi</span>' : '';
+    const prioAttr = (p.attribute || []).map((a,i) => `<span class="attr-tag"><span class="prio">${i+1}</span>${a}</span>`).join('');
+    return `<div class="card">
+      <div class="card-header" onclick="toggleCard('pc',${idx})">
+        <div class="card-header-info">
+          <strong>${p.name}</strong>${azuBadge}
+          <div class="sub">${stammkraftPos ? `Stammkraft: ${stammkraftPos.label}` : 'Wolke'} · ${(p.attribute||[]).join(', ') || 'keine Attribute'}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+          <button class="btn btn-danger" style="padding:5px 10px" onclick="event.stopPropagation();removePerson(${idx})">
+            <i class="ph ph-trash"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body" id="pc-${idx}">
+        <div class="card-fields">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" value="${p.name}" onchange="updatePerson(${idx},'name',this.value)">
+          </div>
+          <div class="form-group">
+            <label>Stammkraft von</label>
+            <select onchange="updatePerson(${idx},'stammkraft_von',this.value)">
+              <option value="">— Wolke —</option>
+              ${positionen.map(pp => `<option value="${pp.id}" ${p.stammkraft_von===pp.id?'selected':''}>${pp.label}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Wunsch-Freier-Tag</label>
+            <select onchange="updatePerson(${idx},'wunschFreierTag',this.value||null)">
+              <option value="">— kein Wunsch —</option>
+              ${['montag','dienstag','mittwoch','donnerstag','freitag','samstag'].map((t,ti) =>
+                `<option value="${t}" ${p.wunschFreierTag===t?'selected':''}>${['Mo','Di','Mi','Do','Fr','Sa'][ti]}</option>`
+              ).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Attribute (Qualifikationen, in Priorität)</label>
+            <div class="attr-tags" id="attrTags-${idx}">
+              ${(p.attribute||[]).map((a,ai) =>
+                `<div class="attr-tag"><span class="prio">${ai+1}</span>${a}<button onclick="removeAttr(${idx},${ai})">×</button></div>`
+              ).join('')}
+            </div>
+            <div style="display:flex;gap:6px;margin-top:6px">
+              <select id="newAttr-${idx}" style="flex:1">
+                <option value="">— Attribut hinzufügen —</option>
+                ${[...new Set((config.positionen||[]).map(pp=>pp.attribut))]
+                  .filter(a=>!(p.attribute||[]).includes(a))
+                  .map(a=>`<option value="${a}">${a}</option>`).join('')}
+                <option value="__custom__">Eigenes eingeben...</option>
+              </select>
+              <button class="btn btn-secondary" onclick="addAttr(${idx})">+</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Sperrtage</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;padding:6px 0">
+              ${TAGE_NAMEN_LANG.slice(1).map((t,ti) => `
+                <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
+                  <input type="checkbox" ${(p.gesperrt||[]).includes(t)?'checked':''}
+                    onchange="toggleSperrtag(${idx},'${t}',this.checked)">
+                  ${TAGE_NAMEN_KURZ[ti+1]}
+                </label>
+              `).join('')}
+            </div>
+          </div>
+          <div class="form-group">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
+              <input type="checkbox" ${p.azubi?'checked':''}
+                onchange="updatePerson(${idx},'azubi',this.checked)">
+              Azubi (wird zuletzt eingeplant, darf kein Versand)
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addPerson() {
+  const name = document.getElementById('neu-person-name').value.trim();
+  if (!name) { alert('Bitte Name eingeben.'); return; }
+  const id = name.toLowerCase().replace(/[^a-z0-9]/g,'_') + '_' + Date.now();
+  config.personen.push({
+    id, name,
+    stammkraft_von: document.getElementById('neu-person-stammkraft').value || null,
+    wunschFreierTag: document.getElementById('neu-person-wunsch').value || null,
+    attribute: [],
+    gesperrt: [],
+    azubi: document.getElementById('neu-person-azubi').checked
+  });
+  document.getElementById('neu-person-name').value = '';
+  document.getElementById('neu-person-azubi').checked = false;
+  saveToStorage();
+  renderPersonenListe();
+}
+
+function toggleCard(prefix, idx) {
+  document.getElementById(`${prefix}-${idx}`)?.classList.toggle('open');
+}
+
+function updatePerson(idx, field, value) {
+  config.personen[idx][field] = value === '' ? null : value;
+  saveToStorage();
+}
+
+function addAttr(idx) {
+  const sel = document.getElementById(`newAttr-${idx}`);
+  let val = sel.value;
+  if (val === '__custom__') {
+    val = prompt('Attribut eingeben (Kleinbuchstaben, keine Leerzeichen):');
+    if (!val) return;
+    val = val.trim().toLowerCase().replace(/\s+/g,'_');
+  }
+  if (!val) return;
+  if (!config.personen[idx].attribute) config.personen[idx].attribute = [];
+  if (!config.personen[idx].attribute.includes(val)) {
+    config.personen[idx].attribute.push(val);
+  }
+  saveToStorage();
+  renderPersonenListe();
+  document.getElementById(`pc-${idx}`)?.classList.add('open');
+}
+
+function removeAttr(pIdx, aIdx) {
+  config.personen[pIdx].attribute.splice(aIdx, 1);
+  saveToStorage();
+  renderPersonenListe();
+  document.getElementById(`pc-${pIdx}`)?.classList.add('open');
+}
+
+function toggleSperrtag(idx, tag, checked) {
+  if (!config.personen[idx].gesperrt) config.personen[idx].gesperrt = [];
+  if (checked) { if (!config.personen[idx].gesperrt.includes(tag)) config.personen[idx].gesperrt.push(tag); }
+  else { config.personen[idx].gesperrt = config.personen[idx].gesperrt.filter(t=>t!==tag); }
+  saveToStorage();
+}
+
+function removePerson(idx) {
+  if (!confirm(`${config.personen[idx].name} wirklich entfernen?`)) return;
+  config.personen.splice(idx, 1);
+  saveToStorage();
+  renderPersonenListe();
+}
+
+// ── Positionen ───────────────────────────────────────────
+function renderPositionenListe() {
+  const liste = document.getElementById('positionenListe');
+  const prioLabel = ['','Kritisch','Mittel','Joker-OK'];
+  liste.innerHTML = (config.positionen || []).map((pos, idx) => {
+    const gesperrtStr = (pos.gesperrtAm||[]).length > 0
+      ? (pos.gesperrtAm||[]).map(t=>t.substring(0,2).toUpperCase()).join(', ')
+      : 'immer aktiv';
+    return `<div class="card">
+      <div class="card-header" onclick="toggleCard('posc',${idx})">
+        <div class="card-header-info">
+          <div style="display:flex;align-items:center;gap:8px">
+            <strong>${pos.label}</strong>
+            <span class="prio-badge prio-${pos.prioritaet||2}">${prioLabel[pos.prioritaet||2]}</span>
+          </div>
+          <div class="sub">Attribut: <code>${pos.attribut}</code> · ${gesperrtStr}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+          <button class="btn btn-danger" style="padding:5px 10px" onclick="event.stopPropagation();removePosition(${idx})">
+            <i class="ph ph-trash"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body" id="posc-${idx}">
+        <div class="card-fields">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Bezeichnung</label>
+              <input type="text" value="${pos.label}" onchange="updatePosition(${idx},'label',this.value)">
+            </div>
+            <div class="form-group">
+              <label>Attribut</label>
+              <input type="text" value="${pos.attribut}" onchange="updatePosition(${idx},'attribut',this.value.toLowerCase())">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Priorität</label>
+            <select onchange="updatePosition(${idx},'prioritaet',parseInt(this.value))">
+              <option value="1" ${pos.prioritaet===1?'selected':''}>1 — Kritisch (muss besetzt sein)</option>
+              <option value="2" ${pos.prioritaet===2?'selected':''}>2 — Mittel</option>
+              <option value="3" ${pos.prioritaet===3?'selected':''}>3 — Joker-OK (kann notfalls entfallen)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Gesperrt am</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;padding:6px 0">
+              ${TAGE_NAMEN_LANG.slice(1).map((t,ti) => `
+                <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
+                  <input type="checkbox" ${(pos.gesperrtAm||[]).includes(t)?'checked':''}
+                    onchange="togglePosGesperrt(${idx},'${t}',this.checked)">
+                  ${TAGE_NAMEN_KURZ[ti+1]}
+                </label>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addPosition() {
+  const label = document.getElementById('neu-pos-label').value.trim();
+  const attribut = document.getElementById('neu-pos-attribut').value.trim().toLowerCase().replace(/\s+/g,'_');
+  if (!label || !attribut) { alert('Bitte Bezeichnung und Attribut eingeben.'); return; }
+  const prio = parseInt(document.getElementById('neu-pos-prio').value);
+  const gesperrtAm = [...document.querySelectorAll('.neu-pos-gesperrt:checked')].map(cb=>cb.value);
+  const id = attribut + '_' + Date.now();
+  config.positionen.push({ id, label, attribut, gesperrtAm, prioritaet: prio });
+  document.getElementById('neu-pos-label').value = '';
+  document.getElementById('neu-pos-attribut').value = '';
+  document.querySelectorAll('.neu-pos-gesperrt').forEach(cb => cb.checked = false);
+  saveToStorage();
+  renderPositionenListe();
+}
+
+function updatePosition(idx, field, value) {
+  config.positionen[idx][field] = value;
+  saveToStorage();
+}
+
+function togglePosGesperrt(idx, tag, checked) {
+  if (!config.positionen[idx].gesperrtAm) config.positionen[idx].gesperrtAm = [];
+  if (checked) { if (!config.positionen[idx].gesperrtAm.includes(tag)) config.positionen[idx].gesperrtAm.push(tag); }
+  else { config.positionen[idx].gesperrtAm = config.positionen[idx].gesperrtAm.filter(t=>t!==tag); }
+  saveToStorage();
+}
+
+function removePosition(idx) {
+  if (!confirm(`Position "${config.positionen[idx].label}" wirklich entfernen?`)) return;
+  config.positionen.splice(idx, 1);
+  saveToStorage();
+  renderPositionenListe();
+}
+
+// ── Frühschicht ──────────────────────────────────────────
+function renderFruehschichtTab() {
+  // Person-Dropdown befüllen
+  const sel = document.getElementById('fs-person');
+  if (sel) {
+    sel.innerHTML = '<option value="">— Person wählen —</option>' +
+      (config.personen || []).filter(p => !p.azubi)
+        .map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  }
+  renderFruehschichtListe();
+  renderFruehschichtDoku();
+}
+
+function renderFruehschichtListe() {
+  const liste = document.getElementById('fruehschichtListe');
+  if (!liste) return;
+  const einsaetze = config.fruehschichtEinsaetze || [];
+  if (einsaetze.length === 0) {
+    liste.innerHTML = '<p style="color:var(--text-dim);font-size:13px;padding:8px 0">Noch keine Einsätze eingetragen.</p>';
+    return;
+  }
+  const today = new Date().toISOString().split('T')[0];
+  liste.innerHTML = [...einsaetze]
+    .sort((a, b) => b.von.localeCompare(a.von))
+    .map((e, idx) => {
+      const person = (config.personen || []).find(p => p.id === e.personId);
+      const blockLabel = e.block === 'anfang' ? 'Mo/Di/Mi' : 'Do/Fr/Sa';
+      const aktiv = e.von <= today && e.bis >= today;
+      const zukunft = e.von > today;
+      const statusBadge = aktiv
+        ? `<span style="background:#e8f5ec;color:#2e6b42;border:1px solid #b0d8bc;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700">Aktiv</span>`
+        : zukunft
+        ? `<span style="background:#fff8e8;color:#7a5200;border:1px solid #e8d090;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700">Geplant</span>`
+        : `<span style="background:var(--bg);color:var(--text-dim);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:11px">Abgeschlossen</span>`;
+      return `<div class="card" style="margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;gap:10px">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+              <strong>${person?.name || e.personId}</strong>
+              ${statusBadge}
+            </div>
+            <div style="font-size:12px;color:var(--text-dim)">
+              🌅 ${blockLabel} · ${e.von} – ${e.bis}
+            </div>
+          </div>
+          <button class="btn btn-danger" style="padding:5px 10px;flex-shrink:0"
+            onclick="removeFruehschicht(${idx})">
+            <i class="ph ph-trash"></i>
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+function renderFruehschichtDoku() {
+  const doku = document.getElementById('fruehschichtDoku');
+  if (!doku) return;
+  const einsaetze = (config.fruehschichtEinsaetze || [])
+    .filter(e => e.bis < new Date().toISOString().split('T')[0] ||
+                 e.von <= new Date().toISOString().split('T')[0])
+    .sort((a, b) => a.von.localeCompare(b.von));
+
+  if (einsaetze.length === 0) {
+    doku.innerHTML = '<p style="color:var(--text-dim);font-size:13px">Noch keine abgeschlossenen Einsätze.</p>';
+    return;
+  }
+
+  // Tage pro Person zählen
+  const zaehler = {};
+  einsaetze.forEach(e => {
+    const p = (config.personen || []).find(p => p.id === e.personId);
+    const name = p?.name || e.personId;
+    if (!zaehler[name]) zaehler[name] = 0;
+    const von = new Date(e.von), bis = new Date(e.bis);
+    const tage = Math.round((bis - von) / 86400000) + 1;
+    zaehler[name] += tage;
+  });
+
+  const zeilen = einsaetze.map(e => {
+    const person = (config.personen || []).find(p => p.id === e.personId);
+    const blockLabel = e.block === 'anfang' ? 'Mo/Di/Mi' : 'Do/Fr/Sa';
+    const von = new Date(e.von), bis = new Date(e.bis);
+    const wochen = Math.ceil((Math.round((bis - von) / 86400000) + 1) / 3);
+    return `<tr>
+      <td style="padding:6px 8px;font-weight:700">${person?.name || e.personId}</td>
+      <td style="padding:6px 8px;font-size:12px">${e.von}</td>
+      <td style="padding:6px 8px;font-size:12px">${e.bis}</td>
+      <td style="padding:6px 8px;font-size:12px">${blockLabel}</td>
+      <td style="padding:6px 8px;font-size:12px;text-align:center">${wochen} Wo.</td>
+    </tr>`;
+  }).join('');
+
+  const stats = Object.entries(zaehler).map(([name, tage]) =>
+    `<span style="background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 10px;font-size:12px;margin-right:6px">
+      ${name}: <strong>${Math.ceil(tage/3)} Wochen</strong>
+    </span>`
+  ).join('');
+
+  doku.innerHTML = `
+    <div style="margin-bottom:10px">${stats}</div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="border-bottom:2px solid var(--border)">
+          <th style="padding:6px 8px;text-align:left;font-size:11px;text-transform:uppercase;color:var(--text-dim)">Person</th>
+          <th style="padding:6px 8px;text-align:left;font-size:11px;text-transform:uppercase;color:var(--text-dim)">Von</th>
+          <th style="padding:6px 8px;text-align:left;font-size:11px;text-transform:uppercase;color:var(--text-dim)">Bis</th>
+          <th style="padding:6px 8px;text-align:left;font-size:11px;text-transform:uppercase;color:var(--text-dim)">Block</th>
+          <th style="padding:6px 8px;text-align:center;font-size:11px;text-transform:uppercase;color:var(--text-dim)">Dauer</th>
+        </tr></thead>
+        <tbody>${zeilen}</tbody>
+      </table>
+    </div>`;
+}
+
+function addFruehschicht() {
+  const personId = document.getElementById('fs-person').value;
+  const block    = document.getElementById('fs-block').value;
+  const von      = document.getElementById('fs-von').value;
+  const bis      = document.getElementById('fs-bis').value;
+  if (!personId || !von || !bis) { alert('Bitte alle Felder ausfüllen.'); return; }
+  if (von > bis) { alert('"Von" muss vor "Bis" liegen.'); return; }
+  if (!config.fruehschichtEinsaetze) config.fruehschichtEinsaetze = [];
+  config.fruehschichtEinsaetze.push({ personId, block, von, bis });
+  saveToStorage();
+  document.getElementById('fs-person').value = '';
+  document.getElementById('fs-von').value = '';
+  document.getElementById('fs-bis').value = '';
+  renderFruehschichtListe();
+  renderFruehschichtDoku();
+}
+
+function removeFruehschicht(idx) {
+  const e = config.fruehschichtEinsaetze[idx];
+  const person = (config.personen || []).find(p => p.id === e.personId);
+  if (!confirm(`Einsatz von ${person?.name || e.personId} (${e.von} – ${e.bis}) löschen?`)) return;
+  config.fruehschichtEinsaetze.splice(idx, 1);
+  saveToStorage();
+  renderFruehschichtListe();
+  renderFruehschichtDoku();
+}
+
+// ── Urlaub ───────────────────────────────────────────────
+function renderUrlaubTab() {
+  const liste = document.getElementById('urlaubListe');
+  if (!liste) return;
+
+  const personen = (config.personen || []);
+  if (!config.urlaub) config.urlaub = {};
+
+  liste.innerHTML = personen.map((p, pIdx) => {
+    const eintraege = config.urlaub[p.id] || [];
+    const zeilenHtml = eintraege.map((e, eIdx) => `
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:12px;font-weight:700;color:var(--text-dim);min-width:18px">${eIdx+1}.</span>
+        <div style="display:flex;gap:6px;flex:1;flex-wrap:wrap">
+          <div class="form-group" style="min-width:110px;flex:1">
+            <label>Von</label>
+            <input type="date" value="${e.von||''}"
+              onchange="updateUrlaub('${p.id}',${eIdx},'von',this.value)">
+          </div>
+          <div class="form-group" style="min-width:110px;flex:1">
+            <label>Bis</label>
+            <input type="date" value="${e.bis||''}"
+              onchange="updateUrlaub('${p.id}',${eIdx},'bis',this.value)">
+          </div>
+          <div class="form-group" style="flex:2;min-width:140px">
+            <label>Notiz (optional)</label>
+            <input type="text" value="${e.notiz||''}" placeholder="z.B. Sommerurlaub"
+              onchange="updateUrlaub('${p.id}',${eIdx},'notiz',this.value)">
+          </div>
+        </div>
+        <button class="btn btn-danger" style="padding:6px 10px;flex-shrink:0"
+          onclick="removeUrlaub('${p.id}',${eIdx})">
+          <i class="ph ph-trash"></i>
+        </button>
+      </div>`).join('');
+
+    const azubiBadge = p.azubi
+      ? '<span class="azubi-badge">Azubi</span>' : '';
+
+    return `<div class="card" style="margin-bottom:10px">
+      <div class="card-header" onclick="toggleCard('url',${pIdx})">
+        <div class="card-header-info">
+          <strong>${p.name}</strong>${azubiBadge}
+          <div class="sub">${eintraege.length === 0
+            ? 'Kein Urlaub eingetragen'
+            : `${eintraege.length} Zeitraum${eintraege.length > 1 ? 'e' : ''}`}
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+        </div>
+      </div>
+      <div class="card-body" id="url-${pIdx}">
+        ${zeilenHtml || '<p style="color:var(--text-dim);font-size:13px;padding:8px 0">Noch kein Urlaub eingetragen.</p>'}
+        <button class="btn btn-secondary" style="margin-top:10px"
+          onclick="addUrlaub('${p.id}',${pIdx})">
+          <i class="ph ph-plus"></i> Zeitraum hinzufügen
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addUrlaub(personId, pIdx) {
+  if (!config.urlaub) config.urlaub = {};
+  if (!config.urlaub[personId]) config.urlaub[personId] = [];
+  config.urlaub[personId].push({ von: '', bis: '', notiz: '' });
+  saveToStorage();
+  renderUrlaubTab();
+  document.getElementById(`url-${pIdx}`)?.classList.add('open');
+}
+
+function updateUrlaub(personId, idx, field, value) {
+  if (!config.urlaub?.[personId]?.[idx]) return;
+  config.urlaub[personId][idx][field] = value;
+  saveToStorage();
+}
+
+function removeUrlaub(personId, idx) {
+  config.urlaub[personId].splice(idx, 1);
+  saveToStorage();
+  renderUrlaubTab();
+}
+
+// ── Einstellungen ────────────────────────────────────────
+function renderEinstellungen() {
+  document.getElementById('jokerName').value = config.joker || '';
+
+  // Azubi-Sperren
+  const sperren = config.azubiGesperrteAttribute || ['versand'];
+  const liste = document.getElementById('azubiSperrenListe');
+  if (liste) {
+    liste.innerHTML = sperren.map(a =>
+      `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--red-bg);border:1px solid #e8b0b0;border-radius:5px;padding:3px 10px;font-size:13px;color:var(--red)">
+        ${a}
+        <button onclick="removeAzubiSperre('${a}')" style="background:none;border:none;color:var(--red-bright);cursor:pointer;font-size:14px;line-height:1;padding:0">×</button>
+      </span>`
+    ).join('');
+  }
+
+  // Dropdown mit allen vorhandenen Attributen
+  const sel = document.getElementById('azubiSperreNeu');
+  if (sel) {
+    const alleAttr = [...new Set((config.positionen||[]).map(p=>p.attribut))];
+    sel.innerHTML = '<option value="">— Attribut wählen —</option>' +
+      alleAttr.filter(a => !sperren.includes(a))
+        .map(a => `<option value="${a}">${a}</option>`).join('');
+  }
+}
+
+function addAzubiSperre() {
+  const val = document.getElementById('azubiSperreNeu').value;
+  if (!val) return;
+  if (!config.azubiGesperrteAttribute) config.azubiGesperrteAttribute = ['versand'];
+  if (!config.azubiGesperrteAttribute.includes(val)) {
+    config.azubiGesperrteAttribute.push(val);
+  }
+  saveToStorage();
+  renderEinstellungen();
+}
+
+function removeAzubiSperre(attr) {
+  if (!config.azubiGesperrteAttribute) config.azubiGesperrteAttribute = ['versand'];
+  config.azubiGesperrteAttribute = config.azubiGesperrteAttribute.filter(a => a !== attr);
+  if (config.azubiGesperrteAttribute.length === 0) config.azubiGesperrteAttribute = [];
+  saveToStorage();
+  renderEinstellungen();
+}
+
+function saveJoker() {
+  config.joker = document.getElementById('jokerName').value;
+  saveToStorage();
+}
+
+// ── Übersicht ────────────────────────────────────────────
+function renderUebersicht() {
+  const positionen = config.positionen || [];
+  const grid = document.getElementById('uebersichtGrid');
+  const historie = FLUSS_LOGIK.getFreierTagHistorie(config, null);
+  const saZaehler = {};
+  (config.personen||[]).forEach(p => { saZaehler[p.id] = (historie[p.id]||{})['samstag'] || 0; });
+
+  grid.innerHTML = '<div class="ue-grid">' +
+    (config.personen||[]).map(p => {
+      const stammkraftPos = positionen.find(pp=>pp.id===p.stammkraft_von);
+      const rolle = stammkraftPos
+        ? `<span class="ue-rolle stammkraft">${stammkraftPos.label}</span>`
+        : `<span class="ue-rolle wolke">Wolke</span>`;
+      const azubiBadge = p.azubi ? '<span class="azubi-badge">Azubi</span>' : '';
+      const attrPills = (p.attribute||[]).map((a,i) =>
+        `<div class="ue-attr"><span class="ue-attr-num">${i+1}</span>${a}</div>`
+      ).join('');
+      const tags = [];
+      if ((p.gesperrt||[]).length > 0) {
+        tags.push(`<span class="ue-tag sperr">Gesperrt: ${p.gesperrt.map(t=>t.substring(0,2).toUpperCase()).join(', ')}</span>`);
+      }
+      if (p.wunschFreierTag) {
+        const idx = TAGE_NAMEN_LANG.indexOf(p.wunschFreierTag);
+        tags.push(`<span class="ue-tag">Wunsch: ${TAGE_NAMEN_KURZ[idx]||p.wunschFreierTag}</span>`);
+      }
+      if (!p.azubi) {
+        tags.push(`<span class="ue-tag" style="color:var(--amber);border-color:var(--amber)">Sa frei: ${saZaehler[p.id]||0}×</span>`);
+      }
+      return `<div class="ue-card">
+        <div class="ue-card-top"><div class="ue-name">${p.name}${azubiBadge}</div>${rolle}</div>
+        <div class="ue-attr-list">${attrPills||'<span style="color:var(--text-dim);font-size:12px">Keine Attribute</span>'}</div>
+        ${tags.length>0?`<div class="ue-footer">${tags.join('')}</div>`:''}
+      </div>`;
+    }).join('') +
+  '</div>';
+}
+
+// ── Archiv ───────────────────────────────────────────────
+function renderArchiv() {
+  const container = document.getElementById('archivInhalt');
+  const alleWochen = Object.keys(config.freieTage||{}).sort((a,b)=>b.localeCompare(a)).slice(0,12);
+  if (alleWochen.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-dim);padding:16px;font-size:14px">Noch keine Wochen gespeichert.</p>';
+    return;
+  }
+  const personen = (config.personen||[]).filter(p=>!p.azubi);
+  const saGesamt = {};
+  personen.forEach(p => {
+    saGesamt[p.id] = 0;
+    alleWochen.forEach(wk => { if (FLUSS_LOGIK.getFreierTag(p.id,wk,config.freieTage)==='samstag') saGesamt[p.id]++; });
+  });
+  const kwHeaders = alleWochen.map(wk => `<th class="archiv-kw-header">KW${wk.split('-W')[1]}</th>`).join('');
+  const rows = personen.map(p => {
+    const zellen = alleWochen.map(wk => {
+      const tag = FLUSS_LOGIK.getFreierTag(p.id,wk,config.freieTage);
+      if (!tag) return `<td><span class="archiv-cell-leer">—</span></td>`;
+      const idx = TAGE_NAMEN_LANG.indexOf(tag);
+      return `<td><span class="${tag==='samstag'?'archiv-cell-sa':'archiv-cell-tag'}">${TAGE_NAMEN_KURZ[idx]||tag}</span></td>`;
+    }).join('');
+    const saCount = saGesamt[p.id];
+    const saBar = saCount>0?`<span style="background:#fff3d0;color:#8a6000;border-radius:3px;padding:1px 5px;font-size:11px;margin-left:6px">${saCount}× Sa</span>`:'';
+    return `<tr><td>${p.name}${saBar}</td>${zellen}</tr>`;
+  }).join('');
+  container.innerHTML = `
+    <div class="section-title" style="padding:0 0 12px">Freie Tage — letzte ${alleWochen.length} Wochen</div>
+    <div style="overflow-x:auto">
+      <table class="archiv-table">
+        <thead><tr><th>Person</th>${kwHeaders}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── Daten ────────────────────────────────────────────────
+function exportConfig() {
+  const exp = {
+    positionen: config.positionen,
+    personen: config.personen,
+    joker: config.joker,
+    azubiGesperrteAttribute: config.azubiGesperrteAttribute,
+    urlaub: config.urlaub || {},
+    fruehschichtEinsaetze: config.fruehschichtEinsaetze || []
+  };
+  const blob = new Blob([JSON.stringify(exp, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'schichtplaner_config.json';
+  a.click();
+}
+
+function importConfig(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imp = JSON.parse(e.target.result);
+      if (imp.positionen) config.positionen = imp.positionen;
+      if (imp.personen) config.personen = imp.personen;
+      if (imp.joker !== undefined) config.joker = imp.joker;
+      if (imp.azubiGesperrteAttribute) config.azubiGesperrteAttribute = imp.azubiGesperrteAttribute;
+      if (imp.urlaub) config.urlaub = imp.urlaub;
+      if (imp.fruehschichtEinsaetze) config.fruehschichtEinsaetze = imp.fruehschichtEinsaetze;
+      saveToStorage();
+      renderPersonenListe();
+      renderPositionenListe();
+      alert('Config importiert.');
+    } catch(err) { alert('Ungültige JSON-Datei.'); }
+  };
+  reader.readAsText(file);
+}
+
+function exportVollstaendig() {
+  const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `schichtplaner_vollexport_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+}
+
+function resetAlles() {
+  if (!confirm('Wirklich alle Daten löschen? Das kann nicht rückgängig gemacht werden.')) return;
+  if (!confirm('Sicher? Alle Wochen, Fehlzeiten und Einstellungen werden gelöscht.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+// ── Init ─────────────────────────────────────────────────
+loadConfig().then(() => {
+  renderPersonenListe();
+  renderEinstellungen();
+});
+</script>
+</body>
+</html>

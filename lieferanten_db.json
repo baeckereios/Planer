@@ -1,0 +1,197 @@
+[
+  {
+    "datum": "2026-03-25",
+    "wochentag": "Dienstag",
+    "typ": "eingang",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 6 },
+      "schokocroissant_tk": { "menge": 3 }
+    }
+  },
+  {
+    "datum": "2026-03-25",
+    "wochentag": "Dienstag",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 2 },
+      "schokocroissant_tk": { "menge": 1 }
+    }
+  },
+  {
+    "datum": "2026-03-26",
+    "wochentag": "Mittwoch",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 1 },
+      "schokocroissant_tk": { "menge": 1 }
+    }
+  },
+  {
+    "datum": "2026-03-27",
+    "wochentag": "Donnerstag",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 2 },
+      "schokocroissant_tk": { "menge": 0 }
+    }
+  },
+  {
+    "datum": "2026-03-28",
+    "wochentag": "Freitag",
+    "typ": "eingang",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 5 },
+      "schokocroissant_tk": { "menge": 4 },
+      "vollei_kuehl":        { "menge": 3 },
+      "butter_kuehl":        { "menge": 2 }
+    }
+  },
+  {
+    "datum": "2026-03-28",
+    "wochentag": "Freitag",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 2 },
+      "schokocroissant_tk": { "menge": 1 }
+    }
+  },
+  {
+    "datum": "2026-03-29",
+    "wochentag": "Samstag",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 3 },
+      "schokocroissant_tk": { "menge": 2 }
+    }
+  },
+  {
+    "datum": "2026-03-30",
+    "wochentag": "Sonntag",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 2 },
+      "schokocroissant_tk": { "menge": 1 }
+    }
+  },
+  {
+    "datum": "2026-03-31",
+    "wochentag": "Montag",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 1 },
+      "schokocroissant_tk": { "menge": 1 }
+    }
+  },
+  {
+    "datum": "2026-04-01",
+    "wochentag": "Dienstag",
+    "typ": "eingang",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 7 },
+      "schokocroissant_tk": { "menge": 3 },
+      "weizenmehl_550":      { "menge": 4 }
+    }
+  },
+  {
+    "datum": "2026-04-01",
+    "wochentag": "Dienstag",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 2 },
+      "schokocroissant_tk": { "menge": 1 }
+    }
+  },
+  {
+    "datum": "2026-04-02",
+    "wochentag": "Mittwoch",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 2 },
+      "schokocroissant_tk": { "menge": 1 }
+    }
+  },
+  {
+    "datum": "2026-04-03",
+    "wochentag": "Donnerstag",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 1 },
+      "schokocroissant_tk": { "menge": 1 }
+    }
+  },
+  {
+    "datum": "2026-04-04",
+    "wochentag": "Freitag",
+    "typ": "eingang",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 5 },
+      "schokocroissant_tk": { "menge": 3 },
+      "butter_kuehl":        { "menge": 3 },
+      "vollei_kuehl":        { "menge": 2 }
+    }
+  },
+  {
+    "datum": "2026-04-04",
+    "wochentag": "Freitag",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 3 },
+      "schokocroissant_tk": { "menge": 1 }
+    }
+  },
+  {
+    "datum": "2026-04-05",
+    "wochentag": "Samstag",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 4 },
+      "schokocroissant_tk": { "menge": 2 }
+    }
+  },
+  {
+    "datum": "2026-04-06",
+    "wochentag": "Sonntag",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 2 },
+      "schokocroissant_tk": { "menge": 1 }
+    }
+  },
+  {
+    "datum": "2026-04-07",
+    "wochentag": "Montag",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 2 },
+      "schokocroissant_tk": { "menge": 1 }
+    }
+  },
+  {
+    "datum": "2026-04-08",
+    "wochentag": "Dienstag",
+    "typ": "eingang",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 6 },
+      "schokocroissant_tk": { "menge": 4 },
+      "weizenmehl_550":      { "menge": 3 }
+    }
+  },
+  {
+    "datum": "2026-04-08",
+    "wochentag": "Dienstag",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 2 },
+      "schokocroissant_tk": { "menge": 1 }
+    }
+  },
+  {
+    "datum": "2026-04-09",
+    "wochentag": "Mittwoch",
+    "typ": "ausgang_filialen",
+    "eintraege": {
+      "buttercroissant_tk": { "menge": 1 },
+      "schokocroissant_tk": { "menge": 1 }
+    }
+  }
+]

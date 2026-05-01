@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BäckereiOS — Frostverlauf</title>
+<link rel="stylesheet" href="systemdesign.css">
+<script src="inventurdaten.js"></script>
+<script src="produktions_gehirn.js"></script>
+<script src="shell.js" defer></script>
+
+<style>
+/* ── Screen ─────────────────────────────────────────── */
+body {
+  background: var(--background,#f8f6f2);
+  color: var(--text-primary,#1a1a1a);
+  padding-bottom: 100px;
+}
+.container { max-width: 960px; margin: 0 auto; padding: 14px 12px; }
+
+.card {
+  background: var(--card-bg,#fff);
+  border: 1px solid var(--border-color,#e5e0d8);
+  border-radius: 14px; padding: 14px; margin-bottom: 14px;
+}
+.card-titel {
+  font-size: 0.68rem; font-weight: 800; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--dim,#6b7280); margin-bottom: 10px;
+}
+.produkt-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.produkt-chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 20px; cursor: pointer;
+  border: 2px solid var(--border-color,#e5e0d8);
+  background: var(--card-bg,#fff);
+  font-size: 0.82rem; font-weight: 700; color: var(--dim,#6b7280);
+  user-select: none; transition: all 0.15s;
+}
+.produkt-chip.aktiv {
+  border-color: var(--amber,#d49a36);
+  background: #fffbf0; color: var(--text-primary,#1a1a1a);
+}
+.chip-dot { width:8px; height:8px; border-radius:50%; background:#d1d5db; transition:background 0.15s; }
+.produkt-chip.aktiv .chip-dot { background: var(--amber,#d49a36); }
+
+.druck-btn {
+  font-family: inherit; font-size: 0.85rem; font-weight: 800;
+  padding: 10px 20px; border-radius: 10px; border: none;
+  background: #1e293b; color: #fff; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+
+.akk-wrap { margin-bottom: 10px; }
+.akk-header {
+  background: var(--card-bg,#fff);
+  border: 1px solid var(--border-color,#e5e0d8);
+  border-radius: 12px; padding: 12px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer; user-select: none; font-size: 0.9rem; font-weight: 800;
+}
+.akk-header.open { border-radius: 12px 12px 0 0; border-bottom-color: transparent; }
+.akk-body {
+  display: none; background: var(--card-bg,#fff);
+  border: 1px solid var(--border-color,#e5e0d8);
+  border-top: none; border-radius: 0 0 12px 12px; overflow-x: auto;
+}
+.akk-body.open { display: block; }
+.akk-arrow { transition: transform 0.2s; font-size: 0.75rem; color: var(--dim,#6b7280); }
+.akk-header.open .akk-arrow { transform: rotate(180deg); }
+
+/* ── Frostverlauf Screen-Tabelle ────────────────────── */
+.fv-outer { padding: 10px 12px 14px; }
+
+.fv-table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+  font-size: 0.78rem;
+}
+
+.fv-table thead th {
+  padding: 5px 6px; font-size: 0.62rem; font-weight: 900;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--dim,#6b7280); border-bottom: 2px solid #1e293b;
+  background: var(--card-bg,#fff); text-align: center; white-space: nowrap;
+}
+.fv-table thead th.col-tag  { text-align: left; width: 72px; }
+.fv-table thead th.col-prod-name { font-size: 0.73rem; color: var(--text-primary,#1a1a1a); }
+.fv-table thead th.col-sep  { width: 5px; padding:0; background:#1e293b; }
+.fv-table thead th.col-wsep { width: 10px; padding:0; }
+.fv-table thead th.col-bst  { width: 52px; }
+.fv-table thead th.col-vbr  { width: 44px; }
+.fv-table thead th.col-avg  { width: 44px; }
+
+.fv-table tbody tr.z0 td { background: #f5f3ef; }
+.fv-table tbody tr.z1 td { background: #ffffff; }
+
+td.col-tag {
+  padding: 0 6px;
+  border: 1px solid #cbd5e1;
+  border-right: 1.5px solid #1e293b;
+  vertical-align: middle; white-space: nowrap; width: 72px;
+}
+.tag-inner {
+  display: flex; flex-direction: column; justify-content: center;
+  min-height: 50px; gap: 1px; padding: 4px 0;
+}
+.tag-wt  { font-weight: 900; font-size: 0.84rem; }
+.tag-dat { font-size: 0.67rem; color: var(--dim,#6b7280); font-weight: 600; }
+.tag-heute .tag-wt { color: var(--amber,#d49a36); }
+
+td.col-bst { text-align: center; border-right: 1px solid #e2e8f0; padding:0; width:52px; }
+td.col-vbr { text-align: center; border-right: 1px solid #e2e8f0; padding:0; width:44px; }
+td.col-avg { text-align: center; padding:0; width:44px; }
+td.col-sep { width:5px; padding:0; background:#1e293b !important; border:none; }
+td.col-wsep { width:10px; padding:0; background:var(--card-bg,#fff) !important; border:none; }
+td.col-empty { border-right: 1px solid #e2e8f0; opacity: 0.6; }
+
+.cell-top, .cell-bot {
+  height: 25px; display: flex; align-items: center;
+  justify-content: center; font-size: 0.78rem; font-weight: 700;
+}
+.cell-top { border-bottom: 1px dashed #e2e8f0; }
+
+.val-bst { color: var(--text-primary,#1a1a1a); font-weight: 900; }
+.val-vbr { color: #92400e; font-weight: 800; }
+.val-avg { color: #6b7280; font-size: 0.73rem; font-weight: 600; }
+.val-leer { color: #ddd; font-size: 0.7rem; }
+
+.fv-table tbody tr.row-b td { border-bottom: 1px solid #cbd5e1; }
+.fv-table tbody tr.row-b.last-row td { border-bottom: 2px solid #1e293b; }
+
+.fv-table tfoot td {
+  padding: 5px 6px; font-weight: 800; font-size: 0.73rem;
+  background: #f0ede8; border-top: 2px solid #1e293b; text-align: center;
+}
+.fv-table tfoot td.col-tag { text-align:left; font-size:0.63rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--dim,#6b7280); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="card-titel">Produkte auswählen</div>
+    <div class="produkt-chips" id="chip-container"></div>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap;">
+    <button class="druck-btn" onclick="drucken()">🖨 Drucken</button>
+    <span id="auswahl-info" style="font-size:0.75rem;color:var(--dim,#6b7280);font-weight:700;"></span>
+  </div>
+
+  <div id="akkordeon-container"></div>
+</div>
+
+<script>
+/* ── Konfiguration & Hilfsfunktionen ── */
+const PRODUKT_CONFIG = [
+  { id:'baguette',    label:'Baguette',      shortLabel:'Baguette',   legacyKey:'stangen_gesamt_stueck',      einheit:'Bl.', charge:6 },
+  { id:'bagteig',     label:'Bag.-Teig',     shortLabel:'Bag.Teig',   legacyKey:'baguettestange_teig_stueck', einheit:'Dl.', charge:3 },
+  { id:'zwiebel',     label:'Zwiebelstange', shortLabel:'Zwiebel',    legacyKey:'zwiebelstange_stueck',       einheit:'Bl.', charge:6 },
+  { id:'zwiebelteig', label:'Zwb.-Teig',     shortLabel:'Zwb.Teig',   legacyKey:'zwiebelstange_teig_stueck',  einheit:'Dl.', charge:3 },
+];
+
+const JS_ZU_BOS = [6,0,1,2,3,4,5];
+const WT_KURZ   = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+
+function getTage() {
+  const heute = new Date(); heute.setHours(0,0,0,0);
+  return Array.from({length:9}, (_,i) => {
+    const d = new Date(heute); d.setDate(heute.getDate()+i);
+    const bos = JS_ZU_BOS[d.getDay()];
+    return {
+      bos, wt: WT_KURZ[bos],
+      datum: String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.',
+      isoStr: d.toISOString().slice(0,10),
+      istHeute: i===0,
+    };
+  });
+}
+
+let stammdaten = null;
+
+function getNeeds(prod) {
+  if (!stammdaten || !prod) return [0,0,0,0,0,0,0];
+  const id = window.BOS_GEHIRN?.bosIdFuerKey(prod.legacyKey);
+  return (id && stammdaten[id]?.needs) || [0,0,0,0,0,0,0];
+}
+function getCharge(prod) {
+  if (!stammdaten || !prod) return prod?.charge || 1;
+  const id = window.BOS_GEHIRN?.bosIdFuerKey(prod.legacyKey);
+  return (id && stammdaten[id]?.charge) || prod.charge;
+}
+function getBestand(prod) {
+  if (!prod) return null;
+  const p = window.BOS_INVENTUR?.products?.[prod.legacyKey];
+  if (!p) return null;
+  const v = p.stock !== undefined ? p.stock : (p.locs||[]).reduce((a,b)=>a+b,0);
+  return v >= 0 ? v : null;
+}
+function getBestandFuerDatum(prod, isoStr) {
+  if (!prod || !window.BOS_INVENTUR) return null;
+  const p = window.BOS_INVENTUR.products?.[prod.legacyKey];
+  if (!p || !p.ts) return null;
+  const d = new Date(p.ts);
+  const invDatum = d.toISOString().slice(0,10);
+  return invDatum === isoStr ? (p.stock !== undefined ? p.stock : (p.locs||[]).reduce((a,b)=>a+b, 0)) : null;
+}
+function getRealVbr(prod, isoStr) {
+  if (!prod || !window.BOS_GEHIRN?._db) return null;
+  const entry = window.BOS_GEHIRN._db.find(e => e.datum === isoStr);
+  if (!entry) return null;
+  const id = window.BOS_GEHIRN?.bosIdFuerKey(prod.legacyKey);
+  return id ? (entry[id] ?? entry[prod.legacyKey]) : entry[prod.legacyKey];
+}
+
+/* ── UI Logic ── */
+const LS_KEY = 'BOS_FV_AUSWAHL';
+let auswahl = JSON.parse(localStorage.getItem(LS_KEY)||'["baguette"]');
+
+function toggleProdukt(id) {
+  auswahl = auswahl.includes(id) ? auswahl.filter(x=>x!==id) : [...auswahl,id];
+  localStorage.setItem(LS_KEY,JSON.stringify(auswahl));
+  renderChips(); renderAkkordeons(); aktualisiereInfo();
+}
+
+function renderChips() {
+  document.getElementById('chip-container').innerHTML = PRODUKT_CONFIG.map(p=>`
+    <div class="produkt-chip ${auswahl.includes(p.id)?'aktiv':''}" onclick="toggleProdukt('${p.id}')">
+      <div class="chip-dot"></div>${p.label}
+    </div>`).join('');
+}
+
+function aktualisiereInfo() {
+  const n = auswahl.length;
+  document.getElementById('auswahl-info').textContent = n===0 ? 'Kein Produkt ausgewählt' : n+' Produkt'+(n>1?'e':'')+' ausgewählt';
+}
+
+function buildScreenTabelle(prod) {
+  const tage = getTage(), needs = getNeeds(prod), charge = getCharge(prod);
+  let rollBst = getBestand(prod), tbody = '<tbody>';
+  
+  tage.forEach((t,ti) => {
+    const zebra = ti%2===0 ? 'z0' : 'z1', isLast = ti===tage.length-1;
+    const bst = rollBst, vbr = getRealVbr(prod, t.isoStr), avg = needs[t.bos] || 0;
+    
+    tbody += `
+      <tr class="row-a ${zebra}">
+        <td class="col-tag" rowspan="2"><div class="tag-inner ${t.istHeute?'tag-heute':''}">
+          <span class="tag-wt">${t.wt}${t.istHeute?' ●':''}</span><span class="tag-dat">${t.datum}</span>
+        </div></td>
+        <td class="col-bst"><div class="cell-top">${bst!==null?`<b>${bst}</b>`:'—'}</div><div class="cell-bot"></div></td>
+        <td class="col-vbr"><div class="cell-top"></div><div class="cell-bot"></div></td>
+        <td class="col-avg"><div class="cell-top"></div><div class="cell-bot"></div></td>
+      </tr>
+      <tr class="row-b ${zebra}${isLast?' last-row':''}">
+        <td class="col-bst"><div class="cell-top"></div><div class="cell-bot"></div></td>
+        <td class="col-vbr"><div class="cell-top"></div><div class="cell-bot">${vbr!==null?`<b>${vbr}</b>`:'—'}</div></td>
+        <td class="col-avg"><div class="cell-top"></div><div class="cell-bot">${avg>0?avg:'—'}</div></td>
+      </tr>`;
+    
+    const invH = getBestandFuerDatum(prod, t.isoStr);
+    if (invH !== null) rollBst = invH;
+    else if (rollBst !== null) rollBst = vbr !== null ? Math.max(0, Math.round((rollBst - vbr)*10)/10) : null;
+  });
+  
+  const sum = tage.reduce((s,t) => s+(needs[t.bos]||0), 0);
+  return `<table class="fv-table">
+    <thead><tr><th class="col-tag" rowspan="2">Tag</th><th colspan="3">${prod.label} (${charge} Stk/${prod.einheit})</th></tr>
+    <tr><th class="col-bst">Bst / Prod.</th><th class="col-vbr">Verbr.</th><th class="col-avg">Ø</th></tr></thead>
+    ${tbody}<tfoot><tr><td class="col-tag">Ø Summe</td><td></td><td></td><td><b>${sum} ${prod.einheit}</b></td></tr></tfoot></table>`;
+}
+
+function renderAkkordeons() {
+  const container = document.getElementById('akkordeon-container');
+  container.innerHTML = auswahl.map((id, gi) => {
+    const p = PRODUKT_CONFIG.find(x=>x.id===id);
+    return `<div class="akk-wrap"><div class="akk-header" id="akk-h-${gi}" onclick="toggleAkk(${gi})">
+      <span>${p.label}</span><span class="akk-arrow" id="akk-a-${gi}">&#9660;</span></div>
+      <div class="akk-body" id="akk-b-${gi}"><div class="fv-outer">${buildScreenTabelle(p)}</div></div></div>`;
+  }).join('');
+}
+
+function toggleAkk(gi) {
+  document.getElementById(`akk-b-${gi}`).classList.toggle('open');
+  document.getElementById(`akk-h-${gi}`).classList.toggle('open');
+}
+
+/* ── PRINT LOGIC (FIXED) ── */
+function drucken() {
+  if (!auswahl.length) { alert('Kein Produkt ausgewählt.'); return; }
+
+  var jetzt = new Date(), pad = n => String(n).padStart(2,'0');
+  var WT_LANG = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+  var datStr = WT_LANG[jetzt.getDay()]+', '+pad(jetzt.getDate())+'.'+pad(jetzt.getMonth()+1)+'.'+jetzt.getFullYear();
+  var zeitStr = pad(jetzt.getHours())+':'+pad(jetzt.getMinutes())+' Uhr';
+
+  var slots = Array.from({length:4}, (_,i) => auswahl[i] ? PRODUKT_CONFIG.find(p=>p.id===auswahl[i]) : null);
+  var tage = getTage(), needsArr = slots.map(p => getNeeds(p)), chargeArr = slots.map(p => getCharge(p));
+  var produktNamen = auswahl.map(id => PRODUKT_CONFIG.find(p=>p.id===id).label).join(' · ');
+
+  var F = '"Barlow Condensed",Arial Narrow,Arial,sans-serif', ROW_H = '11mm', HALF_H = '5.5mm';
+  var bdr = '0.4pt solid #bbb', bdrB = '1pt solid #000', bdrSep = '2.5pt solid #000', bdrTag = '2pt solid #000';
+
+  function zbg(ti) { return ti%2===0 ? '#efefef' : '#fff'; }
+
+  function tagTd(t, bg, bb) {
+    return `<td style="font-family:${F};padding:0 5pt;border-left:${bdrB};border-right:${bdrTag};${bb}background:${bg};vertical-align:middle;height:${ROW_H};">
+      <div style="display:flex;flex-direction:column;justify-content:center;gap:1pt;">
+      <span style="${t.istHeute?'font-weight:900;text-decoration:underline;':'font-weight:900;'}font-size:8pt;">${t.wt}${t.istHeute?' ●':''}</span>
+      <span style="font-weight:400;font-size:5.5pt;color:#555;">${t.datum}</span></div></td>`;
+  }
+
+  function dataTd(top, bot, bg, bb) {
+    return `<td style="padding:0;border:${bdr};border-left:none;background:${bg};${bb}">
+      <div style="height:${HALF_H};display:flex;align-items:center;justify-content:center;border-bottom:0.4pt dashed #ccc;font-size:8pt;font-weight:800;">${top||''}</div>
+      <div style="height:${HALF_H};display:flex;align-items:center;justify-content:center;font-size:7pt;">${bot||''}</div></td>`;
+  }
+
+  var h0 = '<tr><th style="font-family:'+F+';font-size:6pt;font-weight:900;padding:2pt 4pt;border:'+bdrB+';border-right:'+bdrTag+';text-align:left;">Tag</th>';
+  slots.forEach((p,i) => {
+    if(i===1 || i===3) h0 += `<th style="border-left:${bdrSep};border-top:${bdrB};border-bottom:0.5pt solid #aaa;"></th>`;
+    if(i===2) h0 += `<th style="border:none;border-top:${bdrB};border-bottom:0.5pt solid #aaa;background:#fff;width:6mm;"></th><th style="font-family:${F};font-size:6pt;font-weight:900;padding:2pt 4pt;border:${bdrB};border-right:${bdrTag};text-align:left;">Tag</th>`;
+    h0 += `<th colspan="3" style="font-family:${F};font-size:8pt;font-weight:900;padding:2pt 5pt;border-top:${bdrB};border-bottom:0.5pt solid #aaa;border-right:${bdr};text-align:left;">${p?`<b>${p.shortLabel}</b> <span style="font-size:6pt;">(${chargeArr[i]} Stk/${p.einheit})</span>`:'—'}</th>`;
+  });
+  h0 += '</tr>';
+
+  var rollBst = slots.map(p => getBestand(p)), bodyRows = '';
+  tage.forEach((t,ti) => {
+    var bg = zbg(ti), bb = ti===tage.length-1 ? 'border-bottom:'+bdrB+';' : 'border-bottom:0.5pt solid #bbb;';
+    var row = `<tr style="-webkit-print-color-adjust:exact;print-color-adjust:exact;">${tagTd(t,bg,bb)}`;
+    slots.forEach((p,si) => {
+      if(si===1 || si===3) row += `<td style="border-left:${bdrSep};background:${bg};${bb}"></td>`;
+      if(si===2) row += `<td style="background:#fff;${bb}"></td>${tagTd(t,bg,bb)}`;
+      if(!p) row += dataTd('','',bg,bb) + dataTd('','',bg,bb) + dataTd('','',bg,bb);
+      else {
+        var vbr = getRealVbr(p, t.isoStr), avg = needsArr[si][t.bos] || 0;
+        row += dataTd(rollBst[si]!==null?`<b>${rollBst[si]}</b>`:'', '', bg, bb);
+        row += dataTd('', vbr!==null?`<b>${vbr}</b>`:'', bg, bb);
+        row += dataTd('', avg>0?`<span style="color:#888;">${avg}</span>`:'', bg, bb);
+        var invH = getBestandFuerDatum(p, t.isoStr);
+        if(invH!==null) rollBst[si]=invH;
+        else if(rollBst[si]!==null) rollBst[si] = vbr!==null ? Math.max(0,Math.round((rollBst[si]-vbr)*10)/10) : null;
+      }
+    });
+    bodyRows += row + '</tr>';
+  });
+
+  var html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@900&family=Barlow+Condensed:wght@600;900&display=swap" rel="stylesheet">
+    <style>*{box-sizing:border-box;margin:0;padding:0;}body{padding:9mm 10mm;font-family:${F};}.hdr{display:flex;justify-content:space-between;border-bottom:2pt solid #000;padding-bottom:3mm;margin-bottom:3mm;}.logo{font-family:Fraunces,serif;font-size:20pt;font-weight:900;}table{width:100%;border-collapse:collapse;table-layout:fixed;}@media print{@page{size:A4 landscape;margin:8mm 9mm;}}</style></head><body>
+    <div class="hdr"><div class="logo">Bäckerei<em>OS</em></div><div class="meta"><span style="font-size:5pt;">DRUCKDATUM</span><br><b>${datStr}</b></div></div>
+    <div style="font-size:6.5pt;font-weight:900;text-transform:uppercase;margin-bottom:2mm;">Frostverlauf &mdash; ${produktNamen}</div>
+    <table><thead>${h0}</thead><tbody>${bodyRows}</tbody></table></body></html>`;
+
+  var w = window.open('','_blank'); w.document.write(html); w.document.close();
+  setTimeout(() => w.print(), 600);
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+  renderChips(); aktualisiereInfo();
+  if (await window.BOS_GEHIRN.init()) { stammdaten = window.BOS_STAMMDATEN; renderAkkordeons(); }
+});
+</script>
+</body>
+</html>

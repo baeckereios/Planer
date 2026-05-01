@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BäckereiOS – Mega-Erfassung</title>
+    <link rel="stylesheet" href="admin_design.css">
+    <style>
+        /* ── Bridge: eigene Vars → admin_design.css ── */
+        :root {
+          --text-main:     #1c1a17;
+          --text-muted:    #888077;
+          --border-color:  #d8d3ca;
+          --alert-color:   #c0392b;
+          --success-color: #2d7a4f;
+        }
+        .progress-bar { display:flex; gap:6px; margin:10px 0 4px 0; }
+        .progress-step { flex:1; height:6px; border-radius:3px; background:#e2e8f0; transition:background 0.3s; }
+        .progress-step.done { background:var(--success-color,#22c55e); }
+
+        .zb { margin-bottom:10px; border:1px solid var(--border-color,#e2e8f0); border-radius:10px; overflow:hidden; }
+        .zh { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; cursor:pointer; background:var(--bg-color,#f8fafc); font-weight:700; font-size:0.92rem; user-select:none; }
+        .zh:hover { background:var(--surface2,#f1f5f9); }
+        .zb-body { padding:14px; display:none; }
+        .zb-body.open { display:block; }
+
+        .btn-cp { background:var(--btn-primary,#c07a10); color:white; border:none; border-radius:6px; padding:8px 14px; font-weight:700; font-size:0.85rem; cursor:pointer; margin-bottom:10px; width:100%; }
+        .btn-cp.copied { background:var(--success-color,#22c55e); }
+        .btn-cp.green { background:#059669; }
+
+        .pa { width:100%; min-height:88px; font-family:monospace; font-size:0.78rem; padding:10px; border-radius:6px; border:1px dashed var(--border-color,#cbd5e1); background:var(--bg-color,#fafafa); resize:vertical; box-sizing:border-box; color:var(--text-main); }
+        .pa.valid   { border-color:var(--success-color,#22c55e); background:#f0fdf4; }
+        .pa.invalid { border-color:var(--alert-color,#ef4444); background:#fef2f2; }
+
+        .hint { font-size:0.78rem; margin-top:4px; font-weight:600; min-height:16px; }
+        .hint.ok   { color:var(--success-color,#22c55e); }
+        .hint.err  { color:var(--alert-color,#ef4444); }
+        .hint.warn { color:#d97706; }
+
+        .extra-inp { width:100%; padding:8px 10px; border-radius:6px; border:1px solid var(--border-color,#e2e8f0); font-size:0.9rem; margin-bottom:10px; box-sizing:border-box; background:var(--bg-color,#fff); color:var(--text-main); }
+
+        .btn-merge { width:100%; padding:16px; font-size:1.05rem; font-weight:800; background:var(--success-color,#22c55e); color:white; border:none; border-radius:10px; cursor:pointer; margin-top:8px; }
+        .btn-merge:disabled { background:#cbd5e1; cursor:not-allowed; }
+
+        /* Ausreißer */
+        .outlier-panel { display:none; background:#fffbeb; border:2px solid #f59e0b; border-radius:10px; padding:14px; margin:10px 0; }
+        .outlier-panel.show { display:block; }
+        .outlier-title { font-weight:800; font-size:0.9rem; color:#92400e; margin-bottom:10px; }
+        .outlier-item { background:white; border:1px solid #fcd34d; border-radius:8px; padding:11px 13px; margin-bottom:8px; }
+        .outlier-item.resolved-corrected { border-color:var(--success-color,#22c55e); background:#f0fdf4; opacity:0.7; }
+        .outlier-item.resolved-excluded  { border-color:#94a3b8; background:#f8fafc; opacity:0.7; }
+        .outlier-item.resolved-accepted  { border-color:#a3e635; background:#f7fee7; opacity:0.7; }
+        .oi-name  { font-weight:800; font-size:0.85rem; color:var(--text-main); }
+        .oi-vals  { font-size:0.8rem; color:#92400e; margin:3px 0 8px 0; }
+        .oi-btns  { display:flex; gap:6px; flex-wrap:wrap; }
+        .oi-btn   { padding:6px 11px; border-radius:6px; border:none; font-size:0.78rem; font-weight:700; cursor:pointer; }
+        .oi-btn-fix  { background:#dbeafe; color:#1d4ed8; }
+        .oi-btn-excl { background:#fee2e2; color:#991b1b; }
+        .oi-btn-ok   { background:#dcfce7; color:#166534; }
+        .oi-fix-row  { display:none; margin-top:10px; flex-direction:column; gap:6px; background:#fff8e1; border:1px solid #f59e0b; border-radius:8px; padding:10px 12px; }
+        .oi-fix-row.show { display:flex; }
+        .oi-fix-label { font-size:0.78rem; font-weight:700; color:#92400e; }
+        .oi-fix-inp  { width:100%; padding:9px 10px; border-radius:6px; border:1px solid #f59e0b; font-size:1rem; font-weight:700; box-sizing:border-box;}
+        .oi-fix-save { padding:9px 14px; border-radius:6px; background:#f59e0b; color:white; border:none; font-weight:800; font-size:0.9rem; cursor:pointer; width:100%; }
+        .oi-resolved-label { font-size:0.75rem; font-weight:700; margin-top:6px; }
+
+        /* Unbekannte */
+        .outlier-panel.blue { background:#eff6ff; border-color:#3b82f6; }
+        .outlier-panel.blue .outlier-title { color:#1e40af; }
+        .outlier-item.blue { background:#eff6ff; border-color:#93c5fd; }
+        .outlier-item.orange { background:#fff7ed; border-color:#fb923c; }
+
+        .summary { display:none; background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:12px 15px; margin-top:10px; font-size:0.85rem; line-height:1.6; }
+        .summary.show { display:block; }
+
+        small { color:var(--text-muted,#64748b); font-size:0.8rem; display:block; margin-bottom:6px; }
+        textarea[readonly] { cursor:default; font-size:0.73rem; line-height:1.5; font-family:monospace; width:100%; box-sizing:border-box; }
+        h2 { font-size:1rem; font-weight:800; margin-bottom:5px; }
+
+        .zettel-info { background:#f8fafc; border-left:3px solid #cbd5e1; border-radius:0 6px 6px 0; padding:8px 12px; margin-bottom:12px; font-size:0.8rem; color:var(--text-muted,#64748b); line-height:1.5; }
+        .zettel-info strong { color:var(--text-main); }
+
+        /* Ergebnis-Chips */
+        .result-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+        .chip { font-size:0.78rem; font-weight:700; padding:4px 10px; border-radius:20px; background:#f0fdf4; border:1px solid #86efac; color:#166534; }
+        .chip.warn { background:#fffbeb; border-color:#fcd34d; color:#92400e; }
+        .chip.miss { background:#f8fafc; border-color:#e2e8f0; color:#94a3b8; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <h1 style="margin:0;font-size:1.5rem;font-weight:800;">⚡ Mega-Erfassung</h1>
+        <a href="datenbank_manager.html" style="text-decoration:none;color:var(--text-muted);font-size:0.8rem;font-weight:bold;padding:5px 10px;border-radius:6px;background:#fff;border:1px solid var(--border-color);">Klassisch →</a>
+    </div>
+    <p style="color:var(--text-muted);font-size:0.82rem;margin:0 0 12px 0;">① DB laden → ② Mega-Prompt kopieren → alle Fotos gleichzeitig → ③ Antwort einfügen → Ausreißer → ④ Speichern</p>
+
+    <div class="progress-bar">
+        <div class="progress-step" id="prog-db"></div>
+        <div class="progress-step" id="prog-mega"></div>
+        <div class="progress-step" id="prog-save"></div>
+    </div>
+    <small style="text-align:center;display:block;margin-bottom:15px;">DB laden · Prompt + Antwort · Speichern</small>
+
+    <!-- ① DB & CONFIG LADEN -->
+    <div class="card">
+        <h2>① Datenbank laden <span style="font-size:0.75rem;font-weight:600;color:var(--alert-color);">— zuerst!</span></h2>
+        <small>Wird für Ausreißer-Kontrolle und Prompt-Aufbau benötigt.</small>
+
+        <!-- backmengen_db.json -->
+        <div style="margin-top:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;">
+            <div style="font-size:0.78rem;font-weight:700;color:#374151;margin-bottom:6px;">📊 backmengen_db.json</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <label style="flex:1;min-width:130px;background:var(--btn-primary,#c07a10);color:white;border-radius:6px;padding:8px 10px;font-size:0.8rem;font-weight:700;cursor:pointer;text-align:center;">
+                    📂 Datei wählen<input type="file" id="fileInput" accept=".json" style="display:none;">
+                </label>
+                <button onclick="loadLS()" style="flex:1;min-width:130px;background:#64748b;color:white;border:none;border-radius:6px;padding:8px 10px;font-weight:700;cursor:pointer;font-size:0.8rem;">💾 Zwischenspeicher</button>
+            </div>
+            <div class="hint" id="hint-db" style="margin-top:6px;min-height:0;"></div>
+        </div>
+
+        <!-- produkt_config.json -->
+        <div style="margin-top:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;">
+            <div id="cfg-status" style="font-size:0.78rem;font-weight:700;margin-bottom:6px;color:#6b7280;">⏳ produkt_config.json wird geladen…</div>
+            <label style="display:flex;align-items:center;justify-content:center;gap:6px;background:#f1f5f9;color:#64748b;border:1px dashed #cbd5e1;border-radius:6px;padding:8px 10px;font-size:0.8rem;font-weight:700;cursor:pointer;text-align:center;">
+                📂 Manuell hochladen<input type="file" id="cfgFileInput" accept=".json" onchange="ladeProduktConfigManuell(this)" style="display:none;">
+            </label>
+        </div>
+
+        <!-- lieferanten_db.json -->
+        <div style="margin-top:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;">
+            <div id="ldb-status" style="font-size:0.78rem;font-weight:700;margin-bottom:6px;color:#6b7280;">⏳ lieferanten_db.json wird geladen…</div>
+            <label style="display:flex;align-items:center;justify-content:center;gap:6px;background:#f1f5f9;color:#64748b;border:1px dashed #cbd5e1;border-radius:6px;padding:8px 10px;font-size:0.8rem;font-weight:700;cursor:pointer;text-align:center;">
+                📂 Manuell hochladen<input type="file" id="ldbFileInput" accept=".json" onchange="ladeLieferantenDbManuell(this)" style="display:none;">
+            </label>
+        </div>
+    </div>
+
+    <!-- ② MEGA-PROMPT -->
+    <div class="zb">
+        <div class="zh" onclick="tog('mega')">
+            <span>⚡ ② Mega-Prompt — alle Zettel auf einmal</span>
+            <span id="ar-mega">▲</span>
+        </div>
+        <div class="zb-body open" id="bd-mega">
+
+            <div class="zettel-info">
+                <strong>Alle Fotos gleichzeitig hochladen.</strong><br>
+                Reihenfolge egal — die KI erkennt selbst welches Foto welchem Bereich gehört.<br>
+                Kontext-Prompt extra schicken (Wetter recherchieren) <em>oder</em> unten manuell ausfüllen.
+            </div>
+
+            <button class="btn-cp" id="cp-mega" onclick="copyMega()">📋 Mega-Prompt kopieren</button>
+            <button class="btn-cp green" onclick="copyKontext()">🌤 Nur Kontext-Prompt kopieren</button>
+            <textarea id="pr-mega" readonly style="height:200px;">Prompt wird aus Config aufgebaut…</textarea>
+
+            <!-- Kontext manuell (falls kein separater Kontext-Prompt) -->
+            <div style="margin:12px 0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;">
+                <div style="font-size:0.8rem;font-weight:700;margin-bottom:8px;">📅 Kontext manuell ausfüllen <span style="font-weight:400;color:var(--text-muted);">(wenn kein Kontext-Foto)</span></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                    <div>
+                        <div style="font-size:0.75rem;font-weight:700;margin-bottom:3px;">Datum (JJJJ-MM-TT)</div>
+                        <input type="date" id="man-datum" class="extra-inp" style="margin:0;">
+                    </div>
+                    <div>
+                        <div style="font-size:0.75rem;font-weight:700;margin-bottom:3px;">Wochentag</div>
+                        <select id="man-wtag" class="extra-inp" style="margin:0;">
+                            <option>Montag</option><option>Dienstag</option><option>Mittwoch</option>
+                            <option>Donnerstag</option><option>Freitag</option><option>Samstag</option><option>Sonntag</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                    <div>
+                        <div style="font-size:0.75rem;font-weight:700;margin-bottom:3px;">Wetter</div>
+                        <select id="man-wetter" class="extra-inp" style="margin:0;">
+                            <option>sonnig</option><option>bewölkt</option><option selected>wechselhaft</option>
+                            <option>regnerisch</option><option>kalt</option><option>warm</option><option>Schnee</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div style="font-size:0.75rem;font-weight:700;margin-bottom:3px;">Temperatur (°C)</div>
+                        <input type="number" id="man-temp" class="extra-inp" style="margin:0;" value="12" min="-15" max="42">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.83rem;font-weight:700;cursor:pointer;">
+                        <input type="checkbox" id="man-ferien" style="width:16px;height:16px;accent-color:var(--btn-primary,#c07a10);">🏖 Schulferien
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.83rem;font-weight:700;cursor:pointer;">
+                        <input type="checkbox" id="man-feiertag" style="width:16px;height:16px;accent-color:var(--btn-primary,#c07a10);">🎉 Feiertag
+                    </label>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.83rem;font-weight:700;cursor:pointer;padding:7px;background:#fff8f0;border-radius:6px;border:1px solid #fed7aa;">
+                        <input type="checkbox" id="flag_sondertag" style="width:16px;height:16px;accent-color:#e67e22;">🎉 Ausschluss Sondertag
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.83rem;font-weight:700;cursor:pointer;padding:7px;background:#fff8f0;border-radius:6px;border:1px solid #fed7aa;">
+                        <input type="checkbox" id="flag_einschraenkung" style="width:16px;height:16px;accent-color:#c0392b;">🔧 Ausschluss Anlagenausfall
+                    </label>
+                </div>
+                <div style="font-size:0.75rem;font-weight:700;margin-bottom:3px;">Besonderheit (optional)</div>
+                <input type="text" id="besonderheit" class="extra-inp" style="margin:0;" placeholder="z.B. Stadtfest, neue Filiale, Hamsterkäufe…">
+            </div>
+
+            <!-- Antwort einfügen -->
+            <small>KI-Antwort einfügen (komplettes JSON):</small>
+            <textarea class="pa" id="pa-mega" placeholder='{"datum":"2026-04-20","wochentag":"Montag","broetchen":{"produkte":{...}},"brot":{"produkte":{...}},"konditorei":{"produkte":{...}},"schlawiner":{"produkte":{...}},"tk":{"eintraege":{...}}}' oninput="valMega()" style="min-height:120px;"></textarea>
+            <div class="hint" id="hi-mega"></div>
+
+            <!-- Ergebnis-Chips -->
+            <div class="result-chips" id="result-chips" style="margin-top:8px;"></div>
+
+            <!-- Schlawiner-DB -->
+            <button class="btn-cp green" onclick="exportSchlawinnerDB()" id="btn-schlawiner-db" style="margin-top:10px;display:none;">💾 Schlawiner-DB speichern</button>
+        </div>
+    </div>
+
+    <!-- Ausreißer -->
+    <div class="outlier-panel" id="outlier-panel">
+        <div class="outlier-title">⚠️ Ausreißer erkannt — bitte prüfen bevor gespeichert wird</div>
+        <small style="color:#92400e;margin-bottom:10px;">Werte weichen stark vom historischen Wochentags-Durchschnitt ab. Für jeden Eintrag eine Entscheidung treffen.</small>
+        <div id="outlier-list"></div>
+        <div id="outlier-ok-hint" class="hint ok" style="margin-top:6px;"></div>
+    </div>
+
+    <!-- Unbekannte Produkte -->
+    <div class="outlier-panel blue" id="unknown-panel">
+        <div class="outlier-title">🔍 Unbekannte Produkte erkannt</div>
+        <small style="color:#1e40af;margin-bottom:10px;">Diese Keys sind nicht in der produkt_config.json — ignorieren oder im Datenbank-Manager anlegen.</small>
+        <div id="unknown-list"></div>
+    </div>
+
+    <!-- ④ SPEICHERN -->
+    <div class="card">
+        <h2>③ Zusammenführen &amp; Speichern</h2>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.88rem;font-weight:700;padding:10px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:10px;">
+            <input type="checkbox" id="chk-erfassung" style="width:18px;height:18px;cursor:pointer;accent-color:#c07a10;">
+            <span>📋 <strong>Erfassungskontrolle</strong>
+                <span style="display:block;font-size:0.75rem;font-weight:600;color:var(--text-muted,#64748b);">Zusätzlich eine HTML-Übersicht aller erfassten Produkte herunterladen</span>
+            </span>
+        </label>
+        <button class="btn-merge" id="btnMerge" onclick="merge()" disabled>⬇️ Zusammenführen &amp; Herunterladen</button>
+        <div class="summary" id="summary"></div>
+    </div>
+
+</div>
+
+<script>
+// ── KONSTANTEN ────────────────────────────────────────────
+const OUTLIER_BLECHE_DELTA = 5;
+const OUTLIER_PCT_DELTA    = 0.30;
+const STUECK_PRO_BLECH = {
+    croissant_stueck:24,buttercroissant_stueck:24,laugencroissant_stueck:24,
+    nusscroissant_stueck:24,schokocroissant_stueck:24,
+    brezel_stueck:16,salzbrezel_stueck:16,butterbrezel_stueck:16,laugenbrezel_stueck:16,
+    weizenbroetchen_stueck:20,roggenbroetchen_stueck:20,
+    schlawiner_gesamt_stueck:48,schlawiner_klassisch_stueck:48,schlawiner_kuerbis_stueck:48,
+    schlawiner_sonnen_stueck:48,schlawiner_mohn_stueck:48,schlawiner_koerner_stueck:48,
+    schlawiner_sesam_stueck:48,schlawiner_kaese_stueck:48,schlawiner_loewen_stueck:48,
+    schlawinerstange_6er_stueck:6,schlawinerstange_kuerbis_stueck:3,
+    schlawinerstange_sonnen_stueck:3,schlawinerstange_gem_stueck:3,
+    schlawinerstange_loewen_stueck:3,schlawinerbrot_stueck:6
+};
+const AUSSCHLUSS = ['Schrippen GESAMT','Schrippen Teiglinge','Schrippen Teiglinge gefroren','Schlawiner GESAMT'];
+const SCHLAWINER_KEYS = [
+    'schlawiner_gesamt_stueck','schlawiner_gesamt_bleche',
+    'schlawiner_klassisch_stueck','schlawiner_kuerbis_stueck',
+    'schlawiner_sonnen_stueck','schlawiner_mohn_stueck',
+    'schlawiner_koerner_stueck','schlawiner_sesam_stueck',
+    'schlawiner_kuerbiskaese_stueck','schlawiner_loewen_stueck',
+    'schlawiner_stange3_stueck','schlawiner_stange5_stueck',
+    'schlawiner_brot6_stueck','schlawiner_kuestange3_stueck',
+    'schlawiner_sostange3_stueck','schlawiner_gemstange3_stueck',
+    'schlawiner_loewenstange_stueck','schlawiner_kuestange5_stueck'
+];
+
+// ── STATE ─────────────────────────────────────────────────
+let db              = [];
+let dbLoaded        = false;
+let produktConfig   = [];
+let lieferantenConfig = [];
+let lieferantenDb   = [];
+let R = { kontext:null, broetchen:null, schlawiner:null, brot:null, konditorei:null, tk:null };
+let outlierKeys     = [];
+let outlierDecisions = {};
+let unbekannteProdukte = [];
+
+// ── INIT ──────────────────────────────────────────────────
+(async function() {
+    // produkt_config.json
+    try {
+        const r = await fetch('../produkt_config.json', { cache:'no-store' });
+        if (r.ok) { produktConfig = await r.json(); setCfgStatus(true); }
+        else setCfgStatus(false);
+    } catch(e) { console.warn('produkt_config nicht geladen:', e.message); setCfgStatus(false); }
+
+    // lieferanten_config.json
+    try {
+        const r = await fetch('../lieferanten_config.json', { cache:'no-store' });
+        if (r.ok) {
+            const d = await r.json();
+            lieferantenConfig = Array.isArray(d) ? d : (d.produkte || []);
+        }
+    } catch(e) { console.warn('lieferanten_config nicht geladen:', e.message); }
+
+    // lieferanten_db.json
+    try {
+        const r = await fetch('../lieferanten_db.json', { cache:'no-store' });
+        if (r.ok) {
+            lieferantenDb = await r.json();
+            setLdbStatus('✅ lieferanten_db.json geladen (' + lieferantenDb.length + ' Einträge)', 'ok');
+        } else setLdbStatus('ℹ️ lieferanten_db.json nicht gefunden — wird neu angelegt', '');
+    } catch(e) { lieferantenDb = []; setLdbStatus('⚠️ Nicht geladen — bitte manuell hochladen', 'warn'); }
+
+    buildMegaPrompt();
+})();
+
+// ── STATUS-HELFER ─────────────────────────────────────────
+function setCfgStatus(ok) {
+    const el = document.getElementById('cfg-status');
+    if (!el) return;
+    if (ok) { el.textContent = '✅ produkt_config.json geladen (' + produktConfig.length + ' Produkte)'; el.style.color = '#16a34a'; }
+    else    { el.textContent = '⚠️ produkt_config.json NICHT geladen — bitte manuell hochladen!'; el.style.color = '#dc2626'; el.style.fontWeight = '900'; }
+}
+function setLdbStatus(msg, cls) {
+    const el = document.getElementById('ldb-status');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = cls === 'ok' ? '#16a34a' : cls === 'warn' ? '#d97706' : '#6b7280';
+    if (cls === 'warn') el.style.fontWeight = '900';
+}
+function setHint(id, msg, ok) {
+    const el = document.getElementById('hi-' + id);
+    if (el) { el.textContent = msg; el.className = 'hint ' + (ok ? 'ok' : 'err'); }
+}
+
+// ── DB LADEN ──────────────────────────────────────────────
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const f = e.target.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        try {
+            db = JSON.parse(ev.target.result);
+            localStorage.setItem('baeckerei_db', JSON.stringify(db));
+            dbLoaded = true;
+            setDbHint('✅ ' + db.length + ' Tage geladen — Ausreißer-Kontrolle aktiv.', true);
+            document.getElementById('prog-db').classList.add('done');
+            upd();
+        } catch { setDbHint('❌ Kein gültiges JSON.', false); }
+    };
+    reader.readAsText(f);
+});
+
+function loadLS() {
+    const s = localStorage.getItem('baeckerei_db');
+    if (s) {
+        db = JSON.parse(s); dbLoaded = true;
+        setDbHint('✅ ' + db.length + ' Tage aus Zwischenspeicher — Ausreißer-Kontrolle aktiv.', true);
+        document.getElementById('prog-db').classList.add('done');
+        upd();
+    } else alert('Keine Datenbank im Browser-Speicher.');
+}
+
+function setDbHint(msg, ok) {
+    const el = document.getElementById('hint-db');
+    el.textContent = msg; el.className = 'hint ' + (ok ? 'ok' : 'err');
+}
+
+function ladeProduktConfigManuell(input) {
+    const file = input.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (!Array.isArray(data) || data.length < 5) { alert('Ungültige produkt_config.json — zu wenige Einträge.'); return; }
+            produktConfig = data;
+            setCfgStatus(true);
+            buildMegaPrompt();
+        } catch(err) { alert('Fehler beim Lesen: ' + err.message); }
+        input.value = '';
+    };
+    reader.readAsText(file);
+}
+
+function ladeLieferantenDbManuell(input) {
+    const file = input.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (!Array.isArray(data)) { alert('Ungültige lieferanten_db.json — kein Array.'); return; }
+            lieferantenDb = data;
+            setLdbStatus('✅ lieferanten_db.json geladen (' + lieferantenDb.length + ' Einträge)', 'ok');
+        } catch(err) { alert('Fehler beim Lesen: ' + err.message); }
+        input.value = '';
+    };
+    reader.readAsText(file);
+}
+
+// ── TOGGLE ────────────────────────────────────────────────
+function tog(b) {
+    const bd = document.getElementById('bd-' + b);
+    const ar = document.getElementById('ar-' + b);
+    bd.classList.toggle('open');
+    ar.textContent = bd.classList.contains('open') ? '▲' : '▼';
+}
+
+// ── MEGA-PROMPT AUFBAUEN ──────────────────────────────────
+function buildMegaPrompt() {
+    const config = produktConfig;
+    const ta = document.getElementById('pr-mega');
+
+    function kopf(name, extra) {
+        return 'Bereich: ' + name + '.\nLies die Spalte "Anzahl [Wochentag] TT.MM." = Stück und "Anzahl Bleche". Bleche leer → Stück ÷ Charge (2 Dez.).' + (extra || '') + '\nMAPPING (exakt diese Schlüssel):\n';
+    }
+    function zeile(p) {
+        if (!p.legacyKey) return null;
+        const b = p.legacyKey.replace('_stueck', '');
+        return (p.artNr||'').toString().padEnd(8) + p.name.padEnd(32) + ' → ' + b + '_stueck + ' + b + '_bleche';
+    }
+
+    const L = [
+        'Du bekommst mehrere Fotos von Backzetteln einer Bäckerei.',
+        'Lies aus jedem Foto den passenden Bereich laut den Abschnitt-Regeln unten.',
+        'Erkenne selbst welches Foto welchem Bereich gehört.',
+        'Gib EIN einziges JSON-Objekt zurück. KEIN Markdown, KEIN ```json, KEINE Erklärungen.',
+        '',
+        'PFLICHTFELD: Lies das Produktionsdatum aus der SPALTENÜBERSCHRIFT "Anzahl [Wochentag] TT.MM." — NICHT aus dem Dokumentkopf "Datum TT.MM.JJJJ" (das ist das Druckdatum!).',
+        '',
+        'FORMAT:',
+        '{"datum":"JJJJ-MM-TT","wochentag":"Wochentag","broetchen":{"produkte":{...},"unbekannt":[...]},"brot":{"produkte":{...}},"konditorei":{"produkte":{...}},"schlawiner":{"produkte":{...}},"tk":{"eintraege":{...},"unbekannt":[...]}}',
+        'Schlüssel weglassen wenn kein passendes Foto vorhanden.',
+        '',
+        '═══ ABSCHNITT-REGELN ══════════════════════════════════════',
+        ''
+    ];
+
+    // Brötchen
+    const bp = config.filter(p => p.kategorie === 'Brötchen' && !AUSSCHLUSS.includes(p.name) && p.legacyKey);
+    if (bp.length) {
+        L.push('── BRÖTCHEN ─────────────────────────────────────────────');
+        L.push(kopf('Brötchen', '\nKundenbestellungen ("Kunde:…") in Gesamtzahl enthalten — NICHT extra addieren.'));
+        L.push(bp.map(zeile).filter(Boolean).join('\n'));
+        L.push('Schrippen NICHT erfassen. Fehlende/0-Produkte mit 0 eintragen.');
+        L.push('Unbekannte → "unbekannt":[{"artNr":"134006","name":"Puddingbrezel"}]. Kein Feld wenn nichts unbekannt.');
+        L.push('');
+    }
+
+    // Schlawiner (statisch)
+    L.push('── SCHLAWINER ───────────────────────────────────────────');
+    L.push('Lies "Anzahl [Wochentag] TT.MM." und "Anzahl Bleche".');
+    L.push('MAPPING:');
+    L.push([
+        '114000  Schlawiner GESAMT              → schlawiner_gesamt_stueck + schlawiner_gesamt_bleche',
+        '        Schlawiner (klassisch)          → schlawiner_klassisch_stueck',
+        '        Kürbis-Schlawiner               → schlawiner_kuerbis_stueck',
+        '        Sonnen-Schlawiner               → schlawiner_sonnen_stueck',
+        '        Mohn-Schlawiner                 → schlawiner_mohn_stueck',
+        '        Körner / gem.Körner             → schlawiner_koerner_stueck',
+        '        Sesam-Schlawiner                → schlawiner_sesam_stueck',
+        '        Kürbis-Käse-Schlawiner          → schlawiner_kuerbiskaese_stueck',
+        '        Löwen-Schlawiner                → schlawiner_loewen_stueck',
+        '        Schlawinerstange (3er)           → schlawiner_stange3_stueck',
+        '        Schlawinerstange (5er)           → schlawiner_stange5_stueck',
+        '        Schlawinerbrot (6er)             → schlawiner_brot6_stueck',
+        '        Kü-Schlawiner-Stange (3er)      → schlawiner_kuestange3_stueck',
+        '        So-Schlawiner-Stange (3er)      → schlawiner_sostange3_stueck',
+        '        Schlawinerstange gem. (3er)     → schlawiner_gemstange3_stueck',
+        '        Löwen-Schlawinerstange          → schlawiner_loewenstange_stueck',
+        '        Kü-Schlawiner-Stange (5er)      → schlawiner_kuestange5_stueck',
+    ].join('\n'));
+    L.push('Format: "schlawiner":{"produkte":{"schlawiner_gesamt_stueck":7968,"schlawiner_gesamt_bleche":166,...}}');
+    L.push('');
+
+    // Brot
+    const brot = config.filter(p => p.kategorie === 'Brot' && p.legacyKey);
+    if (brot.length) {
+        L.push('── BROT ─────────────────────────────────────────────────');
+        L.push(kopf('Brote', '\nKundenbestellungen ("Kunde:…") in Gesamtzahl enthalten — NICHT extra addieren.'));
+        L.push(brot.map(zeile).filter(Boolean).join('\n'));
+        L.push('Fehlende/0-Produkte mit 0. Unbekannte → "unbekannt". Kein Feld wenn nichts unbekannt.');
+        L.push('');
+    }
+
+    // Konditorei
+    const kond = config.filter(p => ['Konditorei','Fettgebäck','Snack'].includes(p.kategorie) && p.legacyKey);
+    if (kond.length) {
+        L.push('── KONDITOREI ───────────────────────────────────────────');
+        L.push(kopf('Konditorei', '\nWICHTIG: Handschriftliche Zahlen (blauer Stift) sind gültige Werte!'));
+        L.push(kond.map(zeile).filter(Boolean).join('\n'));
+        L.push('Fehlende/0-Produkte mit 0. Unbekannte → "unbekannt". Kein Feld wenn nichts unbekannt.');
+        L.push('');
+    }
+
+    // TK
+    const tkP = lieferantenConfig.filter(p => p.lagertyp === 'tk' && p.artNr);
+    if (tkP.length) {
+        L.push('── TK-PRODUKTZETTEL ─────────────────────────────────────');
+        L.push('Lies Spalte "Anzahl" = Anzahl Gebinde (Kartons, Kisten). Bleche und Charge ignorieren.');
+        L.push('MAPPING (ArtNr → Config-ID):');
+        L.push(tkP.map(p =>
+            (p.artNr||'').toString().padEnd(10) +
+            (p.name||'').padEnd(30) +
+            ' → ' + p.id +
+            ' (' + (p.gebinde?.form||'Gebinde') + ' à ' + (p.gebinde?.inhalt_stueck||'?') + ' ' + (p.gebinde?.inhalt_einheit||'Stk') + ')'
+        ).join('\n'));
+        L.push('Nicht im MAPPING → "unbekannt":[{"artNr":"..","name":".."}].');
+        L.push('Nicht auf Zettel vorhanden → weglassen. Anzahl 0 → trotzdem eintragen.');
+        L.push('Format: "tk":{"eintraege":{"buttercroissant_tk":{"menge":2},...}}');
+        L.push('');
+    }
+
+    ta.value = L.join('\n');
+}
+
+// ── KONTEXT-PROMPT (separat) ──────────────────────────────
+const KONTEXT_PROMPT =
+    'Du bekommst ein Foto eines Backzettels aus einer Bäckerei.\n' +
+    'WICHTIG: Lies das Produktionsdatum aus der SPALTENÜBERSCHRIFT "Anzahl [Wochentag] TT.MM." — NICHT aus dem Dokumentkopf "Datum TT.MM.JJJJ" (das ist das Druckdatum, nicht der Produktionstag).\n' +
+    'Recherchiere das historische Wetter für dieses Produktionsdatum in Seelze, Niedersachsen (Region Hannover).\n' +
+    'Prüfe ob Schulferien in Niedersachsen oder ein gesetzlicher Feiertag war.\n' +
+    'Gib NUR ein JSON-Objekt zurück — KEIN Markdown, KEIN ```json, KEINE Erklärungen.\n\n' +
+    '{"datum":"JJJJ-MM-TT","wochentag":"Wochentag","kontext":{"wetter":"sonnig","temperatur":12,"ferien":false,"feiertag":false,"besonderheit":""}}';
+
+function copyMega() {
+    const text = document.getElementById('pr-mega').value;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('cp-mega');
+        btn.textContent = '✅ Kopiert!'; btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = '📋 Mega-Prompt kopieren'; btn.classList.remove('copied'); }, 2000);
+    });
+}
+
+function copyKontext() {
+    navigator.clipboard.writeText(KONTEXT_PROMPT).then(() => {
+        const btns = document.querySelectorAll('.btn-cp.green');
+        btns.forEach(b => { if (b.textContent.includes('Kontext')) { b.textContent = '✅ Kontext-Prompt kopiert!'; b.classList.add('copied'); setTimeout(() => { b.textContent = '🌤 Nur Kontext-Prompt kopieren'; b.classList.remove('copied'); }, 2000); } });
+    });
+}
+
+// ── VALIDIERUNG MEGA-ANTWORT ──────────────────────────────
+function valMega() {
+    const raw = document.getElementById('pa-mega').value.trim();
+    const ta  = document.getElementById('pa-mega');
+    const chips = document.getElementById('result-chips');
+    chips.innerHTML = '';
+
+    if (!raw) {
+        ta.className = 'pa';
+        setHint('mega', '', true);
+        R = { kontext:null, broetchen:null, schlawiner:null, brot:null, konditorei:null, tk:null };
+        upd(); return;
+    }
+
+    try {
+        const p = JSON.parse(raw);
+
+        // Datum + Wochentag aus Antwort übernehmen (falls nicht manuell ausgefüllt)
+        if (p.datum) {
+            const mDatum = document.getElementById('man-datum');
+            const mWtag  = document.getElementById('man-wtag');
+            if (!mDatum.value) mDatum.value = p.datum;
+            if (p.wochentag) {
+                const opts = [...mWtag.options].map(o => o.value);
+                const idx  = opts.indexOf(p.wochentag);
+                if (idx >= 0) mWtag.selectedIndex = idx;
+            }
+        }
+
+        // Kontext aus manuellen Feldern bauen
+        R.kontext = buildKontextFromForm();
+
+        const BEREICHE = [
+            { key:'broetchen',  label:'🥐 Brötchen', tk:false },
+            { key:'schlawiner', label:'🥖 Schlawiner',tk:false },
+            { key:'brot',       label:'🍞 Brot',      tk:false },
+            { key:'konditorei', label:'🍰 Konditorei',tk:false },
+            { key:'tk',         label:'📦 TK',        tk:true  },
+        ];
+
+        let totalProdukte = 0;
+        unbekannteProdukte = [];
+
+        BEREICHE.forEach(b => {
+            const src = p[b.key];
+            if (!src) {
+                R[b.key] = null;
+                addChip(chips, b.label + ' —', 'miss');
+                return;
+            }
+            const prod = b.tk ? src.eintraege : src.produkte;
+            if (!prod || typeof prod !== 'object') {
+                R[b.key] = null;
+                addChip(chips, b.label + ' ⚠', 'warn');
+                return;
+            }
+            R[b.key] = prod;
+            const cnt = Object.keys(prod).length;
+            totalProdukte += cnt;
+            const unkC = src.unbekannt?.length || 0;
+            addChip(chips, b.label + ' · ' + cnt + (unkC ? ' ⚠'+unkC : ''), unkC ? 'warn' : '');
+
+            if (Array.isArray(src.unbekannt)) {
+                src.unbekannt.forEach(u => {
+                    if (u.name && !unbekannteProdukte.find(x => x.name === u.name))
+                        unbekannteProdukte.push({ artNr: u.artNr || null, name: u.name, quelle: b.key });
+                });
+            }
+        });
+
+        ta.className = 'pa valid';
+        setHint('mega', '✅ ' + totalProdukte + ' Produkte erkannt · ' + (p.datum || 'Datum unklar') + ' ' + (p.wochentag || ''), true);
+        document.getElementById('prog-mega').classList.add('done');
+
+        // Schlawiner-DB-Button zeigen
+        const sbtn = document.getElementById('btn-schlawiner-db');
+        sbtn.style.display = R.schlawiner ? 'block' : 'none';
+
+        renderUnbekanntePanel();
+        if (dbLoaded) runOutlierCheck();
+        upd();
+
+    } catch(e) {
+        ta.className = 'pa invalid';
+        setHint('mega', '❌ ' + e.message, false);
+        R = { kontext:null, broetchen:null, schlawiner:null, brot:null, konditorei:null, tk:null };
+        upd();
+    }
+}
+
+function buildKontextFromForm() {
+    return {
+        datum:    document.getElementById('man-datum').value,
+        wochentag: document.getElementById('man-wtag').value,
+        kontext: {
+            wetter:      document.getElementById('man-wetter').value,
+            temperatur:  parseInt(document.getElementById('man-temp').value) || 12,
+            ferien:      document.getElementById('man-ferien').checked,
+            feiertag:    document.getElementById('man-feiertag').checked,
+        }
+    };
+}
+
+function addChip(container, text, cls) {
+    const d = document.createElement('div');
+    d.className = 'chip' + (cls ? ' ' + cls : '');
+    d.textContent = text;
+    container.appendChild(d);
+}
+
+// ── FORTSCHRITT ───────────────────────────────────────────
+function upd() {
+    const allDone = R.kontext && allZettelDone() && outlierAllResolved();
+    document.getElementById('btnMerge').disabled = !allDone;
+    if (allDone) document.getElementById('prog-save').classList.add('done');
+}
+
+function allZettelDone() {
+    return ['broetchen','schlawiner','brot','konditorei'].some(b => R[b] !== null);
+}
+
+// ── AUSREISSER ────────────────────────────────────────────
+function getBlechValue(key, produkte) {
+    const blechKey = key.replace('_stueck','_bleche');
+    if (produkte[blechKey] !== undefined) return parseFloat(produkte[blechKey]) || 0;
+    if (STUECK_PRO_BLECH[key]) return (parseFloat(produkte[key]) || 0) / STUECK_PRO_BLECH[key];
+    return null;
+}
+
+function getWochentagDurchschnitt(key, wochentag) {
+    if (!db || !db.length) return null;
+    const tage = db.filter(e => e.wochentag === wochentag && e.produkte && e.produkte[key] != null);
+    if (tage.length < 3) return null;
+    const werte = tage.map(e => parseFloat(e.produkte[key]) || 0).filter(v => v > 0);
+    if (werte.length < 3) return null;
+    return werte.reduce((a,b) => a+b, 0) / werte.length;
+}
+
+function runOutlierCheck() {
+    if (!dbLoaded || !R.kontext) return;
+    const wochentag = R.kontext.wochentag;
+    const mergedProd = Object.assign({}, R.broetchen, R.schlawiner, R.brot, R.konditorei);
+    const found = [];
+    outlierKeys = [];
+
+    const stueckKeys = Object.keys(mergedProd).filter(k => k.endsWith('_stueck') || (!k.endsWith('_bleche') && STUECK_PRO_BLECH[k]));
+
+    stueckKeys.forEach(key => {
+        const avgStueck = getWochentagDurchschnitt(key, wochentag);
+        if (!avgStueck) return;
+
+        const neuStueck = parseFloat(mergedProd[key]) || 0;
+        const neuBleche = getBlechValue(key, mergedProd);
+
+        const cfgEintrag  = produktConfig.find(p => p.legacyKey === key);
+        const chargeWert  = (cfgEintrag?.charge > 1 ? cfgEintrag.charge : null) || STUECK_PRO_BLECH[key] || null;
+
+        if (neuBleche === null) return;
+        if (!chargeWert && !mergedProd[key.replace('_stueck','_bleche')]) return;
+
+        const avgBleche  = chargeWert ? (avgStueck / chargeWert) : avgStueck;
+        const blechDelta = Math.abs(neuBleche - avgBleche);
+        const pctDelta   = Math.abs(neuStueck - avgStueck) / avgStueck;
+
+        if (blechDelta >= OUTLIER_BLECHE_DELTA && pctDelta >= OUTLIER_PCT_DELTA) {
+            found.push({ key, neuStueck, neuBleche: neuBleche.toFixed(2), avgStueck: Math.round(avgStueck), avgBleche: avgBleche.toFixed(2), blechDelta: blechDelta.toFixed(1), pctDelta: Math.round(pctDelta*100) });
+            outlierKeys.push(key);
+        }
+    });
+
+    const panel = document.getElementById('outlier-panel');
+    const list  = document.getElementById('outlier-list');
+
+    if (!found.length) { panel.classList.remove('show'); outlierKeys = []; outlierDecisions = {}; upd(); return; }
+
+    outlierKeys.forEach(k => { if (!outlierDecisions[k]) outlierDecisions[k] = null; });
+    panel.classList.add('show');
+    list.innerHTML = '';
+
+    found.forEach(o => {
+        const div = document.createElement('div');
+        div.className = 'outlier-item';
+        div.id = 'oi-' + o.key;
+        const label = o.key.replace(/_stueck$/,'').replace(/_/g,' ').replace(/\b\w/g, l => l.toUpperCase());
+        div.innerHTML =
+            '<div class="oi-name">⚠️ ' + label + '</div>' +
+            '<div class="oi-vals">Neu: <strong>' + o.neuStueck + ' Stk (' + o.neuBleche + ' Bl.)</strong> &nbsp;|&nbsp; Ø: <strong>' + o.avgStueck + ' Stk (' + o.avgBleche + ' Bl.)</strong> &nbsp;|&nbsp; Abw: <strong>+' + o.blechDelta + ' Bl. / +' + o.pctDelta + '%</strong></div>' +
+            '<div class="oi-btns">' +
+                '<button class="oi-btn oi-btn-fix"  onclick="oiAction(\'' + o.key + '\',\'fix\')">✏️ Korrigieren</button>' +
+                '<button class="oi-btn oi-btn-excl" onclick="oiAction(\'' + o.key + '\',\'exclude\')">🚫 Ausschließen</button>' +
+                '<button class="oi-btn oi-btn-ok"   onclick="oiAction(\'' + o.key + '\',\'accept\')">✅ So lassen</button>' +
+            '</div>' +
+            '<div class="oi-fix-row" id="fixrow-' + o.key + '">' +
+                '<div class="oi-fix-label">✏️ Korrekten Stückwert eingeben:</div>' +
+                '<input type="number" class="oi-fix-inp" id="fixval-' + o.key + '" value="' + o.neuStueck + '" placeholder="Stückzahl…">' +
+                '<button class="oi-fix-save" onclick="oiSaveFix(\'' + o.key + '\',' + o.neuStueck + ')">✓ Korrektur speichern</button>' +
+            '</div>' +
+            '<div class="oi-resolved-label" id="resolved-' + o.key + '"></div>';
+        list.appendChild(div);
+    });
+
+    updateOutlierHint();
+    upd();
+}
+
+function oiAction(key, action) {
+    const fixrow = document.getElementById('fixrow-' + key);
+    if (action === 'fix') { fixrow.classList.add('show'); return; }
+    fixrow.classList.remove('show');
+    const merged = Object.assign({}, R.broetchen, R.schlawiner, R.brot, R.konditorei);
+    if (action === 'exclude') {
+        outlierDecisions[key] = { action:'exclude', originalValue: merged[key] };
+        markResolved(key, '🚫 Wird ausgeschlossen (null)', 'resolved-excluded');
+    } else {
+        outlierDecisions[key] = { action:'accept', originalValue: merged[key] };
+        markResolved(key, '✅ Wert akzeptiert (bleibt so)', 'resolved-accepted');
+    }
+    updateOutlierHint(); upd();
+}
+
+function oiSaveFix(key, originalValue) {
+    const inp = document.getElementById('fixval-' + key);
+    const newVal = parseInt(inp.value);
+    if (isNaN(newVal) || newVal < 0) { alert('Bitte eine gültige Zahl eingeben.'); return; }
+    outlierDecisions[key] = { action:'correct', originalValue, correctedValue: newVal };
+    document.getElementById('fixrow-' + key).classList.remove('show');
+    markResolved(key, '✏️ Korrigiert: ' + originalValue + ' → ' + newVal + ' Stk', 'resolved-corrected');
+    updateOutlierHint(); upd();
+}
+
+function markResolved(key, label, cls) {
+    document.getElementById('oi-' + key).className = 'outlier-item ' + cls;
+    document.getElementById('resolved-' + key).textContent = label;
+}
+
+function outlierAllResolved() {
+    return outlierKeys.length === 0 || outlierKeys.every(k => outlierDecisions[k] !== null && outlierDecisions[k] !== undefined);
+}
+
+function updateOutlierHint() {
+    const done  = outlierKeys.filter(k => outlierDecisions[k]).length;
+    const total = outlierKeys.length;
+    const el    = document.getElementById('outlier-ok-hint');
+    if (done === total && total > 0) { el.textContent = '✅ Alle ' + total + ' Ausreißer bearbeitet — Speichern möglich.'; el.className = 'hint ok'; }
+    else { el.textContent = done + ' / ' + total + ' Ausreißer bearbeitet.'; el.className = 'hint warn'; }
+}
+
+// ── UNBEKANNTE PRODUKTE ───────────────────────────────────
+function renderUnbekanntePanel() {
+    const panel = document.getElementById('unknown-panel');
+    const liste = document.getElementById('unknown-list');
+    if (!unbekannteProdukte.length) { panel.classList.remove('show'); return; }
+    panel.classList.add('show');
+    liste.innerHTML = '';
+    unbekannteProdukte.forEach((u, i) => {
+        const isTK = u.quelle === 'tk';
+        const div  = document.createElement('div');
+        div.className = 'outlier-item ' + (isTK ? 'orange' : 'blue');
+        div.id = 'unk-' + i;
+        div.innerHTML =
+            '<div class="oi-name">' + (isTK ? '🚛' : '📦') + ' <strong>' + u.name + '</strong>' + (u.artNr ? ' · ArtNr ' + u.artNr : '') + '</div>' +
+            '<div class="oi-vals">Quelle: ' + u.quelle + ' — bitte im Datenbank-Manager anlegen</div>';
+        liste.appendChild(div);
+    });
+}
+
+// ── SCHLAWINER-DB EXPORT ──────────────────────────────────
+function exportSchlawinnerDB() {
+    if (!R.schlawiner) { alert('Bitte zuerst Schlawiner-Daten einlesen.'); return; }
+    if (!R.kontext?.datum) { alert('Bitte zuerst Datum ausfüllen.'); return; }
+
+    let bestehend = [];
+    try { const ls = localStorage.getItem('schlawiner_db'); if (ls) bestehend = JSON.parse(ls); } catch(e) {}
+
+    const produkte = {};
+    SCHLAWINER_KEYS.forEach(k => { if (R.schlawiner[k] !== undefined) produkte[k] = R.schlawiner[k]; });
+
+    const neuerEintrag = { datum: R.kontext.datum, wochentag: R.kontext.wochentag, produkte };
+    bestehend = bestehend.filter(e => e.datum !== neuerEintrag.datum);
+    bestehend.push(neuerEintrag);
+    bestehend.sort((a,b) => a.datum.localeCompare(b.datum));
+    localStorage.setItem('schlawiner_db', JSON.stringify(bestehend));
+
+    const blob = new Blob([JSON.stringify(bestehend, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'schlawiner_db.json';
+    a.click();
+
+    const btn = document.getElementById('btn-schlawiner-db');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Gespeichert · ' + neuerEintrag.datum;
+    setTimeout(() => { btn.textContent = orig; }, 3000);
+}
+
+// ── MERGE & DOWNLOAD ──────────────────────────────────────
+function merge() {
+    const ctx = buildKontextFromForm();
+    if (!ctx.datum) { alert('Bitte Datum ausfüllen.'); return; }
+
+    const extra    = document.getElementById('besonderheit').value.trim();
+    if (extra) ctx.kontext.besonderheit = extra;
+    if (document.getElementById('flag_sondertag').checked)     ctx.kontext.ausschluss_sondertag      = true;
+    if (document.getElementById('flag_einschraenkung').checked) ctx.kontext.ausschluss_einschraenkung = true;
+
+    let prod = Object.assign({}, R.broetchen, R.schlawiner, R.brot, R.konditorei);
+
+    // Ausreißer-Entscheidungen anwenden
+    const flags = {};
+    Object.entries(outlierDecisions).forEach(([key, dec]) => {
+        if (!dec) return;
+        if (dec.action === 'correct') {
+            const blechKey = key.replace('_stueck','_bleche');
+            const spb = STUECK_PRO_BLECH[key] || (prod[blechKey] ? prod[key]/prod[blechKey] : 1);
+            prod[key] = dec.correctedValue;
+            if (prod[blechKey] !== undefined) prod[blechKey] = parseFloat((dec.correctedValue / spb).toFixed(2));
+            flags[key] = { type:'outlier_corrected', original:dec.originalValue, corrected:dec.correctedValue };
+        } else if (dec.action === 'exclude') {
+            prod[key] = null;
+            const blechKey = key.replace('_stueck','_bleche');
+            if (prod[blechKey] !== undefined) prod[blechKey] = null;
+            flags[key] = { type:'outlier_excluded', original:dec.originalValue };
+        } else if (dec.action === 'accept') {
+            flags[key] = { type:'outlier_accepted', value:dec.originalValue };
+        }
+    });
+
+    const entry = { datum: ctx.datum, wochentag: ctx.wochentag, kontext: ctx.kontext, produkte: prod };
+    if (Object.keys(flags).length > 0) entry.flags = flags;
+
+    // Sicherheitsprüfung
+    if (produktConfig.length < 5) {
+        alert('STOPP: produkt_config.json nicht korrekt geladen (' + produktConfig.length + ' Einträge).\nBitte zuerst manuell hochladen!');
+        return;
+    }
+
+    // Duplikat
+    const idx = db.findIndex(t => t.datum === ctx.datum);
+    let aktion = '';
+    if (idx !== -1) {
+        if (!confirm('Eintrag für ' + ctx.datum + ' existiert bereits. Überschreiben?')) return;
+        db[idx] = entry; aktion = 'überschrieben';
+    } else {
+        db.push(entry);
+        db.sort((a,b) => a.datum.localeCompare(b.datum));
+        aktion = 'hinzugefügt';
+    }
+
+    localStorage.setItem('baeckerei_db', JSON.stringify(db));
+
+    const blob = new Blob([JSON.stringify(db, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'backmengen_db.json';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(a.href);
+
+    // lieferanten_db.json — TK
+    if (R.tk) {
+        const tkEintrag = { datum: ctx.datum, wochentag: ctx.wochentag, typ:'ausgang_filialen', eintraege: R.tk };
+        const tkIdx = lieferantenDb.findIndex(e => e.datum === ctx.datum && e.typ === 'ausgang_filialen');
+        if (tkIdx !== -1) lieferantenDb[tkIdx] = tkEintrag;
+        else { lieferantenDb.push(tkEintrag); lieferantenDb.sort((a,b) => a.datum.localeCompare(b.datum)); }
+        const blobTK = new Blob([JSON.stringify(lieferantenDb, null, 2)], {type:'application/json'});
+        setTimeout(() => {
+            const aTK = document.createElement('a');
+            aTK.href = URL.createObjectURL(blobTK); aTK.download = 'lieferanten_db.json';
+            document.body.appendChild(aTK); aTK.click();
+            document.body.removeChild(aTK); URL.revokeObjectURL(aTK.href);
+        }, 200);
+    }
+
+    // Erfassungskontrolle HTML
+    if (document.getElementById('chk-erfassung').checked) {
+        const quellen = [
+            { id:'broetchen',  label:'🥐 Brötchen',  prod:R.broetchen  },
+            { id:'schlawiner', label:'🥖 Schlawiner', prod:R.schlawiner },
+            { id:'brot',       label:'🍞 Brot',       prod:R.brot       },
+            { id:'konditorei', label:'🍰 Konditorei', prod:R.konditorei },
+        ];
+        const fmtKey = k => k.replace(/_stueck$/,'').replace(/_bleche$/,' (Bl.)').replace(/_/g,' ');
+        const fmtVal = v => v === null ? '<span style="color:#ef4444;">ausgeschlossen</span>' : '<strong>' + v + '</strong>';
+        let sektionen = '';
+        quellen.forEach(q => {
+            if (!q.prod) { sektionen += '<div class="sektion uebersprungen"><div class="sek-titel">' + q.label + '</div><div class="sek-leer">Nicht erfasst</div></div>'; return; }
+            const eintraege = Object.entries(q.prod);
+            let zeilen = eintraege.map(([k,v]) => {
+                const flag = flags[k];
+                let badge = '';
+                if (flag) {
+                    if (flag.type==='outlier_corrected') badge = '<span class="badge badge-korr">korrigiert ' + flag.original + '→' + flag.corrected + '</span>';
+                    else if (flag.type==='outlier_excluded') badge = '<span class="badge badge-excl">ausgeschlossen</span>';
+                    else if (flag.type==='outlier_accepted') badge = '<span class="badge badge-ok">Ausreißer akzeptiert</span>';
+                }
+                return '<tr><td class="td-name">' + fmtKey(k) + '</td><td class="td-val">' + fmtVal(v) + '</td><td>' + badge + '</td></tr>';
+            }).join('');
+            sektionen += '<div class="sektion"><div class="sek-titel">' + q.label + ' <span class="anzahl">' + eintraege.length + ' Einträge</span></div><table class="prod-table"><tbody>' + zeilen + '</tbody></table></div>';
+        });
+        const ausschlFlags = [];
+        if (document.getElementById('flag_sondertag').checked) ausschlFlags.push('🎉 Sondertag');
+        if (document.getElementById('flag_einschraenkung').checked) ausschlFlags.push('🔧 Anlagenausfall');
+        const html = `<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Erfassungskontrolle · ${ctx.datum}</title><style>body{font-family:'Segoe UI',sans-serif;background:#f8fafc;color:#1a1a1a;padding:20px;max-width:700px;margin:0 auto}h1{font-size:1.3rem;font-weight:800;margin:0 0 4px}.meta{font-size:.82rem;color:#64748b;margin-bottom:20px}.ausschluss{background:#fff8f0;border-left:4px solid #e67e22;border-radius:0 8px 8px 0;padding:8px 14px;margin-bottom:16px;font-size:.82rem;font-weight:700;color:#92400e}.sektion{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:12px}.sektion.uebersprungen{opacity:.5}.sek-titel{font-weight:800;font-size:.92rem;margin-bottom:10px;display:flex;align-items:center;gap:10px}.anzahl{font-size:.72rem;font-weight:600;background:#e2e8f0;border-radius:20px;padding:2px 9px;color:#475569}.sek-leer{color:#94a3b8;font-size:.82rem;font-style:italic}.prod-table{width:100%;border-collapse:collapse;font-size:.82rem}.prod-table tr:not(:last-child) td{border-bottom:1px solid #f1f5f9}.td-name{padding:6px 4px;color:#475569}.td-val{padding:6px 8px;text-align:right;font-weight:700;min-width:60px}.badge{font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap}.badge-korr{background:#dbeafe;color:#1d4ed8}.badge-excl{background:#fee2e2;color:#991b1b}.badge-ok{background:#dcfce7;color:#166534}.gesamt{background:#1e293b;color:#fff;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}.gesamt-zahl{font-size:1.8rem;font-weight:900;color:#fbbf24}.gesamt-label{font-size:.75rem;color:#94a3b8}@media print{body{padding:0}}</style></head><body><h1>📋 Erfassungskontrolle</h1><div class="meta">${ctx.wochentag}, ${ctx.datum} · ${ctx.kontext.wetter||''} ${ctx.kontext.temperatur ? ctx.kontext.temperatur+'°C' : ''}</div>${ausschlFlags.length ? '<div class="ausschluss">⚠ ' + ausschlFlags.join(' · ') + ' — Tag ausgeschlossen</div>' : ''}<div class="gesamt"><div><div class="gesamt-label">Erfasste Produkte gesamt</div><div class="gesamt-zahl">${Object.keys(prod).length}</div></div><div style="text-align:right"><div class="gesamt-label">Datenbank nach Speicherung</div><div style="font-weight:800;font-size:1rem">${db.length} Tage</div></div></div>${sektionen}<div style="font-size:.72rem;color:#94a3b8;margin-top:20px;text-align:center">Generiert: ${new Date().toLocaleString('de-DE')}</div></body></html>`;
+        const blobH = new Blob([html], {type:'text/html'});
+        setTimeout(() => {
+            const aH = document.createElement('a');
+            aH.href = URL.createObjectURL(blobH); aH.download = 'erfassungskontrolle_' + ctx.datum + '.html';
+            document.body.appendChild(aH); aH.click();
+            document.body.removeChild(aH); URL.revokeObjectURL(aH.href);
+        }, 400);
+    }
+
+    const flagCount = Object.keys(flags).length;
+    const s = document.getElementById('summary');
+    s.className = 'summary show';
+    s.innerHTML =
+        '<strong>✅ ' + aktion + '!</strong><br>' +
+        ctx.wochentag + ', ' + ctx.datum + ' · ' + ctx.kontext.wetter + ' ' + ctx.kontext.temperatur + '°C<br>' +
+        'Produkte: <strong>' + Object.keys(prod).length + '</strong><br>' +
+        (flagCount > 0
+            ? '🚩 Flags: <strong>' + flagCount + '</strong> (' +
+              Object.values(flags).filter(f=>f.type==='outlier_corrected').length + '× korrigiert · ' +
+              Object.values(flags).filter(f=>f.type==='outlier_excluded').length + '× ausgeschlossen · ' +
+              Object.values(flags).filter(f=>f.type==='outlier_accepted').length + '× akzeptiert)<br>'
+            : '✅ Keine Ausreißer — sauberer Datensatz<br>'
+        ) +
+        'Datenbank: <strong>' + db.length + ' Tage</strong><br>' +
+        (R.tk ? '🚛 <strong>TK-Produkterfassung gespeichert</strong> → lieferanten_db.json hochladen!<br>' : '') +
+        '<span style="color:#16a34a;font-size:0.8rem;">→ backmengen_db.json in den Stammordner hochladen!</span>';
+}
+</script>
+</body>
+</html>

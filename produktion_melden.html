@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BäckereiOS — Produktion melden</title>
+<link rel="stylesheet" href="systemdesign.css">
+<script src="shell.js" defer></script>
+<style>
+body { background: var(--background,#f8f6f2); color: var(--text-primary,#1a1a1a); padding-bottom: 100px; }
+.container { max-width: 680px; margin: 0 auto; padding: 14px 12px; }
+
+h1 { font-size: 1.3rem; font-weight: 900; color: var(--amber,#e67e22); margin: 0 0 4px; }
+.sub { font-size: 0.8rem; color: var(--dim,#6b7280); margin: 0 0 16px; }
+
+.card { background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+.card-titel { font-size: 0.68rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim,#6b7280); margin-bottom: 10px; }
+
+/* Station / Kategorie Filter */
+.filter-wrap { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.f-btn { font-family: inherit; font-size: 0.75rem; font-weight: 700; padding: 6px 13px; border-radius: 20px; border: 1.5px solid var(--border-color,#e5e0d8); background: var(--card-bg,#fff); color: var(--dim,#6b7280); cursor: pointer; }
+.f-btn.aktiv { background: #1e293b; color: #fff; border-color: #1e293b; }
+
+/* Produkt-Liste */
+.prod-liste { display: flex; flex-direction: column; gap: 8px; }
+.prod-item { background: var(--background,#f8f6f2); border: 1.5px solid var(--border-color,#e5e0d8); border-radius: 10px; padding: 10px 12px; cursor: pointer; transition: all 0.15s; }
+.prod-item:hover { border-color: #94a3b8; }
+.prod-item.ausgewaehlt { border-color: var(--amber,#e67e22); background: #fffbf5; }
+.prod-name { font-size: 0.88rem; font-weight: 800; margin-bottom: 6px; }
+.prod-inputs { display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.prod-item.ausgewaehlt .prod-inputs { display: grid; }
+.inp-gruppe { display: flex; flex-direction: column; gap: 3px; }
+.inp-label { font-size: 0.68rem; font-weight: 700; color: var(--dim,#6b7280); text-transform: uppercase; letter-spacing: 0.5px; }
+.inp-feld { font-family: inherit; font-size: 1rem; font-weight: 700; text-align: center; padding: 9px 6px; border: 1.5px solid var(--border-color,#e5e0d8); border-radius: 8px; background: var(--card-bg,#fff); color: var(--text-primary,#1a1a1a); width: 100%; }
+.inp-feld:focus { outline: none; border-color: var(--amber,#e67e22); }
+.inp-einheit { font-size: 0.68rem; color: var(--dim,#6b7280); text-align: center; margin-top: 2px; }
+
+/* Generieren Button */
+.btn-melden { width: 100%; background: #10b981; color: #fff; font-size: 1rem; font-weight: 800; padding: 16px; border-radius: 12px; border: none; cursor: pointer; font-family: inherit; margin-top: 4px; box-shadow: 0 4px 12px rgba(16,185,129,0.2); }
+.btn-melden:disabled { background: #cbd5e1; box-shadow: none; cursor: default; }
+
+/* Nachricht-Panel */
+.nachricht-panel { display: none; background: #f0fdf4; border: 1.5px solid #10b981; border-radius: 12px; padding: 14px; margin-top: 12px; }
+.nachricht-panel.sichtbar { display: block; }
+.nachricht-text { font-size: 0.8rem; line-height: 1.7; color: #1a1a1a; white-space: pre-wrap; font-family: inherit; margin-bottom: 12px; }
+.btn-whatsapp { width: 100%; background: #25D366; color: #fff; font-size: 0.9rem; font-weight: 800; padding: 14px; border-radius: 10px; border: none; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-kopieren { width: 100%; background: #1e293b; color: #fff; font-size: 0.85rem; font-weight: 700; padding: 11px; border-radius: 10px; border: none; cursor: pointer; font-family: inherit; margin-top: 6px; }
+
+.lade-info { text-align: center; padding: 30px; color: var(--dim,#6b7280); }
+.ausgewaehlt-count { font-size: 0.72rem; color: var(--amber,#e67e22); font-weight: 700; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+    <h1>📋 Produktion melden</h1>
+    <p class="sub">Was ist heute in den Froster / Bestand gekommen?</p>
+
+    <!-- Datum -->
+    <div class="card">
+        <div class="card-titel">Datum & Zeit</div>
+        <div id="datum-anzeige" style="font-size:0.9rem;font-weight:700;"></div>
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-wrap" id="filter-wrap">
+        <div class="lade-info" style="padding:8px;">Lade…</div>
+    </div>
+
+    <!-- Produkte -->
+    <div class="card">
+        <div class="card-titel">Produkte wählen &amp; Mengen eingeben</div>
+        <div class="ausgewaehlt-count" id="ausgewaehlt-count" style="display:none;"></div>
+        <div class="prod-liste" id="prod-liste">
+            <div class="lade-info">Lade Produkte…</div>
+        </div>
+    </div>
+
+    <button class="btn-melden" id="btn-melden" onclick="generiere()" disabled>
+        📤 Nachricht generieren
+    </button>
+
+    <!-- Nachricht Panel -->
+    <div class="nachricht-panel" id="nachricht-panel">
+        <div class="card-titel" style="margin-bottom:8px;">✅ Nachricht bereit</div>
+        <div class="nachricht-text" id="nachricht-text"></div>
+        <button class="btn-whatsapp" onclick="perWhatsApp()">
+            <span>💬</span> Per WhatsApp senden
+        </button>
+        <button class="btn-kopieren" onclick="kopieren()">📋 In Zwischenablage kopieren</button>
+    </div>
+
+</div>
+<script>
+const EMPFAENGER_NR = ''; // Optional: WhatsApp-Nummer des Chefs
+
+let config = [];
+let aktiveFilter = 'alle';
+let ausgewaehlt = {}; // legacyKey → { name, produziert, froster, einheit, charge }
+let jetzt = new Date();
+
+// Datum anzeigen
+const WT = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+document.getElementById('datum-anzeige').textContent =
+    WT[jetzt.getDay()] + ', ' +
+    jetzt.getDate().toString().padStart(2,'0') + '.' +
+    (jetzt.getMonth()+1).toString().padStart(2,'0') + '.' +
+    jetzt.getFullYear() + ' · ' +
+    jetzt.getHours().toString().padStart(2,'0') + ':' +
+    jetzt.getMinutes().toString().padStart(2,'0') + ' Uhr';
+
+async function init() {
+    try {
+        const r = await fetch('produkt_config.json', { cache: 'no-store' });
+        config = await r.json();
+    } catch(e) {
+        document.getElementById('prod-liste').innerHTML =
+            '<div class="lade-info">⚠ produkt_config.json nicht erreichbar</div>';
+        return;
+    }
+    baueFilter();
+    rendereProdukte();
+}
+
+function baueFilter() {
+    const wrap = document.getElementById('filter-wrap');
+    wrap.innerHTML = '';
+
+    // Stationen oder Kategorien
+    const stationen = [...new Set(config.map(p => p.station).filter(Boolean))];
+    const kategorien = [...new Set(config.map(p => p.kategorie).filter(Boolean))];
+    const gruppen = stationen.length > 0 ? stationen : kategorien;
+
+    const alle = document.createElement('button');
+    alle.className = 'f-btn aktiv';
+    alle.textContent = 'Alle';
+    alle.onclick = () => setFilter('alle', alle);
+    wrap.appendChild(alle);
+
+    gruppen.forEach(g => {
+        const btn = document.createElement('button');
+        btn.className = 'f-btn';
+        btn.textContent = g;
+        btn.onclick = () => setFilter(g, btn);
+        wrap.appendChild(btn);
+    });
+}
+
+function setFilter(f, btn) {
+    aktiveFilter = f;
+    document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('aktiv'));
+    btn.classList.add('aktiv');
+    rendereProdukte();
+}
+
+function rendereProdukte() {
+    const liste = document.getElementById('prod-liste');
+    liste.innerHTML = '';
+
+    const gefilter = config.filter(p => {
+        if (!p.legacyKey) return false;
+        if (!p.inventurRelevant) return false;
+        if (aktiveFilter === 'alle') return true;
+        return p.station === aktiveFilter || p.kategorie === aktiveFilter;
+    });
+
+    if (!gefilter.length) {
+        liste.innerHTML = '<div class="lade-info">Keine Produkte gefunden.</div>';
+        return;
+    }
+
+    gefilter.forEach(p => {
+        const istAusgewaehlt = !!ausgewaehlt[p.legacyKey];
+        const einheit = p.einheit === 'bleche' ? 'Bl' : 'Stk';
+        const charge = p.charge || 1;
+
+        const div = document.createElement('div');
+        div.className = 'prod-item' + (istAusgewaehlt ? ' ausgewaehlt' : '');
+        div.id = 'prod-' + p.legacyKey;
+
+        const prodVal = ausgewaehlt[p.legacyKey]?.bestand || '';
+
+
+        div.innerHTML = `
+            <div class="prod-name">${p.name}</div>
+            <div class="prod-inputs" style="grid-template-columns:1fr;">
+                <div class="inp-gruppe">
+                    <div class="inp-label">In Froster / Bestand</div>
+                    <input type="number" inputmode="numeric" class="inp-feld"
+                        id="prod-val-${p.legacyKey}" value="${prodVal}" placeholder="0"
+                        oninput="updateWert('${p.legacyKey}','bestand',this.value)">
+                    <div class="inp-einheit">${einheit}</div>
+                </div>
+            </div>`;
+
+        div.addEventListener('click', function(e) {
+            if (e.target.tagName === 'INPUT') return;
+            toggleProdukt(p);
+        });
+
+        liste.appendChild(div);
+    });
+}
+
+function toggleProdukt(p) {
+    const key = p.legacyKey;
+    if (ausgewaehlt[key]) {
+        delete ausgewaehlt[key];
+    } else {
+        ausgewaehlt[key] = {
+            name: p.name,
+            bestand: 0,
+            einheit: p.einheit || 'stueck',
+            charge: p.charge || 1
+        };
+    }
+    const item = document.getElementById('prod-' + key);
+    if (item) item.classList.toggle('ausgewaehlt', !!ausgewaehlt[key]);
+    aktualisiereCount();
+}
+
+function updateWert(key, feld, val) {
+    if (!ausgewaehlt[key]) return;
+    ausgewaehlt[key][feld] = parseFloat(val) || 0;
+    aktualisiereCount();
+}
+
+function aktualisiereCount() {
+    const n = Object.keys(ausgewaehlt).length;
+    const countEl = document.getElementById('ausgewaehlt-count');
+    const btn = document.getElementById('btn-melden');
+    const mitWert = Object.values(ausgewaehlt).filter(function(p){return p.bestand>0;}).length;
+    if (n > 0) {
+        countEl.style.display = 'block';
+        countEl.textContent = n + ' Produkt' + (n===1?'':'e') + ' ausgewählt';
+        btn.disabled = false;
+    } else {
+        countEl.style.display = 'none';
+        btn.disabled = true;
+    }
+}
+
+function generiere() {
+    const datum = jetzt.toISOString().slice(0,10);
+    const zeitstempel = jetzt.getTime();
+    const wtName = WT[jetzt.getDay()];
+
+    // Lesbarer Text
+    let text = `Hey! 👋\n`;
+    text += `Produktion ${wtName}, ${jetzt.getDate().toString().padStart(2,'0')}.${(jetzt.getMonth()+1).toString().padStart(2,'0')}.${jetzt.getFullYear()}:\n\n`;
+
+    Object.entries(ausgewaehlt).forEach(([key, p]) => {
+        if (!p.bestand) return;
+        const einheit = p.einheit === 'bleche' ? 'Bl' : 'Stk';
+        text += `• ${p.name}: ${p.bestand} ${einheit} → Froster/Bestand\n`;
+    });
+
+    // Daten-Objekt für Decoder
+    const daten = {
+        datum,
+        zeitstempel,
+        wochentag: wtName,
+        produkte: {}
+    };
+
+    Object.entries(ausgewaehlt).forEach(([key, p]) => {
+        if (!p.bestand) return;
+        daten.produkte[key] = {
+            name: p.name,
+            locs: [p.bestand, 0, 0, 0],
+            stock: p.bestand,
+            ts: zeitstempel,
+            einheit: p.einheit
+        };
+    });
+
+    const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(daten))));
+    text += `\n---PRODUKTIONSDATEN---\n${b64}`;
+
+    document.getElementById('nachricht-text').textContent = text;
+    document.getElementById('nachricht-panel').classList.add('sichtbar');
+    document.getElementById('nachricht-panel').scrollIntoView({ behavior: 'smooth' });
+}
+
+function perWhatsApp() {
+    const text = document.getElementById('nachricht-text').textContent;
+    const encoded = encodeURIComponent(text);
+    const url = EMPFAENGER_NR
+        ? `https://wa.me/${EMPFAENGER_NR}?text=${encoded}`
+        : `https://wa.me/?text=${encoded}`;
+    window.open(url, '_blank');
+}
+
+function kopieren() {
+    const text = document.getElementById('nachricht-text').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.btn-kopieren');
+        btn.textContent = '✓ Kopiert!';
+        setTimeout(() => btn.textContent = '📋 In Zwischenablage kopieren', 2000);
+    });
+}
+
+init();
+
+let aktiveHilfeSpache = 'de';
+const HILFE_TEXTE = {"de": {"dir": "ltr", "titel": "So funktioniert diese Seite", "schritte": [["Produkte wählen", "Tippe auf ein Produkt das du heute in den Froster oder Bestand gelegt hast. Die Karte öffnet sich."], ["Menge eingeben", "Trage ein wie viele Bleche oder Stück in den Froster bzw. Bestand gekommen sind — nicht was du insgesamt produziert hast, nur was übrig geblieben ist."], ["Nachricht generieren", "Tippe auf \"Nachricht generieren\". Du bekommst einen Text mit allen Mengen."], ["Senden", "Schicke die Nachricht per WhatsApp an deinen Kollegen — oder kopiere sie in die Zwischenablage."]], "hinweis": "⚠ Wichtig: Trage nur ein was wirklich im Froster oder Lager gelandet ist. Was schon verplant oder ausgegeben wurde, zählt nicht."}, "en": {"dir": "ltr", "titel": "How to use this page", "schritte": [["Select products", "Tap on a product that you put into the freezer or stock today. The card will open."], ["Enter quantity", "Enter how many trays or pieces went into the freezer or stock — not the total produced, only what is left over."], ["Generate message", "Tap \"Generate message\". You will get a text with all the quantities."], ["Send", "Send the message via WhatsApp to your colleague — or copy it to the clipboard."]], "hinweis": "⚠ Important: Only enter what actually ended up in the freezer or storage. Items already assigned or handed out do not count."}, "ar": {"dir": "rtl", "titel": "شلون تستخدم هاي الصفحة", "schritte": [["اختار المنتجات", "اضغط على المنتج اللي حطيته اليوم بالفريزر أو المخزن. الكارت راح يتفتح."], ["أدخل الكمية", "اكتب كم صينية أو قطعة راحت للفريزر أو المخزن — مو الكل اللي صنعته، بس اللي ضل موجود."], ["اطلع الرسالة", "اضغط على \"توليد الرسالة\". راح تطلعلك رسالة بكل الكميات."], ["أرسل", "ابعث الرسالة عن طريق واتساب للمسؤول — أو انسخها للكليب بورد."]], "hinweis": "⚠ مهم: اكتب بس اللي وصل فعلاً للفريزر أو المخزن. اللي انبيع أو انوزع ما يحسب."}, "vi": {"dir": "ltr", "titel": "Cách sử dụng trang này", "schritte": [["Chọn sản phẩm", "Nhấn vào sản phẩm mà bạn đã cho vào tủ đông hoặc kho hôm nay. Thẻ sẽ mở ra."], ["Nhập số lượng", "Nhập số khay hoặc số cái đã vào tủ đông hoặc kho — không phải tổng số đã làm, chỉ tính phần còn lại."], ["Tạo tin nhắn", "Nhấn \"Tạo tin nhắn\". Bạn sẽ nhận được một tin nhắn với tất cả số lượng."], ["Gửi đi", "Gửi tin nhắn qua WhatsApp cho đồng nghiệp — hoặc sao chép vào khay nhớ tạm."]], "hinweis": "⚠ Quan trọng: Chỉ nhập những gì thực sự đã vào tủ đông hoặc kho. Những gì đã được phân phối hoặc bán ra không được tính."}};
+
+function oeffneHilfe() {
+    document.getElementById('hilfe-modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    renderHilfe();
+}
+function schliesseHilfe() {
+    document.getElementById('hilfe-modal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+function setHilfeSpache(lang) {
+    aktiveHilfeSpache = lang;
+    document.querySelectorAll('.hlng-btn').forEach(b => b.classList.remove('aktiv'));
+    document.getElementById('hlng-' + lang).classList.add('aktiv');
+    renderHilfe();
+}
+function renderHilfe() {
+    const t = HILFE_TEXTE[aktiveHilfeSpache];
+    const inhalt = document.getElementById('hilfe-inhalt');
+    inhalt.setAttribute('dir', t.dir);
+    let html = '<div style="font-size:0.95rem;font-weight:900;margin-bottom:14px;">' + t.titel + '</div>';
+    t.schritte.forEach(function(s, i) {
+        html += '<div class="hilfe-schritt"><div class="hilfe-nr">' + (i+1) + '</div><div class="hilfe-text"><strong>' + s[0] + '</strong><span>' + s[1] + '</span></div></div>';
+    });
+    html += '<div class="hilfe-hinweis">' + t.hinweis + '</div>';
+    inhalt.innerHTML = html;
+}
+
+</script>
+
+<!-- Hilfe Modal -->
+<div id="hilfe-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;overflow-y:auto;" onclick="if(event.target===this)schliesseHilfe()">
+    <div style="background:var(--card-bg,#fff);border-radius:16px 16px 0 0;max-width:680px;margin:40px auto 0;padding:20px 16px 40px;min-height:60vh;">
+        
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div style="font-size:1rem;font-weight:900;color:var(--amber,#e67e22);">❓ Anleitung</div>
+            <div style="display:flex;gap:8px;">
+                <button onclick="setHilfeSpache('de')" id="hlng-de" class="hlng-btn aktiv">🇩🇪</button>
+                <button onclick="setHilfeSpache('en')" id="hlng-en" class="hlng-btn">🇬🇧</button>
+                <button onclick="setHilfeSpache('ar')" id="hlng-ar" class="hlng-btn">🇮🇶</button>
+                <button onclick="setHilfeSpache('vi')" id="hlng-vi" class="hlng-btn">🇻🇳</button>
+                <button onclick="schliesseHilfe()" style="font-size:1.2rem;background:none;border:none;cursor:pointer;color:var(--dim,#6b7280);padding:0 4px;">✕</button>
+            </div>
+        </div>
+
+        <!-- Inhalt -->
+        <div id="hilfe-inhalt"></div>
+    </div>
+</div>
+
+<!-- Hilfe Button -->
+<button onclick="oeffneHilfe()" style="position:fixed;bottom:74px;right:14px;width:36px;height:36px;border-radius:50%;background:var(--amber,#e67e22);color:#fff;font-size:1rem;font-weight:900;border:none;cursor:pointer;z-index:100;box-shadow:0 2px 8px rgba(230,126,34,0.4);">?</button>
+
+<style>
+.hlng-btn { font-size:1.1rem;background:none;border:1.5px solid var(--border-color,#e5e0d8);border-radius:6px;padding:3px 7px;cursor:pointer; }
+.hlng-btn.aktiv { border-color:var(--amber,#e67e22);background:#fffbf5; }
+.hilfe-schritt { display:flex;gap:12px;margin-bottom:14px;align-items:flex-start; }
+.hilfe-nr { min-width:28px;height:28px;border-radius:50%;background:var(--amber,#e67e22);color:#fff;font-weight:900;font-size:0.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px; }
+.hilfe-text strong { display:block;font-size:0.88rem;margin-bottom:2px; }
+.hilfe-text span { font-size:0.78rem;color:var(--dim,#6b7280);line-height:1.5; }
+.hilfe-hinweis { background:#fffbf5;border-left:3px solid var(--amber,#e67e22);border-radius:0 8px 8px 0;padding:10px 12px;font-size:0.78rem;color:var(--text-primary,#1a1a1a);line-height:1.6;margin-top:16px; }
+[dir="rtl"] .hilfe-schritt { flex-direction:row-reverse; }
+[dir="rtl"] .hilfe-hinweis { border-left:none;border-right:3px solid var(--amber,#e67e22); }
+</style>
+</body>
+</html>

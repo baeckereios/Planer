@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#c07a10">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="BäckereiOS">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BOS - Planer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="systemdesign.css">
+    
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+
+    <style>
+        body { padding-bottom: 160px; margin: 0; }
+
+        /* ─── STICKY HEADER ─── */
+        .app-header {
+            background: var(--surface);
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+
+        .brand-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 18px 20px 0;
+        }
+        .brand-logo {
+            font-family: 'Fraunces', serif;
+            font-weight: 900;
+            font-size: 2.8rem;
+            color: var(--text);
+            line-height: 1;
+            margin: 0;
+        }
+        .brand-logo span { color: var(--amber); font-style: italic; }
+
+        .slogan-bar {
+            background: #111;
+            color: var(--amber);
+            padding: 9px 20px;
+            margin-top: 10px;
+            font-family: 'Barlow Condensed';
+            font-weight: 800;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .sub-nav {
+            display: flex;
+            align-items: center;
+            padding: 10px 18px;
+            gap: 16px;
+            border-top: 2px solid var(--border);
+        }
+        .btn-back-nav {
+            text-decoration: none;
+            color: var(--dim);
+            font-weight: 900;
+            font-size: 0.85rem;
+            font-family: 'Barlow Condensed';
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 7px 12px;
+            background: var(--surface2);
+            border: 2px solid var(--border-s);
+            border-radius: 10px;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .btn-back-nav:hover { border-color: var(--amber); color: var(--amber); }
+
+        .sub-title {
+            font-family: 'Barlow Condensed';
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: var(--amber);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            white-space: nowrap;
+        }
+
+        /* ─── FORTSCHRITTSBALKEN ─── */
+        .plan-progress {
+            padding: 10px 18px 14px;
+            border-top: 1px solid var(--border);
+        }
+        .plan-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .plan-progress-label {
+            font-family: 'Barlow Condensed';
+            font-weight: 900;
+            font-size: 0.82rem;
+            color: var(--dim);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .plan-progress-count {
+            font-family: 'Barlow Condensed';
+            font-weight: 900;
+            font-size: 0.95rem;
+            color: var(--text);
+            transition: color 0.3s;
+        }
+        .plan-progress-count.all-ok { color: var(--green); }
+        .plan-progress-count.has-error { color: var(--red); }
+
+        /* Die eigentliche Leiste mit Start- & Ziel-Icons */
+        .plan-progress-track-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .progress-icon-start {
+            font-size: 1.35rem;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .progress-icon-end {
+            font-size: 1.35rem;
+            flex-shrink: 0;
+            line-height: 1;
+            transition: filter 0.4s;
+        }
+        .progress-icon-end.dimmed { filter: grayscale(1) opacity(0.3); }
+
+        .plan-progress-track {
+            flex: 1;
+            height: 14px;
+            background: var(--surface2);
+            border-radius: 99px;
+            overflow: hidden;
+            border: 2px solid var(--border-s);
+            position: relative;
+        }
+        .plan-progress-fill {
+            height: 100%;
+            border-radius: 99px;
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.4,0,0.2,1), background 0.4s;
+            background: linear-gradient(90deg, var(--amber), #e8a030);
+            position: relative;
+        }
+        .plan-progress-fill.all-ok {
+            background: linear-gradient(90deg, var(--green), #6dd49a);
+        }
+        /* Glimmer-Effekt auf der Füllung */
+        .plan-progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 30px; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4));
+            border-radius: 99px;
+        }
+
+        /* Produkt-Dots unter der Leiste */
+        .plan-progress-dots {
+            display: flex;
+            gap: 5px;
+            margin-top: 7px;
+            justify-content: flex-start;
+            padding: 0 2px;
+        }
+        .p-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--border-s);
+            transition: background 0.3s, transform 0.2s;
+            flex-shrink: 0;
+        }
+        .p-dot.ok { background: var(--green); transform: scale(1.2); }
+        .p-dot.err { background: var(--red); transform: scale(1.2); }
+
+        /* ─── CONTAINER ─── */
+        .container { max-width: 650px; margin: 0 auto; padding: 24px 16px; }
+
+        /* ─── PLAN CARDS ─── */
+        .plan-card {
+            background: var(--surface);
+            border: 2.5px solid var(--border);
+            border-radius: 22px;
+            padding: 0;
+            margin-bottom: 28px;
+            box-shadow: 0 8px 28px var(--shadow);
+            overflow: hidden;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            will-change: border-color; 
+        }
+        .card-red {
+            border-color: rgba(201, 74, 74, 0.5);
+            box-shadow: 0 8px 28px rgba(201,74,74,0.1);
+        }
+        .card-green {
+            border-color: rgba(77, 184, 122, 0.4);
+            box-shadow: 0 8px 28px rgba(77,184,122,0.08);
+        }
+        .plan-card::before {
+            content: '';
+            display: block;
+            height: 4px;
+            background: var(--border-s);
+            transition: background 0.3s;
+        }
+        .card-red::before { background: linear-gradient(90deg, var(--red), rgba(201,74,74,0.3)); }
+        .card-green::before { background: linear-gradient(90deg, var(--green), rgba(77,184,122,0.3)); }
+
+        .p-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 20px 22px 18px;
+            border-bottom: 2px solid var(--border-s);
+        }
+        .p-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.7rem;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+        .p-info {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--dim);
+            margin-top: 4px;
+        }
+
+        .badge {
+            padding: 7px 14px;
+            border-radius: 14px;
+            font-weight: 900;
+            font-family: 'Barlow Condensed';
+            border: 2px solid;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .badge-red {
+            background: rgba(201, 74, 74, 0.1);
+            color: var(--red);
+            border-color: rgba(201, 74, 74, 0.35);
+        }
+        .badge-green {
+            background: rgba(77, 184, 122, 0.1);
+            color: var(--green);
+            border-color: rgba(77, 184, 122, 0.35);
+        }
+
+        .card-body { padding: 16px 14px; }
+
+        /* ─── DAS NEUE ABSOLUTE LAYOUT FÜR EXAKTE ZENTRIERUNG ─── */
+        .day-row {
+            background: var(--surface2);
+            border-radius: 14px;
+            min-height: 82px; /* Fester Raum, damit alles atmen kann */
+            border: 2px solid var(--border-s);
+            position: relative; /* Wichtig für die absolute Positionierung der Kinder */
+            z-index: 2;
+            transition: border-color 0.2s;
+            margin-bottom: 0;
+        }
+        .day-row:focus-within { border-color: var(--amber); }
+
+        .d-name {
+            position: absolute;
+            top: 14px;
+            left: 16px;
+            font-weight: 900;
+            font-size: 1.15rem;
+            font-family: 'Barlow Condensed';
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        
+        /* Das neue Scrub-Steuerpult - EXAKT in der Mitte festgenagelt */
+        .scrub-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Millimetergenaues Zentrieren */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            touch-action: pan-y; 
+            user-select: none;
+        }
+
+        .d-input {
+            width: 72px;
+            height: 46px;
+            border: 2.5px solid var(--border-s);
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 900;
+            font-size: 1.2rem;
+            background: var(--surface);
+            color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.1s;
+            flex-shrink: 0;
+            pointer-events: auto; 
+        }
+        .d-input:focus { outline: none; border-color: var(--amber); }
+
+        /* Die pulsierenden Pfeile - JETZT AUFFÄLLIG UND DUNKEL */
+        .scrub-arrow {
+            font-size: 1.6rem; /* Größer */
+            color: var(--text); /* Schwarz/Dunkelgrau statt Braun */
+            opacity: 0; 
+            transition: 0.2s, color 0.1s;
+            pointer-events: none; 
+        }
+        .scrub-wrapper.is-prod .scrub-arrow {
+            opacity: 0.65; /* Grund-Sichtbarkeit erhöht */
+            animation: pulseArrow 2s infinite;
+        }
+        .scrub-wrapper.is-prod .scrub-arrow.left { animation-name: pulseArrowLeft; }
+        .scrub-wrapper.is-prod .scrub-arrow.right { animation-name: pulseArrowRight; }
+        
+        @keyframes pulseArrowLeft { 
+            0%, 100% { transform: translateX(0); opacity: 0.3; } 
+            50% { transform: translateX(-5px); opacity: 1; } 
+        }
+        @keyframes pulseArrowRight { 
+            0%, 100% { transform: translateX(0); opacity: 0.3; } 
+            50% { transform: translateX(5px); opacity: 1; } 
+        }
+
+        .scrub-wrapper.is-scrubbing .scrub-arrow { 
+            animation: none; 
+            opacity: 1; 
+            color: var(--text);
+        }
+        .scrub-wrapper.is-scrubbing .d-input {
+            border-color: var(--amber);
+            box-shadow: 0 0 0 3px rgba(192,122,16,0.2);
+            transform: scale(1.05);
+        }
+
+        /* Bedarf - Dezent unten rechts in die Ecke verbannt */
+        .d-need {
+            position: absolute;
+            bottom: 12px;
+            right: 16px;
+            font-weight: 700;
+            font-size: 0.75rem; /* Viel kleiner und dezenter */
+            color: var(--dim);
+            text-align: right;
+            line-height: 1.35;
+            max-width: 45%; /* Verhindert, dass langer Text in die Mitte ragt */
+        }
+
+        .connector {
+            position: relative;
+            height: 34px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: -1px 12px;
+        }
+        .c-line {
+            position: absolute;
+            top: 50%; left: 10%; right: 10%;
+            height: 2px;
+            z-index: 1;
+            border-radius: 2px;
+        }
+        .c-bubble {
+            position: relative;
+            z-index: 2;
+            background: var(--surface);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 900;
+            font-family: 'Barlow Condensed';
+            border: 2px solid;
+            font-size: 0.85rem;
+            letter-spacing: 0px;
+            white-space: nowrap;
+        }
+        .c-pos { border-color: var(--green); color: var(--green); }
+        .c-neg { border-color: var(--red); color: var(--red); }
+
+        /* ─── BOTTOM ACTIONS ─── */
+        .bottom-actions {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--surface);
+            padding: 14px 18px;
+            border-top: 2px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+        .btn-reset {
+            width: 100%;
+            padding: 13px;
+            border-radius: 12px;
+            border: 2px solid var(--border-s);
+            background: var(--surface2);
+            font-weight: 900;
+            font-family: 'Barlow Condensed';
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.95rem;
+            color: var(--dim);
+            letter-spacing: 1px;
+            transition: 0.2s;
+        }
+        .btn-reset:hover { border-color: var(--amber); color: var(--amber); }
+
+        .action-row { display: flex; gap: 10px; }
+        .btn-act {
+            flex: 1;
+            padding: 17px;
+            border-radius: 14px;
+            font-family: 'Barlow Condensed';
+            font-weight: 900;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            color: white;
+            letter-spacing: 1px;
+            transition: transform 0.1s;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+        }
+        .btn-act:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
+
+        .error-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 900;
+            font-family: 'Barlow Condensed';
+            font-size: 1rem;
+            letter-spacing: 1px;
+            border: 2px dashed var(--red);
+            background: rgba(201,74,74,0.08);
+            color: var(--red);
+        }
+
+        /* ─── ANIMATIONS ─── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .plan-card { animation: fadeUp 0.4s ease both; }
+        .plan-card:nth-child(1) { animation-delay: 0.04s; }
+        .plan-card:nth-child(2) { animation-delay: 0.10s; }
+        .plan-card:nth-child(3) { animation-delay: 0.16s; }
+        .plan-card:nth-child(4) { animation-delay: 0.22s; }
+        .plan-card:nth-child(5) { animation-delay: 0.28s; }
+    </style>
+</head>
+<body>
+
+    <div class="app-header">
+        <div class="brand-row">
+            <h1 class="brand-logo">Bäckerei<span>OS</span></h1>
+            <div class="slogan-bar">„Wir machen das Frühstück erst möglich."</div>
+        </div>
+        <div class="sub-nav">
+            <a href="setup.html" class="btn-back-nav">← Zurück</a>
+            <div class="sub-title">Planer</div>
+        </div>
+
+        <div class="plan-progress">
+            <div class="plan-progress-header">
+                <span class="plan-progress-label">Planfortschritt</span>
+                <span class="plan-progress-count" id="prog-count">– / –</span>
+            </div>
+            <div class="plan-progress-track-wrap">
+                <span class="progress-icon-start" title="Start">🥐</span>
+                <div class="plan-progress-track">
+                    <div class="plan-progress-fill" id="plan-prog-fill"></div>
+                </div>
+                <span class="progress-icon-end dimmed" id="prog-flag" title="Ziel">🏁</span>
+            </div>
+            <div class="plan-progress-dots" id="prog-dots"></div>
+        </div>
+    </div>
+
+    <div class="container" id="planner-output"></div>
+
+    <div class="bottom-actions">
+        <button class="btn-reset" onclick="resetAll()">🔄 Alle Eingaben auf 0 setzen</button>
+        <div id="error-state">
+            <div class="error-banner">⚠️ Plan fehlerhaft – Lücken vorhanden!</div>
+        </div>
+        <div id="success-state" class="action-row" style="display:none;">
+            <button class="btn-act" style="background:var(--amber); box-shadow:0 4px 0 #925d0c;" onclick="printPlan()">🖨️ Drucken</button>
+            <button class="btn-act" style="background:var(--green); box-shadow:0 4px 0 #2d8a50;" onclick="shareWhatsApp()">💬 WhatsApp</button>
+        </div>
+        <div id="success-detail-state" style="display:none; margin-top:0;">
+            <button onclick="printDetailPlan()" style="width:100%;padding:11px;border-radius:12px;border:1.5px solid var(--border-s);background:var(--surface2);color:var(--dim);font-weight:800;font-size:0.82rem;cursor:pointer;font-family:inherit;letter-spacing:0.5px;">📊 Detailierter Druck</button>
+        </div>
+    </div>
+
+    <script src="feiertage_nds.js"></script>
+    <script src="produktions_gehirn.js"></script>
+    <script src="froster_gehirn.js"></script>
+    <script src="export.js"></script>
+    <script>
+        const daysNames     = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+        const daysNamesFull = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+        let todayJS         = new Date().getDay(); 
+        let sess = null, productionPrintData = {};
+
+        const elProgFill  = document.getElementById('plan-prog-fill');
+        const elProgCount = document.getElementById('prog-count');
+        const elProgFlag  = document.getElementById('prog-flag');
+        const elProgDots  = document.getElementById('prog-dots');
+        const elErrorState   = document.getElementById('error-state');
+        const elSuccessState = document.getElementById('success-state');
+
+        const domCache = {}; 
+
+        function init() {
+            document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light');
+            let _retries = 0;
+            function _tryLoad() {
+                const raw = localStorage.getItem('BOS_SESSION');
+                if (!raw) {
+                    if (_retries++ < 5) { setTimeout(_tryLoad, 80); return; }
+                    window.location.href = 'setup.html';
+                    return;
+                }
+                try {
+                    sess = JSON.parse(raw);
+                    todayJS = sess.startDayIdx ?? todayJS; 
+                } catch(e) {
+                    window.location.href = 'setup.html';
+                    return;
+                }
+                buildDOM();
+                
+                if (sess.prePlanned) {
+                    sess.selectedIds.forEach(id => {
+                        const planned = sess.prePlanned[id];
+                        if (!planned) return;
+                        planned.forEach((amount, i) => {
+                            const inp = document.getElementById(`inp_${id}_${i}`);
+                            if (inp && amount > 0) inp.value = amount;
+                        });
+                    });
+                }
+                calculateMath();
+            }
+            _tryLoad();
+        }
+
+        function buildDOM() {
+            const cont = document.getElementById('planner-output');
+            const frag = document.createDocumentFragment();
+
+            sess.selectedIds.forEach(id => {
+                const p = window.BOS_STAMMDATEN[id];
+                if (!p) return;
+
+                const targetDayJS = sess.targetDays[id] || 1;
+                const rawSteps    = (targetDayJS - todayJS + 7) % 7 || 7;
+                const steps       = rawSteps < 3 ? rawSteps + 7 : rawSteps;
+
+                let rowsHtml = '';
+                for (let i = 0; i <= steps; i++) {
+                    const jsIdx    = (todayJS + i) % 7;
+                    const isTarget = (i === steps);
+                    
+                    rowsHtml += `
+                    <div class="day-row">
+                        <div class="d-name">${daysNames[jsIdx]}${isTarget ? ' 🎯' : ''}</div>
+                        
+                        <div class="scrub-wrapper" id="scrub_${id}_${i}" data-id="${id}" data-step="${i}">
+                            <i class="ph-bold ph-caret-left scrub-arrow left"></i>
+                            <input type="number" class="d-input" id="inp_${id}_${i}" oninput="calculateMath()" placeholder="0">
+                            <i class="ph-bold ph-caret-right scrub-arrow right"></i>
+                        </div>
+                        
+                        <div class="d-need" id="need_${id}_${i}"></div>
+                    </div>`;
+                    
+                    if (!isTarget) rowsHtml += `<div class="connector"><div class="c-line" id="line_${id}_${i}"></div><div class="c-bubble" id="bub_${id}_${i}">0</div></div>`;
+                }
+
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = `
+                    <div class="plan-card" id="card_${id}">
+                        <div class="p-head">
+                            <div>
+                                <div class="p-title">${p.name}</div>
+                                <div class="p-info">📦 Ist: ${sess.inventory[id]} ${sess.frosterDone ? '| ❄️ Froster fertig' : '| 📦 Noch nicht'}</div>
+                            </div>
+                            <div class="badge" id="badge_${id}">–</div>
+                        </div>
+                        <div class="card-body">${rowsHtml}</div>
+                    </div>`;
+                frag.appendChild(wrapper.firstElementChild);
+            });
+
+            cont.innerHTML = '';
+            cont.appendChild(frag);
+
+            sess.selectedIds.forEach(id => {
+                const p = window.BOS_STAMMDATEN[id];
+                if (!p) return;
+                const rawSt = ((sess.targetDays[id] || 1) - todayJS + 7) % 7 || 7;
+                const steps = rawSt < 3 ? rawSt + 7 : rawSt;
+                const rows  = [];
+                for (let i = 0; i <= steps; i++) {
+                    rows.push({
+                        wrap: document.getElementById(`scrub_${id}_${i}`),
+                        need: document.getElementById(`need_${id}_${i}`),
+                        inp:  document.getElementById(`inp_${id}_${i}`),
+                        bub:  i < steps ? document.getElementById(`bub_${id}_${i}`)  : null,
+                        line: i < steps ? document.getElementById(`line_${id}_${i}`) : null,
+                    });
+                }
+                domCache[id] = {
+                    card:  document.getElementById(`card_${id}`),
+                    badge: document.getElementById(`badge_${id}`),
+                    rows,
+                };
+            });
+
+            elProgDots.innerHTML = sess.selectedIds
+                .map(id => `<div class="p-dot" id="dot_${id}"></div>`)
+                .join('');
+        }
+
+        function calculateMath() {
+            let okCount = 0;
+            productionPrintData = {};
+            for (let d = 0; d < 7; d++) productionPrintData[d] = [];
+
+            const total = sess.selectedIds.length;
+
+            sess.selectedIds.forEach(id => {
+                const p      = window.BOS_STAMMDATEN[id];
+                const cache  = domCache[id];
+                if (!p || !cache) return;
+
+                const steps = cache.rows.length - 1;
+                const planned = cache.rows.map(r => parseInt(r.inp?.value) || 0);
+
+                const prodDays = sess.productionDays?.[id] || [];
+                cache.rows.forEach((r, i) => {
+                    if (!r.inp) return;
+                    const dIdx = (todayJS + i) % 7;
+                    const isProdDay = prodDays.includes(dIdx) && i < cache.rows.length - 1;
+
+                    // Scrub-Wrapper für Produktionstage aktivieren
+                    if (isProdDay) {
+                        r.inp.style.borderColor = 'var(--amber)';
+                        r.inp.style.boxShadow   = '0 0 0 2px rgba(192,122,16,0.18)';
+                        if (r.wrap) r.wrap.classList.add('is-prod');
+                    } else {
+                        r.inp.style.borderColor = '';
+                        r.inp.style.boxShadow   = '';
+                        if (r.wrap) r.wrap.classList.remove('is-prod');
+                    }
+                    
+                    const v = planned[i];
+                    r.inp.style.borderColor = v > 0 ? 'var(--amber)' : (isProdDay ? 'var(--amber)' : 'var(--border-s)');
+                    r.inp.style.color       = v > 0 ? 'var(--amber)' : 'var(--text)';
+                });
+
+                const brain = window.BOS_BRAIN.calculateChain(id, sess, planned);
+                if (!brain) return;
+
+                brain.chain.forEach((step, i) => {
+                    const isTarget = (i === steps);
+                    if (step.planned > 0) productionPrintData[step.dayIdx].push({ name: p.name, amount: step.planned, special: 0 });
+
+                    let needDisplay = `Bedarf: ${step.need}`;
+                    if (step.actualConsumption === 0 && step.need > 0) {
+                        needDisplay = `<span style="color:var(--green); font-weight:800;">Bedarf: <span style="text-decoration:line-through; opacity:0.6;">${step.need}</span> ✓ Froster</span>`;
+                        if (i === 0 && sess.shortages[id]) needDisplay += `<br><small style="color:var(--red);">❄️ Frosterfehlmenge: ${sess.shortages[id]}</small>`;
+                    } else if (step.stockAfterNeed < 0) {
+                        needDisplay = `Bedarf: ${step.need}<br><span style="color:var(--red); font-weight:900; font-size:0.82rem;">⚠️ Lücke: ${Math.abs(step.stockAfterNeed)}</span>`;
+                    }
+                    if (isTarget) {
+                        const ok = step.restAfter >= 0;
+                        needDisplay += `<div style="margin-top:7px; padding-top:7px; border-top:1px dashed var(--border-s); color:${ok ? 'var(--green)' : 'var(--red)'}; font-weight:900;">${ok ? '🏁 ZIEL' : '🚨 VERFEHLT'}: ${Math.abs(step.restAfter)}</div>`;
+                    }
+
+                    if (cache.rows[i]?.need) cache.rows[i].need.innerHTML = needDisplay;
+
+                    if (!isTarget && cache.rows[i]?.bub && cache.rows[i]?.line) {
+                        const nextConsumption = brain.chain[i + 1]?.actualConsumption ?? 0;
+                        const isEnough = step.restAfter >= nextConsumption;
+                        cache.rows[i].bub.textContent = `(${step.restAfter}/${nextConsumption})`;
+                        cache.rows[i].bub.className   = 'c-bubble ' + (!isEnough ? 'c-neg' : 'c-pos');
+                        cache.rows[i].line.style.background = step.isWarning ? 'rgba(201,74,74,0.4)' : 'rgba(77,184,122,0.4)';
+                    }
+                });
+
+                const isOk = brain.isOk;
+                if (isOk) okCount++;
+
+                cache.card.className  = 'plan-card ' + (isOk ? 'card-green' : 'card-red');
+                cache.badge.className = 'badge '     + (isOk ? 'badge-green' : 'badge-red');
+                cache.badge.textContent = isOk ? '✓ Gedeckt' : `⚠️ ${Math.abs(brain.maxDeficit)}`;
+
+                const dot = document.getElementById(`dot_${id}`);
+                if (dot) dot.className = 'p-dot ' + (isOk ? 'ok' : 'err');
+            });
+
+            const pct   = total > 0 ? Math.round(okCount / total * 100) : 0;
+            const allOk = okCount === total && total > 0;
+
+            elProgFill.style.width = pct + '%';
+            elProgFill.classList.toggle('all-ok', allOk);
+            elProgCount.textContent = `${okCount} / ${total} gedeckt`;
+            elProgCount.className   = 'plan-progress-count' + (allOk ? ' all-ok' : okCount > 0 ? '' : ' has-error');
+            elProgFlag.classList.toggle('dimmed', !allOk);
+
+            elErrorState.style.display   = allOk ? 'none'  : 'block';
+            elSuccessState.style.display = allOk ? 'flex'  : 'none';
+            document.getElementById('success-detail-state').style.display = allOk ? 'block' : 'none';
+        }
+
+        function resetAll() {
+            sess.selectedIds.forEach(id => {
+                const cache = domCache[id];
+                if (!cache) return;
+                cache.rows.forEach(r => {
+                    if (!r.inp) return;
+                    r.inp.value = '';
+                    r.inp.style.borderColor = 'var(--border-s)';
+                    r.inp.style.color       = 'var(--text)';
+                });
+            });
+            calculateMath();
+        }
+
+        function printPlan() {
+            const d = [];
+            for (let i = 0; i < 7; i++) {
+                const idx = (todayJS + i) % 7;
+                if (productionPrintData[idx].length > 0) d.push({ name: daysNamesFull[idx], products: productionPrintData[idx] });
+            }
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const timeStr = now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+
+            const totalProducts = d.reduce((s, day) => s + day.products.length, 0);
+            const totalAmount   = d.reduce((s, day) => s + day.products.reduce((ss, p) => ss + p.amount, 0), 0);
+
+            const dayBlocksHtml = d.map(day => {
+                const rows = day.products.map((p, i) => `
+                    <tr class="${i % 2 === 0 ? 'row-even' : 'row-odd'}">
+                        <td class="td-name">${p.name}</td>
+                        <td class="td-amount">${p.amount}</td>
+                        <td class="td-check"><span class="check-box"></span></td>
+                    </tr>`).join('');
+                const dayTotal = day.products.reduce((s, p) => s + p.amount, 0);
+                return `
+                <div class="day-block">
+                    <div class="day-header">
+                        <span class="day-name">${day.name}</span>
+                        <span class="day-total">${day.products.length} Produkte · ${dayTotal} Stück</span>
+                    </div>
+                    <div class="day-rule"></div>
+                    <table class="prod-table">
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>`;
+            }).join('');
+
+            const html = `<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>BäckereiOS – Produktionsplan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@900&family=Barlow+Condensed:wght@400;700;800;900&family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    @page {
+        size: A4 portrait;
+        margin: 18mm 20mm 22mm 20mm;
+    }
+
+    body {
+        font-family: 'Barlow', sans-serif;
+        background: #fff;
+        color: #1a1a1a;
+        font-size: 10pt;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* ── HEADER ── */
+    .print-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding-bottom: 10px;
+        border-bottom: 1.5px solid #1a1a1a;
+        margin-bottom: 18px;
+    }
+    .brand-logo {
+        font-family: 'Fraunces', serif;
+        font-weight: 900;
+        font-size: 22pt;
+        color: #1a1a1a;
+        line-height: 1;
+        letter-spacing: -0.5px;
+    }
+    .brand-logo span { font-style: italic; }
+
+    .header-meta {
+        text-align: right;
+        padding-top: 3px;
+    }
+    .header-meta .doc-label {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 7pt;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: #999;
+    }
+    .header-meta .doc-value {
+        font-family: 'Barlow', sans-serif;
+        font-size: 8.5pt;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+    .header-meta .doc-time {
+        font-size: 7.5pt;
+        font-weight: 400;
+        color: #666;
+    }
+
+    /* ── SUMMARY LINE ── */
+    .summary-line {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 22px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .summary-item {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 8pt;
+        color: #888;
+        letter-spacing: 0.5px;
+    }
+    .summary-item strong {
+        color: #1a1a1a;
+        font-weight: 800;
+        font-size: 9pt;
+        margin-right: 3px;
+    }
+
+    /* ── DAY BLOCK ── */
+    .day-block {
+        margin-bottom: 20px;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    .day-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 4px;
+    }
+    .day-name {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-weight: 900;
+        font-size: 11pt;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #1a1a1a;
+    }
+    .day-total {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 8pt;
+        font-weight: 400;
+        color: #aaa;
+        letter-spacing: 0.5px;
+    }
+    .day-rule {
+        height: 1.5px;
+        background: #1a1a1a;
+        margin-bottom: 0;
+    }
+
+    /* ── TABLE ── */
+    .prod-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .prod-table tr {
+        border-bottom: 1px solid #ececec;
+    }
+    .prod-table tr:last-child {
+        border-bottom: 1px solid #ccc;
+    }
+    .prod-table td {
+        padding: 7px 6px;
+        vertical-align: middle;
+    }
+
+    .td-name {
+        font-size: 9.5pt;
+        font-weight: 600;
+        color: #1a1a1a;
+        width: 100%;
+    }
+    .row-odd .td-name {
+        color: #333;
+    }
+    .td-amount {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-weight: 900;
+        font-size: 11pt;
+        color: #1a1a1a;
+        text-align: right;
+        white-space: nowrap;
+        padding-right: 10px;
+    }
+    .td-check {
+        text-align: center;
+        padding: 7px 4px;
+    }
+    .check-box {
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        border: 1.5px solid #bbb;
+        border-radius: 2px;
+        vertical-align: middle;
+    }
+
+    /* ── FOOTER ── */
+    .print-footer {
+        position: fixed;
+        bottom: 0;
+        left: 20mm; right: 20mm;
+        border-top: 1px solid #ddd;
+        padding: 6px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+    }
+    .footer-brand {
+        font-family: 'Fraunces', serif;
+        font-weight: 900;
+        font-size: 8pt;
+        color: #bbb;
+    }
+    .footer-brand span { font-style: italic; }
+    .footer-info {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 7.5pt;
+        color: #bbb;
+        letter-spacing: 0.3px;
+    }
+
+    @media print {
+        .no-print { display: none !important; }
+    }
+
+    /* ── SCREEN PREVIEW ── */
+    @media screen {
+        body { padding: 30px; max-width: 700px; margin: 0 auto; }
+        .print-footer { position: static; border-top: 1px solid #ddd; padding: 12px 0; margin-top: 30px; }
+    }
+
+    .print-btn-wrap {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 999;
+    }
+    .btn-print-now {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-weight: 900;
+        font-size: 0.95rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        background: #1a1a1a;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .btn-print-now:hover { background: #333; }
+    @media print { .print-btn-wrap { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="print-btn-wrap no-print">
+    <button class="btn-print-now" onclick="window.print()">Drucken</button>
+</div>
+
+<div class="print-header">
+    <div class="brand-logo">Bäckerei<span>OS</span></div>
+    <div class="header-meta">
+        <div class="doc-label">Druckdatum</div>
+        <div class="doc-value">${dateStr}</div>
+        <div class="doc-time">Uhrzeit: ${timeStr} Uhr</div>
+    </div>
+</div>
+
+<div class="summary-line">
+    <span class="summary-item"><strong>${d.length}</strong> Produktionstage</span>
+    <span class="summary-item"><strong>${totalProducts}</strong> Produkte</span>
+    <span class="summary-item"><strong>${totalAmount}</strong> Stück gesamt</span>
+</div>
+
+<div class="content">
+    ${dayBlocksHtml}
+</div>
+
+<div class="print-footer">
+    <span class="footer-brand">Bäckerei<span>OS</span></span>
+    <span class="footer-info">Produktionsplan · ${dateStr}</span>
+</div>
+
+<script>
+    setTimeout(() => window.print(), 400);
+<\/script>
+</body>
+</html>`;
+
+            const w = window.open('', '_blank', 'width=800,height=1000');
+            w.document.write(html);
+            w.document.close();
+        }
+
+        function printDetailPlan() {
+            const now     = new Date();
+            const dateStr = now.toLocaleDateString('de-DE', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+            const timeStr = now.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
+
+            // TD-Helfer: 4 Spalten = Tag | Op | Zahl | Label
+            function tr(tag, op, zahl, label, opts) {
+                opts = opts || {};
+                const tagStyle   = 'padding:5px 10px 5px 8px;font-family:\'Barlow Condensed\',sans-serif;font-weight:900;font-size:9.5pt;text-transform:uppercase;letter-spacing:0.5px;vertical-align:middle;white-space:nowrap;'
+                                 + (opts.tagBorderTop ? 'border-top:' + opts.tagBorderTop + ';' : '')
+                                 + (opts.tagWidth     ? 'width:' + opts.tagWidth + ';' : 'width:88px;');
+                const opStyle    = 'padding:4px 4px;text-align:center;font-size:9pt;color:#888;vertical-align:middle;width:18px;'
+                                 + (opts.opBorderTop  ? 'border-top:' + opts.tagBorderTop + ';' : '');
+                const zahlStyle  = 'padding:4px 6px;text-align:right;font-family:\'Barlow Condensed\',sans-serif;vertical-align:middle;white-space:nowrap;min-width:38px;'
+                                 + 'font-size:' + (opts.zahlLarge ? '11pt' : '9.5pt') + ';'
+                                 + 'font-weight:' + (opts.zahlBold ? '900' : '600') + ';'
+                                 + (opts.opBorderTop ? 'border-top:' + opts.tagBorderTop + ';' : '');
+                const labelStyle = 'padding:4px 6px;font-size:7.5pt;color:#666;vertical-align:middle;'
+                                 + (opts.opBorderTop ? 'border-top:' + opts.tagBorderTop + ';' : '');
+                const tagHtml    = tag !== null
+                    ? '<td' + (opts.tagRowspan ? ' rowspan="' + opts.tagRowspan + '"' : '') + ' style="' + tagStyle + '">' + tag + '</td>'
+                    : '';
+                const zahlDisp   = opts.paren ? '(' + Math.abs(zahl) + ')' : zahl;
+                return '<tr>'
+                    + tagHtml
+                    + '<td style="' + opStyle  + '">' + (op    || '') + '</td>'
+                    + '<td style="' + zahlStyle + '">' + (zahl !== null && zahl !== undefined ? zahlDisp : '') + '</td>'
+                    + '<td style="' + labelStyle + '">' + (label || '') + '</td>'
+                    + '</tr>\n';
+            }
+
+            // Trennlinie zwischen Tagen
+            function trSep(thick) {
+                const bw = thick ? '2px' : '1px';
+                return '<tr><td colspan="4" style="padding:0;border-top:' + bw + ' solid ' + (thick ? '#1a1a1a' : '#ccc') + ';"></td></tr>\n';
+            }
+
+            // Dünne innere Linie (Zwischenstand)
+            function trLine() {
+                return '<tr><td colspan="4" style="padding:0;"><table style="width:100%;border-collapse:collapse;"><tr>'
+                    + '<td style="width:110px;border:none;"></td>'
+                    + '<td style="border-top:1px solid #1a1a1a;padding:0;"></td>'
+                    + '</tr></table></td></tr>\n';
+            }
+
+            let grandTotalNeed = 0, grandTotalProd = 0;
+
+            const productBlocksHtml = sess.selectedIds.map(function(id) {
+                const p       = window.BOS_STAMMDATEN[id];
+                if (!p) return '';
+                const cache   = domCache[id];
+                const planned = cache.rows.map(function(r){ return parseInt(r.inp && r.inp.value) || 0; });
+                const brain   = window.BOS_BRAIN.calculateChain(id, sess, planned);
+                if (!brain) return '';
+
+                const stock    = sess.inventory[id] || 0;
+                const shortage = (sess.shortages && sess.shortages[id]) || 0;
+                const effectiveStock = stock - shortage;
+                const totalProd = brain.chain.reduce(function(s,st){ return s+st.planned; },0);
+                const totalNeed = brain.chain.reduce(function(s,st){ return s+st.actualConsumption; },0);
+                const endStock  = brain.chain[brain.chain.length-1] ? brain.chain[brain.chain.length-1].restAfter : 0;
+
+                grandTotalNeed += totalNeed;
+                grandTotalProd += totalProd;
+
+                const dayFull7 = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+
+                let rows = '';
+
+                // START-ZEILE: Anfangsbestand
+                if (shortage > 0) {
+                    rows += trSep(false);
+                    rows += tr(null, '', stock,        'Bestand', {});
+                    rows += tr(null, '\u2212', shortage, 'Fehlmenge', {});
+                    rows += trLine();
+                    rows += tr(null, '=', effectiveStock < 0 ? effectiveStock : effectiveStock, 'Anfang', {zahlBold:true, paren: effectiveStock < 0});
+                } else {
+                    rows += trSep(false);
+                    rows += tr(null, '', stock, 'Bestand / Anfang', {zahlBold:true});
+                }
+
+                // TAG-ZEILEN
+                brain.chain.forEach(function(step, i) {
+                    const isTarget  = (i === brain.chain.length - 1);
+                    const isProd    = step.planned > 0;
+                    const isFroster = step.actualConsumption === 0 && step.need > 0;
+                    const dayName   = dayFull7[step.dayIdx] + (isTarget ? ' \u2691' : '');
+                    const ende      = step.restAfter;
+
+                    // Anzahl Zeilen dieses Tags berechnen (f\u00fcr rowspan)
+                    let rowCount = 1; // Verbrauchzeile
+                    if (isProd)    rowCount += 1; // Produktionszeile
+                    rowCount += 1; // Neubestand-Zeile
+
+                    // Tag-Zelle Stil
+                    const tagBorder = isProd ? '2.5px solid #1a1a1a' : '1px solid #ccc';
+                    const tagLabel  = isProd ? dayName + '<br><span style="font-size:6.5pt;font-weight:700;border:1px solid #1a1a1a;padding:0 3px;border-radius:2px;">PROD.</span>' : dayName;
+
+                    rows += trSep(isProd || isTarget);
+
+                    // Verbrauch-Zeile (mit rowspan auf Tag-Zelle)
+                    let tagHtmlInner = '<td rowspan="' + rowCount + '" style="padding:5px 10px 5px 8px;font-family:\'Barlow Condensed\',sans-serif;font-weight:900;font-size:9.5pt;text-transform:uppercase;letter-spacing:0.5px;vertical-align:middle;white-space:nowrap;width:88px;">'
+                        + tagLabel + '</td>';
+
+                    if (isFroster) {
+                        rows += '<tr>' + tagHtmlInner
+                            + '<td style="padding:4px 4px;text-align:center;font-size:9pt;color:#888;width:18px;">\u2212</td>'
+                            + '<td style="padding:4px 6px;text-align:right;font-family:\'Barlow Condensed\',sans-serif;font-size:9.5pt;font-weight:600;min-width:38px;white-space:nowrap;">\u2713 Froster</td>'
+                            + '<td style="padding:4px 6px;font-size:7.5pt;color:#666;">'
+                            + (shortage > 0 && i === 1 ? '(\u2212' + shortage + ' Fehlmenge)' : '') + '</td>'
+                            + '</tr>\n';
+                    } else if (step.actualConsumption > 0) {
+                        rows += '<tr>' + tagHtmlInner
+                            + '<td style="padding:4px 4px;text-align:center;font-size:9pt;color:#888;width:18px;">\u2212</td>'
+                            + '<td style="padding:4px 6px;text-align:right;font-family:\'Barlow Condensed\',sans-serif;font-size:9.5pt;font-weight:600;min-width:38px;">' + step.actualConsumption + '</td>'
+                            + '<td style="padding:4px 6px;font-size:7.5pt;color:#666;">Verbrauch</td>'
+                            + '</tr>\n';
+                    } else {
+                        rows += '<tr>' + tagHtmlInner
+                            + '<td style="padding:4px 4px;text-align:center;font-size:9pt;color:#888;width:18px;">\u2212</td>'
+                            + '<td style="padding:4px 6px;text-align:right;font-family:\'Barlow Condensed\',sans-serif;font-size:9.5pt;font-weight:600;min-width:38px;color:#aaa;">0</td>'
+                            + '<td style="padding:4px 6px;font-size:7.5pt;color:#666;">kein Verbrauch</td>'
+                            + '</tr>\n';
+                    }
+
+                    // Produktions-Zeile (falls Prod-Tag)
+                    if (isProd) {
+                        rows += '<tr>'
+                            + '<td style="padding:4px 4px;text-align:center;font-size:9pt;color:#888;width:18px;">+</td>'
+                            + '<td style="padding:4px 6px;text-align:right;font-family:\'Barlow Condensed\',sans-serif;font-size:9.5pt;font-weight:900;min-width:38px;">' + step.planned + '</td>'
+                            + '<td style="padding:4px 6px;font-size:7.5pt;color:#666;">Produktion</td>'
+                            + '</tr>\n';
+                        rows += trLine();
+                    }
+
+                    // Neubestand-Zeile
+                    const neuStyle = 'padding:4px 6px;text-align:right;font-family:\'Barlow Condensed\',sans-serif;font-size:' + (isTarget ? '11pt' : '10pt') + ';font-weight:900;min-width:38px;' + (ende < 0 ? '' : '');
+                    const neuDisp  = ende < 0 ? '(' + Math.abs(ende) + ')' : ende;
+                    const neuLabel = isTarget ? 'Endlager' : 'Neubestand';
+                    rows += '<tr>'
+                        + '<td style="padding:4px 4px;text-align:center;font-size:9pt;color:#888;width:18px;">=</td>'
+                        + '<td style="' + neuStyle + '">' + neuDisp + '</td>'
+                        + '<td style="padding:4px 6px;font-size:7.5pt;' + (isTarget ? 'font-weight:900;font-size:8pt;' : 'color:#666;') + '">' + neuLabel + '</td>'
+                        + '</tr>\n';
+                });
+
+                const surplusSign = endStock >= 0 ? '+' : '';
+
+                return '<div style="margin-bottom:20px;break-inside:avoid;">'
+                    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">'
+                    + '<span style="font-family:\'Barlow Condensed\',sans-serif;font-weight:900;font-size:13pt;text-transform:uppercase;letter-spacing:1px;">' + p.name + '</span>'
+                    + '<span style="font-size:7pt;color:#666;">Bestand: ' + stock
+                    + (shortage > 0 ? ' \u00B7 Fehlmenge: ' + shortage : '')
+                    + ' \u00B7 ' + (sess.frosterDone ? 'Froster fertig' : 'Froster ausstehend') + '</span>'
+                    + '</div>'
+                    + '<table style="width:100%;border-collapse:collapse;border:1px solid #ccc;border-radius:6px;overflow:hidden;">'
+                    + rows
+                    + '</table>'
+                    + '<div style="display:flex;gap:16px;padding:5px 10px;background:#f4f4f4;border:1px solid #ccc;border-top:none;border-radius:0 0 6px 6px;font-family:\'Barlow Condensed\',sans-serif;font-size:8pt;">'
+                    + '<span>Verbrauch: <strong>' + totalNeed + '</strong></span>'
+                    + '<span>Produktion: <strong>' + totalProd + '</strong></span>'
+                    + '<span>Endlager: <strong>' + surplusSign + endStock + '</strong></span>'
+                    + '</div>'
+                    + '</div>';
+            }).join('');
+
+            const ovSign  = grandTotalProd >= grandTotalNeed ? '+' : '';
+            const html = '<!DOCTYPE html>\n<html lang="de">\n<head>\n<meta charset="UTF-8">\n'
+                + '<title>B\u00E4ckereiOS \u2013 Detailplan</title>\n'
+                + '<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@900&family=Barlow+Condensed:wght@400;700;800;900&family=Barlow:wght@400;600;700;800&display=swap" rel="stylesheet">\n'
+                + '<style>\n* { margin:0; padding:0; box-sizing:border-box; }\n'
+                + '@page { size:A4 portrait; margin:14mm 16mm 16mm; }\n'
+                + 'body { font-family:\'Barlow\',sans-serif; background:#fff; color:#1a1a1a; font-size:10pt; -webkit-print-color-adjust:exact; print-color-adjust:exact; }\n'
+                + '@media print { .no-print { display:none !important; } }\n'
+                + '@media screen { body { padding:28px; max-width:560px; margin:0 auto; } }\n'
+                + '</style>\n</head>\n<body>\n'
+                + '<div class="no-print" style="position:fixed;top:14px;right:14px;z-index:99;"><button onclick="window.print()" style="font-family:\'Barlow Condensed\',sans-serif;font-weight:900;font-size:0.85rem;letter-spacing:1px;background:#1a1a1a;color:#fff;border:none;padding:8px 16px;border-radius:7px;cursor:pointer;">Drucken</button></div>\n'
+                + '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:9px;border-bottom:2px solid #1a1a1a;margin-bottom:12px;">'
+                + '<div style="font-family:\'Fraunces\',serif;font-weight:900;font-size:17pt;">B\u00E4ckerei<span style="font-style:italic;">OS</span>&nbsp;<span style="font-family:\'Barlow Condensed\',sans-serif;font-size:8pt;font-weight:700;color:#666;letter-spacing:2px;font-style:normal;">DETAILPLAN</span></div>'
+                + '<div style="text-align:right;"><div style="font-size:6.5pt;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#888;font-family:\'Barlow Condensed\',sans-serif;">Druckdatum</div>'
+                + '<div style="font-size:8pt;font-weight:700;">' + dateStr + '</div>'
+                + '<div style="font-size:7pt;color:#666;">' + timeStr + ' Uhr</div></div>'
+                + '</div>\n'
+                + '<div style="display:flex;gap:16px;padding:6px 12px;background:#f4f4f4;border-radius:5px;border:1px solid #ccc;margin-bottom:16px;font-family:\'Barlow Condensed\',sans-serif;font-size:8.5pt;">'
+                + '<span><strong>' + sess.selectedIds.length + '</strong> Produkte</span>'
+                + '<span>Bedarf: <strong>' + grandTotalNeed + '</strong></span>'
+                + '<span>Geplant: <strong>' + grandTotalProd + '</strong></span>'
+                + '<span>\u00DCberschuss: <strong>' + ovSign + (grandTotalProd - grandTotalNeed) + '</strong></span>'
+                + '</div>\n'
+                + productBlocksHtml
+                + '<div style="margin-top:16px;padding-top:6px;border-top:1px solid #ccc;display:flex;justify-content:space-between;font-size:7pt;color:#999;font-family:\'Barlow Condensed\',sans-serif;">'
+                + '<span>B\u00E4ckerei<span style="font-style:italic;">OS</span></span><span>Detailplan \u00B7 ' + dateStr + '</span></div>\n'
+                + '<script>setTimeout(function(){ window.print(); }, 400);<\/script>\n</body>\n</html>';
+
+            const w = window.open('', '_blank', 'width=640,height=1100');
+            w.document.write(html);
+            w.document.close();
+        }
+
+        function shareWhatsApp() {
+            window.BOSExport.config.truncateNames = false;
+            const d = [];
+            for (let i = 0; i < 7; i++) {
+                const idx = (todayJS + i) % 7;
+                if (productionPrintData[idx].length > 0) d.push({ name: daysNamesFull[idx], products: productionPrintData[idx] });
+            }
+            window.BOSExport.shareProductionPlan({ title: 'Produktionsplan', days: d });
+        }
+
+        // ── SCRUB-INPUT LOGIK (DAS WASSERBETT) ──
+        let scrubState = {
+            active: false,
+            startX: 0,
+            prodId: null,
+            stepIdx: null,
+            startValue: 0,
+            currentPlan: [],
+            elInput: null,
+            elWrapper: null
+        };
+
+        // 1. Wischen startet
+        document.addEventListener('pointerdown', (e) => {
+            const wrapper = e.target.closest('.scrub-wrapper.is-prod');
+            if (!wrapper) return;
+            
+            const input = wrapper.querySelector('.d-input');
+            scrubState.active = true;
+            scrubState.startX = e.clientX;
+            scrubState.prodId = wrapper.dataset.id;
+            scrubState.stepIdx = parseInt(wrapper.dataset.step);
+            scrubState.startValue = parseInt(input.value) || 0;
+            scrubState.elInput = input;
+            scrubState.elWrapper = wrapper;
+            
+            // Aktuellen Plan merken
+            const cache = domCache[scrubState.prodId];
+            scrubState.currentPlan = cache.rows.map(r => parseInt(r.inp?.value) || 0);
+            
+            wrapper.classList.add('is-scrubbing');
+        });
+
+        // 2. Wischen wird ausgeführt
+        document.addEventListener('pointermove', (e) => {
+            if (!scrubState.active) return;
+            
+            const diffX = e.clientX - scrubState.startX;
+            const BATCH = window.BOS_STAMMDATEN[scrubState.prodId]?.batchSize || 1;
+            
+            // Sensibilität: Wie viele Pixel muss man für ein Batch wischen? (Hier: 25px)
+            const pixelsPerBatch = 25; 
+            
+            let batchesChanged = Math.floor(Math.abs(diffX) / pixelsPerBatch) * Math.sign(diffX);
+            
+            if (batchesChanged !== 0) {
+                let newValue = Math.max(0, scrubState.startValue + (batchesChanged * BATCH));
+                
+                // Wir fragen das neue Gehirn, ob das erlaubt ist und wie es sich verteilt
+                let newPlan = window.BOS_BRAIN.recalculateShift(
+                    scrubState.prodId, 
+                    sess, 
+                    scrubState.currentPlan, 
+                    scrubState.stepIdx, 
+                    newValue
+                );
+
+                if (newPlan !== null) {
+                    // Erlaubt! Werte in die Textfelder schreiben
+                    const cache = domCache[scrubState.prodId];
+                    cache.rows.forEach((r, i) => {
+                        if (r.inp) r.inp.value = newPlan[i] > 0 ? newPlan[i] : '';
+                    });
+                    // Live-Feedback durchlaufen lassen (Bubbles aktualisieren)
+                    calculateMath(); 
+                } else {
+                    // Blockiert! (Minimum erreicht oder letzter Tag)
+                    const arrow = diffX < 0 ? scrubState.elWrapper.querySelector('.left') : scrubState.elWrapper.querySelector('.right');
+                    arrow.style.color = 'var(--red)';
+                    setTimeout(() => arrow.style.color = '', 300);
+                }
+            }
+        });
+
+        // 3. Wischen beendet
+        const stopScrub = () => {
+            if (scrubState.active) {
+                scrubState.elWrapper.classList.remove('is-scrubbing');
+                scrubState.active = false;
+                calculateMath(); // Finales Aufräumen
+            }
+        };
+        
+        document.addEventListener('pointerup', stopScrub);
+        document.addEventListener('pointercancel', stopScrub);
+
+        // Robuster Init
+        async function _bosBootstrap() {
+            const ok = await window.BOS_GEHIRN.init();
+            if (!ok) return;
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        }
+        _bosBootstrap();
+    </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/Planer/service-worker.js');
+    }
+  </script>
+  <script src="shell.js"></script>
+</body>
+</html>

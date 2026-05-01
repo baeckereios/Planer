@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BOS - Brot Admin</title>
+    <link rel="stylesheet" href="admin_design.css">
+    <script src="../brot_daten.js"></script>
+    <style>
+        /* ── Bridge: eigene Vars → admin_design.css ── */
+        :root {
+          --text-main:     #1c1a17;
+          --text-muted:    #888077;
+          --border-color:  #d8d3ca;
+          --alert-color:   #c0392b;
+          --success-color: #2d7a4f;
+          --success-bg:    rgba(45,122,79,.1);
+          --btn-primary:   #a07020;
+        }
+        .teig-card { border-left: 5px solid var(--btn-primary); margin-bottom: 20px; padding: 20px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .section-label { font-size: 0.8rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-top: 25px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;}
+        .btn-add { background: #f8fafc; color: var(--text-main); border: 2px dashed #cbd5e1; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 20px; }
+        .btn-add:active { background: #f1f5f9; }
+        .btn-export { background-color: var(--success-color); padding: 15px; width: 100%; font-size: 1.1rem; border-radius: 8px; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 10px;}
+        .produkt-box { background: #f1f5f9; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+        .btn-delete-prod { background: white; color: var(--alert-color); border: 1px solid #fecdd3; padding: 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; width: 100%; font-weight: bold; margin-top: 8px;}
+        
+        .rezept-liste { background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); max-width: 450px; margin: 0 auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);}
+        .rezept-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 6px 10px; border-radius: 8px; background: white; border: 1px solid var(--border-color); }
+        .rezept-row label { margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--text-main); }
+        .rezept-row input { width: 100px; text-align: right; margin: 0; font-weight: bold; font-size: 1.1rem; border-color: transparent; background: #f1f5f9; }
+        .rezept-row input:focus { border-color: var(--btn-primary); background: white; }
+        .unit-label { font-size: 0.85rem; color: var(--text-muted); margin-left: 5px; font-weight: bold;}
+        
+        .row-sauer { background: #f0fdf4; border-color: #bbf7d0; }
+        .row-sauer label { color: #166534; }
+        .row-sauer input { background: white; border-color: #bbf7d0; color: #166534; }
+        
+        .row-brueh { background: #fffbeb; border-color: #fde68a; flex-wrap: wrap;}
+        .row-brueh label { color: #b45309; }
+        .row-brueh input { background: white; border-color: #fde68a; color: #b45309; }
+        
+        .summen-strich { border-top: 3px solid var(--text-main); margin: 15px 0; border-radius: 2px;}
+        
+        .row-gesamt { padding: 15px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+        .row-gesamt label { color: white; font-size: 1.1rem; font-weight: 900;}
+        .row-gesamt .sum-val { color: white; font-size: 1.4rem; font-weight: 900; }
+        
+        /* Die automatische Farbkontrolle */
+        .valid-sum { background: var(--success-color); border: 2px solid #059669; box-shadow: 0 4px 10px rgba(16,185,129,0.3); }
+        .invalid-sum { background: var(--alert-color); border: 2px solid #dc2626; box-shadow: 0 4px 10px rgba(239,68,68,0.3); }
+        .invalid-hint { text-align: right; color: var(--alert-color); font-size: 0.8rem; font-weight: bold; margin-top: 5px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h1 style="margin: 0;">🍞 Rezept-Tresor</h1>
+        <a href="admin_landing.html" style="text-decoration: none; font-weight: bold; color: var(--text-muted); font-size: 0.85rem;">← ZURÜCK</a>
+    </div>
+
+    <div class="card" style="margin-bottom: 20px;">
+        <h2 style="border:none; margin:0 0 5px 0;">📂 Alte Datei laden</h2>
+        <input type="file" id="fileInput" accept=".js" style="background: white; padding: 5px;">
+    </div>
+
+    <div id="teig-liste"></div>
+
+    <button class="btn-add" onclick="neuenTeigAnlegen()">➕ NEUEN SAMMELTEIG ANLEGEN</button>
+    
+    <div class="card" style="background: #f8fafc; box-shadow: none; border: 1px dashed var(--border-color);">
+        <button class="btn-export" onclick="exportJS()">💾 BROT_DATEN.JS GENERIEREN</button>
+    </div>
+</div>
+
+<script>
+    let daten = window.BOS_BROT_DATEN || {};
+
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const text = e.target.result;
+                const jsonStart = text.indexOf('{');
+                const jsonEnd = text.lastIndexOf('}') + 1;
+                const jsonStr = text.substring(jsonStart, jsonEnd);
+                daten = JSON.parse(jsonStr);
+                render();
+                alert("Erfolg! Rezepte wurden geladen.");
+            } catch (error) {
+                alert("Fehler beim Lesen der Datei.");
+            }
+            event.target.value = ''; 
+        };
+        reader.readAsText(file);
+    });
+
+    function render() {
+        const liste = document.getElementById('teig-liste');
+        liste.innerHTML = '';
+        
+        for(let id in daten) {
+            const t = daten[id];
+            
+            const tage = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+            let tageHtml = '<div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:15px; margin-top:5px;">';
+            tage.forEach(tag => {
+                const checked = (t.wochentage || []).includes(tag) ? "checked" : "";
+                const bg = checked ? "var(--success-bg)" : "white";
+                const border = checked ? "var(--success-color)" : "var(--border-color)";
+                tageHtml += `<label style="background:${bg}; border:1px solid ${border}; padding:6px 10px; border-radius:6px; font-size:0.8rem; margin:0;"><input type="checkbox" style="display:none;" onchange="toggleTag('${id}', '${tag}')" ${checked}> ${tag.substring(0,2)}</label>`;
+            });
+            tageHtml += '</div>';
+
+            let prodHtml = '';
+            (t.endprodukte || []).forEach((p, i) => {
+                prodHtml += `
+                <div class="produkt-box">
+                    <div class="grid-2">
+                        <div><label style="margin-top:0;">Produktname</label><input type="text" value="${p.name}" onchange="updateProd('${id}', ${i}, 'name', this.value)"></div>
+                        <div><label style="margin-top:0;">Gewicht (Gramm)</label><input type="number" value="${p.einwaage}" onchange="updateProd('${id}', ${i}, 'einwaage', this.value)"></div>
+                    </div>
+                    <button class="btn-delete-prod" onclick="deleteProd('${id}', ${i})">🗑️ Variante löschen</button>
+                </div>`;
+            });
+
+            const vortagChecked = t.braucht_vortag ? "checked" : "";
+            const korrekturChecked = t.korrektur_aktiv ? "checked" : "";
+
+            // Summenberechnung (in Gramm) für die Live-Anzeige
+            const summeGramm = (t.r100.mehl || 0) + (t.r100.wasser || 0) + (t.r100.zutaten || 0) + (t.r100.sauer || 0) + (t.r100.brueh || 0);
+            const summeKg = summeGramm / 1000;
+            const istPerfekt = (Math.round(summeGramm) === 100000); // Exakt 100kg
+            const gesamtKlasse = istPerfekt ? "row-gesamt valid-sum" : "row-gesamt invalid-sum";
+            const gesamtText = istPerfekt ? "✅ EXAKT 100.00 kg" : `${summeKg.toFixed(2)} kg`;
+            const hinweisText = !istPerfekt ? `<div class="invalid-hint">⚠️ Fehlen noch ${Math.abs(100 - summeKg).toFixed(2)} kg bis zur 100 kg Basis!</div>` : '';
+
+            liste.innerHTML += `
+            <div class="card teig-card">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <input type="text" value="${t.name}" onchange="updateTeig('${id}', 'name', this.value)" style="font-size:1.2rem; font-weight:bold; margin-top:0; margin-bottom:5px; width:70%; border-color:transparent; background:transparent; padding:0; color:var(--btn-primary);">
+                    <button class="btn-delete-prod" style="width:auto; margin:0; padding:6px 10px;" onclick="deleteTeig('${id}')">X Löschen</button>
+                </div>
+                
+                ${tageHtml}
+                
+                <div class="grid-2">
+                    <div><label style="margin-top:0;">Backprogramm</label><input type="text" value="${t.programm || ''}" onchange="updateTeig('${id}', 'programm', this.value)"></div>
+                    <div><label style="margin-top:0;">Kneter-Info</label><input type="text" value="${t.kommentar || ''}" onchange="updateTeig('${id}', 'kommentar', this.value)"></div>
+                </div>
+
+                <div class="section-label">Momentaner Standard (Korrekturen)</div>
+                <div style="background:#fefce8; padding:12px; border-radius:8px; border:1px solid #fef08a;">
+                    <label style="margin:0; font-weight:bold; color:#a16207; display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input type="checkbox" onchange="updateTeigBool('${id}', 'korrektur_aktiv', this.checked)" ${korrekturChecked} style="width:20px; height:20px; margin:0;">
+                        Automatische Korrektur AKTIVIEREN
+                    </label>
+                    <div class="grid-3">
+                        <div><label style="color:#854d0e; font-size:0.75rem;">Beobachtung bei<br>(Anzahl Brote)</label><input type="number" value="${t.korrektur_referenz_brote || 0}" onchange="updateTeig('${id}', 'korrektur_referenz_brote', this.value)" placeholder="113"></div>
+                        <div><label style="color:#854d0e; font-size:0.75rem;">Wasser abgezogen<br>(in Litern)</label><input type="number" value="${t.korrektur_wasser || 0}" step="0.1" onchange="updateTeig('${id}', 'korrektur_wasser', this.value)" placeholder="3"></div>
+                        <div><label style="color:#854d0e; font-size:0.75rem;">Hefe abgezogen<br>(in Gramm)</label><input type="number" value="${t.korrektur_hefe || 0}" onchange="updateTeig('${id}', 'korrektur_hefe', this.value)" placeholder="50"></div>
+                    </div>
+                </div>
+
+                <div class="section-label">Basis-Rezept (Für exakt 100 kg Teig)</div>
+                <div class="rezept-liste">
+                    
+                    <div class="rezept-row">
+                        <label>+ Mehl</label>
+                        <div style="display:flex; align-items:center;">
+                            <input type="number" step="0.01" value="${(t.r100.mehl / 1000) || 0}" onchange="updateR100('${id}', 'mehl', this.value)">
+                            <span class="unit-label">kg</span>
+                        </div>
+                    </div>
+                    
+                    <div class="rezept-row">
+                        <label>+ Wasser</label>
+                        <div style="display:flex; align-items:center;">
+                            <input type="number" step="0.01" value="${(t.r100.wasser / 1000) || 0}" onchange="updateR100('${id}', 'wasser', this.value)">
+                            <span class="unit-label">kg</span>
+                        </div>
+                    </div>
+                    
+                    <div class="rezept-row">
+                        <label style="color:var(--alert-color);">+ Zutaten</label>
+                        <div style="display:flex; align-items:center;">
+                            <input type="number" step="0.01" value="${(t.r100.zutaten / 1000) || 0}" onchange="updateR100('${id}', 'zutaten', this.value)">
+                            <span class="unit-label">kg</span>
+                        </div>
+                    </div>
+                    
+                    <div class="rezept-row row-sauer">
+                        <label>+ Sauerteig</label>
+                        <div style="display:flex; align-items:center;">
+                            <input type="number" step="0.01" value="${(t.r100.sauer / 1000) || 0}" onchange="updateR100('${id}', 'sauer', this.value)">
+                            <span class="unit-label">kg</span>
+                        </div>
+                    </div>
+                    
+                    <div class="rezept-row row-brueh">
+                        <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                            <label>+ Brühstück</label>
+                            <div style="display:flex; align-items:center;">
+                                <input type="number" step="0.01" value="${(t.r100.brueh / 1000) || 0}" onchange="updateR100('${id}', 'brueh', this.value)">
+                                <span class="unit-label" style="color:#b45309;">kg</span>
+                            </div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-top:8px; border-top:1px dashed #fcd34d; padding-top:8px;">
+                            <label style="font-size:0.8rem;">(1 Eimer reicht für Brote:)</label>
+                            <input type="number" value="${t.charge_brote || 21}" onchange="updateTeig('${id}', 'charge_brote', this.value)" style="width:70px; font-size:1rem; padding:4px;">
+                        </div>
+                    </div>
+                    
+                    <div class="summen-strich"></div>
+                    
+                    <div class="${gesamtKlasse}">
+                        <label>= TEIG GESAMT</label>
+                        <div class="sum-val">${gesamtText}</div>
+                    </div>
+                    ${hinweisText}
+                    
+                </div>
+
+                <div style="margin-top:15px; padding:12px; background:#fef2f2; border-radius:8px; border:1px solid #fecaca;">
+                    <label style="margin:0; color:#991b1b; font-weight:bold; display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input type="checkbox" onchange="updateTeigBool('${id}', 'braucht_vortag', this.checked)" ${vortagChecked} style="width:25px; height:25px; margin:0;">
+                        ⚠️ Erinnerung im Vortags-Rechner: Quell-/Brühstück richten!
+                    </label>
+                </div>
+
+                <div class="section-label">Endprodukte aus diesem Teig</div>
+                <small style="margin-bottom:10px; display:block;">Wichtig: Das ERSTE Produkt in dieser Liste gilt als das Standard-Brot für die Eimer-Rechnung!</small>
+                ${prodHtml}
+                <button class="btn-add" style="padding:10px; margin-top:5px; margin-bottom:0;" onclick="addProd('${id}')">➕ Variante hinzufügen</button>
+            </div>`;
+        }
+    }
+
+    function neuenTeigAnlegen() {
+        const name = prompt("Name des neuen Sammelteiges:");
+        if(name) {
+            const id = "teig_" + Date.now(); 
+            // Die 100.000 (100kg) Gesamtmenge ist jetzt absolut fest verankert!
+            daten[id] = { 
+                name: name, wochentage: [], programm: "", kommentar: "", 
+                r100: {gesamt:100000, mehl:0, wasser:0, zutaten:0, sauer:0, brueh:0}, 
+                charge_brote: 21, braucht_vortag: false, 
+                korrektur_aktiv: false, korrektur_referenz_brote: 0, korrektur_wasser: 0, korrektur_hefe: 0,
+                endprodukte: [] 
+            };
+            render();
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+    }
+
+    function updateTeig(id, key, val) { daten[id][key] = (key === 'name' || key === 'programm' || key === 'kommentar') ? val : parseFloat(val||0); }
+    function updateTeigBool(id, key, val) { daten[id][key] = val; }
+    
+    // Die Magie: Erlaubt Kommas und rechnet im Hintergrund wieder auf Gramm für das Gehirn!
+    function updateR100(id, key, val) { 
+        let kgString = val.replace(',', '.'); // Falls jemand ein deutsches Komma tippt
+        let kgValue = parseFloat(kgString) || 0;
+        daten[id].r100[key] = Math.round(kgValue * 1000); 
+        
+        // Zur Sicherheit: Die 100kg Basis immer wieder starr festsetzen!
+        daten[id].r100.gesamt = 100000;
+        render(); 
+    }
+    
+    function deleteTeig(id) { if(confirm("Diesen kompletten Teig wirklich löschen?")) { delete daten[id]; render(); } }
+    
+    function addProd(id) { daten[id].endprodukte.push({name: "", einwaage: ""}); render(); }
+    function updateProd(id, idx, key, val) { daten[id].endprodukte[idx][key] = key === 'einwaage' ? parseInt(val||0) : val; }
+    function deleteProd(id, idx) { daten[id].endprodukte.splice(idx, 1); render(); }
+
+    function toggleTag(id, tag) {
+        if(!daten[id].wochentage) daten[id].wochentage = [];
+        const idx = daten[id].wochentage.indexOf(tag);
+        if(idx > -1) daten[id].wochentage.splice(idx, 1);
+        else daten[id].wochentage.push(tag);
+        render(); 
+    }
+
+    function exportJS() {
+        const js = "window.BOS_BROT_DATEN = " + JSON.stringify(daten, null, 4) + ";";
+        const blob = new Blob([js], { type: "text/javascript" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "brot_daten.js";
+        a.click();
+    }
+
+    window.onload = () => { if(window.BOS_BROT_DATEN) render(); else setTimeout(render, 300); };
+</script>
+</body>
+</html>

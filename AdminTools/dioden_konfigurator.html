@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dioden Konfigurator</title>
+  <link rel="stylesheet" href="admin_design.css">
+  <style>
+    body { padding: 24px 16px 60px; background: var(--bg); color: var(--text); font-family: 'Barlow', sans-serif; max-width: 560px; margin: 0 auto; }
+    h1 { font-family: 'Fraunces', serif; font-size: 1.6rem; margin-bottom: 4px; }
+    .sub { font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; color: var(--dim); margin-bottom: 24px; }
+    .card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 18px 16px; margin-bottom: 16px; }
+    .card-title {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 900;
+      font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--amber); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* Tag-Checkboxen */
+    .tage-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tag-btn {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+      font-size: 0.8rem; letter-spacing: 1px;
+      padding: 6px 12px; border-radius: 8px; cursor: pointer;
+      border: 2px solid var(--border); background: var(--surface2);
+      color: var(--dim); transition: all 0.15s; user-select: none;
+    }
+    .tag-btn.aktiv { border-color: var(--amber); background: var(--amber); color: #fff; }
+
+    /* Zahlen-Input */
+    .zahl-row { display: flex; align-items: center; gap: 12px; }
+    .zahl-row label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem; color: var(--dim); flex: 1; }
+    .zahl-row input {
+      width: 64px; text-align: center;
+      background: var(--bg); border: 2px solid var(--border);
+      color: var(--text); padding: 8px; border-radius: 8px;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1rem;
+    }
+
+    /* Toggle-Switches */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; font-weight: 700; }
+    .toggle-sub { font-size: 0.7rem; color: var(--dim); margin-top: 1px; }
+    .toggle {
+      position: relative; width: 44px; height: 24px; flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0; background: var(--border);
+      border-radius: 24px; cursor: pointer; transition: 0.2s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute;
+      width: 18px; height: 18px; left: 3px; top: 3px;
+      background: white; border-radius: 50%; transition: 0.2s;
+    }
+    .toggle input:checked + .toggle-slider { background: var(--amber); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    /* Geburtstage */
+    .g-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+    .g-row input {
+      background: var(--bg); border: 2px solid var(--border);
+      color: var(--text); padding: 8px 10px; border-radius: 8px;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.9rem;
+    }
+    .g-row input:first-child { flex: 1; }
+    .g-row input:last-child { width: 80px; }
+    .g-del { background: none; border: none; color: var(--dim); font-size: 1.1rem; cursor: pointer; padding: 4px 6px; }
+    .g-del:hover { color: #e74c3c; }
+    .add-btn {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 0.8rem;
+      letter-spacing: 1px; text-transform: uppercase;
+      background: none; border: 2px dashed var(--border); color: var(--dim);
+      padding: 8px 14px; border-radius: 8px; cursor: pointer; width: 100%;
+      transition: 0.15s;
+    }
+    .add-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+    /* Output */
+    .output-box {
+      background: var(--bg); border: 2px solid var(--border); border-radius: 10px;
+      padding: 14px; font-family: monospace; font-size: 0.78rem;
+      color: var(--text); white-space: pre; overflow-x: auto; display: none;
+      margin-top: 12px; line-height: 1.6;
+    }
+
+    .btn-primary {
+      width: 100%; background: var(--amber); color: white; border: none;
+      padding: 16px; border-radius: 12px; font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: 1rem; letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; margin-top: 8px; transition: 0.15s;
+    }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-secondary {
+      width: 100%; background: var(--surface2); color: var(--text);
+      border: 2px solid var(--border); padding: 12px; border-radius: 12px;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+      font-size: 0.9rem; cursor: pointer; margin-top: 8px; transition: 0.15s;
+    }
+    .btn-secondary:hover { border-color: var(--amber); }
+  </style>
+</head>
+<body>
+
+  <h1>Dioden-Setup</h1>
+  <div class="sub">Cockpit · Ambient Display · Konfiguration</div>
+
+  <!-- KÖRNER -->
+  <div class="card">
+    <div class="card-title">🌾 Körner einweichen</div>
+    <div class="tage-grid" id="koerner-tage"></div>
+  </div>
+
+  <!-- BÄKO -->
+  <div class="card">
+    <div class="card-title">📦 BÄKO Bestelltage</div>
+    <div class="tage-grid" id="baeko-tage"></div>
+  </div>
+
+  <!-- TOLERANZEN -->
+  <div class="card">
+    <div class="card-title">⚙️ Schwellenwerte</div>
+    <div class="zahl-row" style="margin-bottom:12px;">
+      <label>Muffel-Boss: Datensatz veraltet nach<br><span style="font-size:0.7rem; color:var(--dim);">Tage ohne neuen Backmengen-Eintrag</span></label>
+      <input type="number" id="muffel-tage" min="1" max="30" value="5">
+    </div>
+    <div class="zahl-row">
+      <label>Feiertags-Radar: Vorwarnung<br><span style="font-size:0.7rem; color:var(--dim);">Tage im Voraus leuchten</span></label>
+      <input type="number" id="feiertag-tage" min="1" max="30" value="7">
+    </div>
+  </div>
+
+  <!-- FEIERTAGS-RADAR -->
+  <div class="card">
+    <div class="card-title">📅 Feiertags-Radar · Was löst aus?</div>
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Gesetzliche Feiertage</div>
+        <div class="toggle-sub">Karfreitag, Ostern, Himmelfahrt …</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="radar-feiertag" checked><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Schulferien Niedersachsen</div>
+        <div class="toggle-sub">Sommer, Herbst, Oster-, Weihnachtsferien</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="radar-ferien"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Betriebsurlaub</div>
+        <div class="toggle-sub">Eingetragen in feiertage_nds.js</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="radar-betrieb"><span class="toggle-slider"></span></label>
+    </div>
+  </div>
+
+  <!-- GEBURTSTAGE -->
+  <div class="card">
+    <div class="card-title">🎂 Team-Radar · Geburtstage</div>
+    <div id="g-list"></div>
+    <button class="add-btn" onclick="addG('', '')">+ Person hinzufügen</button>
+  </div>
+
+  <!-- AUSGABE -->
+  <button class="btn-primary" onclick="generieren()">Config generieren</button>
+  <pre class="output-box" id="output-box"></pre>
+  <button class="btn-secondary" id="dl-btn" style="display:none;" onclick="herunterladen()">⬇ dioden_config.js herunterladen</button>
+
+  <script>
+    const TAGE_NAMEN = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+
+    function buildTagGrid(containerId, selectedValues) {
+      const container = document.getElementById(containerId);
+      TAGE_NAMEN.forEach((name, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'tag-btn' + (selectedValues.includes(i) ? ' aktiv' : '');
+        btn.textContent = name;
+        btn.dataset.val = i;
+        btn.onclick = () => btn.classList.toggle('aktiv');
+        container.appendChild(btn);
+      });
+    }
+
+    function getSelectedTage(containerId) {
+      return [...document.querySelectorAll(`#${containerId} .tag-btn.aktiv`)]
+        .map(b => parseInt(b.dataset.val));
+    }
+
+    function addG(name, datum) {
+      const row = document.createElement('div');
+      row.className = 'g-row';
+      row.innerHTML = `
+        <input type="text" placeholder="Name (z.B. Susi M.)" value="${name}">
+        <input type="text" placeholder="DD.MM." value="${datum}" maxlength="6">
+        <button class="g-del" onclick="this.parentElement.remove()" title="Entfernen">✕</button>`;
+      document.getElementById('g-list').appendChild(row);
+    }
+
+    function generieren() {
+      const koernerTage = getSelectedTage('koerner-tage');
+      const baekoTage   = getSelectedTage('baeko-tage');
+      const muffelTage  = parseInt(document.getElementById('muffel-tage').value) || 5;
+      const feierTage   = parseInt(document.getElementById('feiertag-tage').value) || 7;
+      const radarFeiertag  = document.getElementById('radar-feiertag').checked;
+      const radarFerien    = document.getElementById('radar-ferien').checked;
+      const radarBetrieb   = document.getElementById('radar-betrieb').checked;
+
+      const geburtstage = {};
+      document.querySelectorAll('#g-list .g-row').forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        const name  = inputs[0].value.trim();
+        const datum = inputs[1].value.trim();
+        if (name && datum) geburtstage[name] = datum;
+      });
+
+      const config = {
+        koernerTage,
+        baekoTage,
+        muffelToleranzTage: muffelTage,
+        feiertagVorwarnTage: feierTage,
+        feiertagRadar: {
+          feiertag: radarFeiertag,
+          ferien: radarFerien,
+          betriebsurlaub: radarBetrieb
+        },
+        geburtstage
+      };
+
+      const lines = [
+        `const DiodenConfig = {`,
+        `    "koernerTage": ${JSON.stringify(config.koernerTage)}, // ${config.koernerTage.map(i => TAGE_NAMEN[i]).join(', ')}`,
+        `    "baekoTage": ${JSON.stringify(config.baekoTage)},   // ${config.baekoTage.map(i => TAGE_NAMEN[i]).join(', ')}`,
+        `    "muffelToleranzTage": ${config.muffelToleranzTage},`,
+        `    "feiertagVorwarnTage": ${config.feiertagVorwarnTage},`,
+        `    "feiertagRadar": {`,
+        `        "feiertag": ${config.feiertagRadar.feiertag},        // Gesetzliche Feiertage`,
+        `        "ferien": ${config.feiertagRadar.ferien},         // Schulferien Niedersachsen`,
+        `        "betriebsurlaub": ${config.feiertagRadar.betriebsurlaub}  // Eingetragener Betriebsurlaub`,
+        `    },`,
+        `    "geburtstage": {`,
+        ...Object.entries(config.geburtstage).map(([n, d]) => `        "${n}": "${d}",`),
+        `    }`,
+        `};`,
+      ].join('\n');
+
+      document.getElementById('output-box').textContent = lines;
+      document.getElementById('output-box').style.display = 'block';
+      document.getElementById('dl-btn').style.display = 'block';
+      window._generatedConfig = lines;
+    }
+
+    function herunterladen() {
+      if (!window._generatedConfig) return;
+      const blob = new Blob([window._generatedConfig], { type: 'text/javascript' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'dioden_config.js';
+      a.click();
+    }
+
+    // Init
+    buildTagGrid('koerner-tage', [2, 4]);
+    buildTagGrid('baeko-tage', [2, 5]);
+    addG('Ulf T.', '06.02.');
+    addG('Susi M.', '15.04.');
+  </script>
+</body>
+</html>

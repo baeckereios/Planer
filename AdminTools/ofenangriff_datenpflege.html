@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BäckereiOS - Ofen-Master (Admin)</title>
+    <link rel="stylesheet" href="admin_design.css">
+    <style>
+        /* ── Bridge: eigene Vars → admin_design.css ── */
+        :root {
+          --text-main:     #1c1a17;
+          --text-muted:    #888077;
+          --border-color:  #d8d3ca;
+          --alert-color:   #c0392b;
+          --success-color: #2d7a4f;
+          --btn-primary:   #a07020;
+        }
+        .container { max-width: 800px; }
+        .row-tools { display: flex; justify-content: flex-end; gap: 5px; margin-bottom: 15px; }
+        .btn-t { background: #eee; border: 1px solid var(--border-color); border-radius: 4px; width: 30px; height: 30px; cursor: pointer; font-weight: bold; color: var(--text-muted); padding: 0;}
+        .btn-t:hover { background: #ddd; }
+        
+        .row-main { display: grid; grid-template-columns: 2fr 1fr 1.5fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .label-hint { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 2px; font-weight: bold; }
+        
+        .stikken-toggle { display: flex; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; margin-top: 5px; height: 42px;}
+        .st-btn { flex: 1; text-align: center; padding: 10px 5px; cursor: pointer; font-size: 0.9rem; background: #fafafa; color: var(--text-muted); font-weight: bold;}
+        .st-btn.active { background: var(--btn-primary); color: white; }
+        
+        .days-sel { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 15px;}
+        .day-pill { border: 1px solid var(--border-color); border-radius: 4px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; color: var(--text-muted); background: #fafafa; font-weight: bold;}
+        .day-pill.on { border-color: var(--btn-primary); background: rgba(44, 62, 80, 0.1); color: var(--btn-primary); }
+
+        .action-bar { display: flex; gap: 10px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 style="margin: 0; font-size: 1.8rem;">🔥 Ofenangriff-Master</h1>
+        <a href="admin_landing.html" style="text-decoration: none; color: var(--text-muted); font-size: 0.85rem; font-weight: bold;">← ZURÜCK</a>
+    </div>
+
+    <div id="mainList" style="display: flex; flex-direction: column; gap: 15px;"></div>
+
+    <div class="action-bar">
+        <button style="background-color: #ecf0f1; color: var(--text-main); border: 1px solid var(--border-color);" onclick="addRow()">➕ Neues Produkt</button>
+        <button style="background-color: var(--btn-primary);" onclick="saveMaster()">💾 Master Speichern</button>
+        <button style="background-color: var(--success-color);" onclick="generateApp()">⬇️ JS-Datei Generieren</button>
+    </div>
+
+</div>
+
+<script id="db-data" type="application/json">
+[
+    {"n":"Schnittbrötchen","p":"001","pn":"SCHNITTBROETCHEN","s":"3","c":"","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Schnittbrötchen","p":"002","pn":"SCHNITTBROETCHEN½","s":"1-2","c":"Backt zu hell","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Schnittbrötchen","p":"163","pn":"SCHNITTBROE-HALB","s":"1-2","c":"Passt für 2 Backsticken recht gut.","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Kornknacker","p":"003","pn":"KOERNERBROETCHEN","s":"3","c":"Kann sein, dass sie zu hell backen","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Kornknacker","p":"004","pn":"K","s":"1-2","c":"Zu hell","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Laugenstangen","p":"005","pn":"LAUGENSTANGEN","s":"3","c":"Nehme ich die volle Backzeit","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Laugenstangen","p":"006","pn":"LAUGENSTANGEN ½","s":"1-2","c":"Gehe ich auf 14 Minuten.","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Käsebrötchen","p":"008","pn":"KAESEBROETCHEN ½","s":"1-2","c":"Nur noch für 2 Backsticken.","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Käsebrötchen","p":"145","pn":"KAES-ULF","s":"3","c":"Grundsätzlich für 3 Backsticken.","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Hasenberger","p":"012","pn":"HASENBERGER ½","s":"1-2","c":"Mehr Schwaden.","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Hasenberger","p":"144","pn":"HASE UPDATE","s":"3","c":"","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Schwarzbrot","p":"028","pn":"VOLLKORNBROT","s":"3","c":"Backzeit um 10 Min reduzieren.","d":["Mo","Do","Sa"]},
+    {"n":"Schwarzbrot","p":"029","pn":"VOLLKORNBROT ½","s":"1-2","c":"Backzeit um 10 Min reduzieren.","d":["Mo","Do","Sa"]},
+    {"n":"Korbbrote","p":"037","pn":"KORBBROT 850GR ½","s":"3","c":"Bei 2 Backsticken Heizung hinter anschmeißen.","d":["Mo","Di","Mi","Do","Fr","Sa"]},
+    {"n":"Eiszapfen","p":"042","pn":"PLUNDER","s":"1-2","c":"2 Backsticken: volle Zeit.","d":["Di","Do","Sa"]},
+    {"n":"Eiszapfen","p":"043","pn":"PLUNDER ½","s":"1-2","c":"1 Backsticken: ca. 10 Min.","d":["Di","Do","Sa"]},
+    {"n":"Puddingbrezeln","p":"042","pn":"PLUNDER","s":"1-2","c":"Backzeit reduzieren.","d":["Mo","Mi","Fr"]},
+    {"n":"Puddingbrezeln","p":"043","pn":"PLUNDER ½","s":"1-2","c":"1 Sticken: min. 16 Minuten","d":["Mo","Mi","Fr"]},
+    {"n":"Schokocroissant","p":"044","pn":"CROISSANTS","s":"3","c":"Backzeit manchmal reduzieren.","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Schokocroissant","p":"045","pn":"CROISSANT ½","s":"1-2","c":"","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Rosinenhedwiege","p":"047","pn":"HOERNCHEN ½","s":"1-2","c":"Meist nach eingestellter Zeit fertig.","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Hasenpfoten","p":"047","pn":"HOERNCHEN ½","s":"1-2","c":"Minimal Temperatur erhöhen.","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Bergsteiger","p":"107","pn":"BERGSTEIGER","s":"3","c":"Backzeit reduzieren! 45–47 Min.","d":["Mi","Fr","Sa"]},
+    {"n":"Buttercroissant","p":"146","pn":"BUTTERCROISSANT","s":"1-2","c":"Backzeit auf mind. 19 Min erhöhen.","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Minicroissant","p":"149","pn":"MINI CROISSANT","s":"1-2","c":"Butter: 12–13 Min.","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Baguettestangen","p":"153","pn":"BAGUETTE-STANGEN","s":"1-2","c":"2 Sticken: auf 17 Min reduzieren.","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"SchokoBatzen","p":"158","pn":"BRIOCHE 3 STICKEN","s":"3","c":"Backzeit auf 18–19 Min erhöhen.","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Zimtwolken","p":"160","pn":"ZIMTWOLKEN","s":"1-2","c":"1–2 Min nachbacken","d":["Mo","Di","Mi","Do","Fr","Sa","So"]},
+    {"n":"Mohnschnecken","p":"162","pn":"MOHNSCHNECKE","s":"1-2","c":"2–3 Min nachbacken.","d":["Mo","Di","Mi","Do","Fr","Sa","So"]}
+]
+</script>
+
+<script>
+    const DAYS_LIB = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+    let db = [];
+    
+    function render() {
+        const container = document.getElementById('mainList'); container.innerHTML = '';
+        db.forEach((item, idx) => {
+            const row = document.createElement('div'); row.className = 'card';
+            let daysHtml = DAYS_LIB.map(d => `<span class="day-pill ${item.d.includes(d)?'on':''}" onclick="toggleDay(${idx},'${d}')">${d}</span>`).join('');
+            
+            row.innerHTML = `
+                <div class="row-tools">
+                    <button class="btn-t" onclick="move(${idx},-1)">▲</button>
+                    <button class="btn-t" onclick="move(${idx},1)">▼</button>
+                    <button class="btn-t" style="color:var(--alert-color); border-color:var(--alert-color);" onclick="del(${idx})">×</button>
+                </div>
+                <div class="row-main">
+                    <div><div class="label-hint">Produkt</div><input type="text" style="margin-top:0;" value="${item.n}" oninput="db[${idx}].n=this.value"></div>
+                    <div><div class="label-hint">Nr</div><input type="text" style="margin-top:0; text-align:center;" value="${item.p}" oninput="db[${idx}].p=this.value"></div>
+                    <div><div class="label-hint">Display</div><input type="text" style="margin-top:0;" value="${item.pn}" oninput="db[${idx}].pn=this.value"></div>
+                    <div>
+                        <div class="label-hint">Stikken</div>
+                        <div class="stikken-toggle">
+                            <div class="st-btn ${item.s==='1-2'?'active':''}" onclick="setStikken(${idx},'1-2')">1-2</div>
+                            <div class="st-btn ${item.s==='3'?'active':''}" onclick="setStikken(${idx},'3')">3</div>
+                        </div>
+                    </div>
+                </div>
+                <input type="text" style="background-color: #fafafa;" value="${item.c}" oninput="db[${idx}].c=this.value" placeholder="Optionale Backnotiz eintragen...">
+                <div class="days-sel">${daysHtml}</div>`;
+            container.appendChild(row);
+        });
+    }
+
+    function toggleDay(idx, d) { if(db[idx].d.includes(d)) db[idx].d = db[idx].d.filter(x => x !== d); else db[idx].d.push(d); render(); }
+    function setStikken(idx, val) { db[idx].s = val; render(); }
+    function move(idx, dir) { let t = idx + dir; if (t>=0 && t<db.length) { [db[idx], db[t]] = [db[t], db[idx]]; render(); } }
+    function addRow() { db.push({n:"", p:"", pn:"", s:"1-2", c:"", d:["Mo","Di","Mi","Do","Fr","Sa","So"]}); render(); }
+    function del(idx) { if(confirm("Dieses Produkt wirklich löschen?")) { db.splice(idx,1); render(); } }
+
+    function saveMaster() {
+        let root = document.documentElement.cloneNode(true);
+        root.querySelector('#db-data').textContent = '\n' + JSON.stringify(db, null, 4) + '\n';
+        root.querySelector('#mainList').innerHTML = ''; 
+        let blob = new Blob(["<!DOCTYPE html>\n" + root.outerHTML], {type: "text/html;charset=utf-8"});
+        let a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "ofen_datenpflege.html"; a.click();
+    }
+
+    function generateApp() {
+        var js = 'window.BOS_OFENANGRIFF = ' + JSON.stringify(db, null, 2) + ';';
+        var blob = new Blob([js], {type: 'text/javascript;charset=utf-8'});
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'ofenangriff.js';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    window.onload = () => {
+        db = JSON.parse(document.getElementById('db-data').textContent);
+        render();
+    };
+</script>
+</body>
+</html>

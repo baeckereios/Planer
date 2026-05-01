@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changelog – BäckereiOS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,900;1,9..144,900&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --amber: #C07A10;
+            --amber-light: rgba(192,122,16,0.12);
+            --bg: #F5F0E8;
+            --surface: #FFFFFF;
+            --text: #1A1410;
+            --dim: #6B5E4E;
+            --border: #E0D5C5;
+            --green: #2d9e5f;
+            --red: #c94a4a;
+            --blue: #3a6fa8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Barlow Condensed', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* ── HEADER ── */
+        .site-header {
+            background: #111;
+            padding: 40px 20px 32px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .site-header::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 40px,
+                rgba(192,122,16,0.04) 40px,
+                rgba(192,122,16,0.04) 80px
+            );
+        }
+        .header-label {
+            font-family: 'Barlow Condensed'; font-weight: 900;
+            font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase;
+            color: var(--amber); margin-bottom: 12px;
+        }
+        .header-title {
+            font-family: 'Fraunces', serif; font-weight: 900;
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            color: white; line-height: 0.95; letter-spacing: -2px;
+        }
+        .header-title em { color: var(--amber); font-style: italic; }
+        .header-sub {
+            margin-top: 16px;
+            font-family: 'Barlow Condensed'; font-weight: 600;
+            font-size: 1rem; color: rgba(255,255,255,0.45);
+            letter-spacing: 1px;
+        }
+        .header-badge {
+            display: inline-block; margin-top: 20px;
+            background: var(--amber); color: white;
+            font-weight: 900; font-size: 0.75rem; letter-spacing: 2px;
+            padding: 6px 16px; border-radius: 20px;
+        }
+
+        /* ── CONTAINER ── */
+        .container {
+            max-width: 780px; margin: 0 auto; padding: 40px 20px 80px;
+        }
+
+        /* ── INTRO ── */
+        .intro {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-left: 5px solid var(--amber);
+            border-radius: 18px;
+            padding: 24px 28px;
+            margin-bottom: 48px;
+            font-size: 1rem; line-height: 1.6;
+            color: var(--dim);
+        }
+        .intro strong { color: var(--text); font-weight: 800; }
+
+        /* ── VERSION BLOCK ── */
+        .version-block {
+            margin-bottom: 48px;
+            animation: fadeUp 0.4s ease both;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .version-header {
+            display: flex; align-items: flex-end; gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid var(--border);
+        }
+        .version-num {
+            font-family: 'Fraunces', serif; font-weight: 900;
+            font-size: 3rem; line-height: 1; letter-spacing: -2px;
+            color: var(--text);
+        }
+        .version-num em { color: var(--amber); font-style: italic; }
+        .version-meta {
+            display: flex; flex-direction: column; gap: 4px; padding-bottom: 6px;
+        }
+        .version-name {
+            font-weight: 900; font-size: 1.1rem; letter-spacing: 0.5px;
+            text-transform: uppercase; color: var(--text);
+        }
+        .version-date {
+            font-weight: 600; font-size: 0.8rem; color: var(--dim);
+            letter-spacing: 1px; text-transform: uppercase;
+        }
+
+        /* ── ENTRY ── */
+        .entry {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 20px 22px;
+            margin-bottom: 12px;
+            display: grid;
+            grid-template-columns: 28px 1fr;
+            gap: 14px;
+            align-items: start;
+            transition: border-color 0.2s;
+        }
+        .entry:hover { border-color: var(--amber); }
+
+        .entry-icon {
+            width: 28px; height: 28px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; flex-shrink: 0; margin-top: 1px;
+        }
+        .icon-new    { background: rgba(45,158,95,0.12);  }
+        .icon-fix    { background: rgba(201,74,74,0.12);  }
+        .icon-change { background: rgba(192,122,16,0.12); }
+        .icon-logic  { background: rgba(58,111,168,0.12); }
+        .icon-ux     { background: rgba(130,60,180,0.1);  }
+
+        .entry-body {}
+        .entry-title {
+            font-weight: 900; font-size: 1rem; letter-spacing: 0.3px;
+            color: var(--text); margin-bottom: 5px; text-transform: uppercase;
+        }
+        .entry-desc {
+            font-size: 0.9rem; font-weight: 500; color: var(--dim);
+            line-height: 1.5;
+        }
+        .entry-file {
+            display: inline-block; margin-top: 8px;
+            background: #111; color: var(--amber);
+            font-size: 0.7rem; font-weight: 800; letter-spacing: 1px;
+            padding: 3px 10px; border-radius: 6px;
+        }
+
+        /* ── TAG PILLS ── */
+        .tag {
+            display: inline-block;
+            font-size: 0.65rem; font-weight: 900; letter-spacing: 1.5px;
+            text-transform: uppercase; padding: 2px 8px; border-radius: 10px;
+            margin-right: 6px; margin-bottom: 6px;
+        }
+        .tag-neu    { background: rgba(45,158,95,0.12);  color: #1a7a45; }
+        .tag-fix    { background: rgba(201,74,74,0.12);  color: #9a1010; }
+        .tag-ux     { background: rgba(192,122,16,0.12); color: #7a5000; }
+        .tag-logic  { background: rgba(58,111,168,0.12); color: #1a3a6a; }
+
+        /* ── DIVIDER ── */
+        .divider {
+            text-align: center; margin: 48px 0 36px;
+            position: relative;
+        }
+        .divider::before {
+            content: '';
+            position: absolute; top: 50%; left: 0; right: 0;
+            height: 1px; background: var(--border);
+        }
+        .divider span {
+            position: relative; background: var(--bg);
+            padding: 0 16px;
+            font-weight: 900; font-size: 0.7rem; letter-spacing: 3px;
+            text-transform: uppercase; color: var(--dim);
+        }
+
+        /* ── LEGEND ── */
+        .legend {
+            display: flex; gap: 16px; flex-wrap: wrap;
+            margin-bottom: 32px;
+        }
+        .legend-item {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.8rem; font-weight: 700; color: var(--dim);
+        }
+        .legend-dot {
+            width: 10px; height: 10px; border-radius: 3px;
+        }
+
+        /* ── FOOTER ── */
+        .changelog-footer {
+            text-align: center; padding: 32px 20px;
+            border-top: 2px solid var(--border);
+            margin-top: 24px;
+        }
+        .changelog-footer p {
+            font-size: 0.85rem; color: var(--dim); line-height: 1.7;
+        }
+        .changelog-footer strong { color: var(--amber); }
+
+        @media (max-width: 500px) {
+            .version-num { font-size: 2rem; }
+            .entry { grid-template-columns: 24px 1fr; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="site-header">
+    <div class="header-label">BäckereiOS · Entwicklungshistorie</div>
+    <h1 class="header-title">Change<em>log</em></h1>
+    <p class="header-sub">Jede Zeile Code. Jede Entscheidung. Jeder Bug.</p>
+    <div class="header-badge">STAND: MÄRZ 2026</div>
+</header>
+
+<div class="container">
+
+    <div class="intro">
+        <strong>Was ist das hier?</strong><br>
+        Eine ehrliche, vollständige Dokumentation aller Änderungen, Fixes und Entscheidungen in BäckereiOS — entstanden in nächtlichen Entwicklungssessions zwischen einem Bäcker und einer KI, die manchmal zu viele Annahmen gemacht hat. Für alle die wissen wollen, was wann warum gebaut wurde.
+    </div>
+
+    <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(45,158,95,0.5);"></div>Neu</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(201,74,74,0.5);"></div>Bugfix</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(192,122,16,0.5);"></div>Änderung / UX</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(58,111,168,0.5);"></div>Logik / Berechnung</div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- V153 -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="version-block" style="animation-delay:0.05s">
+        <div class="version-header">
+            <div class="version-num">V<em>153</em></div>
+            <div class="version-meta">
+                <div class="version-name">Poka-Yoke Workflow Locks</div>
+                <div class="version-date">Frühjahr 2026</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-new">🔒</div>
+            <div class="entry-body">
+                <div class="entry-title">Setup-Sperre vor Produktionstools</div>
+                <div class="entry-desc">Produktionstools (Planer, Schnellrechner) werden erst zugänglich nachdem das Setup vollständig abgeschlossen wurde. Verhindert fehlerhafte Planung ohne Bestandsdaten.</div>
+                <span class="entry-file">baeckereios.html · setup.html</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-new">❄️</div>
+            <div class="entry-body">
+                <div class="entry-title">Froster Poka-Yoke: 2 Buttons, keine Vorauswahl</div>
+                <div class="entry-desc">Der Froster-Status muss aktiv gewählt werden — keine Standardauswahl. BERECHNEN bleibt gesperrt bis eine bewusste Entscheidung getroffen wurde. Verhindert stilles Weiterrechnen mit falschem Froster-Status.</div>
+                <span class="entry-file">schnellrechner.html</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"><span>Ofenangriff-System</span></div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- OFENANGRIFF REFACTOR -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="version-block" style="animation-delay:0.1s">
+        <div class="version-header">
+            <div class="version-num">V<em>15</em></div>
+            <div class="version-meta">
+                <div class="version-name">Ofenangriff Architektur-Refactor</div>
+                <div class="version-date">März 2026</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-change">🏗️</div>
+            <div class="entry-body">
+                <div class="entry-title">Datentrennung: .js statt generiertes HTML</div>
+                <div class="entry-desc">Vorher: ofenangriff_datenpflege.html generierte die komplette ofenangriff.html als Template-String — fragil, doppelte Pflege. Jetzt: Datenpflege exportiert nur ofenangriff.js (Daten), ofenangriff.html liest diese statisch. Entspricht dem bewährten inventurdaten.js-Muster.</div>
+                <span class="entry-file">ofenangriff.html · ofenangriff_datenpflege.html</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-new">📋</div>
+            <div class="entry-body">
+                <div class="entry-title">Aufklappbare Produktgruppen</div>
+                <div class="entry-desc">Alle Gruppen standardmäßig zugeklappt — die Seite dient als Nachschlagewerk, nicht als Checkliste. Kollege sucht "Zimtwolken", tippt drauf, sieht Programmnummer und Notiz. Keine Scrollorgie durch 20+ Programme.</div>
+                <span class="entry-file">ofenangriff.html</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-fix">🐛</div>
+            <div class="entry-body">
+                <div class="entry-title">Closure-Bug: nur Mohnschnecken klappten auf</div>
+                <div class="entry-desc">Alle Header-onclick-Funktionen teilten sich die letzte var-Instanz von group — JavaScript var-Closure-Klassiker. Fix: this.parentElement statt der gemeinsamen Variable.</div>
+                <span class="entry-file">ofenangriff.html</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-change">🖨️</div>
+            <div class="entry-body">
+                <div class="entry-title">Druckfunktion: neuer Tab mit sauberer Tabelle</div>
+                <div class="entry-desc">window.print() auf Android Chrome wird bei programmatisch befüllten Tabs blockiert. Lösung: Druckseite öffnet neuen Tab mit fertig gerendeter schwarz-weißer Tabelle — "Ofenangriff" als Titel, Wochentag, alle Programme. Drucken-Button oben rechts.</div>
+                <span class="entry-file">ofenangriff.html</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-change">🔤</div>
+            <div class="entry-body">
+                <div class="entry-title">STN → Sticken, Reset in Header</div>
+                <div class="entry-desc">"STN" war für unerfahrene Nutzer kryptisch. Jetzt überall "Sticken" ausgeschrieben. Reset-Button wanderte vom Footer in den Header — dort erreichbar egal wo man auf der Seite ist.</div>
+                <span class="entry-file">ofenangriff.html</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"><span>Inventur & Bestände</span></div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- INVENTUR -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="version-block" style="animation-delay:0.15s">
+        <div class="version-header">
+            <div class="version-num">V<em>15</em></div>
+            <div class="version-meta">
+                <div class="version-name">Inventur Dateneingabe & Bestandsübersicht</div>
+                <div class="version-date">März 2026</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-logic">🧮</div>
+            <div class="entry-body">
+                <div class="entry-title">Gezählt vs. Ungezählt — Datenschema-Erweiterung</div>
+                <div class="entry-desc">Kritisches Datenproblem: "0 im Froster" und "vergessen zu zählen" waren ununterscheidbar. Neues Schema: counted-Boolean pro Produkt. Drei Kartenzustände: gesperrt (nicht gezählt), aktiv (selbst gezählt), aus Datei übernommen (35% Opacity, spezieller Unlock-Button).</div>
+                <span class="entry-file">inventur_dateneingabe.html</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-new">🔓</div>
+            <div class="entry-body">
+                <div class="entry-title">Unlock-Funktion für importierte Bestände</div>
+                <div class="entry-desc">Aus inventurdaten.js importierte Werte sind gesperrt mit 35% Opacity. "Entsperren"-Button konvertiert den Eintrag in einen selbst-gezählten, editierbaren Wert — mit Zeitstempel.</div>
+                <span class="entry-file">inventur_dateneingabe.html</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-new">🔄</div>
+            <div class="entry-body">
+                <div class="entry-title">Globaler Reset-Button</div>
+                <div class="entry-desc">Ein Klick setzt alle Zählungen zurück — alle Karten wieder gesperrt, alle Werte auf null. Mit Bestätigungsdialog. Entstand aus dem echten Schmerz alle Karten einzeln freischalten zu müssen.</div>
+                <span class="entry-file">inventur_dateneingabe.html</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-new">❄️</div>
+            <div class="entry-body">
+                <div class="entry-title">Froster-Toggle in der Inventureingabe</div>
+                <div class="entry-desc">Froster-Status (gemacht / nicht gemacht / nicht angegeben) wird beim Zählen gesetzt, nicht beim Anschauen der Bestände. Speichert in localStorage, wird von bestandsuebersicht.html automatisch gelesen.</div>
+                <span class="entry-file">inventur_dateneingabe.html · bestandsuebersicht.html</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-new">🫙</div>
+            <div class="entry-body">
+                <div class="entry-title">Bestandsübersicht — neue unabhängige Seite</div>
+                <div class="entry-desc">Vollständig sessionunabhängige Übersichtsseite mit SVG-Kreisdiagrammen. Drei Datenquellen: inventurdaten.js, stammdaten.js, Date.now(). Bewusste Vereinfachung: Rohbedarf bis Montag ohne Modifikatoren — klar deklariert als Richtwert. Farbcodierung: Grün ≥80%, Gelb ≥40%, Rot &lt;40%, Grau = nicht gezählt.</span></div>
+                <span class="entry-file">bestandsuebersicht.html</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-new">📄</div>
+            <div class="entry-body">
+                <div class="entry-title">Druck & Teilen für Bestandsübersicht</div>
+                <div class="entry-desc">Druckseite im neuen Tab: Uhrzeit groß, Datum, Froster-Status farbig hervorgehoben, komplette Produkttabelle mit Statusfarben. Teilen: WhatsApp-ready Text mit Emoji-Status pro Produkt.</div>
+                <span class="entry-file">bestandsuebersicht.html</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"><span>Froster-Gehirn & Planungslogik</span></div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- GEHIRN FIXES -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="version-block" style="animation-delay:0.2s">
+        <div class="version-header">
+            <div class="version-num">V<em>119+</em></div>
+            <div class="version-meta">
+                <div class="version-name">Froster-Gehirn: Fehlmengen-Logik</div>
+                <div class="version-date">März 2026</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-logic">🧠</div>
+            <div class="entry-body">
+                <div class="entry-title">Fehlmenge wurde von frosterDone überschrieben</div>
+                <div class="entry-desc">Bug: frosterDone=true setzte startStep=2, womit Verbrauch bei i=0 null war. Fehlmenge wurde dort zum Bedarf addiert aber nie konsumiert — Wirkung: null. Plan zeigte "Gedeckt" obwohl Bleche fehlten.</div>
+                <span class="entry-file">froster_gehirn.js</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-logic">⚖️</div>
+            <div class="entry-body">
+                <div class="entry-title">Produktspezifisches frosterDone</div>
+                <div class="entry-desc">Lösung nach langer Diskussion: frosterDone gilt global — aber wenn ein Produkt eine Fehlmenge hat, ist der Froster für dieses Produkt nicht fertig. effectiveStock = stock - shortage, startStep = 1 wenn shortage > 0. Jedes Produkt wird individuell beurteilt.</div>
+                <span class="entry-file">froster_gehirn.js</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-fix">💥</div>
+            <div class="entry-body">
+                <div class="entry-title">const-Hoisting-Crash: undefined effectiveStock</div>
+                <div class="entry-desc">currentRest = effectiveStock stand vor der const effectiveStock-Deklaration. JavaScript const wird nicht gehoisted — stiller Crash, Brain lieferte undefined. Alle Planwerte verschwanden. Fix: Deklarationsreihenfolge korrigiert.</div>
+                <span class="entry-file">froster_gehirn.js</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-fix">⚠️</div>
+            <div class="entry-body">
+                <div class="entry-title">Falsche Fehlerwarnung trotz korrekt gedecktem Plan</div>
+                <div class="entry-desc">allMandatoryCovered wurde auf false gesetzt weil effectiveStock negativ startete (stock - shortage). Aber ein negativer Startbestand durch Fehlmenge bei actualConsumption=0 ist kein Planfehler. Fix: Prüfung nur bei tatsächlichem Verbrauch (actualConsumption > 0).</div>
+                <span class="entry-file">froster_gehirn.js</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-change">🏷️</div>
+            <div class="entry-body">
+                <div class="entry-title">"+8 Fehl" → "❄️ Frosterfehlmenge: 8 Bleche"</div>
+                <div class="entry-desc">Der alte Label war kryptisch. Neuer Text erklärt sich selbst ohne Handbuch.</div>
+                <span class="entry-file">planer.html</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"><span>Schnellrechner</span></div>
+
+    <div class="version-block" style="animation-delay:0.25s">
+        <div class="version-header">
+            <div class="version-num">V<em>15</em></div>
+            <div class="version-meta">
+                <div class="version-name">Schnellrechner Erweiterung</div>
+                <div class="version-date">März 2026</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-new">➕</div>
+            <div class="entry-body">
+                <div class="entry-title">Kundenbestellung / Frosterfehlmengen Eingabe</div>
+                <div class="entry-desc">Im Sandbox-Modus fehlte die Möglichkeit, zusätzliche Bleche auf den Bedarf aufzuschlagen — für Sonderbestellungen oder Frosterfehlmengen die nicht aus dem Bestand kommen. Erscheint als eigene Zeile in der Ergebnistabelle.</div>
+                <span class="entry-file">schnellrechner.html</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"><span>Navigation & System</span></div>
+
+    <div class="version-block" style="animation-delay:0.3s">
+        <div class="version-header">
+            <div class="version-num">V<em>15</em></div>
+            <div class="version-meta">
+                <div class="version-name">Landing Page & Teamordner</div>
+                <div class="version-date">März 2026</div>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-new">🗂️</div>
+            <div class="entry-body">
+                <div class="entry-title">Teamordner — HiDrive Cloud-Link</div>
+                <div class="entry-desc">Direktlink zum passwortgeschützten HiDrive-Teamordner auf der Landing Page. BäckereiOS verlinkt nur — Zugriffskontrolle und Passwort liegen in der Cloud. Keine personenbezogenen Daten in der App selbst.</div>
+                <span class="entry-file">index.html</span>
+            </div>
+        </div>
+
+        <div class="entry">
+            <div class="entry-icon icon-new">🔥</div>
+            <div class="entry-body">
+                <div class="entry-title">Ofenangriff & Bestände als Kacheln</div>
+                <div class="entry-desc">Beide neuen Module auf der Landing Page eingebunden.</div>
+                <span class="entry-file">index.html</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- FOOTER -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="changelog-footer">
+        <p>
+            BäckereiOS wird entwickelt von einem Bäcker mit Ideen<br>
+            und einer KI mit zu viel Kaffee im System.<br><br>
+            <strong>Logic before elegance. No silent architectural changes.<br>
+            When in doubt about calculations — ask first.</strong>
+        </p>
+    </div>
+
+</div>
+
+  <script src="shell.js"></script>
+</body>
+</html>

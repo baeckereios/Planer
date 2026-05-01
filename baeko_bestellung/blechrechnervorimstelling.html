@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BOS - BlechRechner</title>
+    <link rel="stylesheet" href="../systemdesign.css">
+    <style>
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        input { width: 100%; padding: 15px; border: 2px solid var(--border); border-radius: 12px; font-family: 'Barlow'; font-weight: 800; font-size: 1.2rem; text-align: center; background: var(--surface); color: var(--text); }
+        input:focus { border-color: var(--amber); outline: none; }
+        .info-bar { display: flex; justify-content: flex-end; font-size: 0.75rem; font-weight: 700; color: var(--dim); margin-top: 10px; font-family: 'Barlow Condensed'; text-transform: uppercase; }
+        .special-section { border-left: 6px solid var(--text); background: var(--surface2); }
+        .hint { font-size: 0.7rem; color: var(--dim); margin-top: 8px; display: block; }
+    </style>
+</head>
+<body>
+    <header class="brand-header">
+        <div class="brand-logo" onclick="location.href='../index.html'">BäckereiOS</div>
+        <div class="slogan-bar">KREUZ- &amp; QUER RECHNER</div>
+    </header>
+
+    <main class="container">
+        <p style="font-size:0.85rem; color:var(--dim); line-height:1.6; margin-bottom:20px;">
+            Pressen und Bleche lassen sich in beide Richtungen umrechnen. Die Schlüsselzahl beim KornKnacker erhöht das Stückgewicht — aus 90 Pressen werden deshalb weniger Bleche als ohne Korrektur. Einfach einen Wert eingeben, der andere wird automatisch berechnet.
+        </p>
+        <div id="specialList"></div>
+    </main>
+
+    <script src="../baeko_bestand.js"></script>
+    <script src="lager_gehirn.js"></script>
+    <script>
+        function render() {
+            var specList = document.getElementById('specialList');
+            var products = window.BOS_BAEKO_CONFIG.products;
+            specList.innerHTML = '';
+            for (var id in products) {
+                var p = products[id];
+                if (!p.show_in_calc || p.type !== 'cross') continue;
+                var card = document.createElement('div');
+                card.className = 'card special-section';
+                var hintHtml = p.factor ? '<span class="hint">&#x2139;&#xFE0F; Schlu\u0308sselzahl ' + p.factor + ' wird in beide Richtungen angewendet</span>' : '';
+                card.innerHTML =
+                    '<h2 class="fraunces" style="margin:0;">' + p.name + '</h2>' +
+                    '<div class="info-bar"><span>1 ' + p.unit_alt + ' = ' + p.val_alt + ' Stk.</span></div>' +
+                    '<div class="input-row">' +
+                        '<div><div class="label" style="text-align:center;">' + p.unit_alt + '</div>' +
+                        '<input type="number" id="' + id + '_alt" oninput="runCross(\'' + id + '\',\'alt\')" placeholder="0"></div>' +
+                        '<div><div class="label" style="text-align:center;">Bleche</div>' +
+                        '<input type="number" id="' + id + '_blech" oninput="runCross(\'' + id + '\',\'blech\')" placeholder="0"></div>' +
+                    '</div>' + hintHtml;
+                specList.appendChild(card);
+            }
+        }
+
+        function runCross(id, source) {
+            var val = parseFloat(document.getElementById(id + '_' + source).value || 0);
+            var targetEl = document.getElementById(id + '_' + (source === 'alt' ? 'blech' : 'alt'));
+            if (val === 0) { targetEl.value = ''; return; }
+            var res = window.BOS_LAGER_BRAIN.convertCross(id, val, source);
+            targetEl.value = Math.round(res * 100) / 100;
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', render);
+        } else {
+            render();
+        }
+    </script>
+    <script src="../shell.js"></script>
+</body>
+</html>

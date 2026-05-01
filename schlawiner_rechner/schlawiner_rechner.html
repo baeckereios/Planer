@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BäckereiOS — Schlawiner-Rechner</title>
+<link rel="stylesheet" href="../systemdesign.css">
+<script src="../shell.js" defer></script>
+<style>
+  body { background: var(--background, #f8f6f2); color: var(--text-primary, #1a1a1a); padding-bottom: 120px; }
+  .container { max-width: 680px; margin: 0 auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+  h1 { margin: 0 0 2px; font-size: 1.4rem; font-weight: 900; }
+  .page-sub { font-size: 0.78rem; color: var(--text-secondary, #6b7280); margin: 0 0 8px; }
+
+  /* ── TABS ── */
+  .tab-wrap { display: flex; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e5e0d8); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 6px; }
+  .tab-btn { flex: 1; padding: 12px; text-align: center; font-size: 0.85rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: all 0.25s; user-select: none; }
+  .tab-btn.active-eingabe { background: #1e293b; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  .tab-btn.active-auswertung { background: #d97706; color: #fff; box-shadow: 0 2px 8px rgba(217,119,6,0.3); }
+  .tab-btn.active-dbprompt { background: #059669; color: #fff; box-shadow: 0 2px 8px rgba(5,150,105,0.3); }
+  .tab-btn.inactive { background: transparent; color: var(--text-secondary, #6b7280); }
+
+  /* ── DB-PROMPT TAB ── */
+  .dbp-card {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #e5e0d8);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .dbp-header {
+    padding: 10px 14px;
+    font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+    border-bottom: 1px solid var(--border-color, #e5e0d8);
+  }
+  .dbp-header-prompt { background: #1e293b; color: #fff; }
+  .dbp-header-import { background: #d97706; color: #fff; }
+  .dbp-header-db     { background: #059669; color: #fff; }
+
+  .dbp-body { padding: 12px 14px; }
+
+  .dbp-prompt-ta {
+    width: 100%; min-height: 260px; font-family: monospace; font-size: 0.72rem;
+    padding: 10px; border-radius: 8px; border: 1px dashed var(--border-color, #cbd5e1);
+    background: #f8fafc; resize: vertical; box-sizing: border-box;
+    color: var(--text-primary, #1a1a1a); line-height: 1.5;
+  }
+  .dbp-copy-btn {
+    width: 100%; background: #1e293b; color: #fff; border: none; border-radius: 8px;
+    padding: 12px; font-weight: 800; font-size: 0.88rem; cursor: pointer;
+    font-family: inherit; margin-bottom: 10px; transition: background 0.2s;
+  }
+  .dbp-copy-btn.copied { background: #059669; }
+
+  .dbp-import-ta {
+    width: 100%; min-height: 90px; padding: 10px; border-radius: 8px;
+    border: 2px solid var(--border-color, #e5e0d8); font-size: 0.8rem;
+    font-family: monospace; resize: vertical;
+    color: var(--text-primary, #1a1a1a); background: var(--background, #f8f6f2);
+    box-sizing: border-box;
+  }
+  .dbp-import-ta:focus { border-color: #d97706; outline: none; }
+  .dbp-import-ta.valid   { border-color: #059669; background: #f0fdf4; }
+  .dbp-import-ta.invalid { border-color: #ef4444; background: #fef2f2; }
+
+  .dbp-hint { font-size: 0.78rem; font-weight: 700; min-height: 16px; margin-top: 6px; }
+  .dbp-hint.ok  { color: #059669; }
+  .dbp-hint.err { color: #ef4444; }
+
+  .dbp-save-btn {
+    width: 100%; background: #059669; color: #fff; border: none; border-radius: 8px;
+    padding: 14px; font-weight: 800; font-size: 0.95rem; cursor: pointer;
+    font-family: inherit; margin-top: 10px; transition: background 0.2s;
+  }
+  .dbp-save-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+  .dbp-save-btn.done { background: #047857; }
+
+  .dbp-share-btn {
+    width: 100%; background: #25d366; color: #fff; border: none; border-radius: 8px;
+    padding: 14px; font-weight: 800; font-size: 0.95rem; cursor: pointer;
+    font-family: inherit; margin-top: 8px; transition: background 0.2s;
+  }
+  .dbp-share-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+  .dbp-status {
+    font-size: 0.78rem; font-weight: 700; text-align: center;
+    margin-top: 10px; min-height: 18px; color: #059669;
+  }
+
+  .tab-view { display: flex; flex-direction: column; gap: 10px; }
+  .tab-view.hidden { display: none; }
+
+  .btn-auswertung {
+    width: 100%; background: #d97706; color: #fff;
+    font-size: 1.05rem; padding: 18px; border-radius: 12px; border: none;
+    font-weight: 900; cursor: pointer; font-family: inherit;
+    box-shadow: 0 4px 16px rgba(217,119,6,0.35);
+    transition: all 0.2s; margin-top: 4px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-auswertung:active { transform: scale(0.98); }
+
+  /* ── EINGABE ── */
+  .section-card {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #e5e0d8);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .section-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px;
+    font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+    border-bottom: 1px solid var(--border-color, #e5e0d8);
+  }
+  .sh-teigling { background: #fef9c3; color: #854d0e; }
+  .sh-mehl     { background: #dbeafe; color: #1e40af; }
+  .sh-kein     { background: #dcfce7; color: #15803d; }
+  .sh-stange-mehl  { background: #ede9fe; color: #5b21b6; }
+  .sh-stange-kein  { background: #fce7f3; color: #9d174d; }
+
+  .inp-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border-color, #e5e0d8);
+    gap: 10px;
+  }
+  .inp-row:last-child { border-bottom: none; }
+  .inp-name { font-size: 0.88rem; font-weight: 700; flex: 1; }
+  .inp-sub  { font-size: 0.65rem; color: var(--text-secondary, #6b7280); margin-top: 1px; }
+  .inp-field {
+    width: 90px; flex-shrink: 0;
+    text-align: center; padding: 9px 6px;
+    border: 2px solid var(--border-color, #e5e0d8);
+    border-radius: 8px; font-size: 1.1rem; font-weight: 900;
+    background: var(--card-bg, #fff); color: var(--text-primary, #1a1a1a);
+    font-family: inherit;
+  }
+  .inp-field:focus { border-color: #e67e22; outline: none; background: #fffbf5; }
+  .inp-field.teigling-field { border-color: #fde047; background: #fefce8; }
+  .inp-field.teigling-field:focus { border-color: #ca8a04; }
+
+  /* ── ERGEBNIS ── */
+  .result-block {
+    background: var(--card-bg, #fff);
+    border: 1.5px solid var(--border-color, #e5e0d8);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .result-header {
+    padding: 10px 14px;
+    font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+    border-bottom: 2px solid var(--border-color, #e5e0d8);
+  }
+  .rh-grundlage { background: #1e293b; color: #fff; }
+  .rh-mehl      { background: #1e40af; color: #fff; }
+  .rh-kein      { background: #15803d; color: #fff; }
+
+  .result-grundlage {
+    padding: 14px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .gl-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.85rem; }
+  .gl-row .label { color: var(--text-secondary, #6b7280); font-weight: 600; }
+  .gl-row .val   { font-weight: 800; }
+  .gl-row.minus  { color: #ef4444; }
+  .gl-row.minus .val { color: #ef4444; }
+  .gl-divider { height: 1px; background: var(--border-color, #e5e0d8); margin: 4px 0; }
+  .gl-row.total .label { font-weight: 900; color: var(--text-primary, #1a1a1a); }
+  .gl-row.total .val   { font-size: 1.3rem; color: #1e293b; }
+  .gl-row.total small  { font-size: 0.7rem; font-weight: 600; color: var(--text-secondary, #6b7280); margin-left: 3px; }
+
+  /* Mehl-Bereich */
+  .mehl-summary {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-color, #e5e0d8);
+  }
+  .ms-box {
+    border-radius: 10px; padding: 10px 14px;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .ms-box.mehl { background: #dbeafe; }
+  .ms-box.kein { background: #dcfce7; }
+  .ms-box .ms-label { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary, #6b7280); }
+  .ms-box .ms-right { text-align: right; }
+  .ms-box .ms-bleche { font-size: 1.6rem; font-weight: 900; line-height: 1; }
+  .ms-box .ms-unit   { font-size: 0.7rem; font-weight: 700; color: var(--text-secondary, #6b7280); margin-left: 3px; }
+  .ms-box .ms-teiglinge { font-size: 0.65rem; color: var(--text-secondary, #6b7280); font-weight: 600; margin-top: 2px; }
+
+  /* Schnitt-Tabelle */
+  .schnitt-section { padding: 10px 14px; border-bottom: 1px solid var(--border-color, #e5e0d8); }
+  .schnitt-title { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary, #6b7280); margin-bottom: 8px; }
+  .schnitt-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0; border-bottom: 1px solid var(--border-color, #e5e0d8); gap: 8px;
+  }
+  .schnitt-row:last-child { border-bottom: none; }
+  .schnitt-name { font-size: 0.8rem; font-weight: 700; flex: 1; }
+  .schnitt-detail { font-size: 0.65rem; color: var(--text-secondary, #6b7280); margin-top: 1px; }
+  .schnitt-val { font-size: 0.95rem; font-weight: 900; text-align: right; flex-shrink: 0; }
+  .schnitt-val small { font-size: 0.62rem; font-weight: 600; color: var(--text-secondary, #6b7280); display: block; }
+
+  /* Lochblech-Tabelle */
+  .loch-section { padding: 10px 14px; }
+  .loch-title { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary, #6b7280); margin-bottom: 8px; }
+  .loch-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0; border-bottom: 1px solid var(--border-color, #e5e0d8); gap: 8px;
+  }
+  .loch-row:last-child { border-bottom: none; }
+  .loch-name { font-size: 0.8rem; font-weight: 700; flex: 1; }
+  .loch-stk  { font-size: 0.65rem; color: var(--text-secondary, #6b7280); margin-top: 1px; }
+  .loch-val  { font-size: 0.95rem; font-weight: 900; text-align: right; flex-shrink: 0; }
+  .loch-val small { font-size: 0.62rem; font-weight: 600; color: var(--text-secondary, #6b7280); display: block; }
+
+  /* Leer-Hinweis */
+  .leer-hint { font-size: 0.78rem; color: var(--text-secondary, #6b7280); font-style: italic; padding: 10px 14px; text-align: center; }
+
+  /* Schnittarbeit gruppiert */
+  .rh-schnitt { background: #374151; color: #fff; }
+  .schnitt-gruppe { padding: 12px 14px; border-bottom: 1px solid var(--border-color, #e5e0d8); }
+  .schnitt-gruppe:last-child { border-bottom: none; }
+  .sg-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .sg-name  { font-size: 0.9rem; font-weight: 800; }
+  .sg-total { font-size: 1.2rem; font-weight: 900; }
+  .sg-total small { font-size: 0.65rem; font-weight: 600; color: var(--text-secondary, #6b7280); margin-left: 3px; }
+  .sg-split { display: flex; gap: 6px; }
+  .sg-chip  { flex: 1; border-radius: 8px; padding: 6px 10px; font-size: 0.78rem; font-weight: 800; text-align: center; }
+  .sg-chip.mehl { background: #dbeafe; color: #1e40af; }
+  .sg-chip.kein { background: #dcfce7; color: #15803d; }
+  .sg-chip small { display: block; font-size: 0.6rem; font-weight: 600; color: var(--text-secondary, #6b7280); margin-bottom: 2px; }
+
+  /* Normalen Zwischenschritt */
+  .normal-zwischen {
+    background: #f8fafc; border-top: 1px solid var(--border-color, #e5e0d8);
+    padding: 10px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .nz-label { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary, #6b7280); }
+  .nz-val   { font-size: 1.15rem; font-weight: 900; }
+  .nz-val small { font-size: 0.65rem; font-weight: 600; color: var(--text-secondary, #6b7280); margin-left: 3px; }
+
+  /* Lochbleche rest-anzeige */
+  .loch-val-rest { font-size: 0.75rem; color: var(--text-secondary, #6b7280); margin-top: 2px; font-weight: 600; }
+
+  /* Speichern */
+  .btn-save {
+    width: 100%; background: #10b981; color: #fff;
+    font-size: 1rem; padding: 16px; border-radius: 12px; border: none;
+    font-weight: 800; cursor: pointer; font-family: inherit;
+    box-shadow: 0 4px 12px rgba(16,185,129,0.25);
+    transition: all 0.2s; margin-top: 4px;
+  }
+  .btn-save:active { transform: scale(0.98); }
+  .btn-save.done { background: #059669; }
+
+  .btn-share {
+    width: 100%; background: #25d366; color: #fff;
+    font-size: 1rem; padding: 16px; border-radius: 12px; border: none;
+    font-weight: 800; cursor: pointer; font-family: inherit;
+    box-shadow: 0 4px 12px rgba(37,211,102,0.25);
+    transition: all 0.2s; margin-top: 4px;
+  }
+  .btn-share:active { transform: scale(0.98); }
+
+  /* Import Akkordeon */
+  .import-acc { background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8); border-radius: 12px; overflow: hidden; margin-bottom: 6px; }
+  .import-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 14px; cursor: pointer; font-size: 0.85rem; font-weight: 800;
+    user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  .import-header:active { background: var(--background,#f8f6f2); }
+  .import-arrow { font-size: 0.75rem; color: var(--text-secondary,#6b7280); transition: transform 0.25s; }
+  .import-acc.open .import-arrow { transform: rotate(180deg); }
+  .import-body { display: none; padding: 0 14px 14px; }
+  .import-acc.open .import-body { display: block; }
+  .import-textarea {
+    width: 100%; min-height: 80px; padding: 10px; border-radius: 8px;
+    border: 2px solid var(--border-color,#e5e0d8); font-size: 0.75rem;
+    font-family: monospace; resize: vertical; color: var(--text-primary,#1a1a1a);
+    background: var(--background,#f8f6f2); box-sizing: border-box;
+  }
+  .import-textarea:focus { border-color: #d97706; outline: none; }
+  .btn-import {
+    width: 100%; background: #d97706; color: #fff;
+    font-size: 0.9rem; padding: 12px; border-radius: 10px; border: none;
+    font-weight: 800; cursor: pointer; font-family: inherit; margin-top: 8px;
+  }
+  .import-status { font-size: 0.72rem; color: var(--text-secondary,#6b7280); text-align: center; margin-top: 6px; }
+
+  .history-hint { font-size: 0.72rem; color: var(--text-secondary, #6b7280); text-align: center; margin-top: 6px; }
+
+  .btn-print {
+    width: 100%; background: #1e293b; color: #fff;
+    font-size: 1rem; padding: 14px; border-radius: 12px; border: none;
+    font-weight: 800; cursor: pointer; font-family: inherit;
+    transition: all 0.2s; margin-top: 4px;
+  }
+  .btn-print:active { transform: scale(0.98); }
+
+  /* ── PRINT ── */
+  #print-container { display: none; }
+
+  @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
+    @page { margin: 12mm 14mm; size: A4 portrait; }
+
+    body, html { background: #fff !important; }
+    body > *:not(#print-container) { display: none !important; }
+    #print-container { display: block !important; }
+
+    .print-page {
+      width: 100%; background: #fff;
+      page-break-after: always;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #000;
+    }
+    .print-page:last-child {
+      page-break-after: avoid;
+      max-height: 257mm;
+      overflow: hidden;
+    }
+    /* Seite 2 etwas kompakter */
+    .print-page:last-child .pp-title   { font-size: 16pt; }
+    .print-page:last-child .pp-header  { margin-bottom: 8px; padding-bottom: 6px; }
+    .print-page:last-child .pp-section { margin-bottom: 8px; }
+    .print-page:last-child .pp-section-title { margin-bottom: 4px; padding-bottom: 2px; }
+    .print-page:last-child .pp-row     { padding: 4px 0; }
+    .print-page:last-child .pp-row-name  { font-size: 9pt; }
+    .print-page:last-child .pp-row-val   { font-size: 11pt; }
+    .print-page:last-child .pp-row-unit  { font-size: 6pt; }
+    .print-page:last-child .pp-row-sub   { font-size: 5.5pt; }
+
+    .pp-topbar { height: 5px; background: #000; margin-bottom: 10px; }
+    .pp-header  { margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #000; }
+    .pp-eyebrow { font-size: 6.5pt; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #777; margin-bottom: 3px; }
+    .pp-title   { font-size: 22pt; font-weight: 900; margin: 0 0 4px; letter-spacing: -0.5px; line-height: 1; }
+    .pp-meta    { font-size: 7.5pt; color: #999; }
+
+    .pp-section { margin-bottom: 14px; }
+    .pp-section-title {
+      font-size: 6pt; font-weight: 900; letter-spacing: 2.5px; text-transform: uppercase;
+      border-bottom: 1.5px solid #000; padding-bottom: 3px; margin-bottom: 8px;
+    }
+
+    .pp-big {
+      display: flex; justify-content: space-between; align-items: center;
+      border: 2.5px solid #000; border-radius: 3px; padding: 10px 14px;
+    }
+    .pp-big-label { font-size: 9pt; font-weight: 700; }
+    .pp-big-num   { font-size: 36pt; font-weight: 900; line-height: 1; }
+    .pp-big-unit  { font-size: 8pt; font-weight: 600; color: #666; margin-left: 3px; }
+
+    /* Schnitt-Gruppe als Box */
+    .pp-schnitt-group { border: 1.5pt solid #888; border-radius: 3px; margin-bottom: 6px; overflow: hidden; }
+    .pp-schnitt-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 10px; background: #666;
+    }
+    .pp-schnitt-name  { font-size: 10pt; font-weight: 900; color: #fff; }
+    .pp-schnitt-right { display: flex; align-items: center; gap: 10px; }
+    .pp-schnitt-val   { font-size: 13pt; font-weight: 900; color: #fff; }
+    .pp-schnitt-unit  { font-size: 6.5pt; font-weight: 600; color: #bbb; display: block; text-align: right; }
+    .pp-schnitt-check { width: 18px; height: 18px; border: 2pt solid #fff; border-radius: 2px; flex-shrink: 0; }
+
+    .pp-split { display: flex; gap: 0; }
+    .pp-chip  { flex: 1; border-right: 1pt solid #ddd; padding: 5px 10px; text-align: center; background: #fff; }
+    .pp-chip:last-child { border-right: none; }
+    .pp-chip-label { font-size: 5.5pt; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #777; display: block; margin-bottom: 1px; }
+    .pp-chip-val   { font-size: 13pt; font-weight: 900; color: #000; }
+    .pp-chip-unit  { font-size: 6pt; color: #777; margin-left: 2px; }
+
+    /* Standard Rows */
+    .pp-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 0.75pt solid #ddd; }
+    .pp-row:last-child { border-bottom: none; }
+    .pp-row-left  { flex: 1; }
+    .pp-row-name  { font-size: 10.5pt; font-weight: 700; }
+    .pp-row-sub   { font-size: 6.5pt; color: #888; margin-top: 1px; }
+    .pp-row-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .pp-row-val   { font-size: 14pt; font-weight: 900; text-align: right; white-space: nowrap; }
+    .pp-row-unit  { font-size: 7pt; font-weight: 600; color: #666; display: block; text-align: right; }
+    .pp-check     { width: 20px; height: 20px; border: 2pt solid #000; border-radius: 3px; flex-shrink: 0; }
+
+    /* Sticken-Zählgitter */
+    .pp-sticken-wrap  { margin-top: 16px; }
+    .pp-sticken-grid  { display: flex; gap: 20px; }
+    .pp-sticken-col   { flex: 1; }
+    .pp-sticken-row   {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 5px 0; border-bottom: 0.5pt solid #ddd;
+    }
+    .pp-sticken-label { font-size: 9pt; font-weight: 700; }
+    .pp-sticken-box   { width: 70px; height: 26px; border: 1.5pt solid #000; border-radius: 2px; background: #fff; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>🥐 Schlawiner-Rechner</h1>
+<p class="page-sub">Sortenverteilung · Blech-Berechnung · Lochbleche</p>
+
+<!-- ── TABS ── -->
+<div class="tab-wrap">
+  <div class="tab-btn active-eingabe" id="tab-eingabe" onclick="switchTab('eingabe')">📋 Eingabe</div>
+  <div class="tab-btn inactive" id="tab-auswertung" onclick="switchTab('auswertung')">📊 Auswertung</div>
+  <div class="tab-btn inactive" id="tab-dbprompt" onclick="switchTab('dbprompt')">📸 Erfassung</div>
+</div>
+
+<!-- ── TAB: EINGABE ── -->
+<div class="tab-view" id="view-eingabe">
+
+<!-- DB-Hinweis -->
+<div id="db-hinweis" style="display:none; font-family:'Barlow Condensed',sans-serif; font-size:0.78rem; font-weight:700; padding:9px 14px; background:var(--card-bg,#fff); border:1.5px solid var(--border-color,#e5e0d8); border-radius:10px; margin-bottom:10px;"></div>
+
+<!-- Import Akkordeon -->
+<div class="import-acc" id="import-acc">
+  <div class="import-header" onclick="toggleImport()">
+    <span>📥 Zahlen importieren</span>
+    <span class="import-arrow">▼</span>
+  </div>
+  <div class="import-body">
+    <textarea class="import-textarea" id="import-input" placeholder="Base64-Code hier einfügen (aus geteilter Nachricht)..."></textarea>
+    <button class="btn-import" onclick="importVals()">Importieren</button>
+    <div class="import-status" id="import-status"></div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-color,#e5e0d8);">
+      <div style="font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-secondary,#6b7280);margin-bottom:8px;">oder schlawiner_db.json manuell laden</div>
+      <label style="display:flex;align-items:center;justify-content:center;gap:8px;background:#f1f5f9;border:1.5px solid var(--border-color,#e5e0d8);border-radius:8px;padding:10px 12px;font-size:0.82rem;font-weight:800;cursor:pointer;">
+        📂 Datei wählen
+        <input type="file" accept=".json" style="display:none;" onchange="ladeDBManuell(this)">
+      </label>
+      <div id="manuell-db-status" style="font-size:0.72rem;font-weight:700;text-align:center;margin-top:6px;min-height:16px;color:var(--text-secondary,#6b7280);"></div>
+    </div>
+  </div>
+</div>
+<div class="section-card">
+  <div class="section-header sh-mehl">🌾 Mit Mehl — Normale Sorten</div>
+  <div class="inp-row">
+    <div><div class="inp-name">Schlawiner</div></div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_schlawiner" value="0" oninput="calc()">
+  </div>
+</div>
+
+<!-- ── EINGABE: NORMAL OHNE MEHL ── -->
+<div class="section-card">
+  <div class="section-header sh-kein">🌿 Ohne Mehl — Normale Sorten</div>
+  <div class="inp-row">
+    <div><div class="inp-name">Kürbis-Schlawiner</div></div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_kuerbis" value="0" oninput="calc()">
+  </div>
+  <div class="inp-row">
+    <div><div class="inp-name">Sonnen-Schlawiner</div></div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_sonnen" value="0" oninput="calc()">
+  </div>
+  <div class="inp-row">
+    <div><div class="inp-name">Mohn-Schlawiner</div></div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_mohn" value="0" oninput="calc()">
+  </div>
+  <div class="inp-row">
+    <div><div class="inp-name">gem.Körner Schlawiner</div></div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_koerner" value="0" oninput="calc()">
+  </div>
+  <div class="inp-row">
+    <div><div class="inp-name">Sesam-Schlawiner</div></div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_sesam" value="0" oninput="calc()">
+  </div>
+  <div class="inp-row">
+    <div><div class="inp-name">Kürbis-Käse-Schlawiner</div></div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_kuerbiskaese" value="0" oninput="calc()">
+  </div>
+  <div class="inp-row">
+    <div><div class="inp-name">Löwen-Schlawiner</div></div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_loewen" value="0" oninput="calc()">
+  </div>
+</div>
+
+<!-- ── EINGABE: STANGEN/BROTE MIT MEHL ── -->
+<div class="section-card">
+  <div class="section-header sh-stange-mehl">✂️ Mit Mehl — Stangen & Brote</div>
+  <div class="inp-row">
+    <div>
+      <div class="inp-name">Schlawinerstange (3)</div>
+      <div class="inp-sub">je 3 Teiglinge</div>
+    </div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_stange3" value="0" oninput="calc()">
+  </div>
+  <div class="inp-row">
+    <div>
+      <div class="inp-name">Schlawinerstange (5)</div>
+      <div class="inp-sub">je 5 Teiglinge</div>
+    </div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_stange5" value="0" oninput="calc()">
+  </div>
+  <div class="inp-row">
+    <div>
+      <div class="inp-name">Schlawinerbrot (6)</div>
+      <div class="inp-sub">je 6 Teiglinge</div>
+    </div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_brot6" value="0" oninput="calc()">
+  </div>
+</div>
+
+<!-- ── EINGABE: STANGEN OHNE MEHL ── -->
+<div class="section-card">
+  <div class="section-header sh-stange-kein">✂️ Ohne Mehl — Stangen</div>
+  <div class="inp-row">
+    <div>
+      <div class="inp-name">Kü.schlawiner-Stange (3)</div>
+      <div class="inp-sub">je 3 Teiglinge</div>
+    </div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_kuestange3" value="0" oninput="calc()">
+  </div>
+  <div class="inp-row">
+    <div>
+      <div class="inp-name">So.Schlawiner-Stange (3)</div>
+      <div class="inp-sub">je 3 Teiglinge</div>
+    </div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_sostange3" value="0" oninput="calc()">
+  </div>
+  <div class="inp-row">
+    <div>
+      <div class="inp-name">Schlawinerstange gem. (3)</div>
+      <div class="inp-sub">je 3 Teiglinge</div>
+    </div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_gemstange3" value="0" oninput="calc()">
+  </div>
+  <div class="inp-row">
+    <div>
+      <div class="inp-name">Löwen-Schlawinerstange</div>
+      <div class="inp-sub">je 3 Teiglinge</div>
+    </div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_loewenstange" value="0" oninput="calc()">
+  </div>
+  <div class="inp-row">
+    <div>
+      <div class="inp-name">Kü.schlawiner-Stange (5)</div>
+      <div class="inp-sub">je 5 Teiglinge</div>
+    </div>
+    <input class="inp-field" type="number" inputmode="numeric" min="0" id="inp_kuestange5" value="0" oninput="calc()">
+  </div>
+</div>
+
+<!-- ── AUSWERTUNG ANFORDERN ── -->
+<button class="btn-auswertung" onclick="switchTab('auswertung')">
+  Auswertung anzeigen <i class="ph ph-arrow-right"></i>
+</button>
+
+</div><!-- /view-eingabe -->
+
+<!-- ── TAB: AUSWERTUNG ── -->
+<div class="tab-view hidden" id="view-auswertung">
+
+<!-- ── ERGEBNIS: GRUNDLAGE ── -->
+<div class="result-block">
+  <div class="result-header rh-grundlage">📊 Grundlage</div>
+  <div class="result-grundlage">
+    <div class="gl-row">
+      <span class="label">Teiglinge Backstube gesamt</span>
+      <span class="val" id="r_gesamt">—</span>
+    </div>
+    <div class="gl-divider"></div>
+    <div class="gl-row total">
+      <span class="label">Bleche à 48 bereitzustellen</span>
+      <span class="val"><span id="r_bleche48">—</span><small>Bleche</small></span>
+    </div>
+  </div>
+</div>
+
+<!-- ── ERGEBNIS: SCHNITTARBEIT ── -->
+<div class="result-block">
+  <div class="result-header rh-schnitt">✂️ Schnittarbeit — Stangen & Brote</div>
+  <div id="schnitt_gruppiert"></div>
+</div>
+
+<!-- ── ERGEBNIS: MIT MEHL ── -->
+<div class="result-block">
+  <div class="result-header rh-mehl">🌾 Schlawinerbleche mit Mehl</div>
+  <div class="mehl-summary">
+    <div class="ms-box mehl">
+      <span class="ms-label">Bleche à 48 schneiden &amp; absetzen</span>
+      <div class="ms-right">
+        <div><span class="ms-bleche" id="r_mehl_bleche">—</span><span class="ms-unit">Bleche</span></div>
+        <div class="ms-teiglinge"><span id="r_mehl_teiglinge">—</span> Stück</div>
+      </div>
+    </div>
+  </div>
+  <div class="loch-section" id="loch_mehl_wrap">
+    <div class="loch-title">Lochbleche à 20</div>
+    <div id="loch_mehl"></div>
+  </div>
+</div>
+
+<!-- ── ERGEBNIS: OHNE MEHL ── -->
+<div class="result-block">
+  <div class="result-header rh-kein">🌿 Schlawinerbleche ohne Mehl</div>
+  <div class="mehl-summary">
+    <div class="ms-box kein">
+      <span class="ms-label">Bleche à 48 schneiden &amp; absetzen</span>
+      <div class="ms-right">
+        <div><span class="ms-bleche" id="r_kein_bleche">—</span><span class="ms-unit">Bleche</span></div>
+        <div class="ms-teiglinge"><span id="r_kein_teiglinge">—</span> Stück</div>
+      </div>
+    </div>
+  </div>
+  <div class="loch-section" id="loch_kein_wrap">
+    <div class="loch-title">Lochbleche à 20</div>
+    <div id="loch_kein"></div>
+  </div>
+</div>
+
+<!-- ── SPEICHERN / TEILEN ── -->
+<button class="btn-share" id="btn_share" onclick="teilen()">📤 Zahlen teilen</button>
+<button class="btn-print" onclick="drucken()">🖨️ Drucken (2 Seiten)</button>
+<div class="history-hint" id="history_hint"></div>
+
+</div><!-- /view-auswertung -->
+
+<!-- ── TAB: ERFASSUNG ── -->
+<div class="tab-view hidden" id="view-dbprompt">
+
+  <!-- PROMPT BLOCK -->
+  <div class="dbp-card">
+    <div class="dbp-header dbp-header-prompt">📋 KI-Prompt — Schlawiner-Liste fotografieren</div>
+    <div class="dbp-body">
+      <button class="dbp-copy-btn" id="dbp-copy-btn" onclick="dbpCopyPrompt()">📋 Prompt kopieren</button>
+      <textarea class="dbp-prompt-ta" id="dbp-prompt-ta" readonly>Du bekommst ein Foto der Schlawiner-Liste.
+Lies die Spalte mit der Tagesproduktion (Überschrift "Anzahl [Wochentag] TT.MM.") und "Anzahl Bleche".
+Gib NUR {"produkte":{...}} zurück. KEIN Markdown, KEIN ```json.
+
+MAPPING (exakt diese Schlüssel!):
+114000 Schlawiner GESAMT      → schlawiner_gesamt_stueck + schlawiner_gesamt_bleche
+
+Untermengen aus "davon"-Zeilen (nur _stueck, kein _bleche):
+Schlawiner (klassisch)        → schlawiner_klassisch_stueck
+Kürbis-Schlawiner             → schlawiner_kuerbis_stueck
+Sonnen-Schlawiner             → schlawiner_sonnen_stueck
+Mohn-Schlawiner               → schlawiner_mohn_stueck
+Körner / gem.Körner           → schlawiner_koerner_stueck
+Sesam-Schlawiner              → schlawiner_sesam_stueck
+Kürbis-Käse-Schlawiner        → schlawiner_kuerbiskaese_stueck
+Löwen-Schlawiner              → schlawiner_loewen_stueck
+Schlawinerstange (3er)        → schlawiner_stange3_stueck
+Schlawinerstange (5er)        → schlawiner_stange5_stueck
+Schlawinerbrot (6er)          → schlawiner_brot6_stueck
+Kü-Schlawiner-Stange (3er)    → schlawiner_kuestange3_stueck
+So-Schlawiner-Stange (3er)    → schlawiner_sostange3_stueck
+Schlawinerstange gem. (3er)   → schlawiner_gemstange3_stueck
+Löwen-Schlawinerstange        → schlawiner_loewenstange_stueck
+Kü-Schlawiner-Stange (5er)    → schlawiner_kuestange5_stueck
+
+Format: {"produkte":{"schlawiner_gesamt_stueck":7968,"schlawiner_gesamt_bleche":166,...}}</textarea>
+    </div>
+  </div>
+
+  <!-- IMPORT + SPEICHERN BLOCK -->
+  <div class="dbp-card">
+    <div class="dbp-header dbp-header-import">📥 KI-Antwort einfügen</div>
+    <div class="dbp-body">
+      <textarea class="dbp-import-ta" id="dbp-import-ta" placeholder='{"produkte":{"schlawiner_gesamt_stueck":7968,...}}' oninput="dbpValidate()"></textarea>
+      <div class="dbp-hint" id="dbp-hint"></div>
+      <button class="dbp-save-btn" id="dbp-save-btn" onclick="dbpSpeichern()" disabled>💾 Speichern + herunterladen</button>
+      <button class="dbp-share-btn" id="dbp-share-btn" onclick="dbpTeilen()" disabled>📲 Per WhatsApp teilen</button>
+      <div class="dbp-status" id="dbp-status"></div>
+    </div>
+  </div>
+
+</div><!-- /view-dbprompt -->
+
+
+<script>
+// ── DATENDEFINITION ──────────────────────────────────────────
+// typ: 'teigling' | 'normal' | 'stange' | 'brot'
+// tpe: Teiglinge pro Einheit
+// mehl: true = mit Mehl, false = ohne Mehl
+var SORTEN = [
+  // Mit Mehl Normal
+  { id:'schlawiner',   name:'Schlawiner',                typ:'normal',   tpe:1, mehl:true  },
+  // Ohne Mehl Normal
+  { id:'kuerbis',      name:'Kürbis-Schlawiner',         typ:'normal',   tpe:1, mehl:false },
+  { id:'sonnen',       name:'Sonnen-Schlawiner',         typ:'normal',   tpe:1, mehl:false },
+  { id:'mohn',         name:'Mohn-Schlawiner',           typ:'normal',   tpe:1, mehl:false },
+  { id:'koerner',      name:'gem.Körner Schlawiner',     typ:'normal',   tpe:1, mehl:false },
+  { id:'sesam',        name:'Sesam-Schlawiner',          typ:'normal',   tpe:1, mehl:false },
+  { id:'kuerbiskaese', name:'Kürbis-Käse-Schlawiner',   typ:'normal',   tpe:1, mehl:false },
+  { id:'loewen',       name:'Löwen-Schlawiner',          typ:'normal',   tpe:1, mehl:false },
+  // Mit Mehl Stangen/Brote
+  { id:'stange3',      name:'Schlawinerstange (3)',      typ:'stange',   tpe:3, mehl:true  },
+  { id:'stange5',      name:'Schlawinerstange (5)',      typ:'stange',   tpe:5, mehl:true  },
+  { id:'brot6',        name:'Schlawinerbrot (6)',        typ:'brot',     tpe:6, mehl:true  },
+  // Ohne Mehl Stangen
+  { id:'kuestange3',   name:'Kü.schlawiner-Stange (3)', typ:'stange',   tpe:3, mehl:false },
+  { id:'sostange3',    name:'So.Schlawiner-Stange (3)', typ:'stange',   tpe:3, mehl:false },
+  { id:'gemstange3',   name:'Schlawinerstange gem. (3)',typ:'stange',   tpe:3, mehl:false },
+  { id:'loewenstange', name:'Löwen-Schlawinerstange',   typ:'stange',   tpe:3, mehl:false },
+  { id:'kuestange5',   name:'Kü.schlawiner-Stange (5)',  typ:'stange',   tpe:5, mehl:false },
+];
+
+function n(val) { return parseInt(document.getElementById('inp_' + val).value) || 0; }
+function fmt(v, dec) {
+  dec = dec !== undefined ? dec : 2;
+  return v.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: dec });
+}
+
+function calc() {
+  var vals = {};
+  SORTEN.forEach(function(s) {
+    vals[s.id] = parseInt(document.getElementById('inp_' + s.id).value) || 0;
+  });
+
+  // Gesamte Backstube-Teiglinge
+  var backstube = 0;
+  SORTEN.forEach(function(s){ backstube += vals[s.id] * s.tpe; });
+  var bleche48 = backstube / 48;
+
+  // Mit/ohne Mehl aufteilen
+  var mehlT = 0, keinT = 0;
+  SORTEN.forEach(function(s){
+    var t = vals[s.id] * s.tpe;
+    if (s.mehl) mehlT += t; else keinT += t;
+  });
+
+  // ── GRUNDLAGE ──
+  document.getElementById('r_gesamt').textContent   = fmt(backstube, 0) + ' Stück';
+  document.getElementById('r_bleche48').textContent = fmt(bleche48, 1);
+
+  // ── MIT MEHL — nur normale Sorten ──
+  var mehlNormalT = 0, keinNormalT = 0;
+  SORTEN.filter(function(s){ return s.typ === 'normal'; }).forEach(function(s){
+    if (s.mehl) mehlNormalT += vals[s.id]; else keinNormalT += vals[s.id];
+  });
+  document.getElementById('r_mehl_teiglinge').textContent = fmt(mehlNormalT, 0);
+  document.getElementById('r_mehl_bleche').textContent    = fmt(mehlNormalT / 48, 1);
+
+  renderSchnittGruppiert(vals);
+  renderLoch('mehl', vals, true);
+
+  // ── OHNE MEHL — nur normale Sorten ──
+  document.getElementById('r_kein_teiglinge').textContent = fmt(keinNormalT, 0);
+  document.getElementById('r_kein_bleche').textContent    = fmt(keinNormalT / 48, 1);
+  renderLoch('kein', vals, false);
+
+  // localStorage für nächste Session
+  try {
+    var save = {};
+    SORTEN.forEach(function(s){ save[s.id] = vals[s.id]; });
+    localStorage.setItem('schlawiner_last', JSON.stringify(save));
+  } catch(e) {}
+}
+
+function switchTab(tab) {
+  var eingabe    = document.getElementById('view-eingabe');
+  var auswertung = document.getElementById('view-auswertung');
+  var dbprompt   = document.getElementById('view-dbprompt');
+  var tabE = document.getElementById('tab-eingabe');
+  var tabA = document.getElementById('tab-auswertung');
+  var tabD = document.getElementById('tab-dbprompt');
+
+  // alle ausblenden
+  eingabe.classList.add('hidden');
+  auswertung.classList.add('hidden');
+  dbprompt.classList.add('hidden');
+  tabE.className = 'tab-btn inactive';
+  tabA.className = 'tab-btn inactive';
+  tabD.className = 'tab-btn inactive';
+
+  if (tab === 'auswertung') {
+    calc();
+    auswertung.classList.remove('hidden');
+    tabA.className = 'tab-btn active-auswertung';
+  } else if (tab === 'dbprompt') {
+    dbprompt.classList.remove('hidden');
+    tabD.className = 'tab-btn active-dbprompt';
+  } else {
+    eingabe.classList.remove('hidden');
+    tabE.className = 'tab-btn active-eingabe';
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+
+function renderSchnittGruppiert(vals) {
+  var container = document.getElementById('schnitt_gruppiert');
+  container.innerHTML = '';
+
+  var gruppen = [
+    { tpe:3, label:'3er Stangen' },
+    { tpe:5, label:'5er Stangen' },
+    { tpe:6, label:'Brote (6er)' },
+  ];
+
+  var hatWas = false;
+  gruppen.forEach(function(g) {
+    var sorten = SORTEN.filter(function(s){
+      return (s.typ === 'stange' || s.typ === 'brot') && s.tpe === g.tpe;
+    });
+    var mehlT = 0, keinT = 0, mehlStk = 0, keinStk = 0;
+    sorten.forEach(function(s){
+      var t = vals[s.id] * s.tpe;
+      if (s.mehl) { mehlT += t; mehlStk += vals[s.id]; }
+      else        { keinT += t; keinStk += vals[s.id]; }
+    });
+    var total = mehlT + keinT;
+    if (!total) return;
+    hatWas = true;
+
+    var splitHtml = '<div class="sg-split">';
+    if (mehlT) splitHtml += '<div class="sg-chip mehl"><small>mit Mehl</small>' + fmt(mehlT/48, 2) + ' Bleche<span style="display:block;font-size:0.6rem;font-weight:600;color:#4b5563;margin-top:1px;">' + fmt(mehlStk, 0) + ' Stk.</span></div>';
+    if (keinT) splitHtml += '<div class="sg-chip kein"><small>ohne Mehl</small>' + fmt(keinT/48, 2) + ' Bleche<span style="display:block;font-size:0.6rem;font-weight:600;color:#4b5563;margin-top:1px;">' + fmt(keinStk, 0) + ' Stk.</span></div>';
+    splitHtml += '</div>';
+
+    var block = document.createElement('div');
+    block.className = 'schnitt-gruppe';
+    block.innerHTML =
+      '<div class="sg-header">'
+        + '<span class="sg-name">✂️ ' + g.label + '</span>'
+        + '<span class="sg-total">' + fmt(total/48, 2) + '<small>Bleche gesamt</small></span>'
+      + '</div>'
+      + splitHtml;
+    container.appendChild(block);
+  });
+
+  if (!hatWas) {
+    var hint = document.createElement('div');
+    hint.className = 'leer-hint';
+    hint.textContent = 'Keine Stangen oder Brote eingetragen.';
+    container.appendChild(hint);
+  }
+}
+
+function renderLoch(slot, vals, mitMehl) {
+  var container = document.getElementById('loch_' + slot);
+  var sorten = SORTEN.filter(function(s){
+    return s.typ === 'normal' && s.mehl === mitMehl;
+  });
+  container.innerHTML = '';
+
+  var hatWas = false;
+  sorten.forEach(function(s) {
+    var menge = vals[s.id];
+    if (!menge) return;
+    hatWas = true;
+    var lochbleche = menge / 20;
+    var volle = Math.floor(lochbleche);
+    var einzelne = Math.round((lochbleche - volle) * 20);
+
+    var restStr;
+    if (volle > 0 && einzelne > 0) {
+      restStr = volle + ' volle + ' + einzelne + ' einzelne';
+    } else if (volle > 0) {
+      restStr = volle + ' volle';
+    } else {
+      restStr = einzelne + ' einzelne';
+    }
+
+    var row = document.createElement('div');
+    row.className = 'loch-row';
+    row.innerHTML =
+      '<div>'
+        + '<div class="loch-name">' + s.name + '</div>'
+        + '<div class="loch-stk">' + fmt(menge,0) + ' Stück</div>'
+      + '</div>'
+      + '<div style="text-align:right;">'
+        + '<div class="loch-val">' + restStr + '</div>'
+        + '<div class="loch-val-rest">Lochbleche</div>'
+      + '</div>';
+    container.appendChild(row);
+  });
+
+  document.getElementById('loch_' + slot + '_wrap').style.display = hatWas ? 'block' : 'none';
+}
+
+function drucken() {
+  var jetzt = new Date();
+  var datumStr = jetzt.toLocaleDateString('de-DE', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'})
+    + ' · ' + jetzt.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr';
+
+  var vals = {};
+  SORTEN.forEach(function(s){
+    vals[s.id] = parseInt(document.getElementById('inp_' + s.id).value) || 0;
+  });
+
+  var backstube = 0;
+  SORTEN.forEach(function(s){ backstube += vals[s.id] * s.tpe; });
+
+  var mehlNormalT = 0, keinNormalT = 0;
+  SORTEN.filter(function(s){ return s.typ === 'normal'; }).forEach(function(s){
+    if (s.mehl) mehlNormalT += vals[s.id]; else keinNormalT += vals[s.id];
+  });
+
+  var gruppen = [
+    { tpe:3, label:'3er Stangen' },
+    { tpe:5, label:'5er Stangen' },
+    { tpe:6, label:'Brote (6er)' },
+  ];
+
+  function row(name, val, unit, sub, check) {
+    return '<div class="pp-row">'
+      + '<div class="pp-row-left"><div class="pp-row-name">' + name + '</div>'
+      + (sub ? '<div class="pp-row-sub">' + sub + '</div>' : '')
+      + '</div>'
+      + '<div class="pp-row-right">'
+      + '<div><div class="pp-row-val">' + val + '</div><div class="pp-row-unit">' + unit + '</div></div>'
+      + (check ? '<div class="pp-check"></div>' : '')
+      + '</div></div>';
+  }
+
+  // ── SEITE 1 ──
+  var p1 = '';
+  p1 += '<div class="pp-topbar"></div>';
+  p1 += '<div class="pp-header">'
+      + '<div class="pp-eyebrow">BäckereiOS · Produktion</div>'
+      + '<div class="pp-title">Schlawiner — Vorbereitung</div>'
+      + '<div class="pp-meta">' + datumStr + '</div>'
+      + '</div>';
+
+  p1 += '<div class="pp-section"><div class="pp-section-title">Grundlage</div>'
+      + '<div class="pp-big">'
+      + '<div class="pp-big-label">Bleche à 48 bereitzustellen</div>'
+      + '<div><span class="pp-big-num">' + fmt(backstube/48, 1) + '</span><span class="pp-big-unit">Bleche</span></div>'
+      + '</div></div>';
+
+  p1 += '<div class="pp-section"><div class="pp-section-title">Schnittarbeit — Stangen &amp; Brote</div>';
+  gruppen.forEach(function(g) {
+    var sorten = SORTEN.filter(function(s){ return (s.typ==='stange'||s.typ==='brot') && s.tpe===g.tpe; });
+    var mehlT=0, keinT=0, mehlStk=0, keinStk=0;
+    sorten.forEach(function(s){ var t=vals[s.id]*s.tpe; if(s.mehl){ mehlT+=t; mehlStk+=vals[s.id]; } else{ keinT+=t; keinStk+=vals[s.id]; } });
+    var total=mehlT+keinT;
+    if (!total) return;
+    p1 += '<div class="pp-schnitt-group">'
+        + '<div class="pp-schnitt-header">'
+        + '<div class="pp-schnitt-name">✂ ' + g.label + '</div>'
+        + '<div class="pp-schnitt-right">'
+        + '<div><div class="pp-schnitt-val">' + fmt(total/48,2) + '</div><div class="pp-schnitt-unit">Bleche gesamt</div></div>'
+        + '<div class="pp-schnitt-check"></div>'
+        + '</div></div>';
+    if (mehlT || keinT) {
+      p1 += '<div class="pp-split">';
+      if (mehlT) p1 += '<div class="pp-chip"><span class="pp-chip-label">mit Mehl</span><span class="pp-chip-val">' + fmt(mehlT/48,2) + '</span><span class="pp-chip-unit">Bl.</span><span style="display:block;font-size:5pt;font-weight:700;color:#666;margin-top:1px;">' + fmt(mehlStk,0) + ' Stk.</span></div>';
+      if (keinT) p1 += '<div class="pp-chip"><span class="pp-chip-label">ohne Mehl</span><span class="pp-chip-val">' + fmt(keinT/48,2) + '</span><span class="pp-chip-unit">Bl.</span><span style="display:block;font-size:5pt;font-weight:700;color:#666;margin-top:1px;">' + fmt(keinStk,0) + ' Stk.</span></div>';
+      p1 += '</div>';
+    }
+    p1 += '</div>';
+  });
+  p1 += '</div>';
+
+  p1 += '<div class="pp-section"><div class="pp-section-title">Schlawinerbleche — normale Sorten</div>';
+  if (mehlNormalT) {
+    p1 += '<div class="pp-schnitt-group">'
+        + '<div class="pp-schnitt-header">'
+        + '<div class="pp-schnitt-name">mit Mehl</div>'
+        + '<div class="pp-schnitt-right">'
+        + '<div><div class="pp-schnitt-val">' + fmt(mehlNormalT/48,1) + '</div><div class="pp-schnitt-unit">Bleche</div></div>'
+        + '<div class="pp-schnitt-check"></div>'
+        + '</div></div></div>';
+  }
+  if (keinNormalT) {
+    p1 += '<div class="pp-schnitt-group">'
+        + '<div class="pp-schnitt-header">'
+        + '<div class="pp-schnitt-name">ohne Mehl</div>'
+        + '<div class="pp-schnitt-right">'
+        + '<div><div class="pp-schnitt-val">' + fmt(keinNormalT/48,1) + '</div><div class="pp-schnitt-unit">Bleche</div></div>'
+        + '<div class="pp-schnitt-check"></div>'
+        + '</div></div></div>';
+  }
+  p1 += '</div>';
+
+  // Sticken-Zählgitter
+  p1 += '<div class="pp-sticken-wrap">';
+  p1 += '<div class="pp-section-title">Sticken zählen</div>';
+  p1 += '<div class="pp-sticken-grid">';
+  // Linke Spalte: 1-6
+  p1 += '<div class="pp-sticken-col">';
+  for (var i=1; i<=6; i++) {
+    p1 += '<div class="pp-sticken-row">'
+        + '<span class="pp-sticken-label">' + i + '. Sticken</span>'
+        + '<div style="display:flex;align-items:center;gap:6px;">'
+        + '<div class="pp-sticken-box"></div>'
+        + '<div style="display:flex;align-items:center;gap:3px;"><div class="pp-check"></div><span style="font-size:6.5pt;font-weight:700;">mit Mehl</span></div>'
+        + '</div></div>';
+  }
+  p1 += '</div>';
+  // Rechte Spalte: 7-12
+  p1 += '<div class="pp-sticken-col">';
+  for (var i=7; i<=12; i++) {
+    p1 += '<div class="pp-sticken-row">'
+        + '<span class="pp-sticken-label">' + i + '. Sticken</span>'
+        + '<div style="display:flex;align-items:center;gap:6px;">'
+        + '<div class="pp-sticken-box"></div>'
+        + '<div style="display:flex;align-items:center;gap:3px;"><div class="pp-check"></div><span style="font-size:6.5pt;font-weight:700;">mit Mehl</span></div>'
+        + '</div></div>';
+  }
+  p1 += '</div>';
+  p1 += '</div></div>';
+
+  document.getElementById('print-page1').innerHTML = p1;
+
+  // ── SEITE 2 ──
+  var p2 = '';
+  p2 += '<div class="pp-topbar"></div>';
+  p2 += '<div class="pp-header">'
+      + '<div class="pp-eyebrow">BäckereiOS · Produktion</div>'
+      + '<div class="pp-title">Schlawiner — Lochblech-Station</div>'
+      + '<div class="pp-meta">' + datumStr + '</div>'
+      + '</div>';
+
+  ['mehl','kein'].forEach(function(slot) {
+    var istMehl = slot === 'mehl';
+    var sorten = SORTEN.filter(function(s){ return s.typ==='normal' && s.mehl===istMehl; });
+    var hatWas = sorten.some(function(s){ return vals[s.id] > 0; });
+    if (!hatWas) return;
+    p2 += '<div class="pp-section"><div class="pp-section-title">' + (istMehl ? 'Mit Mehl' : 'Ohne Mehl') + '</div>';
+    sorten.forEach(function(s) {
+      var menge = vals[s.id]; if (!menge) return;
+      var volle = Math.floor(menge/20);
+      var einzelne = Math.round((menge/20-volle)*20);
+      var restStr = (volle>0&&einzelne>0) ? volle+' volle + '+einzelne+' einzelne'
+                  : (volle>0 ? volle+' volle' : einzelne+' einzelne');
+      p2 += row(s.name, restStr, 'Lochbleche', fmt(menge,0)+' Stück', true);
+    });
+    p2 += '</div>';
+  });
+
+  // Stangen & Brote nach Mehl/ohne Mehl
+  ['mehl','kein'].forEach(function(slot) {
+    var istMehl = slot === 'mehl';
+    var sorten = SORTEN.filter(function(s){
+      return (s.typ==='stange' || s.typ==='brot') && s.mehl===istMehl;
+    });
+    var hatWas = sorten.some(function(s){ return vals[s.id] > 0; });
+    if (!hatWas) return;
+    p2 += '<div class="pp-section"><div class="pp-section-title">Stangen &amp; Brote — ' + (istMehl ? 'mit Mehl' : 'ohne Mehl') + '</div>';
+    sorten.forEach(function(s) {
+      var menge = vals[s.id]; if (!menge) return;
+      p2 += row(s.name, fmt(menge,0), 'Stück', '', false);
+    });
+    p2 += '</div>';
+  });
+
+  document.getElementById('print-page2').innerHTML = p2;
+  window.print();
+}
+
+function teilen() {
+  var vals = {};
+  SORTEN.forEach(function(s){
+    vals[s.id] = parseInt(document.getElementById('inp_' + s.id).value) || 0;
+  });
+  var b64 = btoa(unescape(encodeURIComponent(JSON.stringify(vals))));
+  var text = '🥐 Schlawiner-Zahlen\n---SCHLAWINER---\n' + b64;
+  var btn = document.getElementById('btn_share');
+  if (navigator.share) {
+    navigator.share({text: text}).catch(function(){});
+  } else {
+    navigator.clipboard.writeText(text).then(function(){
+      btn.textContent = '✓ Kopiert';
+      setTimeout(function(){ btn.textContent = '📤 Zahlen teilen'; }, 3000);
+    }).catch(function(){ alert(text); });
+  }
+}
+
+function toggleImport() {
+  var acc = document.getElementById('import-acc');
+  acc.classList.toggle('open');
+}
+
+function importVals() {
+  var raw = document.getElementById('import-input').value.trim();
+  var marker = '---SCHLAWINER---';
+  var idx = raw.indexOf(marker);
+  var b64 = idx !== -1 ? raw.substring(idx + marker.length).trim() : raw;
+  try {
+    var vals = JSON.parse(decodeURIComponent(escape(atob(b64))));
+    // Erst alle Felder nullen — Import ist Autorität
+    SORTEN.forEach(function(s){
+      var inp = document.getElementById('inp_' + s.id);
+      if (inp) inp.value = 0;
+    });
+    var count = 0;
+    SORTEN.forEach(function(s){
+      if (vals[s.id] !== undefined) {
+        var inp = document.getElementById('inp_' + s.id);
+        if (inp) { inp.value = vals[s.id]; count++; }
+      }
+    });
+    var status = document.getElementById('import-status');
+    status.textContent = '✓ ' + count + ' Werte importiert';
+    status.style.color = '#059669';
+    document.getElementById('import-acc').classList.remove('open');
+    document.getElementById('import-input').value = '';
+  } catch(e) {
+    var status = document.getElementById('import-status');
+    status.textContent = '⚠ Fehler: ungültiger Code';
+    status.style.color = '#ef4444';
+  }
+}
+
+function updateHistoryHint() {
+  try {
+    var history = JSON.parse(localStorage.getItem('schlawiner_history') || '[]');
+    var hint = document.getElementById('history_hint');
+    if (history.length > 0) {
+      var last = history[history.length - 1];
+      hint.textContent = history.length + ' Einträge gespeichert · Letzter: ' + last.datum;
+    } else {
+      hint.textContent = 'Noch keine gespeicherten Einträge.';
+    }
+  } catch(e) {}
+}
+
+// ── INIT ────────────────────────────────────────────────────
+// Mapping: SORTEN-id → legacyKey in backmengen_db
+var DB_KEY_MAP = {
+  'schlawiner':   'schlawiner_klassisch_stueck',
+  'kuerbis':      'schlawiner_kuerbis_stueck',
+  'sonnen':       'schlawiner_sonnen_stueck',
+  'mohn':         'schlawiner_mohn_stueck',
+  'koerner':      'schlawiner_koerner_stueck',
+  'sesam':        'schlawiner_sesam_stueck',
+  'kuerbiskaese': 'schlawiner_kuerbiskaese_stueck',
+  'loewen':       'schlawiner_loewen_stueck',
+  'stange3':      'schlawiner_stange3_stueck',
+  'stange5':      'schlawiner_stange5_stueck',
+  'brot6':        'schlawiner_brot6_stueck',
+  'kuestange3':   'schlawiner_kuestange3_stueck',
+  'sostange3':    'schlawiner_sostange3_stueck',
+  'gemstange3':   'schlawiner_gemstange3_stueck',
+  'loewenstange': 'schlawiner_loewenstange_stueck',
+  'kuestange5':   'schlawiner_kuestange5_stueck'
+};
+
+function getZielDatum() {
+  var jetzt = new Date();
+  var h = jetzt.getHours();
+  var ziel = new Date(jetzt);
+  if (h >= 18) {
+    // Abend: Daten für morgen suchen
+    ziel.setDate(ziel.getDate() + 1);
+  } else if (h < 6 || h === 0) {
+    // Nacht/früh: Daten für heute suchen
+    // ziel bleibt heute
+  } else {
+    // Tagsüber: kein Auto-Fill
+    return null;
+  }
+  return ziel.toISOString().slice(0, 10);
+}
+
+function zielDatumLabel(datum) {
+  var d = new Date(datum + 'T12:00:00');
+  var WT = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  return WT[d.getDay()] + ', ' + String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.';
+}
+
+function ladeDBManuell(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var statusEl = document.getElementById('manuell-db-status');
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var db = JSON.parse(e.target.result);
+      if (!db || !db.produkte) throw new Error('Kein gültiges schlawiner_db.json Format.');
+      // Erst alle Felder nullen — DB ist Autorität
+      SORTEN.forEach(function(s) {
+        var inp = document.getElementById('inp_' + s.id);
+        if (inp) inp.value = 0;
+      });
+      var gefunden = 0;
+      SORTEN.forEach(function(s) {
+        var dbKey = DB_KEY_MAP[s.id];
+        var val = db.produkte[dbKey];
+        if (val !== undefined && val !== null) {
+          var inp = document.getElementById('inp_' + s.id);
+          if (inp) { inp.value = val; gefunden++; }
+        }
+      });
+      if (gefunden > 0) {
+        statusEl.textContent = '✅ ' + gefunden + ' Werte geladen';
+        statusEl.style.color = '#059669';
+        calc();
+        document.getElementById('import-acc').classList.remove('open');
+      } else {
+        statusEl.textContent = '⚠ Keine passenden Schlawiner-Werte gefunden';
+        statusEl.style.color = '#d97706';
+      }
+    } catch(err) {
+      statusEl.textContent = '❌ ' + err.message;
+      statusEl.style.color = '#ef4444';
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function ladeAusDB() {
+  // Zuerst localStorage prüfen — kein Deploy nötig
+  var lokal = null;
+  try {
+    var ls = localStorage.getItem('schlawiner_db');
+    if (ls) lokal = JSON.parse(ls);
+  } catch(e) {}
+
+  if (lokal && lokal.gespeichert_am && lokal.produkte) {
+    dbpFuelleFelder(lokal);
+  } else {
+    // Fallback: fetch vom Server
+    fetch('schlawiner_db.json', { cache: 'no-store' })
+      .then(function(r){ return r.json(); })
+      .then(function(db){ dbpFuelleFelder(db); })
+      .catch(function() { /* still scheitern */ });
+  }
+}
+
+function dbpFuelleFelder(db) {
+  if (!db || !db.gespeichert_am || !db.produkte) return;
+  var alter = Date.now() - new Date(db.gespeichert_am).getTime();
+  if (alter > 12 * 60 * 60 * 1000) return; // älter als 12h → Nullen lassen
+  // Erst alle Felder nullen — DB ist Autorität, kein localStorage-Überrest bleibt
+  SORTEN.forEach(function(s) {
+    var inp = document.getElementById('inp_' + s.id);
+    if (inp) inp.value = 0;
+  });
+  var gefunden = 0;
+  SORTEN.forEach(function(s) {
+    var dbKey = DB_KEY_MAP[s.id];
+    var val = db.produkte[dbKey];
+    if (val !== undefined && val !== null) {
+      var inp = document.getElementById('inp_' + s.id);
+      if (inp) { inp.value = val; gefunden++; }
+    }
+  });
+  if (gefunden > 0) {
+    var gueltigBis = new Date(new Date(db.gespeichert_am).getTime() + 12 * 60 * 60 * 1000);
+    var hh = String(gueltigBis.getHours()).padStart(2,'0');
+    var mm = String(gueltigBis.getMinutes()).padStart(2,'0');
+    zeigeDBHinweis('✓ ' + gefunden + ' Werte geladen · gültig bis ' + hh + ':' + mm + ' Uhr', true);
+    calc();
+  }
+}
+
+function zeigeDBHinweis(text, ok) {
+  var el = document.getElementById('db-hinweis');
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = ok ? '#059669' : '#92400e';
+  el.style.display = 'block';
+}
+
+// ── ERFASSUNG TAB ────────────────────────────────────────────
+
+var SCHLAWINER_KEYS = [
+  'schlawiner_gesamt_stueck','schlawiner_gesamt_bleche',
+  'schlawiner_klassisch_stueck','schlawiner_kuerbis_stueck',
+  'schlawiner_sonnen_stueck','schlawiner_mohn_stueck',
+  'schlawiner_koerner_stueck','schlawiner_sesam_stueck',
+  'schlawiner_kuerbiskaese_stueck','schlawiner_loewen_stueck',
+  'schlawiner_stange3_stueck','schlawiner_stange5_stueck',
+  'schlawiner_brot6_stueck','schlawiner_kuestange3_stueck',
+  'schlawiner_sostange3_stueck','schlawiner_gemstange3_stueck',
+  'schlawiner_loewenstange_stueck','schlawiner_kuestange5_stueck'
+];
+
+var dbpValidData = null;
+
+function dbpCopyPrompt() {
+  var ta = document.getElementById('dbp-prompt-ta');
+  var btn = document.getElementById('dbp-copy-btn');
+  navigator.clipboard.writeText(ta.value).then(function() {
+    btn.textContent = '✅ Kopiert!';
+    btn.classList.add('copied');
+    setTimeout(function() {
+      btn.textContent = '📋 Prompt kopieren';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+function dbpValidate() {
+  var raw = document.getElementById('dbp-import-ta').value.trim();
+  var ta   = document.getElementById('dbp-import-ta');
+  var hint = document.getElementById('dbp-hint');
+  var saveBtn  = document.getElementById('dbp-save-btn');
+  var shareBtn = document.getElementById('dbp-share-btn');
+  dbpValidData = null;
+  saveBtn.disabled = true;
+  shareBtn.disabled = true;
+
+  if (!raw) {
+    ta.className = 'dbp-import-ta';
+    hint.textContent = ''; hint.className = 'dbp-hint';
+    return;
+  }
+  try {
+    var p = JSON.parse(raw);
+    if (!p.produkte || typeof p.produkte !== 'object') throw new Error('Kein "produkte"-Objekt gefunden.');
+    var gefunden = SCHLAWINER_KEYS.filter(function(k){ return p.produkte[k] !== undefined; }).length;
+    if (gefunden === 0) throw new Error('Keine Schlawiner-Keys erkannt.');
+    dbpValidData = p.produkte;
+    ta.className = 'dbp-import-ta valid';
+    hint.textContent = '✅ ' + gefunden + ' Felder erkannt';
+    hint.className = 'dbp-hint ok';
+    saveBtn.disabled = false;
+    shareBtn.disabled = false;
+  } catch(e) {
+    ta.className = 'dbp-import-ta invalid';
+    hint.textContent = '❌ ' + e.message;
+    hint.className = 'dbp-hint err';
+  }
+}
+
+function dbpBaueRohling() {
+  // Filtert nur bekannte Keys, setzt Zeitstempel
+  var produkte = {};
+  SCHLAWINER_KEYS.forEach(function(k) {
+    if (dbpValidData[k] !== undefined) produkte[k] = dbpValidData[k];
+  });
+  return {
+    gespeichert_am: new Date().toISOString(),
+    produkte: produkte
+  };
+}
+
+function dbpSpeichern() {
+  if (!dbpValidData) return;
+  var rohling = dbpBaueRohling();
+
+  // localStorage — sofort verfügbar ohne Deploy
+  try { localStorage.setItem('schlawiner_db', JSON.stringify(rohling)); } catch(e) {}
+
+  // Download
+  var blob = new Blob([JSON.stringify(rohling, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'schlawiner_db.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+
+  dbpZeigeStatus(rohling);
+  dbpReset();
+}
+
+function dbpTeilen() {
+  if (!dbpValidData) return;
+  // Base64 der aktuellen Sortenverteilung — kompatibel mit Tab 1 Import
+  var vals = {};
+  SORTEN.forEach(function(s) {
+    var dbKey = DB_KEY_MAP[s.id];
+    if (dbpValidData[dbKey] !== undefined) vals[s.id] = dbpValidData[dbKey];
+  });
+  var b64 = btoa(unescape(encodeURIComponent(JSON.stringify(vals))));
+  var text = '🥐 Schlawiner-Zahlen\n---SCHLAWINER---\n' + b64;
+  if (navigator.share) {
+    navigator.share({ text: text }).catch(function(){});
+  } else {
+    navigator.clipboard.writeText(text).then(function() {
+      dbpZeigeStatusText('✓ In Zwischenablage kopiert');
+    }).catch(function(){ alert(text); });
+  }
+}
+
+function dbpZeigeStatus(rohling) {
+  var gesamt = rohling.produkte['schlawiner_gesamt_stueck'];
+  var gueltigBis = new Date(new Date(rohling.gespeichert_am).getTime() + 12 * 60 * 60 * 1000);
+  var hh = String(gueltigBis.getHours()).padStart(2,'0');
+  var mm = String(gueltigBis.getMinutes()).padStart(2,'0');
+  dbpZeigeStatusText('✅ Gespeichert · ' + (gesamt ? gesamt + ' Stück · ' : '') + 'gültig bis ' + hh + ':' + mm + ' Uhr');
+}
+
+function dbpZeigeStatusText(text) {
+  var el = document.getElementById('dbp-status');
+  if (el) el.textContent = text;
+}
+
+function dbpReset() {
+  document.getElementById('dbp-import-ta').value = '';
+  document.getElementById('dbp-import-ta').className = 'dbp-import-ta';
+  document.getElementById('dbp-hint').textContent = '';
+  document.getElementById('dbp-save-btn').disabled = true;
+  document.getElementById('dbp-share-btn').disabled = true;
+  dbpValidData = null;
+}
+
+window.onload = function() {
+  // Letzte Werte laden falls vorhanden
+  try {
+    var last = JSON.parse(localStorage.getItem('schlawiner_last') || 'null');
+    if (last) {
+      SORTEN.forEach(function(s){
+        if (last[s.id] !== undefined) {
+          var inp = document.getElementById('inp_' + s.id);
+          if (inp) inp.value = last[s.id];
+        }
+      });
+    }
+  } catch(e) {}
+
+  updateHistoryHint();
+  ladeAusDB(); // Auto-Fill aus DB wenn Uhrzeit passt
+  // Nicht direkt calc() — Berechnung erfolgt beim Tab-Wechsel
+};
+</script>
+</div><!-- /container -->
+
+<div id="print-container">
+  <div class="print-page" id="print-page1"></div>
+  <div class="print-page" id="print-page2"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BOS - Schnellrechner</title>
+    <link rel="stylesheet" href="systemdesign.css">
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+    <script src="feiertage_nds.js"></script>
+    <script src="produktions_gehirn.js"></script>
+    <script src="froster_gehirn.js"></script>
+    <script src="inventurdaten.js"></script>
+    <script src="translations.js"></script>
+    <script src="baeko_bestand.js"></script>
+    <script src="baeko_bestellung/lager_gehirn.js"></script>
+    <style>
+        /* Tab-Umschalter */
+        .sr-tabs { display: flex; gap: 8px; max-width: 600px; margin: 12px auto 0; padding: 0 20px; }
+        .sr-tab-btn { flex: 1; font-family: inherit; font-size: 0.85rem; font-weight: 800; padding: 10px; border-radius: 12px; border: 2px solid var(--border-s); background: var(--surface); color: var(--dim); cursor: pointer; transition: 0.2s; }
+        .sr-tab-btn.aktiv { background: #1e293b; border-color: #1e293b; color: #fff; }
+        .sr-tab-view { display: none; }
+        .sr-tab-view.aktiv { display: block; }
+        /* Pressen-Box */
+        .pressen-box { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border: 1.5px solid var(--border-s); border-radius: 14px; padding: 14px 18px; margin-top: 16px; }
+        .pressen-label { font-size: 0.75rem; font-weight: 700; color: var(--dim); }
+        .pressen-formel { font-size: 0.65rem; color: var(--dim); opacity: 0.7; margin-top: 2px; }
+        .pressen-zahl { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 900; color: var(--text); }
+        .pressen-einheit { font-size: 0.75rem; font-weight: 700; color: var(--dim); }
+        /* Kreuz & Quer */
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        .cr-input { width: 100%; padding: 15px; border: 2px solid var(--border-s); border-radius: 12px; font-family: inherit; font-weight: 800; font-size: 1.2rem; text-align: center; background: var(--surface); color: var(--text); box-sizing: border-box; }
+        .cr-input:focus { border-color: var(--amber); outline: none; }
+        .cr-hint { font-size: 0.7rem; color: var(--dim); margin-top: 8px; display: block; }
+        .special-section { border-left: 6px solid var(--text); background: var(--surface2); }
+        body { margin: 0; padding-bottom: 50px; background: var(--bg); transition: 0.3s; }
+        .brand-header { background: var(--surface); text-align: center; padding-top: 15px; box-shadow: 0 4px 10px var(--shadow); position: sticky; top: 0; z-index: 100; }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; margin-bottom: 5px; }
+        .btn-back-nav { background: var(--surface2); border: 2px solid var(--border-s); color: var(--text); font-weight: 900; padding: 8px 15px; border-radius: 12px; text-decoration: none; font-size: 1rem; }
+        .brand-logo { font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 900; color: var(--text); line-height: 1; margin: 10px 0; }
+        .brand-logo span { color: var(--amber); font-style: italic; }
+        .slogan-bar { background: #111; color: var(--amber); padding: 12px; margin-top: 25px; font-family: 'Barlow Condensed'; font-weight: 800; font-size: 1rem; letter-spacing: 1.5px; text-transform: uppercase; text-align: center; }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 25px 20px; }
+        .card { background: var(--surface); border: 2px solid var(--border); border-radius: 24px; padding: 25px; margin-bottom: 20px; box-shadow: 0 8px 20px var(--shadow); }
+        .label { font-size: 0.75rem; font-weight: 900; color: var(--amber); letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase; text-align: center; }
+
+        .strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 20px; flex-wrap: nowrap; }
+        .pill { min-width: 48px; height: 48px; border-radius: 12px; border: 2px solid var(--border-s); background: var(--surface); font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; }
+        .pill.target { border-color: var(--green); background: var(--green); color: white; }
+        .pill.in-range { border-color: var(--green); background: rgba(77,184,122,0.15); color: var(--green); }
+        .pill.is-closed { border-color: var(--red); color: var(--red); background: rgba(201,74,74,0.1); text-decoration: line-through; cursor: not-allowed; opacity: 0.6; }
+
+        .froster-group { display: flex; gap: 10px; margin: 15px 0; }
+        .f-btn { flex: 1; padding: 20px 10px; border: 2px solid var(--border-s); background: var(--surface); border-radius: 16px; font-weight: 800; color: var(--dim); cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
+        .f-btn.yes.active { border-color: var(--green); background: rgba(77,184,122,0.1); color: var(--green); }
+        .f-btn.no.active { border-color: var(--red); background: rgba(224,92,92,0.1); color: var(--red); }
+
+        .btn-toggle-extras { width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid var(--border-s); background: var(--surface2); color: var(--dim); font-weight: 800; font-size: 0.8rem; margin: 15px 0; cursor: pointer; }
+        .extras-area { background: var(--surface2); border-radius: 16px; padding: 15px; margin-bottom: 20px; border: 1px solid var(--border); display: none; }
+        .wg-row { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .wg-day { width: 80px; font-size: 0.85rem; font-weight: 900; color: var(--text); }
+        .wg-ctrl { flex: 1; padding: 8px; border-radius: 8px; border: 1.5px solid var(--border-s); background: var(--surface); font-size: 0.75rem; font-weight: 800; text-align: center; cursor: pointer; }
+        .wg-ctrl.active { border-color: var(--amber); color: var(--amber); background: rgba(192,122,16,0.1); }
+        .wg-ctrl.is-zu { border-color: var(--red); color: var(--red); background: rgba(224,92,92,0.1); }
+
+        #result { margin-top: 30px; text-align: center; display: none; padding-top: 25px; border-top: 2px dashed var(--border); }
+        .res-val { font-family: 'Fraunces'; font-size: 5.5rem; color: var(--amber); line-height: 0.9; font-weight: 900; }
+        .calc-table { width: 100%; margin-top: 25px; border-collapse: collapse; text-align: left; font-weight: 700; color: var(--text); }
+        .calc-table td { padding: 12px 5px; border-bottom: 1px solid var(--border-s); font-size: 0.95rem; }
+        .calc-table .row-total { border-top: 2px solid var(--border); padding-top: 15px; }
+        .calc-table .row-stock { color: var(--green); border-bottom: none; }
+        .calc-table .row-missing { color: var(--red); font-weight: 800; }
+        /* Produktionstag-Checkbox */
+        .prod-cb { appearance:none; -webkit-appearance:none; width:20px; height:20px; border:2px solid var(--border-s); border-radius:6px; background:var(--surface); cursor:pointer; flex-shrink:0; transition:0.15s; vertical-align:middle; margin-right:8px; }
+        .prod-cb:checked { background:var(--amber); border-color:var(--amber); background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 10 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 4l3 3 5-6' stroke='white' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:center; }
+        .prod-cb:disabled { opacity:0.3; cursor:not-allowed; }
+        .prod-cb-spacer { display:inline-block; width:20px; height:20px; margin-right:8px; flex-shrink:0; }
+        @keyframes cb-hint { 0%,100% { border-color:var(--border-s); } 60% { border-color:var(--amber); box-shadow:0 0 0 3px rgba(192,122,16,0.18); } }
+        .prod-cb:not(:checked) { animation: cb-hint 1.6s ease 0.5s 3; }
+    </style>
+</head>
+<body>
+
+    <div class="brand-header">
+        <div class="top-nav">
+            <a href="index.html" class="btn-back-nav" id="lang-back">← BACK</a>
+            <div style="font-family:'Barlow Condensed'; font-weight:900; color:var(--amber); letter-spacing:1px;" id="lang-calcTitle">Schnellrechner</div>
+            <div style="width: 80px;"></div>
+        </div>
+        <div class="brand-logo">Bäckerei<span>OS</span></div>
+        <div class="slogan-bar" id="lang-slogan">"WE MAKE BREAKFAST POSSIBLE IN THE FIRST PLACE."</div>
+    </div>
+
+    <div class="sr-tabs">
+        <button class="sr-tab-btn aktiv" id="sr-btn-schnell" onclick="srSetTab('schnell')"><i class="ph-duotone ph-calculator" style="margin-right:6px;"></i>Schnellrechner</button>
+        <button class="sr-tab-btn" id="sr-btn-pressen" onclick="srSetTab('pressen')"><i class="ph ph-arrows-left-right" style="margin-right:6px;"></i>PressenRechner</button>
+    </div>
+
+    <div class="sr-tab-view aktiv" id="sr-tab-schnell">
+    <div class="container">
+        <div id="session-queue" style="display:none; margin-bottom:16px; background:var(--surface); border:2px solid var(--green); border-radius:16px; padding:16px 16px 8px; box-shadow:0 4px 16px var(--shadow);">
+            <div class="label" style="margin-bottom:10px; text-align:left; color:var(--green); font-size:0.7rem;">📋 Im Plan:</div>
+            <div id="session-queue-items"></div>
+            <div style="border-top:1px solid var(--border-s); margin-top:8px; padding-top:10px; text-align:right;">
+                <span onclick="goToPlaner()" style="font-size:0.82rem; font-weight:900; color:var(--green); cursor:pointer; letter-spacing:0.5px;">Zum Planer →</span>
+            </div>
+        </div>
+        <div class="card">
+            
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; padding:12px 18px; background:var(--surface2); border-radius:16px; border:1.5px solid var(--border-s);">
+                <div class="label" id="lang-calcToday" style="margin-bottom:0; font-size:0.8rem;">Startpunkt / Heute:</div>
+                <select id="today-select" onchange="changeToday(this.value)" style="padding:10px 16px; border-radius:12px; border:2px solid var(--border-s); font-weight:900; font-family:inherit; background:var(--surface); color:var(--text); outline:none; cursor:pointer; font-size:0.9rem;"></select>
+            </div>
+
+            <!-- Produkt + Froster + Fehlmenge -->
+            <div style="background:var(--surface2); border:1.5px solid var(--border-s); border-radius:14px; padding:14px 18px; margin-bottom:20px;">
+                <div style="display:grid; grid-template-columns: 1fr 80px; gap:10px; margin-bottom:6px; width:100%; overflow:hidden;">
+                    <select id="prod-select" onchange="syncStock()" style="padding:15px; border-radius:12px; border:2px solid var(--border-s); font-weight:800; font-family:inherit; background:var(--surface); color:var(--text); min-width:0;">
+                        <option value="" id="lang-calcSelect">-- Produkt --</option>
+                    </select>
+                    <input type="number" id="stock-input" placeholder="Ist" oninput="calculate()" style="padding:15px; border-radius:12px; border:2px solid var(--border-s); text-align:center; font-weight:800; background:var(--surface); color:var(--text); min-width:0; width:100%; box-sizing:border-box;">
+                </div>
+                <div id="inventur-ts-label" style="display:none; text-align:right; font-size:0.68rem; font-weight:800; color:var(--green); padding-right:2px; margin-bottom:8px; opacity:0.85;"><i class="ph ph-check-circle" style="margin-right:3px;"></i><span id="inventur-ts-text"></span></div>
+                <div id="inventur-warn" style="display:none; background:rgba(224,92,92,0.1); border:1.5px solid var(--red); border-radius:12px; padding:10px 14px; margin-bottom:10px; font-size:0.82rem; font-weight:800; color:var(--red); text-align:center;"><i class="ph ph-warning" style="margin-right:4px;"></i>Inventur älter als 24 Std. — Bestand bitte manuell eintragen</div>
+
+                <div class="label" id="lang-calcStatus" style="margin-top:4px;">Status für Morgen:</div>
+                <div class="froster-group">
+                    <button class="f-btn yes" id="f-yes" onclick="setFroster(true)"><i class="ph ph-snowflake" style="margin-right:6px;"></i><span id="lang-calcFrosterDone">FERTIG</span></button>
+                    <button class="f-btn no" id="f-no" onclick="setFroster(false)"><i class="ph ph-x-circle" style="margin-right:6px;"></i><span id="lang-calcFrosterNo">NOCH NICHT</span></button>
+                </div>
+
+                <div id="missing-tomorrow-area" style="display:none; margin-top:12px;">
+                    <label style="display:flex; align-items:center; gap:12px; cursor:pointer; padding:12px 14px; border-radius:12px; border:1.5px solid var(--border-s); background:var(--surface);">
+                        <input type="checkbox" id="missing-checkbox" onchange="toggleMissingInput(this.checked)" style="width:20px; height:20px; accent-color:var(--red); cursor:pointer; flex-shrink:0;">
+                        <span style="font-size:0.85rem; font-weight:800; color:var(--text);" id="lang-calcMissing">Gibt es Fehlmengen für den morgigen Tag?</span>
+                    </label>
+                    <div id="missing-input-area" style="display:none; margin-top:10px; border:2px solid rgba(224,92,92,0.35); border-radius:12px; padding:14px;">
+                        <div class="label" style="color:var(--red); margin-bottom:8px;">Fehlmenge (Bleche) ⚠️</div>
+                        <input type="number" id="missing-input" placeholder="0" oninput="calculate()" style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--border-s); text-align:center; font-weight:800; font-size:1.1rem; background:var(--surface); color:var(--text); box-sizing:border-box;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reicht bis + Feiertage -->
+            <div style="background:var(--surface2); border:1.5px solid var(--border-s); border-radius:14px; padding:14px 18px; margin-bottom:20px;">
+                <div class="label" id="lang-calcReach" style="margin-bottom:10px; font-size:0.8rem;">Reicht bis einschl.:</div>
+                <select id="target-select" onchange="onTargetSelect(this.value)" style="width:100%; padding:10px 16px; border-radius:12px; border:2px solid var(--border-s); font-weight:900; font-family:inherit; background:var(--surface); color:var(--text); outline:none; cursor:pointer; font-size:0.9rem; box-sizing:border-box; margin-bottom:12px;"></select>
+                <button class="btn-toggle-extras" onclick="toggleExtras()" id="lang-calcExtras" style="margin:0;"><i class="ph ph-calendar-x" style="margin-right:6px;"></i>Feiertage & besondere Tage</button>
+                <div style="font-size:0.72rem; color:var(--dim); margin-top:6px; padding-left:4px; opacity:0.8;"><i class="ph ph-arrow-bend-down-right" style="margin-right:4px;"></i>Geschlossene Tage & Sonderbedarf eintragen</div>
+                <div class="extras-area" id="extras-area" style="margin-bottom:0;">
+
+                    <!-- Wochenschablone -->
+                    <div id="wochenschablone-hinweis" style="display:none; background:rgba(192,122,16,0.08); border:1.5px solid var(--amber); border-radius:12px; padding:12px 14px; margin-bottom:14px;">
+                        <div style="font-size:0.72rem; font-weight:900; color:var(--amber); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;"><i class="ph ph-warning" style="margin-right:4px;"></i>Besondere Woche erkannt</div>
+                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                            <input type="checkbox" id="schablone-cb" onchange="ladeWochenschablone(this.checked)" style="width:18px; height:18px; accent-color:var(--amber); cursor:pointer; flex-shrink:0;">
+                            <span style="font-size:0.82rem; font-weight:800; color:var(--text);" id="schablone-label">Wochenschablone laden</span>
+                        </label>
+                    </div>
+
+                    <div id="sandbox-grid"></div>
+                    <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border-s);">
+                        <div class="label" style="margin-bottom:8px;">KUNDENBESTELLUNG (+ BLECHE):</div>
+                        <input type="number" id="extra-order-input" placeholder="0" oninput="calculate()"
+                            style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--border-s); text-align:center; font-weight:800; font-size:1.1rem; background:var(--surface); color:var(--text);">
+                    </div>
+
+                    <!-- Admin: Wochenconfig exportieren -->
+                    <div style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--border-s); text-align:right;">
+                        <span onclick="exportWochenconfig()" style="font-size:0.68rem; font-weight:800; color:var(--dim); cursor:pointer; opacity:0.5; letter-spacing:0.5px;"><i class="ph ph-download-simple" style="margin-right:3px;"></i>wochenconfig.json auswerfen</span>
+                    </div>
+
+                    <button onclick="toggleExtras()" style="width:100%; margin-top:10px; padding:10px; border-radius:10px; border:1.5px solid var(--border-s); background:var(--surface); color:var(--dim); font-weight:800; font-size:0.8rem; cursor:pointer; font-family:inherit;"><i class="ph ph-caret-up" style="margin-right:6px;"></i>Einklappen</button>
+                </div>
+            </div>
+
+            <div id="result">
+                <div class="label" id="lang-calcResult">Produktion nötig:</div>
+                <div class="res-val" id="res-val">0</div>
+                <div style="font-weight:900; font-size:1.1rem; color:var(--dim); margin-bottom:20px;" id="res-unit">BLECHE</div>
+                <div style="font-size:0.7rem;font-weight:800;color:var(--dim);letter-spacing:0.5px;margin-bottom:4px;opacity:0.75;">Detail-Planung <span style="font-weight:700;opacity:0.7;">(optional)</span></div>
+                <div style="font-size:0.68rem;color:var(--dim);opacity:0.6;margin-bottom:10px;">Wähle die Wochentage aus, an denen produziert werden soll</div>
+                <table class="calc-table" id="calc-table"></table>
+                <div class="pressen-box" id="pressen-box" style="display:none;">
+                    <div>
+                        <div class="pressen-label">→ Umrechnung in Pressen</div>
+                        <div class="pressen-formel" id="pressen-formel"></div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="pressen-zahl" id="pressen-zahl">—</div>
+                        <div class="pressen-einheit">Pressen</div>
+                    </div>
+                </div>
+                <div id="plan-actions" style="margin-top:20px; padding-top:16px; border-top:2px dashed var(--border);">
+                    <div style="font-size:0.72rem; font-weight:800; color:var(--dim); letter-spacing:1.2px; text-transform:uppercase; margin-bottom:10px; opacity:0.7;">Produktionstage</div>
+                    <div id="autoplan-preview" style="margin-bottom:12px;"></div>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <button onclick="addToSession()" style="width:100%;padding:16px;border-radius:14px;border:2px solid var(--border-s);background:var(--surface2);color:var(--text);font-weight:900;font-size:0.9rem;cursor:pointer;font-family:inherit;letter-spacing:0.5px;">➕ Weiteres Produkt</button>
+                        <button onclick="goToPlaner()" style="width:100%;padding:16px;border-radius:14px;border:none;background:var(--green);color:white;font-weight:900;font-size:1rem;cursor:pointer;font-family:inherit;letter-spacing:0.5px;box-shadow:0 4px 0 #2d8a50;">📋 Zum Planer →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <div class="sr-tab-view" id="sr-tab-pressen">
+    <div class="container">
+        <div style="font-size:0.85rem; color:var(--dim); line-height:1.6; margin-bottom:16px;">
+            Pressen und Bleche lassen sich in beide Richtungen umrechnen. Die Schlüsselzahl beim KornKnacker erhöht das Stückgewicht — aus 90 Pressen werden deshalb weniger Bleche als ohne Korrektur.
+        </div>
+        <div id="cr-specialList"></div>
+    </div>
+    </div>
+
+    <div class="sr-tab-view aktiv" id="sr-tab-schnell-hilfe">
+    <div style="max-width:600px; margin: 0 auto 40px; padding: 0 20px;">
+        <div style="border-top: 2px dashed var(--border); padding-top: 16px;">
+            <div onclick="toggleHilfe()" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; margin-bottom:0;">
+                <div style="font-family:'Barlow Condensed'; font-weight:900; font-size:0.75rem; letter-spacing:1.5px; color:var(--amber); text-transform:uppercase;">❓ Kurzanleitung</div>
+                <span id="hilfe-arrow" style="font-size:0.85rem; color:var(--amber); transition:transform 0.25s;">▾</span>
+            </div>
+
+            <div id="hilfe-body" style="display:none; margin-top:14px; flex-direction:column; gap:10px; font-size:0.88rem; color:var(--dim); font-weight:700; line-height:1.5;">
+
+                <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
+                    <span style="color:var(--text);"><i class="ph ph-calendar" style="margin-right:4px;"></i>Heute & Reicht bis</span><br>
+                    Wähle den aktuellen Wochentag aus dem Dropdown. Dann wählst du in der Leiste, bis einschließlich welchem Tag die Ware reichen soll. Mit dem Button <b>2 Wochen</b> neben dem Label lässt sich die Planung auf zwei Wochen erweitern.
+                </div>
+
+                <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
+                    <span style="color:var(--text);"><i class="ph ph-snowflake" style="margin-right:4px;"></i>Froster-Status</span><br>
+                    <b style="color:var(--green);">FERTIG</b> = Froster ist bereits aufgetaut → Produktion beginnt übermorgen.<br>
+                    <b style="color:var(--red);">NOCH NICHT</b> = Froster läuft noch heute Nacht → Produktion beginnt morgen.
+                </div>
+
+                <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
+                    <span style="color:var(--text);"><i class="ph ph-smiley" style="margin-right:4px;"></i>Hamster-Modus</span><br>
+                    Aktivierbar pro Tag in den Feiertags-Einstellungen.<br>
+                    <b>🐹 Einfach</b> = Mittelwert aus Samstagsmenge und normaler Tagesmenge<br>
+                    <b>🐹🐹 Ultra</b> = volle Samstagsmenge — maximale Produktion<br>
+                    <b>🚀 Eskalation</b> = Doppelter Tagesbedarf (an Samstagen zum Schutz 1.5-fach)<br>
+                    Nochmal klicken deaktiviert den Hamster wieder.
+                </div>
+
+                <div style="background:var(--surface); border-radius:12px; padding:12px 14px; border:1px solid var(--border);">
+                    <span style="color:var(--text);"><i class="ph ph-warning" style="margin-right:4px;"></i>Alte Inventur</span><br>
+                    Liegt die letzte Inventur mehr als 24 Stunden zurück, wird der Bestand nicht automatisch eingetragen — bitte manuell zählen und eintragen.
+                </div>
+
+            </div>
+        </div>
+    </div>
+    </div><script>
+        // ── TAB-UMSCHALTER ───────────────────────────────────
+        function srSetTab(tab) {
+            ['schnell','pressen'].forEach(function(t) {
+                document.getElementById('sr-tab-' + t).classList.toggle('aktiv', t === tab);
+                document.getElementById('sr-btn-' + t).classList.toggle('aktiv', t === tab);
+            });
+            // Icons updaten
+            const btnS = document.getElementById('sr-btn-schnell');
+            const btnP = document.getElementById('sr-btn-pressen');
+            btnS.querySelector('i').className = tab === 'schnell' ? 'ph-duotone ph-calculator' : 'ph ph-calculator';
+            btnP.querySelector('i').className = tab === 'pressen' ? 'ph-duotone ph-arrows-left-right' : 'ph ph-arrows-left-right';
+            const hilfe = document.getElementById('sr-tab-schnell-hilfe');
+            if (hilfe) hilfe.classList.toggle('aktiv', tab === 'schnell');
+            if (tab === 'pressen') renderCross();
+        }
+
+        function toggleHilfe() {
+            const body = document.getElementById('hilfe-body');
+            const arrow = document.getElementById('hilfe-arrow');
+            const open = body.style.display !== 'none' && body.style.display !== '';
+            body.style.display = open ? 'none' : 'flex';
+            arrow.style.transform = open ? '' : 'rotate(180deg)';
+        }
+
+        // ── KREUZ & QUER ─────────────────────────────────────
+        function renderCross() {
+            const list = document.getElementById('cr-specialList');
+            if (!window.BOS_BAEKO_CONFIG) { list.innerHTML = '<p style="color:#94a3b8;font-size:0.82rem;">baeko_bestand.js nicht geladen.</p>'; return; }
+            const products = window.BOS_BAEKO_CONFIG.products;
+            list.innerHTML = '';
+            for (const id in products) {
+                const p = products[id];
+                if (!p.show_in_calc || p.type !== 'cross') continue;
+                const card = document.createElement('div');
+                card.className = 'card special-section';
+                const hintHtml = p.factor ? `<span class="cr-hint">ℹ️ Schlüsselzahl ${p.factor} wird in beide Richtungen angewendet</span>` : '';
+                card.innerHTML =
+                    `<h2 style="margin:0;font-family:'Fraunces',serif;font-weight:900;">${p.name}</h2>
+                    <div style="display:flex;justify-content:flex-end;font-size:0.75rem;font-weight:700;color:var(--dim);margin-top:10px;font-family:'Barlow Condensed';text-transform:uppercase;"><span>1 ${p.unit_alt} = ${p.val_alt} Stk.</span></div>
+                    <div class="input-row">
+                        <div><div class="label" style="text-align:center;">${p.unit_alt}</div><input type="number" class="cr-input" id="cr_${id}_alt" oninput="runCross('${id}','alt')" placeholder="0"></div>
+                        <div><div class="label" style="text-align:center;">Bleche</div><input type="number" class="cr-input" id="cr_${id}_blech" oninput="runCross('${id}','blech')" placeholder="0"></div>
+                    </div>${hintHtml}`;
+                list.appendChild(card);
+            }
+        }
+
+        function runCross(id, source) {
+            const val = parseFloat(document.getElementById(`cr_${id}_${source}`).value || 0);
+            const target = document.getElementById(`cr_${id}_${source === 'alt' ? 'blech' : 'alt'}`);
+            if (val === 0) { target.value = ''; return; }
+            target.value = Math.round(window.BOS_LAGER_BRAIN.convertCross(id, val, source) * 100) / 100;
+        }
+
+        let todayIdx = (new Date().getDay() === 0) ? 6 : new Date().getDay() - 1;
+        let targetIdx = null;
+        let targetOffset = null;
+        let frosterDone = null;
+        let simClosed = {}, simHamster = {};
+        let erweitertePlanung = true;
+
+        function toggleErweitertePlanung() {
+            erweitertePlanung = !erweitertePlanung;
+            if (targetOffset !== null && frosterDone !== null) {
+                const normalMax = 8 - todayIdx;
+                if (!erweitertePlanung && targetOffset > normalMax) {
+                    targetOffset = normalMax;
+                    targetIdx = (todayIdx + targetOffset) % 7;
+                }
+            }
+            renderTarget(); buildSandbox(); calculate();
+        }
+
+        // ── PLAN-SESSION ────────────────────────────────────────────────────
+        let planSession = null;
+        let currentProdDaySteps = [];
+        const DAY_NAMES_LONG = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+        const DAY_NAMES_SHORT_MON = ["Mo","Di","Mi","Do","Fr","Sa","So"]; 
+
+        function resetProdTage() {
+            currentProdDaySteps = [];
+        }
+
+        function onProdTagCheck(i, checked) {
+            if (checked) {
+                if (!currentProdDaySteps.includes(i)) currentProdDaySteps.push(i);
+            } else {
+                currentProdDaySteps = currentProdDaySteps.filter(s => s !== i);
+            }
+            currentProdDaySteps.sort((a,b) => a-b);
+            autoCalcPreview();
+        }
+
+        function buildTempSess(id, stock, missing, offset) {
+            initPlanSession();
+            const targetDayJS  = (targetIdx + 1) % 7;
+            const prodDaysJS   = currentProdDaySteps.map(i => ((todayIdx + i) + 1) % 7);
+            const weekCfg = {};
+            
+            for (let d = 0; d < 7; d++) weekCfg[d] = { status: 'auf', hamster: 0 };
+            
+            const maxOffset = (8 - todayIdx) + (erweitertePlanung ? 7 : 0);
+            for (let i = 1; i <= maxOffset; i++) {
+                const jsIdx = ((todayIdx + i) + 1) % 7;
+                if (simClosed[i]) weekCfg[jsIdx].status = 'zu';
+                if (simHamster[i]) weekCfg[jsIdx].hamster = simHamster[i]; 
+            }
+
+            return {
+                station: 'SCHNELLRECHNER',
+                startDayIdx:     (todayIdx + 1) % 7,
+                selectedIds:     [id],
+                inventory:       { [id]: stock },
+                frosterDone:     frosterDone,
+                targetDays:      { [id]: targetDayJS },
+                productionDays:  { [id]: prodDaysJS },
+                shortages:       { [id]: missing },
+                weekConfig:      weekCfg,
+                autoPlanning:    true,
+                prePlanned:      {}
+            };
+        }
+
+        function autoCalcPreview() {
+            const id = document.getElementById('prod-select').value;
+            const preview = document.getElementById('autoplan-preview');
+            if (!id || frosterDone === null || targetOffset === null) { preview.innerHTML = ''; return; }
+            if (currentProdDaySteps.length === 0) {
+                preview.innerHTML = '<div style="color:var(--dim);font-size:0.82rem;text-align:center;padding:8px 0;">Keinen Produktionstag gewählt</div>';
+                return;
+            }
+            if (!window.BOS_BRAIN?.calculateAutoPlanning) {
+                preview.innerHTML = '<div style="color:var(--dim);font-size:0.82rem;text-align:center;padding:8px 0;">Gehirn lädt…</div>';
+                return;
+            }
+            const stock   = parseInt(document.getElementById('stock-input').value) || 0;
+            const missing = parseInt(document.getElementById('missing-input').value) || 0;
+            const offset  = frosterDone ? 2 : 1;
+            const tempSess = buildTempSess(id, stock, missing, offset);
+            const pre = window.BOS_BRAIN.calculateAutoPlanning(id, tempSess);
+            window._currentPrePlanned = pre;
+
+            let html = '';
+            currentProdDaySteps.forEach(i => {
+                const amt = (pre && pre[i] != null) ? pre[i] : 0;
+                html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface2);border-radius:10px;margin-bottom:6px;border:1.5px solid ${amt > 0 ? 'var(--amber)' : 'var(--green)'};">
+                    <span style="font-weight:800;font-size:0.9rem;">${DAY_NAMES_LONG[(todayIdx + i) % 7]}</span>
+                    <span style="font-family:'Fraunces',serif;font-weight:900;font-size:1.5rem;color:${amt > 0 ? 'var(--amber)' : 'var(--green)'};">${amt > 0 ? amt : '✓'}</span>
+                    <span style="font-size:0.72rem;font-weight:700;color:var(--dim);">${amt > 0 ? 'Bleche' : 'Bestand reicht'}</span>
+                </div>`;
+            });
+            preview.innerHTML = html;
+        }
+
+        function initPlanSession() {
+            if (!planSession) {
+                const weekCfg = {};
+                for (let d = 0; d < 7; d++) weekCfg[d] = { status: 'auf', hamster: 0 }; 
+                planSession = {
+                    station: 'SCHNELLRECHNER',
+                    startDayIdx: (todayIdx + 1) % 7,
+                    selectedIds: [], inventory: {}, frosterDone: null,
+                    targetDays: {}, productionDays: {}, shortages: {},
+                    weekConfig: weekCfg, autoPlanning: true, prePlanned: {}
+                };
+            }
+        }
+
+        function addToSession() {
+            const id = document.getElementById('prod-select').value;
+            if (!id || frosterDone === null || targetOffset === null || currentProdDaySteps.length === 0) {
+                alert('Bitte Produkt, Froster-Status, Zieldatum und mindestens einen Produktionstag wählen.');
+                return;
+            }
+            const stock   = parseInt(document.getElementById('stock-input').value) || 0;
+            const missing = parseInt(document.getElementById('missing-input').value) || 0;
+            const offset  = frosterDone ? 2 : 1;
+            const tempSess = buildTempSess(id, stock, missing, offset);
+            const pre = window.BOS_BRAIN?.calculateAutoPlanning
+                ? window.BOS_BRAIN.calculateAutoPlanning(id, tempSess)
+                : [];
+
+            if (!planSession.selectedIds.includes(id)) planSession.selectedIds.push(id);
+            planSession.inventory[id]      = stock;
+            planSession.frosterDone        = frosterDone;
+            planSession.targetDays[id]     = tempSess.targetDays[id];
+            planSession.productionDays[id] = tempSess.productionDays[id];
+            planSession.shortages[id]      = missing;
+            planSession.prePlanned[id]     = pre;
+            planSession.startDayIdx        = tempSess.startDayIdx;
+            Object.assign(planSession.weekConfig, tempSess.weekConfig);
+            renderSessionQueue();
+            resetForm();
+        }
+
+        function resetForm() {
+            document.getElementById('prod-select').value = '';
+            document.getElementById('stock-input').value = '';
+            document.getElementById('missing-input').value = '';
+            document.getElementById('extra-order-input').value = '';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('inventur-warn').style.display = 'none';
+            targetOffset = null; targetIdx = null;
+            currentProdDaySteps = [];
+            document.getElementById('missing-tomorrow-area').style.display = frosterDone ? 'block' : 'none';
+            resetProdTage();
+            renderTarget();
+            window.scrollTo({ top: 52, behavior: 'smooth' });
+        }
+
+        function renderSessionQueue() {
+            const qDiv = document.getElementById('session-queue');
+            const iDiv = document.getElementById('session-queue-items');
+            if (!planSession || planSession.selectedIds.length === 0) { qDiv.style.display = 'none'; return; }
+            qDiv.style.display = 'block';
+            const jsDays = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+            iDiv.innerHTML = planSession.selectedIds.map(id => {
+                const p = window.BOS_STAMMDATEN[id];
+                const tLabel = jsDays[planSession.targetDays[id]] || '?';
+                const pdLabel = (planSession.productionDays[id] || []).map(d => jsDays[d]).join(', ');
+                const total = (planSession.prePlanned[id] || []).reduce((a,b) => a+b, 0);
+                return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 2px;border-bottom:1px solid var(--border-s);">
+                    <div>
+                        <div style="font-weight:800;font-size:0.88rem;">${p.name}</div>
+                        <div style="font-size:0.7rem;color:var(--dim);margin-top:2px;">bis ${tLabel} · 📅 ${pdLabel}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span style="font-family:'Fraunces',serif;font-weight:900;font-size:1.2rem;color:var(--amber);">${total} Bl.</span>
+                        <button onclick="removeFromSession('${id}')" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:1.1rem;padding:4px;">✕</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function removeFromSession(id) {
+            if (!planSession) return;
+            planSession.selectedIds = planSession.selectedIds.filter(i => i !== id);
+            ['inventory','targetDays','productionDays','shortages','prePlanned'].forEach(k => delete planSession[k][id]);
+            if (planSession.selectedIds.length === 0) planSession = null;
+            renderSessionQueue();
+        }
+
+        function goToPlaner() {
+            const id = document.getElementById('prod-select').value;
+            const hasOpenProduct = id && frosterDone !== null && targetOffset !== null && currentProdDaySteps.length > 0;
+            if (hasOpenProduct) addToSession();
+            if (!planSession || planSession.selectedIds.length === 0) {
+                alert('Bitte mindestens ein Produkt mit Produktionstag konfigurieren.');
+                return;
+            }
+            localStorage.setItem('BOS_SESSION', JSON.stringify(planSession));
+            window.location.href = 'planer.html';
+        }
+
+        const HAMSTER_ICON_SINGLE = '🐹';
+        const HAMSTER_ICON_DOUBLE = '🐹<span style="font-size:1.25em; margin-left:-2px;">🐹</span>';
+        const HAMSTER_ICON_TRIPLE = '🚀'; 
+        let produktConfigMap = {};
+
+        function applyLang() {
+            const l = localStorage.getItem('BOS_LANG_CODE') || 'de';
+            if (!window.BOS_LANG) return;
+            const t = window.BOS_LANG[l];
+            if(!t) return;
+            document.querySelectorAll('[id^="lang-"]').forEach(el => {
+                const k = el.id.replace('lang-', '');
+                if(t[k]) el.innerText = t[k];
+            });
+        }
+
+        function init() {
+            document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light');
+            applyLang();
+            renderToday();
+            buildSandbox();
+            fetch('produkt_config.json', { cache: 'no-store' })
+                .then(r => r.json())
+                .then(cfg => {
+                    cfg.forEach(p => {
+                        if (p.legacyKey) produktConfigMap[p.legacyKey] = {
+                            pressenGroesse: p.pressenGroesse || null,
+                            teiggewichtAufschlag: p.teiggewichtAufschlag || null,
+                            einheit: p.einheit || null
+                        };
+                    });
+                }).catch(() => {});
+            if (!window.BOS_STAMMDATEN) return;
+            const sel = document.getElementById('prod-select');
+            Object.keys(window.BOS_STAMMDATEN).forEach(id => {
+                const p = window.BOS_STAMMDATEN[id];
+                if (p.schnellrechnerRelevant === false) return;
+                const opt = document.createElement('option'); opt.value = id; opt.innerText = p.name;
+                sel.appendChild(opt);
+            });
+        }
+
+        function renderToday() {
+            const sel = document.getElementById('today-select');
+            const heute = new Date(); heute.setHours(0,0,0,0);
+            const JS_ZU_BOS = [6,0,1,2,3,4,5];
+            const BOS_ZU_WDAY = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+            const WT_LANG = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+            sel.innerHTML = '';
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(heute); d.setDate(heute.getDate() + i);
+                const bos = JS_ZU_BOS[d.getDay()];
+                const datumStr = String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.';
+                const opt = document.createElement('option');
+                opt.value = bos;
+                opt.textContent = WT_LANG[bos] + ', ' + datumStr + (i === 0 ? ' (heute)' : '');
+                if (bos === todayIdx) opt.selected = true;
+                sel.appendChild(opt);
+            }
+        }
+
+        function changeToday(val) {
+            if (planSession && planSession.selectedIds.length > 0) {
+                if (!confirm('Wochentag ändern setzt den laufenden Plan zurück. Fortfahren?')) {
+                    document.getElementById('today-select').value = todayIdx;
+                    return;
+                }
+                planSession = null; renderSessionQueue();
+            }
+            todayIdx = parseInt(val);
+            resetTarget(); 
+            currentProdDaySteps = []; 
+            resetProdTage(); 
+            renderTarget(); 
+            buildSandbox(); 
+            calculate();
+        }
+
+        function resetTarget() {
+            if (frosterDone === null) return;
+            const offset = frosterDone ? 2 : 1;
+            targetOffset = offset;
+            targetIdx = (todayIdx + offset) % 7;
+        }
+
+        function renderTarget() {
+            const sel = document.getElementById('target-select');
+            sel.innerHTML = '';
+            if (frosterDone === null) return;
+            const daysFull = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+            const offset = frosterDone ? 2 : 1;
+            if (targetOffset === null) resetTarget();
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const maxOffset = (8 - todayIdx) + (erweitertePlanung ? 7 : 0);
+            for (let i = offset; i <= maxOffset; i++) {
+                const dIdx = (todayIdx + i) % 7;
+                const isClosed = simClosed[i];
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                const dateStr = date.getDate().toString().padStart(2, '0') + '.' + (date.getMonth() + 1).toString().padStart(2, '0') + '.';
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = daysFull[dIdx] + ', ' + dateStr + (isClosed ? ' (geschlossen)' : '');
+                if (isClosed) opt.disabled = true;
+                if (i === targetOffset) opt.selected = true;
+                sel.appendChild(opt);
+            }
+        }
+
+        function onTargetSelect(val) {
+            const i = parseInt(val);
+            targetOffset = i;
+            targetIdx = (todayIdx + i) % 7;
+            calculate();
+        }
+
+        function buildSandbox() {
+            const grid = document.getElementById('sandbox-grid'); grid.innerHTML = '';
+            const dayNames = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+            const sbMax = (8 - todayIdx) + (erweitertePlanung ? 7 : 0);
+            for(let i = 1; i <= sbMax; i++) {
+                let dIdx = (todayIdx + i) % 7;
+                const row = document.createElement('div'); row.className = 'wg-row';
+                row.innerHTML = `<div class="wg-day">${dayNames[dIdx].substring(0,2)}</div>
+                    <button class="wg-ctrl ${simClosed[i]?'is-zu':''}" onclick="simClosed[${i}]=!simClosed[${i}]; buildSandbox(); renderTarget(); calculate();">${simClosed[i]?'<i class="ph ph-lock-simple"></i> ZU':'AUF'}</button>
+                    <button class="wg-ctrl ${(simHamster[i]||0)>0?'active':''}" onclick="simHamster[${i}]=((simHamster[${i}]||0)+1)%4; buildSandbox(); calculate();">${simHamster[i]===3?HAMSTER_ICON_TRIPLE:(simHamster[i]===2?HAMSTER_ICON_DOUBLE:(simHamster[i]===1?HAMSTER_ICON_SINGLE:'· Kein'))}</button>`;
+                grid.appendChild(row);
+            }
+        }
+
+        function toggleMissingInput(checked) {
+            document.getElementById('missing-input-area').style.display = checked ? 'block' : 'none';
+            if (!checked) {
+                document.getElementById('missing-input').value = '';
+                calculate();
+            }
+        }
+
+        function setFroster(v) {
+            currentProdDaySteps = [];
+            frosterDone = v;
+            document.getElementById('f-yes').classList.toggle('active', v);
+            document.getElementById('f-no').classList.toggle('active', !v);
+            const missingArea = document.getElementById('missing-tomorrow-area');
+            missingArea.style.display = v ? 'block' : 'none';
+            if (!v) {
+                document.getElementById('missing-checkbox').checked = false;
+                document.getElementById('missing-input-area').style.display = 'none';
+                document.getElementById('missing-input').value = '';
+            }
+            resetTarget(); renderTarget(); calculate();
+        }
+
+        function calculate() {
+            const id = document.getElementById('prod-select').value; if(!id || frosterDone === null) return;
+            const stock = parseInt(document.getElementById('stock-input').value) || 0;
+            const missing = parseInt(document.getElementById('missing-input').value) || 0;
+            const extraOrder = parseInt(document.getElementById('extra-order-input').value) || 0;
+            const p = window.BOS_STAMMDATEN[id];
+            const offset = frosterDone ? 2 : 1;
+            if (targetOffset === null) resetTarget();
+            const targetSteps = targetOffset;
+            const dayNamesLong = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+            
+            let totalNeed = 0, rowsHtml = '';
+            
+            if(frosterDone && missing > 0) {
+                totalNeed += missing;
+                const l = localStorage.getItem('BOS_LANG_CODE') || 'de';
+                const missLabel = window.BOS_LANG?.[l]?.calcMissing || "Fehlmenge Morgen ⚠️";
+                rowsHtml += `<tr class="row-missing"><td>${missLabel}</td><td style="text-align:right;">${missing}</td></tr>`;
+            }
+
+            for(let i = 0; i <= targetSteps; i++) {
+                const dIdx = (todayIdx + i) % 7;
+                const coveredByFroster = (i < offset); 
+                
+                let need = (i === 0 || simClosed[i]) ? 0 : p.needs[dIdx];
+                let icon = simClosed[i] ? ' <i class="ph ph-lock-simple"></i>' : '';
+                
+                if(i > 0 && !simClosed[i] && !coveredByFroster) {
+                    const satNeed = p.needs[5];
+                    if(simHamster[i] === 1) { need = Math.ceil((satNeed + need) / 2); icon = ' ' + HAMSTER_ICON_SINGLE; }
+                    else if(simHamster[i] === 2) { need = satNeed; icon = ' ' + HAMSTER_ICON_DOUBLE; }
+                    else if(simHamster[i] === 3) { 
+                        need = (dIdx === 5) ? Math.ceil(satNeed * 1.5) : (need * 2); 
+                        icon = ' ' + HAMSTER_ICON_TRIPLE; 
+                    }
+                }
+                
+                if (!coveredByFroster && i > 0) totalNeed += need;
+                
+                const isSo = dIdx === 6;
+                const cbChecked = currentProdDaySteps.includes(i) ? 'checked' : '';
+                const cbHtml = (!isSo && !simClosed[i])
+                    ? `<input type="checkbox" class="prod-cb" ${cbChecked} onchange="onProdTagCheck(${i}, this.checked)">`
+                    : `<span class="prod-cb-spacer"></span>`;
+                
+                const textStyle = (coveredByFroster || i === 0)
+                    ? 'opacity:0.45; font-style:italic;'
+                    : simClosed[i] ? 'opacity:0.4; text-decoration:line-through;' : '';
+                
+                let displayDay = dayNamesLong[dIdx];
+                if (i === 0) displayDay = "Heute (" + displayDay.substring(0,2) + ")";
+                else if (i === 1) displayDay = "Morgen (" + displayDay.substring(0,2) + ")";
+
+                let needDisplay = "";
+                if (i === 0) {
+                    needDisplay = `<span style="font-size:0.75rem;color:var(--dim);">—</span>`;
+                } else if (coveredByFroster) {
+                    needDisplay = `<span style="font-size:0.75rem;color:var(--green);">❄️ Froster</span>`;
+                } else {
+                    needDisplay = need;
+                }
+
+                rowsHtml += `<tr>
+                    <td style="display:flex;align-items:center;gap:0;">
+                        ${cbHtml}
+                        <span style="${textStyle}">${displayDay}${icon}</span>
+                    </td>
+                    <td style="text-align:right;">
+                        <span style="${textStyle}">${needDisplay}</span>
+                    </td>
+                </tr>`;
+            }
+
+            if (extraOrder > 0) {
+                totalNeed += extraOrder;
+                rowsHtml += `<tr style="color:var(--amber); font-weight:800;"><td>Sonderbestellung ★</td><td style="text-align:right;">+${extraOrder}</td></tr>`;
+            }
+            const rawNeeded = Math.max(0, totalNeed - stock);
+            rowsHtml += `<tr class="row-total"><td>Gesamtbedarf</td><td style="text-align:right;">${totalNeed}</td></tr><tr class="row-stock"><td>- Bestand</td><td style="text-align:right;">-${stock}</td></tr>`;
+            document.getElementById('calc-table').innerHTML = rowsHtml;
+
+            const legacyKey = p.legacyKey;
+            const cfg = produktConfigMap[legacyKey] || {};
+            const pressenGroesse = cfg.pressenGroesse || null;
+            const aufschlag = cfg.teiggewichtAufschlag || 1;
+
+            let displayVal = rawNeeded, unit = (cfg.einheit || 'BLECHE').toUpperCase();
+            const pressenBox = document.getElementById('pressen-box');
+            if (pressenGroesse && rawNeeded > 0) {
+                const charge = p.charge || 1;
+                const pressen = (rawNeeded * charge / pressenGroesse) * aufschlag;
+                const pressenGer = Math.ceil(pressen * 10) / 10;
+                const formel = aufschlag !== 1
+                    ? `${rawNeeded} Bl. × ${charge} ÷ ${pressenGroesse} × ${aufschlag} (Teiggewicht-Aufschlag)`
+                    : `${rawNeeded} Bl. × ${charge} ÷ ${pressenGroesse}`;
+                document.getElementById('pressen-zahl').innerText = pressenGer % 1 === 0 ? pressenGer : pressenGer.toFixed(1).replace('.', ',');
+                document.getElementById('pressen-formel').innerText = formel;
+                pressenBox.style.display = 'flex';
+            } else {
+                pressenBox.style.display = 'none';
+            }
+            document.getElementById('res-val').innerText = displayVal % 1 !== 0 ? displayVal.toFixed(1).replace('.', ',') : displayVal;
+            document.getElementById('res-unit').innerText = unit;
+            document.getElementById('result').style.display = 'block';
+            autoCalcPreview();
+        }
+
+        function toggleExtras() { const a = document.getElementById('extras-area'); a.style.display = a.style.display==='none'?'block':'none'; }
+        function syncStock() {
+            currentProdDaySteps = [];
+            resetProdTage();
+            const id = document.getElementById('prod-select').value;
+            if (!id) return;
+            const inp = document.getElementById('stock-input');
+            if (window.BOS_INVENTUR?.products) {
+                const legacyKey = window.BOS_STAMMDATEN?.[id]?.legacyKey;
+                let checkTs = 0;
+                if (legacyKey && window.BOS_INVENTUR.products[legacyKey]?.ts) {
+                    checkTs = window.BOS_INVENTUR.products[legacyKey].ts;
+                } else {
+                    for (const key in window.BOS_INVENTUR.products) {
+                        const ts = window.BOS_INVENTUR.products[key]?.ts || 0;
+                        if (ts > checkTs) checkTs = ts;
+                    }
+                }
+                if (checkTs > 0 && (Date.now() - checkTs) / 3600000 > 24) {
+                    inp.value = '';
+                    inp.placeholder = '0';
+                    inp.style.borderColor = 'var(--red)';
+                    document.getElementById('inventur-warn').style.display = 'block';
+                    calculate();
+                    return;
+                }
+            }
+            inp.style.borderColor = '';
+            inp.placeholder = 'Ist';
+            document.getElementById('inventur-warn').style.display = 'none';
+            const legacyKey2 = window.BOS_STAMMDATEN?.[id]?.legacyKey;
+            if (legacyKey2 && window.BOS_INVENTUR?.products?.[legacyKey2]) {
+                const prod = window.BOS_INVENTUR.products[legacyKey2];
+                const bestand = prod.stock !== undefined ? prod.stock
+                    : (prod.locs ? prod.locs.reduce((a,b) => a+b, 0) : 0);
+                inp.value = bestand;
+                if (prod.ts) {
+                    const d = new Date(prod.ts);
+                    const label = document.getElementById('inventur-ts-label');
+                    const text = document.getElementById('inventur-ts-text');
+                    text.textContent = 'Inventur vom ' + d.getDate().toString().padStart(2,'0') + '.' + (d.getMonth()+1).toString().padStart(2,'0') + '. ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+                    label.style.display = 'block';
+                }
+            } else if (window.BOS_INVENTUR?.stocks?.[legacyKey2] !== undefined) {
+                inp.value = window.BOS_INVENTUR.stocks[legacyKey2];
+                document.getElementById('inventur-ts-label').style.display = 'none';
+            } else {
+                document.getElementById('inventur-ts-label').style.display = 'none';
+            }
+            calculate();
+        }
+        // ── WOCHENCONFIG ─────────────────────────────────────────────────────
+
+        async function pruefeFeiertagsWoche() {
+            if (!window.BOS_BESONDERE_TAGE_IN) return;
+            const treffer = window.BOS_BESONDERE_TAGE_IN(14);
+            if (treffer.length === 0) return;
+            // Schablone vorhanden?
+            try {
+                const rs = await fetch('wochenconfig.json', { cache: 'no-store' });
+                if (!rs.ok) return;
+                const hinweis = document.getElementById('wochenschablone-hinweis');
+                const label = document.getElementById('schablone-label');
+                const erster = treffer[0];
+                const d = new Date(erster.datum);
+                label.textContent = 'Wochenschablone laden — ' + erster.name + ' (' + d.getDate() + '.' + (d.getMonth()+1) + '.)';
+                hinweis.style.display = 'block';
+            } catch(e) {}
+        }
+
+        async function ladeWochenschablone(checked) {
+            if (!checked) {
+                simClosed = {}; simHamster = {};
+                buildSandbox(); renderTarget(); calculate();
+                return;
+            }
+            try {
+                const r = await fetch('wochenconfig.json', { cache: 'no-store' });
+                const cfg = await r.json();
+                simClosed = {}; simHamster = {};
+                const heute = new Date(); heute.setHours(0,0,0,0);
+                (cfg.tage || []).forEach(eintrag => {
+                    // Datum als lokale Zeit parsen (nicht UTC) um Timezone-Verschiebung zu vermeiden
+                    const parts = eintrag.datum.split('-');
+                    const d = new Date(+parts[0], +parts[1]-1, +parts[2]);
+                    const offset = Math.round((d - heute) / 86400000);
+                    if (offset < 0 || offset > 14) return;
+                    if (eintrag.typ === 'zu') simClosed[offset] = true;
+                    if (eintrag.typ === 'hamster_1') simHamster[offset] = 1;
+                    if (eintrag.typ === 'hamster_2') simHamster[offset] = 2;
+                    if (eintrag.typ === 'hamster_3') simHamster[offset] = 3;
+                });
+                buildSandbox(); renderTarget(); calculate();
+            } catch(e) {
+                alert('wochenconfig.json konnte nicht geladen werden.');
+                document.getElementById('schablone-cb').checked = false;
+            }
+        }
+
+        function exportWochenconfig() {
+            const heute = new Date(); heute.setHours(0,0,0,0);
+            const pad = n => String(n).padStart(2, '0');
+            const localDate = d => d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+            const maxOffset = (8 - todayIdx) + 7;
+            const tage = [];
+            for (let i = 1; i <= maxOffset; i++) {
+                const d = new Date(heute); d.setDate(heute.getDate() + i);
+                const datum = localDate(d);
+                let typ = 'normal';
+                if (simClosed[i]) typ = 'zu';
+                else if (simHamster[i] === 1) typ = 'hamster_1';
+                else if (simHamster[i] === 2) typ = 'hamster_2';
+                else if (simHamster[i] === 3) typ = 'hamster_3';
+                tage.push({ datum, typ });
+            }
+            const cfg = { erstellt: localDate(heute), tage };
+            const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'wochenconfig.json';
+            a.click();
+        }
+
+        window.onload = async function() {
+            const ok = await window.BOS_GEHIRN.init();
+            if (ok) { init(); pruefeFeiertagsWoche(); }
+        };
+    </script>
+  <script src="shell.js"></script>
+  <script>
+const SR_HILFE_TEXTE = {
+  "de": {
+    dir: "ltr",
+    titel: "BäckereiOS – Anleitung Schnellrechner",
+    schritte: [
+      ["Schritt 1: Wochentag prüfen","Ganz oben siehst du die Wochentage. Das System wählt automatisch den heutigen Tag. Vergewissere dich kurz, ob der richtige Tag markiert ist.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">HEUTE IST:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Mi</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Do</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fr</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Sa</div></div>"],
+      ["Schritt 2: Produkt wählen & Bestand eintragen","Wähle das Produkt aus dem Dropdown. Trage rechts den aktuellen Bestand ein. Bei roter Warnung: Inventur ist älter als 24 Std. — Bestand manuell nachzählen.",""],
+      ["Schritt 3: Froster-Status festlegen","Zwingend erforderlich — ohne diese Eingabe rechnet der Rechner nicht.\n❄️ FROSTER FERTIG: Die Ware für morgen liegt bereits im Froster — morgiger Bedarf ist gedeckt.\n❌ NOCH NICHT: Die Produktion für morgen steht noch aus.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">STATUS FÜR MORGEN:</div>"],
+      ["Schritt 4: Ziel-Tag wählen & Ergebnis lesen","Wähle unter \"REICHT BIS EINSCHL.\" den Tag bis zu dem der Bestand reichen soll. Der Rechner zeigt dir die genaue Fehlmenge die du produzieren musst.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">REICHT BIS EINSCHL.:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fr</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Sa</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">So</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Mo</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Di</div></div>"],
+    ]
+  },
+  "en": {
+    dir: "ltr",
+    titel: "BäckereiOS – Quick Calculator Guide",
+    schritte: [
+      ["Step 1: Check the weekday","At the top you see the days of the week. The system automatically selects today. Quickly check that the correct day is highlighted.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">TODAY IS:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Wed</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Thu</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fri</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Sat</div></div>"],
+      ["Step 2: Select product & enter stock","Choose the product from the dropdown. Enter the current stock on the right. If you see a red warning, the inventory is older than 24 hours — count manually.",""],
+      ["Step 3: Set freezer status","Required — the calculator will not work without this.\n❄️ FREEZER DONE: Tomorrows items are already in the freezer — demand is covered.\n❌ NOT YET: Production for tomorrow is still pending.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">STATUS FOR TOMORROW:</div>"],
+      ["Step 4: Choose target day & read result","Under \"LASTS UNTIL INCL.\" choose the day the stock should last until. The calculator shows the exact shortage you need to produce.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">LASTS UNTIL INCL.:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fri</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Sat</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Sun</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Mon</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Tue</div></div>"],
+    ]
+  },
+  "ar": {
+    dir: "rtl",
+    titel: "BäckereiOS – دليل الحاسبة السريعة",
+    schritte: [
+      ["الخطوة الأولى: تأكد من اليوم","فوگ بالحاسبة السريعة راح تشوف أيام الأسبوع. النظام عادة يختار اليوم الحالي تلقائياً. بس تأكد بسرعة إذا اليوم الصحيح متأشر بلون مختلف.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">HEUTE IST: (اليوم هو)</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Mi</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Do</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fr</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Sa</div></div>"],
+      ["الخطوة الثانية: اختار المنتج واكتب الرصيد الحالي","اختار المنتج اللي تريده من القائمة. اكتب على الجهة الكمية الموجودة هسه بالمخزن. إذا شفت تحذير أحمر: الجرد أقدم من 24 ساعة — لازم تحسب يدوي.",""],
+      ["الخطوة الثالثة: حدد حالة الفريزر (ضروري جداً!)","لازم تدوس على واحد من الزرين، وبدونها الحاسبة ما راح تحسب أي شيء:\n❄️ FROSTER FERTIG (الفريزر جاهز): بضاعة باجر جاهزة بالفريزر.\n❌ NOCH NICHT (بعد): بعدك ما مسوي إنتاج باجر.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">STATUS FÜR MORGEN: (حالة باجر)</div>"],
+      ["الخطوة الرابعة: اختار يوم الهدف واحسب النقص","جوه \"REICHT BIS EINSCHL.\" تحدد ليوم اللي تريد الرصيد يكفيك إله. النظام راح يطلعلک بالضبط شگد صواني بعد لازم تنتج.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">REICHT BIS EINSCHL.: (يكفي لحد)</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Fr</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Sa</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">So</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Mo</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Di</div></div>"],
+    ]
+  },
+  "vi": {
+    dir: "ltr",
+    titel: "BäckereiOS – Hướng dẫn Máy tính nhanh",
+    schritte: [
+      ["Bước 1: Kiểm tra ngày trong tuần","Ở trên cùng bạn thấy các ngày trong tuần. Hệ thống tự động chọn ngày hôm nay. Hãy kiểm tra nhanh xem ngày đúng có được đánh dấu không.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">HÔM NAY LÀ:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Th4</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">Th5</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">Th6</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">T7</div></div>"],
+      ["Bước 2: Chọn sản phẩm và nhập số lượng tồn kho","Chọn sản phẩm từ danh sách. Nhập số lượng hiện có vào ô bên phải. Nếu có cảnh báo đỏ: kiểm kê cũ hơn 24 giờ — hãy đếm lại thủ công.",""],
+      ["Bước 3: Đặt trạng thái tủ đông (Bắt buộc!)","Bắt buộc — máy tính sẽ không hoạt động nếu không có bước này.\n❄️ FROSTER FERTIG: Hàng cho ngày mai đã có trong tủ đông.\n❌ NOCH NICHT: Chưa sản xuất cho ngày mai.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">TRẠNG THÁI CHO NGÀY MAI:</div>"],
+      ["Bước 4: Chọn ngày mục tiêu và đọc kết quả","Trong mục \"REICHT BIS EINSCHL.\" chọn ngày bạn muốn hàng đủ dùng đến. Máy tính sẽ hiển thị chính xác số lượng bạn cần sản xuất thêm.","<div style=\"font-size:0.72rem;color:#d49a36;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;\">ĐỦ DÙNG ĐẾN:</div><div class=\"day-row\" style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0;\"><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">T6</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">T7</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">CN</div><div style=\"border:2px solid #ccc;border-radius:8px;padding:7px 11px;font-weight:700;color:#555;\">T2</div><div style=\"border:2px solid #d49a36;border-radius:8px;padding:7px 11px;font-weight:800;background:#d49a36;color:#fff;\">T3</div></div>"],
+    ]
+  },
+};
+
+let srAktiveSprache = 'de';
+
+function srOeffneHilfe() {
+    document.getElementById('sr-hilfe-modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    srRenderHilfe();
+}
+function srSchliesseHilfe() {
+    document.getElementById('sr-hilfe-modal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+function srSetSprache(lang) {
+    srAktiveSprache = lang;
+    document.querySelectorAll('.sr-lng').forEach(b => b.classList.remove('aktiv'));
+    document.getElementById('sr-lng-' + lang).classList.add('aktiv');
+    srRenderHilfe();
+}
+function srRenderHilfe() {
+    const t = SR_HILFE_TEXTE[srAktiveSprache];
+    const inhalt = document.getElementById('sr-hilfe-inhalt');
+    inhalt.setAttribute('dir', t.dir);
+    let html = '<div style="font-size:1rem;font-weight:900;margin-bottom:16px;color:#2c2c2c;">' + t.titel + '</div>';
+    t.schritte.forEach(function(s) {
+        html += '<div class="sr-schritt">';
+        html += '<div class="sr-schritt-titel">' + s[0] + '</div>';
+        html += '<div class="sr-schritt-text">' + s[1] + '</div>';
+        if (s[2]) html += '<div class="sr-mock">' + s[2] + '</div>';
+        html += '</div>';
+    });
+    inhalt.innerHTML = html;
+}
+</script>
+
+<div id="sr-hilfe-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;overflow-y:auto;" onclick="if(event.target===this)srSchliesseHilfe()">
+    <div style="background:var(--surface,#fff);border-radius:16px 16px 0 0;max-width:680px;margin:40px auto 0;padding:20px 16px 40px;min-height:60vh;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div style="font-size:1rem;font-weight:900;color:#d49a36;">❓ Anleitung</div>
+            <div style="display:flex;gap:6px;">
+                <button onclick="srSetSprache('de')" id="sr-lng-de" class="sr-lng aktiv">🇩🇪</button>
+                <button onclick="srSetSprache('en')" id="sr-lng-en" class="sr-lng">🇬🇧</button>
+                <button onclick="srSetSprache('ar')" id="sr-lng-ar" class="sr-lng">🇮🇶</button>
+                <button onclick="srSetSprache('vi')" id="sr-lng-vi" class="sr-lng">🇻🇳</button>
+                <button onclick="srSchliesseHilfe()" style="font-size:1.2rem;background:none;border:none;cursor:pointer;color:#888;padding:0 4px;">✕</button>
+            </div>
+        </div>
+        <div id="sr-hilfe-inhalt"></div>
+    </div>
+</div>
+
+<button onclick="srOeffneHilfe()" style="position:fixed;bottom:130px;right:14px;width:36px;height:36px;border-radius:50%;background:#d49a36;color:#fff;font-size:1rem;font-weight:900;border:none;cursor:pointer;z-index:100;box-shadow:0 2px 8px rgba(212,154,54,0.4);">?</button>
+
+<style>
+.sr-lng { font-size:1.1rem;background:none;border:1.5px solid #e0d8c3;border-radius:6px;padding:3px 7px;cursor:pointer; }
+.sr-lng.aktiv { border-color:#d49a36;background:#fffbf0; }
+.sr-schritt { margin-bottom:20px;padding-bottom:16px;border-bottom:1px dashed #e0d8c3; }
+.sr-schritt:last-child { border-bottom:none; }
+.sr-schritt-titel { font-size:0.95rem;font-weight:800;color:#d49a36;margin-bottom:6px; }
+.sr-schritt-text { font-size:0.82rem;line-height:1.6;color:#444;white-space:pre-line; }
+.sr-mock { background:#fffbf0;border:1px solid #e0d8c3;border-radius:10px;padding:12px;margin-top:10px;text-align:center; }
+</style>
+</body>
+</html>

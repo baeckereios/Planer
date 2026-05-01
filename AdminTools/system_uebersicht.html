@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BäckereiOS — Datenpipeline</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,900;1,300&family=DM+Sans:wght@300;400;600&display=swap');
+
+:root {
+  --bg:      #0c0c0c;
+  --card:    #141414;
+  --border:  #222;
+  --amber:   #f59e0b;
+  --gruen:   #10b981;
+  --blau:    #3b82f6;
+  --lila:    #8b5cf6;
+  --rot:     #ef4444;
+  --text:    #e5e0d8;
+  --muted:   #555;
+  --mono:    'DM Mono', monospace;
+  --serif:   'Fraunces', serif;
+  --sans:    'DM Sans', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: var(--sans); min-height: 100vh;
+  padding: 0 0 80px;
+}
+
+/* HEADER */
+.header {
+  padding: 52px 28px 32px;
+  max-width: 780px; margin: 0 auto;
+  border-bottom: 1px solid var(--border);
+}
+.eyebrow {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 3px; color: var(--amber);
+  text-transform: uppercase; margin-bottom: 14px;
+}
+h1 {
+  font-family: var(--serif); font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 900; line-height: 1; letter-spacing: -1px;
+}
+h1 em { font-style: italic; font-weight: 300; color: var(--amber); }
+.subtitle {
+  margin-top: 12px; font-size: 14px; color: var(--muted);
+  font-weight: 300; line-height: 1.6;
+}
+
+/* PIPELINE */
+.pipeline {
+  max-width: 780px; margin: 0 auto; padding: 0 28px;
+}
+
+/* SCHRITT */
+.schritt {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 0 20px;
+  margin-top: 0;
+}
+
+/* LINKER STRANG */
+.strang {
+  display: flex; flex-direction: column; align-items: center;
+}
+.strang-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+  border: 2px solid;
+}
+.strang-line {
+  width: 2px; flex: 1; min-height: 24px;
+  background: linear-gradient(to bottom, var(--c), transparent);
+  opacity: 0.3;
+}
+.strang-line.solid { opacity: 0.15; background: var(--c); }
+
+/* KARTE */
+.karte {
+  margin: 28px 0 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 22px 22px;
+  position: relative;
+  overflow: hidden;
+}
+.karte::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--c);
+  opacity: 0.7;
+}
+
+.karte-header {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 12px;
+  margin-bottom: 12px;
+}
+.karte-icon { font-size: 20px; flex-shrink: 0; }
+.karte-title {
+  font-family: var(--mono); font-size: 12px; font-weight: 500;
+  color: var(--text); line-height: 1.3;
+}
+.karte-file {
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  margin-top: 3px;
+}
+.badge {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+  text-transform: uppercase; padding: 3px 8px; border-radius: 20px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.badge-taeglich { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+.badge-selten   { background: rgba(245,158,11,0.12);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+.badge-einmalig { background: rgba(107,101,96,0.12); color: #888; border: 1px solid #2a2a2a; }
+.badge-datei    { background: rgba(139,92,246,0.12);  color: #a78bfa; border: 1px solid rgba(139,92,246,0.2); }
+
+.karte-desc {
+  font-size: 13px; color: #8a8580; line-height: 1.65; font-weight: 300;
+}
+.karte-desc strong { color: var(--text); font-weight: 600; }
+.karte-desc em { color: var(--amber); font-style: normal; }
+
+/* IO LEISTE */
+.io-leiste {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.io-item {
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 10px;
+}
+.io-label {
+  font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase;
+  color: var(--muted); min-width: 18px;
+}
+.io-file {
+  background: rgba(255,255,255,0.04); color: #7a8595;
+  padding: 2px 7px; border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* DETAIL-BLOCKS */
+.detail-blocks {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px; margin-top: 12px;
+}
+.db-block {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px;
+}
+.db-block-title {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 6px;
+}
+.db-block-text {
+  font-size: 12px; color: #7a8080; line-height: 1.5; font-weight: 300;
+}
+.db-block-text strong { color: #aaa; font-weight: 600; }
+
+/* PFEIL ZWISCHEN SCHRITTEN */
+.zwischen-pfeil {
+  display: flex; align-items: center;
+  padding: 6px 0 0 48px;
+  gap: 8px;
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+}
+.zwischen-linie {
+  flex: 1; max-width: 60px; height: 1px;
+  background: var(--border);
+}
+
+/* DATEI-NODES (die JSON-Dateien) */
+.datei-node {
+  margin: 0 0 0;
+  padding: 14px 22px;
+  background: rgba(255,255,255,0.02);
+  border: 1px dashed #2a2a2a;
+  border-radius: 10px;
+  display: flex; align-items: center; gap: 14px;
+}
+.dn-icon { font-size: 18px; flex-shrink: 0; }
+.dn-name { font-family: var(--mono); font-size: 11px; }
+.dn-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* PARALLELE TOOLS */
+.parallel {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* OUTPUTS */
+.output-row {
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+
+@media (max-width: 580px) {
+  .header, .pipeline { padding: 0 18px; }
+  .header { padding-top: 36px; padding-bottom: 24px; }
+  .detail-blocks { grid-template-columns: 1fr; }
+  .parallel { grid-template-columns: 1fr; }
+  .output-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="eyebrow">■ AdminTools — Datenpipeline</div>
+  <h1>Vom Backzettel<br>zur <em>stammdaten.js</em></h1>
+  <p class="subtitle">Wie rohe Backmengen-Daten zu kalibrierten Sollwerten werden — Schritt für Schritt.</p>
+</div>
+
+<div class="pipeline">
+
+<!-- ══════════════════════════════════════
+     SCHRITT 1: FOTO + PROMPT
+══════════════════════════════════════ -->
+<div class="schritt" style="--c: var(--gruen)">
+  <div class="strang">
+    <div class="strang-dot" style="color:var(--gruen);border-color:var(--gruen);background:rgba(16,185,129,0.08)">1</div>
+    <div class="strang-line solid" style="--c:var(--gruen)"></div>
+  </div>
+  <div class="karte">
+    <div class="karte-header">
+      <div>
+        <div class="karte-icon">📋</div>
+        <div class="karte-title">Backzettel fotografieren &amp; Prompt an Gemini</div>
+        <div class="karte-file">kein Tool — direkt im Gemini-Chat</div>
+      </div>
+      <div class="badge badge-taeglich">täglich</div>
+    </div>
+    <div class="karte-desc">
+      Du fotografierst den Backzettel und schickst das Bild zusammen mit einem
+      <strong>vorgefertigten Prompt</strong> an Gemini. Der Prompt steckt bereits
+      im <em>datenbank_manager</em> — einfach kopieren.
+      <br><br>
+      Gemini liest das <strong>Produktionsdatum aus der Spaltenüberschrift</strong>
+      (nicht dem Druckdatum!), recherchiert Wetter und Ferien für Seelze/NDS,
+      und gibt ein sauberes <strong>JSON-Objekt</strong> zurück — kein Markdown, keine Erklärungen.
+    </div>
+    <div class="detail-blocks">
+      <div class="db-block">
+        <div class="db-block-title">Was Gemini liefert</div>
+        <div class="db-block-text">
+          Datum, Wochentag, Wetter,<br>
+          Temperatur, Ferien-Flag,<br>
+          Feiertag-Flag, alle Produktmengen<br>
+          in Stück + Bleche
+        </div>
+      </div>
+      <div class="db-block">
+        <div class="db-block-title">Wichtig</div>
+        <div class="db-block-text">
+          <strong>5 separate Prompts</strong> für 5 Bereiche:<br>
+          Kontext · Brötchen ·<br>
+          Schlawiner · Brot · Konditorei
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCHRITT 2: DATENBANK MANAGER
+══════════════════════════════════════ -->
+<div class="schritt" style="--c: var(--gruen)">
+  <div class="strang">
+    <div class="strang-dot" style="color:var(--gruen);border-color:var(--gruen);background:rgba(16,185,129,0.08)">2</div>
+    <div class="strang-line solid" style="--c:var(--gruen)"></div>
+  </div>
+  <div class="karte">
+    <div class="karte-header">
+      <div>
+        <div class="karte-icon">📊</div>
+        <div class="karte-title">Datenbank Manager</div>
+        <div class="karte-file">datenbank_manager.html</div>
+      </div>
+      <div class="badge badge-taeglich">täglich</div>
+    </div>
+    <div class="karte-desc">
+      Die Gemini-Antworten werden hier <strong>eingesammelt, geprüft und zusammengeführt.</strong>
+      Für jeden der 5 Bereiche gibt es einen eigenen Bereich zum Einfügen.
+      <br><br>
+      Das Tool erkennt <em>Ausreißer</em> automatisch und zeigt sie zur Kontrolle an —
+      du kannst Werte korrigieren, ausschließen oder so lassen.
+      Am Ende wird alles zu einem <strong>einzigen DB-Eintrag</strong> zusammengeführt
+      und die aktualisierte <code>backmengen_db.json</code> zum Download bereitgestellt.
+    </div>
+    <div class="detail-blocks">
+      <div class="db-block">
+        <div class="db-block-title">Sondertags-Flags</div>
+        <div class="db-block-text">
+          <strong>🎉 Feiertag/Sondertag</strong><br>
+          Alle Zahlen hoch — nicht repräsentativ<br><br>
+          <strong>🔧 Anlagenausfall</strong><br>
+          Ofen/Garschrank defekt — Verteilung verschoben
+        </div>
+      </div>
+      <div class="db-block">
+        <div class="db-block-title">Besonderheit</div>
+        <div class="db-block-text">
+          Freitext-Feld für Dinge die nur<br>
+          du weißt — Stadtfest, neue Filiale,<br>
+          Sonderbestellung usw.
+        </div>
+      </div>
+    </div>
+    <div class="io-leiste">
+      <div class="io-item"><span class="io-label">IN</span><span class="io-file">Gemini JSON (5×)</span></div>
+      <div class="io-item"><span class="io-label" style="color:var(--gruen)">OUT</span><span class="io-file">backmengen_db.json</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- DB-Datei -->
+<div style="padding: 16px 0 0 48px">
+  <div class="datei-node">
+    <div class="dn-icon">🗄</div>
+    <div>
+      <div class="dn-name" style="color:var(--amber)">backmengen_db.json</div>
+      <div class="dn-desc">Array aller Tages-Einträge. Täglich wächst sie um einen Eintrag.
+        Enthält Datum, Wochentag, Kontext (Wetter, Ferien, Flags) und alle Produktmengen in Stück + Bleche.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCHRITT 3: AUTOSYNC (gelegentlich)
+══════════════════════════════════════ -->
+<div style="padding: 20px 0 0 48px; font-family:var(--mono); font-size:11px; color: var(--muted)">
+  ↓ &nbsp; wenn genug Daten gesammelt sind (alle paar Wochen)
+</div>
+
+<div class="schritt" style="--c: var(--blau); margin-top: 8px">
+  <div class="strang">
+    <div class="strang-dot" style="color:var(--blau);border-color:var(--blau);background:rgba(59,130,246,0.08)">3</div>
+    <div class="strang-line solid" style="--c:var(--blau)"></div>
+  </div>
+  <div class="karte">
+    <div class="karte-header">
+      <div>
+        <div class="karte-icon">⚙️</div>
+        <div class="karte-title">Stammdaten AutoSync</div>
+        <div class="karte-file">stammdaten_autosync.html</div>
+      </div>
+      <div class="badge badge-selten">gelegentlich</div>
+    </div>
+    <div class="karte-desc">
+      Liest die gesamte <em>backmengen_db.json</em> und berechnet daraus
+      <strong>Durchschnittswerte pro Wochentag</strong> für jedes Produkt.
+      Das Ergebnis sind die Sollmengen die BäckereiOS für die Planung verwendet.
+    </div>
+    <div class="detail-blocks">
+      <div class="db-block">
+        <div class="db-block-title">① Zeitraum &amp; Filter</div>
+        <div class="db-block-text">
+          Kalender der letzten 14–60 Tage.<br>
+          <strong>Auffällige Tage</strong> werden automatisch erkannt (Flags aus DB)
+          und können per Tipp ausgeschlossen werden.<br>
+          <strong>Zeitraum-Ausschluss</strong> für kaputte Öfen o.ä.
+        </div>
+      </div>
+      <div class="db-block">
+        <div class="db-block-title">② Produkte wählen</div>
+        <div class="db-block-text">
+          Trennung: <strong>bereits in Stammdaten</strong> vs. <strong>neu in DB.</strong>
+          Vorauswahl automatisch aus bestehender stammdaten.js.
+        </div>
+      </div>
+      <div class="db-block">
+        <div class="db-block-title">③ Werte prüfen</div>
+        <div class="db-block-text">
+          Pro Produkt: Tageswerte (Mo–So in Blechen),
+          <strong>Charge korrigieren</strong> mit Live-Neuberechnung,
+          Station, Gebindegröße, Grillwetter-Bonus.
+        </div>
+      </div>
+      <div class="db-block">
+        <div class="db-block-title">④ Download</div>
+        <div class="db-block-text">
+          <strong>stammdaten.js</strong> — Sollmengen für BäckereiOS.<br>
+          <strong>produkt_config.json</strong> — nur wenn Charges korrigiert wurden.
+        </div>
+      </div>
+    </div>
+    <div class="io-leiste">
+      <div class="io-item"><span class="io-label">IN</span><span class="io-file">backmengen_db.json</span></div>
+      <div class="io-item"><span class="io-label">IN</span><span class="io-file">produkt_config.json</span></div>
+      <div class="io-item"><span class="io-label" style="color:var(--blau)">OUT</span><span class="io-file">stammdaten.js</span></div>
+      <div class="io-item"><span class="io-label" style="color:var(--blau)">OUT*</span><span class="io-file">produkt_config.json</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PARALLEL: PRODUKT CONFIG EDITOR
+══════════════════════════════════════ -->
+<div style="padding: 28px 0 0 48px; font-family:var(--mono); font-size:11px; color: var(--muted)">
+  ↓ &nbsp; parallel nutzbar — unabhängig vom Tagesrhythmus
+</div>
+
+<div class="schritt" style="--c: var(--amber); margin-top: 8px">
+  <div class="strang">
+    <div class="strang-dot" style="color:var(--amber);border-color:var(--amber);background:rgba(245,158,11,0.08)">+</div>
+    <div class="strang-line" style="--c:var(--amber)"></div>
+  </div>
+  <div class="karte">
+    <div class="karte-header">
+      <div>
+        <div class="karte-icon">🗂</div>
+        <div class="karte-title">Produkt-Config Editor</div>
+        <div class="karte-file">produkt_config_editor.html</div>
+      </div>
+      <div class="badge badge-einmalig">selten / bei Bedarf</div>
+    </div>
+    <div class="karte-desc">
+      Direkte Bearbeitung der <em>produkt_config.json</em> — der
+      <strong>zentralen Produktliste</strong> mit allen 71 Produkten.
+      Hier pflegst du neue Produkte ein, korrigierst Artikelnummern,
+      Kategorien, Charges und Legacy-Keys.
+      <br><br>
+      Wird gebraucht wenn ein <strong>neues Produkt ins Sortiment kommt</strong>
+      oder sich grundlegende Eigenschaften ändern.
+      Der AutoSync liest diese Datei beim Berechnen der Durchschnitte.
+    </div>
+    <div class="io-leiste">
+      <div class="io-item"><span class="io-label">IN</span><span class="io-file">produkt_config.json</span></div>
+      <div class="io-item"><span class="io-label" style="color:var(--amber)">OUT</span><span class="io-file">produkt_config.json</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- OUTPUT DATEIEN -->
+<div style="padding: 24px 0 0 48px">
+  <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">
+    — Ergebnis-Dateien (auf GitHub hochladen)
+  </div>
+  <div class="output-row">
+
+    <div class="datei-node" style="flex:1;min-width:200px;border-color:#3b2050">
+      <div class="dn-icon">📄</div>
+      <div>
+        <div class="dn-name" style="color:var(--lila)">stammdaten.js</div>
+        <div class="dn-desc">19 Produkte mit Sollmengen Mo–So in Blechen.
+          Wird von BäckereiOS (Froster, Planer) geladen.</div>
+      </div>
+    </div>
+
+    <div class="datei-node" style="flex:1;min-width:200px;border-color:#2a2010">
+      <div class="dn-icon">📄</div>
+      <div>
+        <div class="dn-name" style="color:var(--amber)">produkt_config.json</div>
+        <div class="dn-desc">71 Produkte mit Name, Charge, ArtNr, Kategorie, LegacyKey.
+          Single Source of Truth für alle Tools.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER NOTE -->
+<div style="margin-top:48px;padding:16px 22px;background:rgba(255,255,255,0.02);border:1px dashed #1e1e1e;border-radius:10px">
+  <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Veraltet — kann weg</div>
+  <div style="font-size:12px;color:#3a3a3a;line-height:1.8;font-family:var(--mono)">
+    stammdaten_uebersetzer.html &nbsp;·&nbsp;
+    stammdaten_assistent.html &nbsp;·&nbsp;
+    Konfiguration_Durchschnitt_Produkte.html
+    <br>
+    <span style="color:#2a2a2a">→ alle durch stammdaten_autosync.html ersetzt</span>
+  </div>
+</div>
+
+</div><!-- /pipeline -->
+</body>
+</html>

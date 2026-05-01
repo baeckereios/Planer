@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BäckereiOS - Backmengen Historie</title>
+    <link rel="stylesheet" href="systemdesign.css">
+    <style>
+        /* Filter-Bereich (Akkordeon) */
+        .filter-details {
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-details[open] {
+            border-color: #adb5bd;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .filter-summary {
+            padding: 16px 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #333;
+        }
+
+        .filter-summary::after {
+            content: '▼';
+            font-size: 0.9rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .filter-details[open] .filter-summary::after {
+            transform: rotate(180deg);
+        }
+
+        .filter-content {
+            padding: 0 20px 20px 20px;
+            border-top: 1px solid #dee2e6;
+            margin-top: 10px;
+            padding-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Toggle-Switch für Stück/Blech */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 8px;
+            width: fit-content;
+        }
+
+        .toggle-label {
+            font-weight: bold;
+            color: #495057;
+            cursor: pointer;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #343a40;
+            transition: .4s;
+            border-radius: 28px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #0d6efd;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        /* Tabellen-Design */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .history-table th, .history-table td {
+            border: 1px solid #e9ecef;
+            padding: 12px 15px;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .history-table th:first-child, .history-table td:first-child {
+            text-align: left;
+            font-weight: bold;
+            background-color: #f8f9fa;
+            position: sticky;
+            left: 0;
+            z-index: 2;
+        }
+
+        .history-table th {
+            background-color: #343a40;
+            color: white;
+            font-weight: normal;
+            vertical-align: top;
+        }
+
+        .context-info {
+            font-size: 0.8rem;
+            color: #ced4da;
+            display: block;
+            margin-top: 5px;
+            line-height: 1.4;
+            white-space: normal;
+        }
+        
+        .highlight-event {
+            color: #ffd700;
+            font-weight: bold;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .badge {
+            background: #dc3545;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 4px;
+            font-weight: bold;
+        }
+
+        .category-title {
+            margin-top: 40px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #343a40;
+            color: #343a40;
+        }
+        
+        .unit-label {
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-left: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📊 Backmengen-Historie</h1>
+
+        <details class="filter-details" id="filterSection" open>
+            <summary class="filter-summary">
+                <span>⚙️ Ansicht umstellen</span>
+            </summary>
+            <div class="filter-content">
+                <div class="toggle-container">
+                    <span class="toggle-label" onclick="document.getElementById('viewToggle').click()">Stückzahlen</span>
+                    <label class="switch">
+                        <input type="checkbox" id="viewToggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="toggle-label" onclick="document.getElementById('viewToggle').click()">Blech- / Chargenzahlen</span>
+                </div>
+                <p style="margin: 0; font-size: 0.9em; color: #6c757d;">
+                    <em>Wechsle hier zwischen der absoluten Produktionsmenge und den zugehörigen Blechen/Chargen aus der Datenbank.</em>
+                </p>
+            </div>
+        </details>
+
+        <div id="tablesContainer">
+            </div>
+    </div>
+
+    <script src="shell.js"></script>
+    <script>
+        // 1. Deine exakte Datenbank mit den echten, von dir berechneten Blech-Werten
+        const dbData = [
+          {
+            "datum": "2026-03-05", "wochentag": "Donnerstag",
+            "kontext": { "wetter": "heiter", "temperatur": 9, "ferien": false, "feiertag": false, "besonderheit": "Eröffnung neue Filiale" },
+            "produkte": { "schlawiner_gesamt_stueck": 10244, "schlawiner_gesamt_bleche": 213.4, "hasenberger_stueck": 940, "hasenberger_bleche": 47, "kornknacker_stueck": 830, "kornknacker_bleche": 33.2, "kaesebroetchen_stueck": 0, "kaesebroetchen_bleche": 0, "hasenpfoetchen_stueck": 260, "hasenpfoetchen_bleche": 13, "rosinen_hedwig_stueck": 0, "rosinen_hedwig_bleche": 0, "schoko_batzen_stueck": 320, "schoko_batzen_bleche": 26.7, "rosinen_batzen_stueck": 269, "rosinen_batzen_bleche": 22.4, "laugenstangen_stueck": 437, "laugenstangen_bleche": 24.3, "stangen_gesamt_stueck": 60, "stangen_gesamt_bleche": 10, "baguettestange_teig_stueck": 60, "baguettestange_teig_bleche": 20, "zwiebelstange_stueck": 0, "zwiebelstange_bleche": 0, "zwiebelstange_teig_stueck": 0, "zwiebelstange_teig_bleche": 0, "dinkel_gerster_750g_stueck": 512, "dinkel_gerster_750g_bleche": 128, "kastenweissbrot_stueck": 0, "kastenweissbrot_bleche": 0, "korbgerster_1250g_stueck": 0, "korbgerster_1250g_bleche": 0, "gersterbrot_1250g_stueck": 0, "gersterbrot_1250g_bleche": 0, "findling_500g_stueck": 0, "findling_500g_bleche": 0, "schwarzbrot_750g_stueck": 0, "schwarzbrot_750g_bleche": 0, "oma_hertas_stueck": 90, "oma_hertas_bleche": 15, "streuselkuchen_stueck": 102, "streuselkuchen_bleche": 17, "kaesekuchen_stueck": 232, "kaesekuchen_bleche": 11.6, "plunderstreifen_stueck": 0, "plunderstreifen_bleche": 0, "puddingbrezel_stueck": 0, "puddingbrezel_bleche": 0, "eiszapfen_stueck": 110, "eiszapfen_bleche": 0 }
+          },
+          {
+            "datum": "2026-03-06", "wochentag": "Freitag",
+            "kontext": { "wetter": "sonnig", "temperatur": 17, "ferien": false, "feiertag": false, "besonderheit": "Erster Freitag mit neuer Filiale" },
+            "produkte": { "schlawiner_gesamt_stueck": 9408, "schlawiner_gesamt_bleche": 196, "hasenberger_stueck": 1000, "hasenberger_bleche": 50, "kornknacker_stueck": 950, "kornknacker_bleche": 38, "kaesebroetchen_stueck": 320, "kaesebroetchen_bleche": 16, "hasenpfoetchen_stueck": 320, "hasenpfoetchen_bleche": 16, "rosinen_hedwig_stueck": 160, "rosinen_hedwig_bleche": 8, "schoko_batzen_stueck": 372, "schoko_batzen_bleche": 31, "rosinen_batzen_stueck": 324, "rosinen_batzen_bleche": 27, "laugenstangen_stueck": 486, "laugenstangen_bleche": 27, "stangen_gesamt_stueck": 96, "stangen_gesamt_bleche": 16, "baguettestange_teig_stueck": 78, "baguettestange_teig_bleche": 26, "zwiebelstange_stueck": 18, "zwiebelstange_bleche": 3, "zwiebelstange_teig_stueck": 33, "zwiebelstange_teig_bleche": 11, "dinkel_gerster_750g_stueck": 408, "dinkel_gerster_750g_bleche": 102, "kastenweissbrot_stueck": 72, "kastenweissbrot_bleche": 18, "korbgerster_1250g_stueck": 105, "korbgerster_1250g_bleche": 7, "gersterbrot_1250g_stueck": 140, "gersterbrot_1250g_bleche": 35, "findling_500g_stueck": 109, "findling_500g_bleche": 5.45, "schwarzbrot_750g_stueck": 0, "schwarzbrot_750g_bleche": 0, "oma_hertas_stueck": 108, "oma_hertas_bleche": 18, "streuselkuchen_stueck": 114, "streuselkuchen_bleche": 19, "kaesekuchen_stueck": 272, "kaesekuchen_bleche": 13.6, "plunderstreifen_stueck": 216, "plunderstreifen_bleche": 13.5, "puddingbrezel_stueck": 144, "puddingbrezel_bleche": 9, "eiszapfen_stueck": 0, "eiszapfen_bleche": 0 }
+          },
+          {
+            "datum": "2026-03-07", "wochentag": "Samstag",
+            "kontext": { "wetter": "teils sonnig", "temperatur": 17, "ferien": false, "feiertag": false, "besonderheit": "Erstes Wochenende neue Filiale, massiver Anstieg" },
+            "produkte": { "schlawiner_gesamt_stueck": 17520, "schlawiner_gesamt_bleche": 365, "hasenberger_stueck": 1360, "hasenberger_bleche": 68, "kornknacker_stueck": 1350, "kornknacker_bleche": 54, "kaesebroetchen_stueck": 420, "kaesebroetchen_bleche": 21, "hasenpfoetchen_stueck": 560, "hasenpfoetchen_bleche": 28, "rosinen_hedwig_stueck": 280, "rosinen_hedwig_bleche": 14, "schoko_batzen_stueck": 504, "schoko_batzen_bleche": 42, "rosinen_batzen_stueck": 432, "rosinen_batzen_bleche": 36, "laugenstangen_stueck": 648, "laugenstangen_bleche": 36, "stangen_gesamt_stueck": 186, "stangen_gesamt_bleche": 31, "baguettestange_teig_stueck": 75, "baguettestange_teig_bleche": 25, "zwiebelstange_stueck": 30, "zwiebelstange_bleche": 5, "zwiebelstange_teig_stueck": 21, "zwiebelstange_teig_bleche": 7, "dinkel_gerster_750g_stueck": 372, "dinkel_gerster_750g_bleche": 93, "kastenweissbrot_stueck": 76, "kastenweissbrot_bleche": 19, "korbgerster_1250g_stueck": 105, "korbgerster_1250g_bleche": 7, "gersterbrot_1250g_stueck": 152, "gersterbrot_1250g_bleche": 38, "findling_500g_stueck": 105, "findling_500g_bleche": 5.25, "schwarzbrot_750g_stueck": 138, "schwarzbrot_750g_bleche": 46, "oma_hertas_stueck": 108, "oma_hertas_bleche": 18, "streuselkuchen_stueck": 126, "streuselkuchen_bleche": 21, "kaesekuchen_stueck": 300, "kaesekuchen_bleche": 15, "plunderstreifen_stueck": 178, "plunderstreifen_bleche": 11.1, "puddingbrezel_stueck": 0, "puddingbrezel_bleche": 0, "eiszapfen_stueck": 96, "eiszapfen_bleche": 0 }
+          },
+          {
+            "datum": "2026-03-09", "wochentag": "Montag",
+            "kontext": { "wetter": "sonnig", "temperatur": 12, "ferien": false, "feiertag": false, "besonderheit": "Zwischenprüfung im Haus" },
+            "produkte": { "schlawiner_gesamt_stueck": 8688, "schlawiner_gesamt_bleche": 181, "hasenberger_stueck": 900, "hasenberger_bleche": 45, "kornknacker_stueck": 800, "kornknacker_bleche": 32, "kaesebroetchen_stueck": 280, "kaesebroetchen_bleche": 14, "hasenpfoetchen_stueck": 260, "hasenpfoetchen_bleche": 13, "rosinen_hedwig_stueck": 140, "rosinen_hedwig_bleche": 7, "schoko_batzen_stueck": 324, "schoko_batzen_bleche": 27, "rosinen_batzen_stueck": 276, "rosinen_batzen_bleche": 23, "laugenstangen_stueck": 450, "laugenstangen_bleche": 25, "stangen_gesamt_stueck": 54, "stangen_gesamt_bleche": 9, "baguettestange_teig_stueck": 63, "baguettestange_teig_bleche": 21, "zwiebelstange_stueck": 6, "zwiebelstange_bleche": 1, "zwiebelstange_teig_stueck": 24, "zwiebelstange_teig_bleche": 8, "dinkel_gerster_750g_stueck": 252, "dinkel_gerster_750g_bleche": 63, "kastenweissbrot_stueck": 64, "kastenweissbrot_bleche": 16, "korbgerster_1250g_stueck": 135, "korbgerster_1250g_bleche": 9, "gersterbrot_1250g_stueck": 164, "gersterbrot_1250g_bleche": 41, "findling_500g_stueck": 128, "findling_500g_bleche": 6.4, "schwarzbrot_750g_stueck": 219, "schwarzbrot_750g_bleche": 73, "oma_hertas_stueck": 90, "oma_hertas_bleche": 15, "streuselkuchen_stueck": 90, "streuselkuchen_bleche": 15, "kaesekuchen_stueck": 360, "kaesekuchen_bleche": 18, "plunderstreifen_stueck": 176, "plunderstreifen_bleche": 11, "puddingbrezel_stueck": 160, "puddingbrezel_bleche": 10, "eiszapfen_stueck": 0, "eiszapfen_bleche": 0 }
+          }
+        ];
+
+        // 2. Basis-Kategorien
+        const categories = {
+            "Kleingebäck & Stangen": [
+                "schlawiner_gesamt", "hasenberger", "kornknacker", "kaesebroetchen", 
+                "hasenpfoetchen", "laugenstangen", "stangen_gesamt", "baguettestange_teig", 
+                "zwiebelstange", "zwiebelstange_teig"
+            ],
+            "Brote": [
+                "dinkel_gerster_750g", "kastenweissbrot", "korbgerster_1250g", 
+                "gersterbrot_1250g", "findling_500g", "schwarzbrot_750g"
+            ],
+            "Süßes & Kuchen": [
+                "rosinen_hedwig", "schoko_batzen", "rosinen_batzen", "oma_hertas", 
+                "streuselkuchen", "kaesekuchen", "plunderstreifen", "puddingbrezel", "eiszapfen"
+            ]
+        };
+
+        function formatProductName(key) {
+            return key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        function getWeatherIcon(wetter) {
+            const w = wetter.toLowerCase();
+            if (w.includes("sonnig")) return "☀️";
+            if (w.includes("heiter")) return "🌤️";
+            if (w.includes("regen")) return "🌧️";
+            if (w.includes("wolkig")) return "☁️";
+            return "🌡️";
+        }
+
+        // 3. Die Hauptfunktion (greift jetzt stur auf deine JSON-Werte zu)
+        function renderTables() {
+            const isBlechModus = document.getElementById("viewToggle").checked;
+            const container = document.getElementById("tablesContainer");
+            container.innerHTML = "";
+
+            for (const [catName, productKeys] of Object.entries(categories)) {
+                
+                let html = `<h2 class="category-title">${catName}</h2>`;
+                html += `<div style="overflow-x: auto;"><table class="history-table">`;
+                
+                html += `<thead><tr><th>Produkt</th>`;
+                dbData.forEach(day => {
+                    const icon = getWeatherIcon(day.kontext.wetter);
+                    const datumFormatiert = day.datum.split('-').reverse().slice(0,2).join('.');
+                    
+                    let tags = "";
+                    if (day.kontext.feiertag) tags += `<span class="badge">Feiertag</span>`;
+                    if (day.kontext.ferien) tags += `<span class="badge" style="background:#0dcaf0;">Ferien</span>`;
+
+                    html += `<th>
+                        ${day.wochentag.substring(0,2)}, ${datumFormatiert}.<br>
+                        <span class="context-info">
+                            ${icon} ${day.kontext.temperatur}°C<br>
+                            ${tags}
+                            ${day.kontext.besonderheit ? `<span class="highlight-event">${day.kontext.besonderheit}</span>` : ''}
+                        </span>
+                    </th>`;
+                });
+                html += `</tr></thead><tbody>`;
+
+                productKeys.forEach(baseKey => {
+                    html += `<tr><td>${formatProductName(baseKey)}</td>`;
+                    
+                    const stueckKey = baseKey + "_stueck";
+                    const blechKey = baseKey + "_bleche";
+
+                    dbData.forEach(day => {
+                        // Greift exakt die Werte ab, die du in der JSON berechnet hast
+                        const amountStueck = day.produkte[stueckKey] || 0;
+                        const amountBleche = day.produkte[blechKey] || 0;
+                        
+                        let displayValue = "";
+                        let unit = "";
+
+                        if (amountStueck === 0 && amountBleche === 0) {
+                            displayValue = `<span style="color:#adb5bd;">0</span>`;
+                        } else {
+                            if (isBlechModus) {
+                                // Zeigt deine errechneten Blechwerte exakt an. 
+                                // Die toFixed-Logik sorgt nur dafür, dass aus "213.4" auch "213.4" wird, 
+                                // aber glatte Zahlen wie "47" kein ".0" bekommen.
+                                const formatierteBleche = amountBleche % 1 === 0 ? amountBleche : amountBleche.toFixed(1);
+                                displayValue = `<strong>${formatierteBleche}</strong>`;
+                                unit = `<span class="unit-label">Bl.</span>`;
+                            } else {
+                                displayValue = `<strong>${amountStueck.toLocaleString('de-DE')}</strong>`;
+                                unit = `<span class="unit-label">Stk.</span>`;
+                            }
+                        }
+                        
+                        html += `<td>${displayValue} ${displayValue !== `<span style="color:#adb5bd;">0</span>` ? unit : ''}</td>`;
+                    });
+                    
+                    html += `</tr>`;
+                });
+
+                html += `</tbody></table></div>`;
+                container.innerHTML += html;
+            }
+        }
+
+        document.getElementById("viewToggle").addEventListener("change", renderTables);
+        renderTables();
+    </script>
+</body>
+</html>

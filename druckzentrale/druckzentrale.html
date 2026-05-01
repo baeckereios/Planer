@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Druckzentrale – BäckereiOS</title>
+    <script>
+        (function() {
+            try { document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light'); }
+            catch(e) { document.documentElement.setAttribute('data-theme', 'light'); }
+        })();
+    </script>
+    <link rel="stylesheet" href="../systemdesign.css">
+    <script>window.BOS_BASEPATH = '../';</script>
+    <script src="../feiertage_nds.js"></script>
+    <script src="../produktions_gehirn.js"></script>
+    <script src="../inventurdaten.js" defer></script>
+    <link rel="stylesheet" href="druckzentrale.css">
+</head>
+<body>
+
+<div class="screen-only">
+    <div class="brand-header">
+        <div class="top-nav">
+            <a href="../index.html" class="btn-back">← Cockpit</a>
+            <span class="page-sub">DRUCKZENTRALE</span>
+        </div>
+        <div class="brand-logo">Bäckerei<span>OS</span></div>
+
+        <!-- Tab-Navigation -->
+        <div class="dz-tabs">
+            <button class="dz-tab active" onclick="DZ_switchTab('tab-dokumente')" id="dz-tab-btn-dokumente">Dokumente</button>
+            <button class="dz-tab" onclick="DZ_switchTab('tab-formular')" id="dz-tab-btn-formular">Bestand & Verbrauch</button>
+        </div>
+    </div>
+
+    <!-- TAB 1: Dokumente -->
+    <div class="dz-tab-content active" id="tab-dokumente">
+        <div class="container">
+
+            <div class="inv-bar" id="inv-bar">
+                <div class="inv-dot" id="inv-dot"></div>
+                <span id="inv-text">Inventur wird geprüft…</span>
+            </div>
+
+            <!-- Modul A -->
+            <div class="ctrl-card" id="ctrl-A">
+                <div class="ctrl-head" onclick="toggleCtrl('A')">
+                    <div class="ctrl-check" id="cc-A"></div>
+                    <div>
+                        <div class="ctrl-name">Frühschicht-Formular</div>
+                        <div class="ctrl-desc">Absetzen, Belegen, Koma &amp; Froster-Aufgaben</div>
+                    </div>
+                </div>
+                <div class="ctrl-cfg" id="cfg-A">
+                    <label>Datum (automatisch)</label>
+                    <div class="auto-val" id="cfg-A-date">—</div>
+                </div>
+            </div>
+
+            <!-- Modul B -->
+            <div class="ctrl-card" id="ctrl-B">
+                <div class="ctrl-head" onclick="toggleCtrl('B')">
+                    <div class="ctrl-check" id="cc-B"></div>
+                    <div>
+                        <div class="ctrl-name">Froster-Bestand</div>
+                        <div class="ctrl-desc">Aktueller Bestand nach Station</div>
+                    </div>
+                    <div class="ctrl-badge lock" id="badge-B" style="display:none">🔒 GESPERRT</div>
+                </div>
+            </div>
+
+            <!-- Modul C -->
+            <div class="ctrl-card" id="ctrl-C">
+                <div class="ctrl-head" onclick="toggleCtrl('C')">
+                    <div class="ctrl-check" id="cc-C"></div>
+                    <div>
+                        <div class="ctrl-name">Wochenziele + Körner</div>
+                        <div class="ctrl-desc">Bedarfsvergleich für zwei Zieltage + Einweichplan</div>
+                    </div>
+                </div>
+                <div class="ctrl-cfg" id="cfg-C">
+                    <label>Ziel 1 berechnen bis</label>
+                    <select id="zeit-C1" onchange="onZeitChange('C')"></select>
+                    <label style="margin-top: 8px;">Ziel 2 berechnen bis</label>
+                    <select id="zeit-C2" onchange="onZeitChange('C')"></select>
+                </div>
+            </div>
+
+            <!-- Modul D -->
+            <div class="ctrl-card" id="ctrl-D">
+                <div class="ctrl-head" onclick="toggleCtrl('D')">
+                    <div class="ctrl-check" id="cc-D"></div>
+                    <div>
+                        <div class="ctrl-name">Verbrauchs-Matrix</div>
+                        <div class="ctrl-desc">Standard-Tagesbedarf (Mo-So + Mo) pro Station</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modul E -->
+            <div class="ctrl-card" id="ctrl-E">
+                <div class="ctrl-head" onclick="toggleCtrl('E')">
+                    <div class="ctrl-check" id="cc-E"></div>
+                    <div>
+                        <div class="ctrl-name">Frosterliste (Kopiervorlage)</div>
+                        <div class="ctrl-desc">Manuelle Eingabe &amp; Druckvorlage für den Froster</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modul F -->
+            <div class="ctrl-card" id="ctrl-F">
+                <div class="ctrl-head" onclick="toggleCtrl('F')">
+                    <div class="ctrl-check" id="cc-F"></div>
+                    <div>
+                        <div class="ctrl-name">BÄKO-Übersicht</div>
+                        <div class="ctrl-desc">Bestand · Bestellempfehlung · Rechengrundlage</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-print-main" onclick="doPrint()">🖨 &nbsp;Auswahl drucken</button>
+
+            <div style="height: 30px;"></div>
+
+            <!-- Vorschau-Container -->
+            <div id="preview-container">
+                <div class="print-module" id="module-A">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Frühschicht-Formular</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body" id="module-A-body"></div>
+                </div>
+
+                <div class="print-module" id="module-B">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Froster-Bestand</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body">
+                        <div id="froster-content"><div class="dz-loading">Wird geladen…</div></div>
+                    </div>
+                </div>
+
+                <div class="print-module" id="module-C">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Wochenziele + Körner</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body" id="module-C-body"></div>
+                </div>
+
+                <div class="print-module" id="module-D">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Verbrauchs-Matrix</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body">
+                        <div id="matrix-content"><div class="dz-loading">Wird geladen…</div></div>
+                    </div>
+                </div>
+
+                <div class="print-module" id="module-E">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Frosterliste</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body" id="module-E-body"></div>
+                </div>
+
+                <div class="print-module" id="module-F">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: BÄKO-Übersicht</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body">
+                        <div id="baeko-content"><div class="dz-loading">Wird geladen…</div></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TAB 2: Bestand & Verbrauch (Scaffold) -->
+    <div class="dz-tab-content" id="tab-formular">
+        <div class="container" id="tab2-container">
+            <!-- wird von druckzentrale_modul_g.js befüllt -->
+        </div>
+    </div>
+
+</div>
+
+<!-- Logik -->
+<script src="druckzentrale_logic.js"></script>
+<script src="druckzentrale_modul_a.js"></script>
+<script src="druckzentrale_modul_b.js"></script>
+<script src="druckzentrale_modul_c.js"></script>
+<script src="druckzentrale_modul_d.js"></script>
+<script src="../frosterliste_produkte.js"></script>
+<script src="druckzentrale_modul_e.js"></script>
+<script src="druckzentrale_modul_f.js"></script>
+<script src="druckzentrale_modul_g.js"></script>
+<script src="druckzentrale_ui.js"></script>
+<script src="../shell.js"></script>
+
+</body>
+</html>

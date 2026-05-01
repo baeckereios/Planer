@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BäckereiOS — Systemkarte</title>
+    <link rel="stylesheet" href="admin_design.css">
+    <style>
+        /* ── Bridge: eigene Vars → admin_design.css ── */
+        :root {
+          --text-main:   #1c1a17;
+          --text-muted:  #888077;
+          --border-color:#d8d3ca;
+          --bg-color:    #f4f2ee;
+        }
+        .search-wrap {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--bg-color, #fdfaf4);
+            padding: 10px 0 6px 0; margin-bottom: 12px;
+        }
+        #suche {
+            width: 100%; padding: 11px 15px; border-radius: 10px;
+            border: 2px solid var(--border-color, #e2e8f0);
+            font-size: 0.95rem; background: white; color: var(--text-main);
+            box-sizing: border-box;
+        }
+        #suche:focus { outline: none; border-color: var(--btn-primary, #c07a10); }
+
+        .section-label {
+            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--text-muted);
+            padding: 16px 0 5px 0; display: block;
+        }
+
+        /* Karte */
+        .hk {
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 11px; margin-bottom: 8px; overflow: hidden;
+            background: var(--surface, #fff);
+        }
+        .hk.hidden { display: none; }
+
+        .hk-head {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: 12px 14px; cursor: pointer; user-select: none;
+        }
+        .hk-head:hover { background: var(--surface2, #f8fafc); }
+        .hk-name { font-size: 0.92rem; font-weight: 800; color: var(--text-main); }
+        .hk-sub  { font-size: 0.76rem; color: var(--text-muted); margin-top: 2px; line-height: 1.3; }
+        .hk-arr  { color: var(--text-muted); font-size: 0.8rem; flex-shrink: 0; margin-top: 2px; }
+
+        .hk-body {
+            display: none; border-top: 1px solid var(--border-color, #e2e8f0);
+            padding: 12px 14px;
+        }
+        .hk-body.open { display: block; }
+
+        /* Inhalt */
+        .para { font-size: 0.83rem; color: var(--text-main); line-height: 1.55; margin: 0 0 10px 0; }
+
+        .flow-row { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 12px 0; }
+        .flow-item {
+            display: flex; gap: 8px; align-items: flex-start;
+            font-size: 0.8rem; line-height: 1.4;
+        }
+        .flow-icon { flex-shrink: 0; font-size: 1rem; width: 22px; text-align: center; margin-top: 1px; }
+        .flow-text { color: var(--text-main); }
+        .flow-file {
+            font-family: monospace; font-size: 0.78rem;
+            background: var(--surface2, #f1f5f9);
+            padding: 1px 6px; border-radius: 4px;
+            color: var(--btn-primary, #c07a10);
+            border: 1px solid var(--border-color, #e2e8f0);
+            display: inline-block; margin: 1px 2px;
+            word-break: break-all;
+        }
+        .flow-file.red { color: #dc2626; background: #fef2f2; border-color: #fecdd3; }
+        .flow-file.green { color: #16a34a; background: #f0fdf4; border-color: #bbf7d0; }
+
+        .warn {
+            background: #fef2f2; border: 1px solid #fecdd3; border-radius: 7px;
+            padding: 8px 11px; font-size: 0.8rem; color: #991b1b;
+            line-height: 1.5; margin: 8px 0;
+        }
+        .tip {
+            background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 7px;
+            padding: 8px 11px; font-size: 0.8rem; color: #166534;
+            line-height: 1.5; margin: 8px 0;
+        }
+
+        .tag {
+            display: inline-block; font-size: 0.63rem; font-weight: 800;
+            padding: 2px 7px; border-radius: 8px; margin: 0 3px 4px 0; text-transform: uppercase;
+        }
+        .t-daily  { background: #dbeafe; color: #1d4ed8; }
+        .t-selten { background: #f3f4f6; color: #6b7280; }
+        .t-einmal { background: #fef9c3; color: #854d0e; }
+        .t-ki     { background: #ede9fe; color: #5b21b6; }
+        .t-neu    { background: #dcfce7; color: #15803d; }
+
+        .open-link {
+            display: inline-block; margin-top: 10px; padding: 7px 13px;
+            background: var(--btn-primary, #c07a10); color: white;
+            border-radius: 7px; font-size: 0.8rem; font-weight: 700;
+            text-decoration: none;
+        }
+
+        /* Datei-Karte (Datenfluss-Übersicht) */
+        .datei-grid { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
+        .datei-row {
+            background: var(--surface2, #f8fafc);
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 8px; padding: 9px 12px;
+            font-size: 0.8rem;
+        }
+        .datei-name { font-family: monospace; font-weight: 800; color: var(--btn-primary, #c07a10); font-size: 0.82rem; }
+        .datei-beschr { color: var(--text-muted); margin: 2px 0 4px 0; font-size: 0.77rem; }
+        .datei-detail { color: var(--text-main); font-size: 0.77rem; line-height: 1.5; }
+
+        #keine-treffer { display: none; text-align: center; padding: 30px; color: var(--text-muted); font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <h1 style="margin:0;font-size:1.5rem;font-weight:800;">🗺️ Systemkarte</h1>
+        <a href="admin_landing.html" style="text-decoration:none;color:var(--text-muted);font-size:0.8rem;font-weight:bold;padding:5px 10px;border-radius:6px;background:#fff;border:1px solid var(--border-color);">Zurück</a>
+    </div>
+    <p style="color:var(--text-muted);font-size:0.82rem;margin:0 0 12px 0;">Wofür war das nochmal? Wer liest was? Wo konfiguriere ich X?</p>
+
+    <div class="search-wrap">
+        <input type="text" id="suche" placeholder="🔍  Tool, Dateiname oder Stichwort suchen..." oninput="filterKarten()">
+    </div>
+    <div id="keine-treffer">Kein Treffer — andere Suche probieren?</div>
+
+    <!-- ══════════════════════════════════════════════
+         DATENFLUSS-ÜBERSICHT
+    ══════════════════════════════════════════════ -->
+    <span class="section-label">📁 Datei-Übersicht — wer schreibt, wer liest</span>
+
+    <div class="hk" data-tags="datei json js stammdaten inventur backmengen datenfluss übersicht">
+        <div class="hk-head" onclick="toggle(this)">
+            <div><div class="hk-name">🗂️ Alle Datendateien auf einen Blick</div>
+            <div class="hk-sub">Jede wichtige Datei — wer erzeugt sie, wer braucht sie</div></div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <div class="datei-grid">
+
+                <div class="datei-row">
+                    <div class="datei-name">stammdaten.js</div>
+                    <div class="datei-beschr">Produktstammdaten — das Fundament des Systems</div>
+                    <div class="datei-detail">
+                        <b>Geschrieben von:</b> <span class="flow-file green">stammdaten_assistent.html</span> <span class="flow-file green">stammdaten_autosync.html</span><br>
+                        <b>Gelesen von:</b> <span class="flow-file">inventur_dateneingabe.html</span> <span class="flow-file">schnellrechner.html</span> <span class="flow-file">setup.html</span> <span class="flow-file">planer.html</span> <span class="flow-file">bestandsuebersicht.html</span> <span class="flow-file">verbrauchsuebersicht.html</span> <span class="flow-file">frosterliste.html</span><br>
+                        <b>⚠️ Fehlt sie:</b> Fast die gesamte App zeigt keine Produkte mehr.
+                    </div>
+                </div>
+
+                <div class="datei-row">
+                    <div class="datei-name">inventurdaten.js</div>
+                    <div class="datei-beschr">Aktuelle Lagerbestände (täglich neu)</div>
+                    <div class="datei-detail">
+                        <b>Geschrieben von:</b> <span class="flow-file green">inventur_dateneingabe.html</span><br>
+                        <b>Gelesen von:</b> <span class="flow-file">shell.js</span> (Status-Strip oben) <span class="flow-file">schnellrechner.html</span> <span class="flow-file">bestandsuebersicht.html</span><br>
+                        <b>⚠️ Veraltet:</b> Schnellrechner rechnet mit falschem Bestand. Status-Strip zeigt alte Zahlen.
+                    </div>
+                </div>
+
+                <div class="datei-row">
+                    <div class="datei-name">backmengen_db.json</div>
+                    <div class="datei-beschr">Historische Backmengen aller Tage (wächst täglich)</div>
+                    <div class="datei-detail">
+                        <b>Geschrieben von:</b> <span class="flow-file green">datenbank_manager.html</span><br>
+                        <b>Gelesen von:</b> <span class="flow-file">Konfiguration_Durchschnitt_Produkte.html</span> <span class="flow-file">durchschnittsrechner.html</span> <span class="flow-file">14_tage_logbuch.html</span> <span class="flow-file">brot_historie.html</span><br>
+                        <b>⚠️ Fehlt sie:</b> Alle Auswertungs- und Historieseiten zeigen nichts.
+                    </div>
+                </div>
+
+                <div class="datei-row">
+                    <div class="datei-name">durchschnittsverbrauch_gehirn.js</div>
+                    <div class="datei-beschr">Konfiguration des Durchschnitts-Dashboards (welche Produkte, Bleche/Stück)</div>
+                    <div class="datei-detail">
+                        <b>Geschrieben von:</b> <span class="flow-file green">Konfiguration_Durchschnitt_Produkte.html</span><br>
+                        <b>Gelesen von:</b> <span class="flow-file">durchschnittsrechner.html</span> <span class="flow-file">14_tage_logbuch.html</span><br>
+                        <b>Liegt in:</b> Unterordner <span class="flow-file">durchschnittsverbrauch/</span> (nicht in AdminTools!)<br>
+                        <b>⚠️ Veraltet:</b> Dashboard zeigt nicht alle Produkte oder falsche Einheiten.
+                    </div>
+                </div>
+
+                <div class="datei-row">
+                    <div class="datei-name">baeko_bestand.js</div>
+                    <div class="datei-beschr">BÄKO Produktstammdaten — Sollmengen, Einheiten, Lager-Konfiguration</div>
+                    <div class="datei-detail">
+                        <b>Geschrieben von:</b> <span class="flow-file green">baeko_assistent.html</span> <span class="flow-file green">lager_admin.html</span><br>
+                        <b>Gelesen von:</b> <span class="flow-file">baeko_bestellung/lager_inventur.html</span> <span class="flow-file">baeko_bestellung/blechrechner.html</span> <span class="flow-file">baeko_bestellung/lager_gehirn.js</span>
+                    </div>
+                </div>
+
+                <div class="datei-row">
+                    <div class="datei-name">baeko_historie.js</div>
+                    <div class="datei-beschr">Historische BÄKO-Bestelldaten</div>
+                    <div class="datei-detail">
+                        <b>Geschrieben von:</b> <span class="flow-file green">baeko_historie_import.html</span><br>
+                        <b>Gelesen von:</b> <span class="flow-file">baeko_lager_analyse.html</span>
+                    </div>
+                </div>
+
+                <div class="datei-row">
+                    <div class="datei-name">brot_daten.js</div>
+                    <div class="datei-beschr">Brotrezepturen und Teigberechnungen</div>
+                    <div class="datei-detail">
+                        <b>Geschrieben von:</b> <span class="flow-file green">rezept_assistent.html</span> <span class="flow-file green">brot_admin.html</span><br>
+                        <b>Gelesen von:</b> <span class="flow-file">nachtschicht/brot_rechner.html</span> <span class="flow-file">nachtschicht/sauerteig_rechner.html</span>
+                    </div>
+                </div>
+
+                <div class="datei-row">
+                    <div class="datei-name">ofenangriff.js</div>
+                    <div class="datei-beschr">Ofenprogramme, Zeiten, Temperaturen</div>
+                    <div class="datei-detail">
+                        <b>Geschrieben von:</b> <span class="flow-file green">ofen_assistent.html</span> <span class="flow-file green">ofenangriff_datenpflege.html</span><br>
+                        <b>Gelesen von:</b> <span class="flow-file">ofenangriff.html</span>
+                    </div>
+                </div>
+
+                <div class="datei-row">
+                    <div class="datei-name">markt_daten.js / geschichte_daten.js</div>
+                    <div class="datei-beschr">Rohstoffpreise und Leitartikel-Inhalte</div>
+                    <div class="datei-detail">
+                        <b>Geschrieben von:</b> <span class="flow-file green">markt_prompt.html</span> (KI generiert, du fügst ein)<br>
+                        <b>Gelesen von:</b> <span class="flow-file">news_rohstoffe/rohstoff_fakten.html</span> <span class="flow-file">news_rohstoffe/geschichte.html</span>
+                    </div>
+                </div>
+
+                <div class="datei-row">
+                    <div class="datei-name">info_ticker.js</div>
+                    <div class="datei-beschr">Schwarzes Brett — Ticker-Nachrichten für das Team</div>
+                    <div class="datei-detail">
+                        <b>Geschrieben von:</b> <span class="flow-file green">shoutbox_meldungen.html</span><br>
+                        <b>Gelesen von:</b> <span class="flow-file">shell.js</span> (erscheint als Ticker auf allen Seiten)
+                    </div>
+                </div>
+
+                <div class="datei-row">
+                    <div class="datei-name">assistent_plan.js</div>
+                    <div class="datei-beschr">Konfiguration des Tages-Assistenten — welches Tool an welchem Tag</div>
+                    <div class="datei-detail">
+                        <b>Geschrieben von:</b> <span class="flow-file green">assistent_planer.html</span><br>
+                        <b>Gelesen von:</b> <span class="flow-file">assistenten_fuehrer.html</span><br>
+                        <b>⚠️ Fehlt sie:</b> Der Führer startet nicht — roter Fehler auf dem Startbildschirm.
+                    </div>
+                </div>
+
+                <div class="datei-row">
+                    <div class="datei-name">service-worker.js + serviceworker_version_gehirn.js</div>
+                    <div class="datei-beschr">PWA-Cache — bestimmt welche Version alle Geräte laden</div>
+                    <div class="datei-detail">
+                        <b>Geschrieben von:</b> <span class="flow-file green">serviceworker_generator.html</span><br>
+                        <b>⚠️ Veraltet:</b> Andere Geräte sehen alte Versionen der App. Immer nach größeren Updates erneuern.
+                    </div>
+                </div>
+
+                <div class="datei-row">
+                    <div class="datei-name">Backplan_Aktuell.html</div>
+                    <div class="datei-beschr">WetterAussicht-Seite — wird komplett neu generiert</div>
+                    <div class="datei-detail">
+                        <b>Geschrieben von:</b> <span class="flow-file green">wochenvorschau_prompt.html</span> (KI generiert die ganze HTML-Seite)<br>
+                        <b>Ist selbst eine Seite</b> im Stammordner — kein weiterer Consumer.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         TÄGLICH
+    ══════════════════════════════════════════════ -->
+    <span class="section-label">🌅 Täglich — über Assistenten-Führer</span>
+
+    <div class="hk" data-tags="täglich datenbank backmengen erfassen zettel gemini daten-zentrale manager">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">📊 Daten-Zentrale <span class="tag t-daily">Täglich</span><span class="tag t-neu">Neu</span></div>
+                <div class="hk-sub">datenbank_manager.html — Backzettel → backmengen_db.json</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Wandelt die 4 physischen Backzettel (Brötchen, Schlawiner, Brot, Konditorei) in einen strukturierten Datenbankeintrag um. Du schickst Fotos + Prompts an Gemini, fügst die Antworten ein, und der Manager merged alles zu einem Tageseintrag.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📥</div><div class="flow-text">Lädt: <span class="flow-file">backmengen_db.json</span> (alte Datenbank, manuell hochladen)</div></div>
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">backmengen_db.json</span> (mit neuem Tageseintrag, herunterladen + hochladen)</div></div>
+                <div class="flow-item"><div class="flow-icon">💾</div><div class="flow-text">Zwischenspeicher: <span class="flow-file">localStorage: baeckerei_db</span></div></div>
+            </div>
+            <div class="warn">⑤ Kontext-Prompt: Gemini liest das Datum selbst ab und recherchiert Wetter + Ferien automatisch. Nur die Besonderheit trägst du manuell ein.</div>
+            <a href="datenbank_manager.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <div class="hk" data-tags="täglich inventur froster lager bestand zählen inventurdaten">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">📦 Inventur / Froster-Zählung <span class="tag t-daily">Täglich</span></div>
+                <div class="hk-sub">inventur_dateneingabe.html — Bestand zählen → inventurdaten.js</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Tägliche Bestandserfassung aller Produkte nach Lagerort. Das Ergebnis wird als inventurdaten.js gespeichert und beeinflusst direkt den Schnellrechner (effectiveStock-Berechnung).</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📥</div><div class="flow-text">Braucht: <span class="flow-file">stammdaten.js</span> (Produktliste) + <span class="flow-file">inventurdaten.js</span> (alter Stand zum Vergleich)</div></div>
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">inventurdaten.js</span></div></div>
+                <div class="flow-item"><div class="flow-icon">💾</div><div class="flow-text">Setzt: <span class="flow-file">localStorage: BOS_FROSTER_STATUS</span></div></div>
+            </div>
+            <div class="warn">⚠️ IMMER über index.html öffnen — nicht direkt! Ohne Shell wird stammdaten.js nicht geladen und die Produktliste bleibt leer.</div>
+            <a href="inventur_dateneingabe.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <div class="hk" data-tags="täglich ticker shoutbox schwarzes brett team nachrichten info">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">💬 Schwarzes Brett (Ticker) <span class="tag t-daily">Täglich</span></div>
+                <div class="hk-sub">shoutbox_meldungen.html — Team-Nachrichten → info_ticker.js</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Kurze Nachrichten für das Team — erscheinen als Laufschrift-Ticker auf allen Seiten der App (über shell.js). Einträge hinzufügen, bearbeiten, löschen, reihenfolge ändern.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">info_ticker.js</span> → überall im Ticker sichtbar</div></div>
+            </div>
+            <a href="shoutbox_meldungen.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <div class="hk" data-tags="täglich service worker cache update version pwa">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">🔄 Service Worker Generator <span class="tag t-daily">Täglich</span></div>
+                <div class="hk-sub">serviceworker_generator.html — Cache-Version aktualisieren</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Erhöht die Cache-Versionsnummer des Service Workers, damit alle Geräte die neueste Version der App laden. Nach jedem Upload neuer Datendateien (JS, JSON) aufrufen.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">service-worker.js</span> + <span class="flow-file green">serviceworker_version_gehirn.js</span></div></div>
+            </div>
+            <div class="tip">💡 Beide Dateien werden gleichzeitig heruntergeladen. Beide hochladen — sonst stimmt die Versionsprüfung nicht.</div>
+            <a href="serviceworker_generator.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         MONTAGS / WÖCHENTLICH
+    ══════════════════════════════════════════════ -->
+    <span class="section-label">📅 Montags / Wöchentlich</span>
+
+    <div class="hk" data-tags="montag wetter wochenvorschau planung wetteraussicht backplan woche">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">📅 Wochen-Planer / WetterAussicht <span class="tag t-ki">KI</span></div>
+                <div class="hk-sub">wochenvorschau_prompt.html — Wochenplanung → Backplan_Aktuell.html</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Generiert einen KI-Prompt für die Wochenplanung. Die KI antwortet mit einer vollständigen HTML-Seite, die du als Backplan_Aktuell.html hochlädst. Das ist die WetterAussicht-Seite in der Hauptapp.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">Backplan_Aktuell.html</span> (komplette Seite wird ersetzt)</div></div>
+            </div>
+            <a href="wochenvorschau_prompt.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <div class="hk" data-tags="montag markt rohstoff preise radar situation prompt ki">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">📈 Markt-Radar / Rohstoffpreise <span class="tag t-ki">KI</span></div>
+                <div class="hk-sub">markt_prompt.html — Rohstoffpreise + Leitartikel</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Generiert KI-Prompts für zwei Aufgaben: Rohstoffpreise aktualisieren (→ markt_daten.js) und einen neuen Leitartikel schreiben (→ geschichte_daten.js).</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">markt_daten.js</span> → RohstoffFakten-Seite</div></div>
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">geschichte_daten.js</span> → Leitartikel-Seite</div></div>
+            </div>
+            <a href="markt_prompt.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <div class="hk" data-tags="mittwoch freitag bäko lager zählung inventur bestellung">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">🏪 BÄKO Lager-Zählung <span class="tag t-selten">Mi + Fr</span></div>
+                <div class="hk-sub">baeko_bestellung/lager_inventur.html → lager_auswertung.html</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Zweistufiger Prozess: Erst zählen (lager_inventur.html), dann auswerten (lager_auswertung.html). Die Inventur schreibt ins localStorage, die Auswertung liest von dort.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📥</div><div class="flow-text">Braucht: <span class="flow-file">baeko_bestand.js</span> (Produktkonfiguration)</div></div>
+                <div class="flow-item"><div class="flow-icon">💾</div><div class="flow-text">Schreibt: <span class="flow-file">localStorage: BOS_LAGER_TEMP</span></div></div>
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Auswertung liest aus: <span class="flow-file">localStorage: BOS_LAGER_TEMP</span></div></div>
+            </div>
+            <div class="warn">⚠️ lager_auswertung.html MUSS direkt nach lager_inventur.html aufgerufen werden — der localStorage-Zwischenspeicher ist sitzungsgebunden.</div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         STAMMDATEN-ASSISTENTEN
+    ══════════════════════════════════════════════ -->
+    <span class="section-label">🧬 Stammdaten-Assistenten — selten, wenn sich etwas ändert</span>
+
+    <div class="hk" data-tags="stammdaten produkt neu anlegen ändern löschen assistent station einheit charge">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">🧬 Stammdaten-Assistent <span class="tag t-einmal">Selten</span></div>
+                <div class="hk-sub">stammdaten_assistent.html — Produkte verwalten → stammdaten.js</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Neues Produkt hinzufügen, umbenennen oder löschen. Legt fest: Name, Einheit, Charge-Größe (= Produktionsschrittgröße), Station, ob Froster-relevant.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">stammdaten.js</span> — das Fundament der App</div></div>
+            </div>
+            <div class="warn">⚠️ Charge-Größe ist kritisch: Das System rechnet IMMER in Vielfachen dieser Zahl. Hasenpfoten = 12 → es gibt nur 12, 24, 36... nie 13 oder 25.</div>
+            <div class="tip">💡 Nach Änderung: stammdaten_autosync.html prüfen ob die neue Stammdaten mit der Kassendatenbank übereinstimmen.</div>
+            <a href="stammdaten_assistent.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <div class="hk" data-tags="autosync kasse sync stammdaten abgleich">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">🔄 Stammdaten AutoSync <span class="tag t-einmal">Selten</span></div>
+                <div class="hk-sub">stammdaten_autosync.html — Kassendaten ↔ stammdaten.js abgleichen</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Vergleicht die interne stammdaten.js mit einer externen Kassendatenbank (JSON-Import). Zeigt welche Produkte in der Kasse existieren aber in der App fehlen — und umgekehrt.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📥</div><div class="flow-text">Braucht: <span class="flow-file">stammdaten.js</span> + externe Kassendatenbank (JSON)</div></div>
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Kann aktualisierte <span class="flow-file green">stammdaten.js</span> ausgeben</div></div>
+            </div>
+            <a href="stammdaten_autosync.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <div class="hk" data-tags="rezept teig brot rezeptur sammelteig 100kg nachtschicht">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">🍞 Rezept-Assistent <span class="tag t-einmal">Selten</span></div>
+                <div class="hk-sub">rezept_assistent.html — Teige & Rezepte → brot_daten.js</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Verwaltet Sammelteige für den Nachtschicht-BrotRechner. Arbeitet nach dem 100kg-Prinzip: Rezepturen werden auf 100kg Mehl normiert, der Rechner skaliert automatisch.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">brot_daten.js</span></div></div>
+                <div class="flow-item"><div class="flow-icon">📥</div><div class="flow-text">Gelesen von: <span class="flow-file">nachtschicht/brot_rechner.html</span> + <span class="flow-file">nachtschicht/sauerteig_rechner.html</span></div></div>
+            </div>
+            <div class="tip">💡 Direktpflege-Alternative: brot_admin.html — einfachere Oberfläche für schnelle Änderungen.</div>
+            <a href="rezept_assistent.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <div class="hk" data-tags="ofen ofenprogramm backprogramm temperatur zeit stikken assistent">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">🔥 Ofenangriff-Assistent <span class="tag t-einmal">Selten</span></div>
+                <div class="hk-sub">ofen_assistent.html — Ofenprogramme → ofenangriff.js</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Verwaltet Backprogramme mit Zeiten, Temperaturen, Stikken-Belegung und Wochentag-Zuordnung. Geführter Wizard mit Erklärungen.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">ofenangriff.js</span></div></div>
+                <div class="flow-item"><div class="flow-icon">📥</div><div class="flow-text">Gelesen von: <span class="flow-file">ofenangriff.html</span></div></div>
+            </div>
+            <div class="tip">💡 Direktpflege-Alternative: ofenangriff_datenpflege.html — für schnelle Tabellenänderungen ohne Wizard.</div>
+            <a href="ofen_assistent.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <div class="hk" data-tags="bäko produkt lager artikel einheit soll bestand konfiguration">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">🏪 BÄKO-Assistent <span class="tag t-einmal">Selten</span></div>
+                <div class="hk-sub">baeko_assistent.html — BÄKO Produktkonfiguration → baeko_bestand.js</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Drei Produkttypen: Lager-Produkte (mit Sollmenge), Bestellrechner-Produkte (Blech-Kalkulation), reine Inventur-Produkte. Geführter Wizard.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">baeko_bestand.js</span></div></div>
+            </div>
+            <div class="tip">💡 Direktpflege-Alternative: lager_admin.html — für schnelle Änderungen an Sollmengen.</div>
+            <a href="baeko_assistent.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         ANALYSE & DASHBOARD
+    ══════════════════════════════════════════════ -->
+    <span class="section-label">📊 Analyse & Dashboard-Konfiguration</span>
+
+    <div class="hk" data-tags="dashboard durchschnitt konfiguration produkte auswahl blech stück gehirn">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">🧠 Dashboard-Gehirn Generator <span class="tag t-einmal">Nach DB-Erweiterung</span></div>
+                <div class="hk-sub">Konfiguration_Durchschnitt_Produkte.html → durchschnittsverbrauch_gehirn.js</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Legt fest welche Produkte im Durchschnitts-Dashboard erscheinen, in welcher Einheit (Stück/Bleche) und in welcher Kategorie. Liest die backmengen_db.json und erkennt alle enthaltenen Produkte automatisch.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📥</div><div class="flow-text">Liest: <span class="flow-file">../backmengen_db.json</span> (erkennt alle Produkt-Keys automatisch)</div></div>
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">durchschnittsverbrauch_gehirn.js</span> (liegt in <code>durchschnittsverbrauch/</code>)</div></div>
+            </div>
+            <div class="tip">💡 Workflow: Erst neue Daten via datenbank_manager.html einpflegen → dann hier neu konfigurieren → neues Gehirn hochladen.</div>
+            <a href="Konfiguration_Durchschnitt_Produkte.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <div class="hk" data-tags="bäko analyse verbrauch historie auswertung lager">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">📊 BÄKO Verbrauchsanalyse <span class="tag t-selten">Bei Bedarf</span></div>
+                <div class="hk-sub">baeko_lager_analyse.html — historische BÄKO-Auswertung</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Zeigt historische Bestellmengen und Verbrauchsverläufe aus der baeko_historie.js. Kein Schreiben — reine Auswertung.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📥</div><div class="flow-text">Liest: <span class="flow-file">baeko_historie.js</span></div></div>
+            </div>
+            <a href="baeko_lager_analyse.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         FÜHRER / PLANER
+    ══════════════════════════════════════════════ -->
+    <span class="section-label">🤖 Assistenten-System</span>
+
+    <div class="hk" data-tags="führer assistent tagesplan wochentag wizard iFrame geführt workflow">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">🤖 Assistenten-Führer <span class="tag t-daily">Täglich — Einstieg</span></div>
+                <div class="hk-sub">assistenten_fuehrer.html — tagesabhängiger geführter Workflow</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Der Haupteinstieg für den täglichen Admin-Ablauf. Zeigt alle für den gewählten Wochentag relevanten Tools nacheinander als iFrame-Workflow. Wischen oder Button für nächsten Schritt.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📥</div><div class="flow-text">Liest: <span class="flow-file">assistent_plan.js</span> — bestimmt welches Tool an welchem Tag läuft</div></div>
+            </div>
+            <div class="warn">⚠️ Wenn assistent_plan.js fehlt → roter Fehler, kein Start möglich.</div>
+            <a href="assistenten_fuehrer.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <div class="hk" data-tags="planer assistent konfigurieren wochentag tool reihenfolge plan">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">⚙️ Assistenten-Planer <span class="tag t-einmal">Selten</span></div>
+                <div class="hk-sub">assistent_planer.html — konfiguriert den Führer → assistent_plan.js</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Legt fest welche Tools der Führer an welchem Wochentag anzeigt, in welcher Reihenfolge. Hier steuerst du den täglichen Workflow komplett.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">assistent_plan.js</span></div></div>
+            </div>
+            <div class="tip">💡 Den neuen datenbank_manager.html hier für alle 7 Tage eintragen — er gehört täglich in den Workflow.</div>
+            <a href="assistent_planer.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         DIREKTPFLEGE
+    ══════════════════════════════════════════════ -->
+    <span class="section-label">🔧 Direktpflege-Tools — schnelle Änderungen ohne Wizard</span>
+
+    <div class="hk" data-tags="verbrauch mengen admin direktpflege einheit">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">📝 Verbrauchs-Master <span class="tag t-selten">Selten</span></div>
+                <div class="hk-sub">verbrauchsdaten_admin.html</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Direktbearbeitung der Verbrauchsdaten für die Verbrauchsübersicht. Mengenangaben, Einheiten und Batchgrößen pflegen.</p>
+            <a href="verbrauchsdaten_admin.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <div class="hk" data-tags="brot admin direktpflege rezept tresor">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">🍞 Rezept-Tresor (Brot Admin) <span class="tag t-selten">Selten</span></div>
+                <div class="hk-sub">brot_admin.html — schnelle Direktpflege der brot_daten.js</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Einfachere Alternative zum Rezept-Assistenten für schnelle Änderungen an bestehenden Brotrezepturen.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📥</div><div class="flow-text">Braucht: <span class="flow-file">brot_daten.js</span> (vorgeladen)</div></div>
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">brot_daten.js</span></div></div>
+            </div>
+            <a href="brot_admin.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <div class="hk" data-tags="ofen direktpflege master admin programme">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">🔥 Ofenangriff-Master <span class="tag t-selten">Selten</span></div>
+                <div class="hk-sub">ofenangriff_datenpflege.html — schnelle Direktpflege</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Tabellarische Direktpflege der Ofenprogramme ohne geführten Wizard. Für kleine Korrekturen schneller als der Assistent.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">ofenangriff.js</span></div></div>
+            </div>
+            <a href="ofenangriff_datenpflege.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <div class="hk" data-tags="bäko lager admin sollmenge direktpflege">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">🏢 BÄKO Admin (Lager Stammdaten) <span class="tag t-selten">Selten</span></div>
+                <div class="hk-sub">lager_admin.html — Sollmengen und Produktkonfiguration direkt</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Direkte Bearbeitung von Sollmengen, Einheiten und Lager-Flags in der baeko_bestand.js. Schneller als der BÄKO-Assistent für einfache Anpassungen.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📥</div><div class="flow-text">Braucht: <span class="flow-file">baeko_bestand.js</span> (vorgeladen)</div></div>
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">baeko_bestand.js</span></div></div>
+            </div>
+            <a href="lager_admin.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+    <div class="hk" data-tags="bäko historie import daten einlesen">
+        <div class="hk-head" onclick="toggle(this)">
+            <div>
+                <div class="hk-name">📥 BÄKO Historie Import <span class="tag t-einmal">Einmalig</span></div>
+                <div class="hk-sub">baeko_historie_import.html — historische Bestelldaten einpflegen</div>
+            </div>
+            <div class="hk-arr">▼</div>
+        </div>
+        <div class="hk-body">
+            <p class="para">Importiert alte BÄKO-Bestelldaten in die baeko_historie.js. Einmalig oder bei größeren Datenmigrationen.</p>
+            <div class="flow-row">
+                <div class="flow-item"><div class="flow-icon">📤</div><div class="flow-text">Erzeugt: <span class="flow-file green">baeko_historie.js</span></div></div>
+            </div>
+            <a href="baeko_historie_import.html" class="open-link">→ Öffnen</a>
+        </div>
+    </div>
+
+</div>
+<script>
+function toggle(head) {
+    const body = head.nextElementSibling;
+    const arr  = head.querySelector('.hk-arr');
+    body.classList.toggle('open');
+    arr.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+function filterKarten() {
+    const q = document.getElementById('suche').value.toLowerCase().trim();
+    const karten = document.querySelectorAll('.hk');
+    let treffer = 0;
+    karten.forEach(k => {
+        const tags  = (k.dataset.tags || '').toLowerCase();
+        const text  = k.textContent.toLowerCase();
+        const match = !q || tags.includes(q) || text.includes(q);
+        k.classList.toggle('hidden', !match);
+        if (match) treffer++;
+    });
+    document.getElementById('keine-treffer').style.display = (q && treffer === 0) ? 'block' : 'none';
+}
+</script>
+</body>
+</html>

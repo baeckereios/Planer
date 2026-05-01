@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geschichte | BäckereiOS</title>
+    <link rel="stylesheet" href="../systemdesign.css">
+    <style>
+        :root { --ink: #1a1a1a; --line: #ccc; --neutral: #7f8c8d; --brown: #8b4513; --paper: #faf7f2; }
+
+        body { background-color: var(--paper); color: var(--ink); font-family: 'Barlow', sans-serif; margin: 0; padding-bottom: 100px; }
+
+        /* HEADER */
+        .geschichte-header {
+            background: var(--brown);
+            color: white;
+            padding: 30px 20px 24px;
+            text-align: center;
+        }
+        .geschichte-eyebrow {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 800; font-size: 0.75rem;
+            letter-spacing: 3px; text-transform: uppercase;
+            opacity: 0.7; margin-bottom: 10px;
+        }
+        .geschichte-ausgabe {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 800; font-size: 0.85rem;
+            letter-spacing: 2px; text-transform: uppercase;
+            opacity: 0.85; margin-top: 12px;
+        }
+
+        /* ARTIKEL */
+        .artikel-container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 30px 20px 40px;
+        }
+
+        .artikel-titel {
+            font-family: 'Fraunces', serif;
+            font-weight: 900; font-size: 2rem;
+            line-height: 1.15; color: var(--ink);
+            margin: 0 0 12px 0;
+        }
+        .artikel-untertitel {
+            font-size: 1.05rem; color: #555;
+            line-height: 1.5; margin-bottom: 24px;
+            font-style: italic;
+            border-left: 4px solid var(--brown);
+            padding-left: 14px;
+        }
+        .artikel-divider {
+            border: none; border-top: 2px solid var(--brown);
+            margin: 0 0 28px 0; opacity: 0.3;
+        }
+        .artikel-body {
+            font-size: 1rem;
+            line-height: 1.85;
+            color: #2a2a2a;
+            white-space: pre-wrap;
+        }
+        .artikel-body p { margin: 0 0 1.4em 0; }
+
+        /* AKTIONEN */
+        .artikel-actions {
+            display: flex; gap: 12px; margin-top: 32px;
+            flex-wrap: wrap;
+        }
+        .btn-action {
+            flex: 1; min-width: 120px;
+            padding: 12px 16px; border-radius: 10px;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 800; font-size: 0.9rem;
+            letter-spacing: 1px; text-transform: uppercase;
+            cursor: pointer; border: 1.5px solid var(--brown);
+            transition: 0.2s; text-align: center;
+        }
+        .btn-print { background: var(--brown); color: white; }
+        .btn-print:hover { opacity: 0.85; }
+        .btn-share { background: transparent; color: var(--brown); }
+        .btn-share:hover { background: var(--brown); color: white; }
+
+        /* FEHLER */
+        #error-msg {
+            text-align: center; padding: 60px 20px;
+            color: var(--brown); font-weight: bold;
+            display: none;
+        }
+
+        /* PRINT */
+        @media print {
+            .bos-shell-header, .bos-bottom-nav, .artikel-actions { display: none !important; }
+            body { background: white; padding: 0; }
+            .artikel-container { max-width: 100%; padding: 20px; }
+            .geschichte-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="geschichte-header">
+        <div class="geschichte-eyebrow">BäckereiOS · Historischer Leitartikel</div>
+        <div id="ausgabe-text" class="geschichte-ausgabe">Lade...</div>
+    </header>
+
+    <div id="error-msg">⚠️ Datei 'geschichte_daten.js' nicht gefunden.<br>Bitte zuerst einen Artikel generieren.</div>
+
+    <div class="artikel-container" id="artikel-container" style="display:none;">
+        <h1 class="artikel-titel" id="artikel-titel"></h1>
+        <div class="artikel-untertitel" id="artikel-untertitel"></div>
+        <hr class="artikel-divider">
+        <div class="artikel-body" id="artikel-body"></div>
+        <div class="artikel-actions">
+            <button class="btn-action btn-print" onclick="window.print()">🖨️ Drucken</button>
+            <button class="btn-action btn-share" onclick="teileArtikel()">↗ Teilen</button>
+        </div>
+    </div>
+
+    <script src="../geschichte_daten.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof geschichteDaten === 'undefined') {
+                document.getElementById('error-msg').style.display = 'block';
+                return;
+            }
+
+            const { meta, artikel } = geschichteDaten;
+
+            document.getElementById('ausgabe-text').innerText =
+                (meta.ausgabe || '') + (meta.thema ? ' · ' + meta.thema : '');
+            document.getElementById('artikel-titel').innerText  = artikel.titel      || '';
+            document.getElementById('artikel-untertitel').innerText = artikel.untertitel || '';
+
+            // Absätze rendern
+            const bodyEl = document.getElementById('artikel-body');
+            const absaetze = (artikel.body || '').split(/\n\n+/);
+            bodyEl.innerHTML = absaetze
+                .map(p => p.trim())
+                .filter(p => p.length > 0)
+                .map(p => `<p>${p}</p>`)
+                .join('');
+
+            document.getElementById('artikel-container').style.display = 'block';
+            document.title = artikel.titel + ' | BäckereiOS';
+        });
+
+        function teileArtikel() {
+            if (navigator.share) {
+                navigator.share({
+                    title: document.getElementById('artikel-titel').innerText,
+                    text:  document.getElementById('artikel-untertitel').innerText,
+                    url:   window.location.href
+                }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert('Link kopiert!');
+                });
+            }
+        }
+    </script>
+    <script src="../shell.js"></script>
+</body>
+</html>
