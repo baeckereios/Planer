@@ -6,6 +6,14 @@
     <title>BäckereiOS — Fehler-Statistik</title>
     <link rel="stylesheet" href="admin_design.css">
     <style>
+        /* ── Bridge: eigene Vars → admin_design.css ── */
+        :root {
+          --text-main:   #1c1a17;
+          --text-muted:  #888077;
+          --border-color:#d8d3ca;
+          --btn-primary: #a07020;
+          --bg-color:    #f4f2ee;
+        }
         .load-area { text-align:center; padding:30px 20px; }
         .btn-load { background:var(--btn-primary,#c07a10); color:white; border:none; border-radius:8px; padding:12px 20px; font-weight:800; font-size:0.95rem; cursor:pointer; margin-bottom:10px; display:block; width:100%; }
         .btn-load-ls { background:var(--text-muted,#64748b); color:white; border:none; border-radius:8px; padding:10px 20px; font-weight:700; font-size:0.85rem; cursor:pointer; display:block; width:100%; }

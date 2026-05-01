@@ -149,14 +149,18 @@ function DZ_renderWochenziele(zielDate1, zielDate2) {
             var need1      = zielDate1 ? DZ_calcNeed(k, zielDate1) : 0;
             var need2      = zielDate2 ? DZ_calcNeed(k, zielDate2) : 0;
             var fehlmenge  = DZ_C_getFehlmenge(k);
-            var total1     = need1 + fehlmenge;
-            var total2     = need2 + fehlmenge;
+            var stock      = DZ_getStock(k) || 0;
+            var total1     = Math.max(0, need1 - stock) + fehlmenge;
+            var total2     = Math.max(0, need2 - stock) + fehlmenge;
 
-            // Anzeige: Gesamtwert, bei Fehlmenge mit (+X) Hinweis
+            // Anzeige: Gesamtwert, bei Bestand/Fehlmenge mit Hinweis
             function fmtNeed(total, need) {
                 if (total <= 0) return '—';
                 var str = total + ' ' + einheit;
-                if (fehlmenge > 0) str += ' <span style="font-size:8pt;color:#888;">(+' + fehlmenge + ')</span>';
+                var hints = [];
+                if (stock  > 0) hints.push('−' + stock + ' Bestand');
+                if (fehlmenge > 0) hints.push('+' + fehlmenge + ' Fehlmenge');
+                if (hints.length > 0) str += ' <span style="font-size:8pt;color:#888;">(' + hints.join(', ') + ')</span>';
                 return str;
             }
 

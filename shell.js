@@ -40,6 +40,7 @@
         'schichtplaner.html':        { title: 'SchichtPlaner',      mode: 'full', tab: 'start'      },
         'schichtplaner_config.html': { title: 'Konfiguration',      mode: 'full', tab: 'start'      },
         'schichtplaner_hilfe.html':  { title: 'Hilfe',              mode: 'full', tab: 'start'      },
+        'stempeluhr.html':           { title: 'Stempeluhr',         mode: 'full', tab: 'start'      },
     };
 
     const filename = window.location.pathname.split('/').pop() || 'index.html';

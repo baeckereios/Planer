@@ -11,6 +11,15 @@
     </script>
 
     <style>
+        /* ── Bridge: eigene Vars → admin_design.css ── */
+        :root {
+          --text-main:     #1c1a17;
+          --text-muted:    #888077;
+          --border-color:  #d8d3ca;
+          --border-radius: 10px;
+          --alert-color:   #c0392b;
+          --success-color: #2d7a4f;
+        }
         .btn-export { background-color: var(--success-color); font-size: 1.1rem; }
         .btn-export:hover { background-color: #27ae60; }
         .ticker-item { border-left: 5px solid #ccc; padding: 10px 15px; margin-top: 10px; background-color: #fdfdfd; border-radius: 0 var(--border-radius) var(--border-radius) 0; position: relative; border: 1px solid var(--border-color); border-left-width: 5px; }

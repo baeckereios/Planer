@@ -6,6 +6,15 @@
     <title>BäckereiOS - Ofen-Master (Admin)</title>
     <link rel="stylesheet" href="admin_design.css">
     <style>
+        /* ── Bridge: eigene Vars → admin_design.css ── */
+        :root {
+          --text-main:     #1c1a17;
+          --text-muted:    #888077;
+          --border-color:  #d8d3ca;
+          --alert-color:   #c0392b;
+          --success-color: #2d7a4f;
+          --btn-primary:   #a07020;
+        }
         .container { max-width: 800px; }
         .row-tools { display: flex; justify-content: flex-end; gap: 5px; margin-bottom: 15px; }
         .btn-t { background: #eee; border: 1px solid var(--border-color); border-radius: 4px; width: 30px; height: 30px; cursor: pointer; font-weight: bold; color: var(--text-muted); padding: 0;}

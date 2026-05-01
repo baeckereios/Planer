@@ -55,8 +55,16 @@ function _rerender(id) {
     if (id === 'D' && typeof DZ_renderVerbrauchsMatrix === 'function') DZ_renderVerbrauchsMatrix();
     if (id === 'F' && typeof DZ_renderBaeko          === 'function') DZ_renderBaeko();
     if (id === 'C') {
-        var z1 = DZ_parseDate(document.getElementById('zeit-C1'));
-        var z2 = DZ_parseDate(document.getElementById('zeit-C2'));
+        var selC1 = document.getElementById('zeit-C1');
+        var selC2 = document.getElementById('zeit-C2');
+        // Fallback: Selects befüllen falls Init noch nicht abgeschlossen war
+        // DZ_anchorDate ist hier bereits gesetzt (DZ_refreshAnchorDate oben)
+        if (selC1 && selC2 && selC1.options.length === 0 && typeof DZ_buildZeitspanneOptions === 'function') {
+            DZ_buildZeitspanneOptions(selC1, 1, false);
+            DZ_buildZeitspanneOptions(selC2, 1, true);
+        }
+        var z1 = DZ_parseDate(selC1);
+        var z2 = DZ_parseDate(selC2);
         if (z1 && z2 && typeof DZ_renderWochenziele === 'function') DZ_renderWochenziele(z1, z2);
     }
 }
@@ -193,6 +201,20 @@ function setupFruehschicht() {
     });
 
     for (var i = 0; i < 3; i++) addNotizRow();
+
+    // Zeile-hinzufügen-Button unter Notiz-Tabelle
+    var notizTable = document.querySelector('.fs-notiz-table');
+    if (notizTable) {
+        var btnWrap = document.createElement('div');
+        btnWrap.className = 'no-print';
+        btnWrap.style.cssText = 'margin:4px 0 8px;';
+        var btn = document.createElement('button');
+        btn.className = 'fs-add-btn';
+        btn.textContent = '+ Zeile hinzufügen';
+        btn.onclick = function() { addNotizRow(); };
+        btnWrap.appendChild(btn);
+        notizTable.parentNode.insertBefore(btnWrap, notizTable.nextSibling);
+    }
 }
 
 function addNotizRow() {
@@ -200,13 +222,21 @@ function addNotizRow() {
     if (!tbody) return;
     var tr = document.createElement('tr');
     tr.innerHTML =
-        '<td style="width:45%"><input type="text" class="fs-notiz-input" placeholder=""></td>' +
-        '<td>Noch in den ' +
+        '<td style="width:45%;vertical-align:top;padding:6px 10px;">' +
+        '<textarea class="fs-notiz-input" rows="2" placeholder="" ' +
+        'style="width:100%;border:none;background:transparent;resize:vertical;font-family:Arial,sans-serif;font-size:10pt;padding:0;outline:none;box-shadow:none;overflow:hidden;line-height:1.4;"></textarea>' +
+        '</td>' +
+        '<td style="vertical-align:middle;padding:6px 10px;">Noch in den ' +
         '<select class="fs-ort-sel">' +
         '<option>Koma 7</option>' +
         '<option>Schrippen-Koma</option>' +
         '<option>Froster</option>' +
         '</select> stellen</td>';
+    var ta = tr.querySelector('textarea');
+    ta.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
     tbody.appendChild(tr);
 }
 

@@ -4,25 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Produkt-Config Editor – BäckereiOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,400&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --rot:    #c0392b;
     --rot2:   #a93226;
-    --dunkel: #1a1a1a;
-    --grau1:  #2c2c2c;
-    --grau2:  #3d3d3d;
-    --grau3:  #555;
-    --hell:   #f5f4f0;
-    --border: #444;
-    --akzent: #e67e22;
-    --gruen:  #27ae60;
-    --font:   'Courier New', 'Lucida Console', monospace;
+    --dunkel: #f4f2ee;
+    --grau1:  #ffffff;
+    --grau2:  #f0ede8;
+    --grau3:  #e8e4dd;
+    --hell:   #1c1a17;
+    --border: #d8d3ca;
+    --akzent: #d49a36;
+    --gruen:  #2d7a4f;
+    --font:   'Barlow Condensed', sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: var(--font);
     background: var(--dunkel);
-    color: #e8e8e8;
+    color: var(--hell);
     min-height: 100vh;
   }
 
@@ -35,7 +37,7 @@
     justify-content: space-between;
     border-bottom: 3px solid #8b1a12;
   }
-  header h1 { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; color: #fff; }
+  header h1 { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; color: #ffffff; }
   header .meta { font-size: 11px; color: rgba(255,255,255,0.7); text-align: right; }
 
   /* ── Toolbar ───────────────────────────────────────────── */
@@ -61,17 +63,17 @@
     transition: opacity 0.15s;
   }
   .btn:hover { opacity: 0.85; }
-  .btn-rot    { background: var(--rot); color: #fff; }
-  .btn-gruen  { background: var(--gruen); color: #fff; }
-  .btn-akzent { background: var(--akzent); color: #fff; }
-  .btn-grau   { background: var(--grau3); color: #fff; }
+  .btn-rot    { background: var(--rot); color: #ffffff; }
+  .btn-gruen  { background: var(--gruen); color: #ffffff; }
+  .btn-akzent { background: var(--akzent); color: #ffffff; }
+  .btn-grau   { background: var(--grau3); color: #ffffff; }
   .toolbar .sep { width: 1px; height: 28px; background: var(--border); }
-  .toolbar label { font-size: 11px; color: #aaa; }
+  .toolbar label { font-size: 11px; color: var(--dim); }
   #filterKat {
     font-family: var(--font);
     font-size: 11px;
     background: var(--grau2);
-    color: #e8e8e8;
+    color: var(--hell);
     border: 1px solid var(--border);
     border-radius: 3px;
     padding: 6px 8px;
@@ -80,16 +82,16 @@
     font-family: var(--font);
     font-size: 11px;
     background: var(--grau2);
-    color: #e8e8e8;
+    color: var(--hell);
     border: 1px solid var(--border);
     border-radius: 3px;
     padding: 6px 10px;
     width: 200px;
   }
-  #suchfeld::placeholder { color: #666; }
+  #suchfeld::placeholder { color: var(--dim); }
   #statusBar {
     font-size: 11px;
-    color: #888;
+    color: var(--dim);
     margin-left: auto;
   }
   #statusBar.ok  { color: var(--gruen); }
@@ -103,15 +105,15 @@
     border-radius: 8px;
     padding: 40px;
     text-align: center;
-    color: #888;
+    color: var(--dim);
     font-size: 13px;
     cursor: pointer;
     transition: border-color 0.2s, color 0.2s;
   }
-  #uploadZone:hover, #uploadZone.drag { border-color: var(--rot); color: #e8e8e8; }
+  #uploadZone:hover, #uploadZone.drag { border-color: var(--rot); color: var(--hell); }
   #uploadZone .icon { font-size: 40px; margin-bottom: 12px; }
   #uploadZone p { margin: 6px 0; }
-  #uploadZone small { font-size: 10px; color: #555; }
+  #uploadZone small { font-size: 10px; color: var(--dim); }
   #fileInput { display: none; }
 
   /* ── Haupt-Tabellen-Container ──────────────────────────── */
@@ -132,17 +134,17 @@
     letter-spacing: 1.5px;
     text-transform: uppercase;
     font-weight: bold;
-    color: #ccc;
+    color: var(--dim);
   }
   .kat-kopf:hover { background: var(--grau3); }
   .kat-kopf .anzahl { color: var(--rot); font-size: 11px; margin-left: 8px; }
-  .kat-kopf .toggle-icon { color: #666; font-size: 14px; }
+  .kat-kopf .toggle-icon { color: var(--dim); font-size: 14px; }
 
   /* ── Tabelle ───────────────────────────────────────────── */
   .prod-tabelle { width: 100%; border-collapse: collapse; }
   .prod-tabelle thead th {
-    background: #222;
-    color: #666;
+    background: var(--grau2);
+    color: var(--dim);
     font-size: 10px;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -152,11 +154,11 @@
     font-weight: normal;
   }
   .prod-tabelle tbody tr {
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid var(--border);
     transition: background 0.1s;
   }
-  .prod-tabelle tbody tr:hover { background: #252525; }
-  .prod-tabelle tbody tr.neu { background: #1a2a1a; }
+  .prod-tabelle tbody tr:hover { background: var(--grau2); }
+  .prod-tabelle tbody tr.neu { background: #e8f5ec; }
   .prod-tabelle td {
     padding: 4px 6px;
     vertical-align: middle;
@@ -167,7 +169,7 @@
     font-family: var(--font);
     font-size: 11px;
     background: transparent;
-    color: #e8e8e8;
+    color: var(--hell);
     border: 1px solid transparent;
     border-radius: 2px;
     padding: 3px 5px;
@@ -177,7 +179,7 @@
   .prod-tabelle input:focus, .prod-tabelle select:focus {
     outline: none;
     border-color: var(--rot);
-    background: #2a2a2a;
+    background: var(--grau2);
   }
   .prod-tabelle select { cursor: pointer; }
   .prod-tabelle select option { background: var(--dunkel); }
@@ -194,24 +196,24 @@
   .col-del     { width: 36px; text-align: center; }
 
   /* Detail-Zeile */
-  .detail-row td { padding: 0 !important; background: #1a1a1a; border-bottom: 2px solid var(--border); }
+  .detail-row td { padding: 0 !important; background: var(--dunkel); border-bottom: 2px solid var(--border); }
   .detail-inner { display: none; padding: 16px; flex-direction: column; gap: 0; }
   .detail-inner.open { display: flex; }
-  .detail-section { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px 16px; padding: 12px 0; border-bottom: 1px solid #2a2a2a; }
+  .detail-section { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px 16px; padding: 12px 0; border-bottom: 1px solid var(--border); }
   .detail-section:last-child { border-bottom: none; }
   .detail-section.full { grid-template-columns: 1fr; }
   .detail-section.two { grid-template-columns: 1fr 1fr; }
   .detail-feld { display: flex; flex-direction: column; gap: 5px; }
-  .detail-feld label { font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase; color: #666; font-weight: 800; }
+  .detail-feld label { font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--dim); font-weight: 800; }
   .detail-feld select, .detail-feld input[type=number], .detail-feld input[type=text] {
-    background: #252525; border: 1px solid #333; border-radius: 8px;
-    color: #fff; padding: 7px 10px; font-size: 13px; font-family: inherit; width: 100%; box-sizing: border-box;
+    background: var(--grau2); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--hell); padding: 7px 10px; font-size: 13px; font-family: inherit; width: 100%; box-sizing: border-box;
   }
-  .detail-feld select:focus, .detail-feld input:focus { outline: none; border-color: var(--akzent); background: #2e2e2e; }
+  .detail-feld select:focus, .detail-feld input:focus { outline: none; border-color: var(--akzent); background: var(--grau2); }
   .detail-feld-check { display: flex; flex-direction: column; gap: 5px; }
-  .detail-feld-check label.lbl-head { font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase; color: #666; font-weight: 800; }
+  .detail-feld-check label.lbl-head { font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--dim); font-weight: 800; }
   .detail-feld-check .check-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
-  .detail-feld-check .check-row span { font-size: 12px; color: #ccc; }
+  .detail-feld-check .check-row span { font-size: 12px; color: var(--dim); }
   .detail-feld-check input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; }
   .backtage-buttons { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 2px; }
 
@@ -220,19 +222,19 @@
   .bt-btn {
     font-family: var(--font); font-size: 10px; font-weight: bold;
     padding: 4px 7px; border-radius: 3px; cursor: pointer;
-    border: 1px solid var(--border); background: #2c2c2c; color: #666; transition: all 0.15s;
+    border: 1px solid var(--border); background: var(--grau2); color: var(--dim); transition: all 0.15s;
   }
-  .bt-btn.aktiv { background: var(--akzent); border-color: var(--akzent); color: #fff; }
+  .bt-btn.aktiv { background: var(--akzent); border-color: var(--akzent); color: #ffffff; }
 
   /* Einheit-Checkbox */
   .einheit-wrap { display: flex; flex-direction: column; align-items: center; gap: 1px; }
   .einheit-wrap input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--akzent); cursor: pointer; border: none; background: transparent; }
-  .einheit-wrap label { font-size: 9px; color: #888; letter-spacing: 0.5px; cursor: pointer; user-select: none; }
+  .einheit-wrap label { font-size: 9px; color: var(--dim); letter-spacing: 0.5px; cursor: pointer; user-select: none; }
   .einheit-wrap input[type=checkbox]:checked + label { color: var(--akzent); font-weight: bold; }
 
   /* Cfg-Button */
   .btn-cfg {
-    background: none; border: 1px solid #444; color: #666;
+    background: none; border: 1px solid #444; color: var(--dim);
     font-size: 11px; width: 22px; height: 22px;
     border-radius: 3px; cursor: pointer; line-height: 1; transition: all 0.15s;
   }
@@ -240,13 +242,13 @@
 
   /* Badges */
   .badge-hinweis { font-size: 9px; color: var(--akzent); }
-  .badge-null { color: #555; font-style: italic; font-size: 10px; }
+  .badge-null { color: var(--dim); font-style: italic; font-size: 10px; }
 
   /* Löschen-Button */
   .btn-del {
     background: none;
     border: 1px solid #444;
-    color: #666;
+    color: var(--dim);
     font-size: 13px;
     width: 26px; height: 26px;
     border-radius: 3px;
@@ -254,7 +256,7 @@
     line-height: 1;
     transition: all 0.15s;
   }
-  .btn-del:hover { background: var(--rot); border-color: var(--rot); color: #fff; }
+  .btn-del:hover { background: var(--rot); border-color: var(--rot); color: #ffffff; }
 
   /* ── Download-Banner ───────────────────────────────────── */
   #downloadBanner {
@@ -262,7 +264,7 @@
     position: fixed;
     bottom: 20px; right: 20px;
     background: var(--gruen);
-    color: #fff;
+    color: #ffffff;
     padding: 12px 20px;
     border-radius: 6px;
     font-size: 12px;
@@ -273,76 +275,6 @@
     cursor: pointer;
   }
   /* ── Einstellungen Block ───────────────────────────────── */
-  .einstellungen-block {
-    background: #1a1a1a; border: 1px solid var(--border);
-    border-top: 3px solid var(--akzent);
-    border-radius: 0 0 8px 8px; padding: 20px; margin-top: 20px;
-  }
-  .einst-titel {
-    font-size: 11px; font-weight: 800; letter-spacing: 2px;
-    text-transform: uppercase; color: #888; margin-bottom: 4px;
-  }
-  .einst-beschreibung {
-    font-size: 11px; color: #666; line-height: 1.5; margin-bottom: 16px;
-  }
-  .einst-section { margin-bottom: 20px; }
-  .einst-section-label {
-    font-size: 10px; font-weight: 800; letter-spacing: 1px;
-    text-transform: uppercase; color: var(--akzent); margin-bottom: 8px;
-  }
-  .einst-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
-  .einst-row label { font-size: 11px; color: #aaa; min-width: 140px; }
-  .einst-select {
-    font-family: var(--font); font-size: 11px; background: #2c2c2c;
-    color: #e8e8e8; border: 1px solid var(--border); border-radius: 3px;
-    padding: 5px 8px;
-  }
-  .einst-toggle {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 11px; color: #aaa; cursor: pointer;
-    padding: 5px 8px; border-radius: 4px; background: #2c2c2c;
-    border: 1px solid var(--border);
-  }
-  .einst-toggle input { accent-color: var(--akzent); width: 14px; height: 14px; }
-  .einst-toggle.aktiv { border-color: var(--akzent); color: #e8e8e8; }
-
-  /* Kalender */
-  .kalender-grid {
-    display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;
-  }
-  .kal-tag {
-    display: flex; flex-direction: column; align-items: center;
-    padding: 5px 6px; border-radius: 5px; cursor: pointer;
-    border: 1px solid var(--border); background: #2c2c2c;
-    min-width: 42px; transition: all 0.15s; user-select: none;
-  }
-  .kal-tag:hover { border-color: var(--akzent); }
-  .kal-tag.ausgeschlossen { background: var(--rot); border-color: var(--rot); }
-  .kal-tag.feiertag-auto { background: #1a3a1a; border-color: #2d5a2d; opacity: 0.7; cursor: default; }
-  .kal-tag.sondertag { border-color: #e67e22; }
-  .kal-wt { font-size: 8px; color: #888; font-weight: 700; }
-  .kal-tag.ausgeschlossen .kal-wt { color: #ffcccc; }
-  .kal-datum { font-size: 10px; font-weight: 700; color: #e8e8e8; }
-  .kal-sym { font-size: 9px; }
-
-  .ausgeschlossen-liste { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
-  .ausgeschl-item {
-    display: flex; align-items: center; gap: 8px; font-size: 11px;
-    background: #2c2c2c; border-radius: 4px; padding: 5px 8px;
-    border: 1px solid var(--border);
-  }
-  .ausgeschl-datum { color: var(--akzent); font-weight: 700; min-width: 80px; }
-  .ausgeschl-grund { color: #aaa; flex: 1; font-size: 10px; }
-  .ausgeschl-del { color: var(--rot); cursor: pointer; font-size: 12px; padding: 0 4px; }
-  .ausgeschl-del:hover { color: #ff6666; }
-
-  .btn-einst-save {
-    font-family: var(--font); font-size: 11px; font-weight: 800;
-    background: var(--akzent); color: #fff; border: none;
-    padding: 8px 16px; border-radius: 4px; cursor: pointer;
-    letter-spacing: 0.5px; margin-top: 12px;
-  }
-  .btn-einst-save:hover { background: #c0392b; }
 
   @keyframes slideIn {
     from { transform: translateY(20px); opacity: 0; }
@@ -351,7 +283,7 @@
 
   /* ── Neue Zeile Animation ─────────────────────────────── */
   @keyframes highlight {
-    0%   { background: #1a3a1a; }
+    0%   { background: #e8f5ec; }
     100% { background: transparent; }
   }
   .neu-flash { animation: highlight 1.5s ease forwards; }
@@ -360,7 +292,7 @@
   #leerZustand {
     text-align: center;
     padding: 60px 20px;
-    color: #555;
+    color: var(--dim);
     font-size: 13px;
   }
 </style>
@@ -406,80 +338,6 @@
 </div>
 
 <div id="tabellen"></div>
-
-<!-- ── EINSTELLUNGEN: BERECHNUNGSGRUNDLAGE ───────────────── -->
-<div class="einstellungen-block" id="einstellungenBlock" style="display:none;">
-  <div class="einst-titel">⚙ Berechnungsgrundlage</div>
-  <div class="einst-beschreibung">
-    Hier wird eingestellt auf welcher Grundlage der momentane Verbrauch berechnet wird.
-    Gibt es Ausreißer die den Durchschnitt kaputt machen? Zeiträume in denen manche
-    Werte verfälscht wurden? Diese Einstellungen werden als
-    <strong style="color:var(--akzent)">taeglicher_verbrauch.json</strong> gespeichert
-    und vom Produktions-Gehirn gelesen.
-  </div>
-
-  <!-- Zeitraum -->
-  <div class="einst-section">
-    <div class="einst-section-label">Zeitraum</div>
-    <div class="einst-row">
-      <label>Berechnungsbasis (Tage):</label>
-      <select class="einst-select" id="einst-zeitraum" onchange="einstAktualisiere()">
-        <option value="7">Letzte 7 Tage</option>
-        <option value="14" selected>Letzte 14 Tage</option>
-        <option value="21">Letzte 21 Tage</option>
-        <option value="28">Letzte 28 Tage</option>
-        <option value="56">Letzte 56 Tage (~2 Monate)</option>
-        <option value="0">Alle verfügbaren Tage</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- Automatische Ausschlüsse -->
-  <div class="einst-section">
-    <div class="einst-section-label">Automatische Ausschlüsse</div>
-    <div class="einst-row">
-      <label class="einst-toggle aktiv" id="tog-feiertage">
-        <input type="checkbox" id="einst-feiertage" checked onchange="einstToggle('feiertage')">
-        Gesetzliche Feiertage (NDS) ausschließen
-      </label>
-    </div>
-    <div class="einst-row">
-      <label class="einst-toggle aktiv" id="tog-sondertage">
-        <input type="checkbox" id="einst-sondertage" checked onchange="einstToggle('sondertage')">
-        Als Sondertag markierte Tage ausschließen
-      </label>
-    </div>
-    <div style="font-size:10px;color:#555;margin-top:4px;">
-      Feiertage treiben alle Produkte in die Höhe — sie verfälschen jeden Durchschnitt.
-      Sondertage (z.B. Umbau, Filialausfall) betreffen nur manche Produkte
-      — dafür gibt es das Feld "Filialprodukt" pro Produkt.
-    </div>
-  </div>
-
-  <!-- Kalender: Einzelne Tage ausschließen -->
-  <div class="einst-section">
-    <div class="einst-section-label">Einzelne Tage ausschließen</div>
-    <div style="font-size:10px;color:#666;margin-bottom:6px;">
-      Zeigt die Tage aus dem gewählten Zeitraum. Antippen = aus Durchschnittsrechnung ausschließen.
-      Gelb umrandet = auffällige Tage laut DB. 🌴 = Feiertag (wird bereits auto-ausgeschlossen).
-    </div>
-    <div class="kalender-grid" id="einst-kalender">
-      <div style="color:#555;font-size:11px;">← Erst produkt_config.json laden um Kalendertage zu sehen</div>
-    </div>
-
-    <!-- Manuelle Ausschlüsse mit Grund -->
-    <div style="margin-top:12px;">
-      <div class="ausgeschlossen-liste" id="ausgeschlossen-liste"></div>
-    </div>
-  </div>
-
-  <button class="btn-einst-save" onclick="einstSpeichern()">
-    ⬇ taeglicher_verbrauch.json speichern
-  </button>
-  <div style="font-size:10px;color:#555;margin-top:6px;">
-    Diese Datei in den Stammordner von BäckereiOS hochladen (neben produkt_config.json).
-  </div>
-</div>
 
 <div id="downloadBanner" onclick="downloadJSON()">⬇ JSON jetzt speichern</div>
 
@@ -882,137 +740,8 @@ window.addEventListener('beforeunload', e => {
 const FEIERTAGE_NDS_EINST = (window.BOS_FEIERTAGE?.feiertage || []).map(f => f.datum);
 const WT_KURZ_E = ['So','Mo','Di','Mi','Do','Fr','Sa'];
 
-let einstDaten = {
-  zeitraum_tage: 14,
-  feiertage_ausschliessen: true,
-  sondertage_ausschliessen: true,
-  ausgeschlossene_tage: []
-};
-let dbTageMap = {};
-
-async function ladeEinstellungen() {
-  try {
-    const r = await fetch('../taeglicher_verbrauch.json', { cache: 'no-store' });
-    if (r.ok) einstDaten = await r.json();
-  } catch(e) {}
-  try {
-    const r2 = await fetch('../backmengen_db.json', { cache: 'no-store' });
-    if (r2.ok) {
-      const db = await r2.json();
-      db.forEach(e => { dbTageMap[e.datum] = e.kontext || {}; });
-    }
-  } catch(e) {}
-  document.getElementById('einst-zeitraum').value = einstDaten.zeitraum_tage;
-  document.getElementById('einst-feiertage').checked = einstDaten.feiertage_ausschliessen;
-  document.getElementById('einst-sondertage').checked = einstDaten.sondertage_ausschliessen;
-  document.getElementById('tog-feiertage').classList.toggle('aktiv', einstDaten.feiertage_ausschliessen);
-  document.getElementById('tog-sondertage').classList.toggle('aktiv', einstDaten.sondertage_ausschliessen);
-  document.getElementById('einstellungenBlock').style.display = 'block';
-  einstKalenderRender();
-  einstListeRender();
-}
-
-function einstAktualisiere() {
-  einstDaten.zeitraum_tage = parseInt(document.getElementById('einst-zeitraum').value) || 14;
-  einstKalenderRender();
-}
-
-function einstToggle(feld) {
-  if (feld === 'feiertage') {
-    einstDaten.feiertage_ausschliessen = document.getElementById('einst-feiertage').checked;
-    document.getElementById('tog-feiertage').classList.toggle('aktiv', einstDaten.feiertage_ausschliessen);
-  } else {
-    einstDaten.sondertage_ausschliessen = document.getElementById('einst-sondertage').checked;
-    document.getElementById('tog-sondertage').classList.toggle('aktiv', einstDaten.sondertage_ausschliessen);
-  }
-}
-
-function einstKalenderRender() {
-  const grid = document.getElementById('einst-kalender');
-  const alle = Object.keys(dbTageMap).sort().reverse();
-  const tage = einstDaten.zeitraum_tage > 0 ? alle.slice(0, einstDaten.zeitraum_tage) : alle;
-
-  if (!tage.length) {
-    grid.innerHTML = '<div style="color:#555;font-size:11px;">← Erst produkt_config.json laden um Kalendertage zu sehen</div>';
-    return;
-  }
-
-  grid.innerHTML = '';
-  tage.forEach(datum => {
-    const k = dbTageMap[datum] || {};
-    const istFeiertag   = FEIERTAGE_NDS_EINST.includes(datum) || k.feiertag;
-    const istSondertag  = k.besonderheit || k.ausschluss_sondertag || k.ausschluss_einschraenkung;
-    const istAusgesch   = einstDaten.ausgeschlossene_tage.some(t => t.datum === datum);
-    const d = new Date(datum + 'T12:00:00');
-    const label = d.getDate() + '.' + (d.getMonth()+1) + '.';
-    const wt = WT_KURZ_E[d.getDay()];
-
-    let cls = 'kal-tag';
-    let sym = '';
-    if (istAusgesch)      { cls += ' ausgeschlossen'; sym = '✕'; }
-    else if (istFeiertag) { cls += ' feiertag-auto';  sym = '🌴'; }
-    else if (istSondertag){ cls += ' sondertag';      sym = '⚠️'; }
-
-    const div = document.createElement('div');
-    div.className = cls;
-    div.title = datum + (k.besonderheit ? ' — ' + k.besonderheit : '');
-    div.innerHTML = `<div class="kal-wt">${wt}</div><div class="kal-datum">${label}</div><div class="kal-sym">${sym}</div>`;
-    if (!istFeiertag) div.onclick = () => einstTagToggle(datum);
-    grid.appendChild(div);
-  });
-}
-
-function einstTagToggle(datum) {
-  const idx = einstDaten.ausgeschlossene_tage.findIndex(t => t.datum === datum);
-  if (idx > -1) {
-    einstDaten.ausgeschlossene_tage.splice(idx, 1);
-  } else {
-    const grund = prompt('Grund für Ausschluss (optional):') ?? '';
-    einstDaten.ausgeschlossene_tage.push({ datum, grund });
-    einstDaten.ausgeschlossene_tage.sort((a,b) => b.datum.localeCompare(a.datum));
-  }
-  einstKalenderRender();
-  einstListeRender();
-}
-
-function einstListeRender() {
-  const liste = document.getElementById('ausgeschlossen-liste');
-  if (!einstDaten.ausgeschlossene_tage.length) {
-    liste.innerHTML = '<div style="font-size:10px;color:#555;">Noch keine manuellen Ausschlüsse.</div>';
-    return;
-  }
-  liste.innerHTML = '';
-  einstDaten.ausgeschlossene_tage.forEach(t => {
-    const d = new Date(t.datum + 'T12:00:00');
-    const label = WT_KURZ_E[d.getDay()] + ' ' + t.datum;
-    const div = document.createElement('div');
-    div.className = 'ausgeschl-item';
-    const del = document.createElement('span');
-    del.className = 'ausgeschl-del';
-    del.textContent = '✕';
-    del.dataset.datum = t.datum;
-    del.onclick = function() { einstTagToggle(this.dataset.datum); };
-    div.innerHTML = `<span class="ausgeschl-datum">${label}</span><span class="ausgeschl-grund">${t.grund || '—'}</span>`;
-    div.appendChild(del);
-    liste.appendChild(div);
-  });
-}
-
-function einstSpeichern() {
-  einstDaten.zeitraum_tage = parseInt(document.getElementById('einst-zeitraum').value) || 14;
-  const json = JSON.stringify(einstDaten, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'taeglicher_verbrauch.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
-  status('✓ taeglicher_verbrauch.json gespeichert', 'ok');
-}
-
 // Auto-Laden versuchen beim Start
 ladeVonServer().catch(() => {});
-ladeEinstellungen();
 </script>
 </body>
 </html>

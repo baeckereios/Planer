@@ -22,14 +22,9 @@
 'use strict';
 
 // ── FEIERTAGE NDS ─────────────────────────────────────────
-const FEIERTAGE_NDS = [
-    '2026-01-01','2026-04-03','2026-04-06','2026-05-01','2026-05-14',
-    '2026-05-25','2026-10-03','2026-10-31','2026-12-25','2026-12-26',
-    '2025-01-01','2025-04-18','2025-04-21','2025-05-01','2025-05-29',
-    '2025-06-09','2025-10-03','2025-10-31','2025-12-25','2025-12-26',
-    '2027-01-01','2027-04-02','2027-04-05','2027-05-01','2027-05-13',
-    '2027-05-24','2027-10-03','2027-10-31','2027-12-25','2027-12-26'
-];
+// Einzige Wahrheitsquelle: feiertage_nds.js (window.BOS_FEIERTAGE).
+// Voraussetzung: feiertage_nds.js muss vor produktions_gehirn.js geladen sein.
+const FEIERTAGE_NDS = (window.BOS_FEIERTAGE?.feiertage || []).map(f => f.datum);
 
 // ── JS-WOCHENTAG → BOS-INDEX (Mo=0..So=6) ────────────────
 const JS_ZU_BOS = [6,0,1,2,3,4,5];
@@ -41,11 +36,6 @@ const MIN_EINTRAEGE = 7;
 function datumZuISO(d) {
     const p = n => String(n).padStart(2, '0');
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
-}
-
-function isoZuDatum(s) {
-    const [y, m, d] = s.split('-').map(Number);
-    return new Date(y, m - 1, d);
 }
 
 // ── WURM: Berechnungsfenster ermitteln ────────────────────
@@ -181,9 +171,12 @@ const GEHIRN = {
         const ws = this._wurmStatus;
         const wurmInfo = ws
             ? (ws.aktiv
-                ? (ws.eingefroren
-                    ? `· Wurm ❄ eingefroren (${ws.start} – ${ws.ende})`
-                    : `· Wurm ↝ läuft (${ws.start} – ${ws.ende})`)
+                ? (ws.modus === 'stichproben'
+                    ? `· Stichproben ⏱ (${ws.stichproben_anzahl}×/Wochentag, ${ws.suchfenster_wochen}W)` +
+                      (ws.warnungen?.length ? ` ⚠ ${ws.warnungen.join(', ')}` : '')
+                    : (ws.eingefroren
+                        ? `· Wurm ❄ eingefroren (${ws.start} – ${ws.ende})`
+                        : `· Wurm ↝ läuft (${ws.start} – ${ws.ende})`))
                 : '· Wurm inaktiv (manuell)')
             : '';
 
@@ -205,7 +198,8 @@ const GEHIRN = {
         const manuellAus    = new Set(
             (this._verbrauch?.ausgeschlossene_tage ?? []).map(t => t.datum)
         );
-        const wurmAktiv     = this._verbrauch?.wurm_aktiv ?? false;
+        const wurmAktiv = this._verbrauch?.wurm_aktiv ?? false;
+        const modus     = this._verbrauch?.wurm_modus ?? 'kontiguierlich';
 
         // Statisch definierte Grenzen (manueller Modus mit explizitem Fenster)
         const startDatum = this._verbrauch?.start_datum;
@@ -213,12 +207,82 @@ const GEHIRN = {
 
         let begrenzt = [];
 
-        if (wurmAktiv && zeitraum > 0) {
-            // ── WURM-MODUS ────────────────────────────────
+        // Hilfsfunktion: prüft ob ein Eintrag durch Ausschlüsse gesperrt ist
+        const istGesperrt = (e) => {
+            const datum = e.datum;
+            const k = e.kontext || {};
+            if (manuellAus.has(datum)) return true;
+            if (feiertageAus && (FEIERTAGE_NDS.includes(datum) || k.feiertag)) return true;
+            if (sondertageAus && (k.ausschluss_sondertag || k.ausschluss_einschraenkung)) return true;
+            return false;
+        };
+
+        if (wurmAktiv && modus === 'stichproben') {
+            // ── STICHPROBEN-MODUS ─────────────────────────
+            // Pro Wochentag die N aktuellsten sauberen Einträge
+            // innerhalb des konfigurierten Suchfensters sammeln.
+            // Lücken werden überbrückt: fehlt ein Montag in Woche 4,
+            // wird Woche 5 oder 6 herangezogen.
+            const anzahl           = this._verbrauch?.stichproben_anzahl  ?? 5;
+            const suchfensterWochen = this._verbrauch?.suchfenster_wochen ?? 12;
+
+            const heute = new Date(); heute.setHours(0, 0, 0, 0);
+            const grenze = new Date(heute);
+            grenze.setDate(heute.getDate() - suchfensterWochen * 7);
+            const grenzeISO = datumZuISO(grenze);
+            const heuteISO  = datumZuISO(heute);
+
+            // Kandidaten: im Suchfenster, neueste zuerst
+            const kandidaten = [...this._db]
+                .filter(e => e.datum >= grenzeISO && e.datum < heuteISO)
+                .sort((a, b) => b.datum.localeCompare(a.datum));
+
+            // Pro JS-Wochentag (0=So .. 6=Sa) N Einträge sammeln
+            const sammlung  = [[], [], [], [], [], [], []];
+            const gesammelt = new Set();
+
+            for (const e of kandidaten) {
+                const jsDay = new Date(e.datum + 'T12:00:00').getDay();
+                if (sammlung[jsDay].length >= anzahl) continue;
+                if (istGesperrt(e)) continue;
+                sammlung[jsDay].push(e.datum);
+                gesammelt.add(e.datum);
+            }
+
+            begrenzt = this._db.filter(e => gesammelt.has(e.datum));
+
+            // Warnungen für Wochentage mit unvollständigen Stichproben
+            const WT_NAMEN = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+            const warnungen = [];
+            for (let wt = 0; wt < 7; wt++) {
+                const n = sammlung[wt].length;
+                if (n > 0 && n < anzahl) {
+                    warnungen.push(`${WT_NAMEN[wt]}: ${n}/${anzahl}`);
+                }
+            }
+
+            this._wurmStatus = {
+                aktiv:             true,
+                eingefroren:       false,
+                modus:             'stichproben',
+                start:             null,
+                ende:              null,
+                stichproben:       sammlung,   // Array[7] mit Datums-Arrays
+                suchfenster_wochen: suchfensterWochen,
+                stichproben_anzahl: anzahl,
+                warnungen
+            };
+
+            // Stichproben haben bereits gefiltert — kein zweiter Durchlauf nötig
+            return begrenzt;
+
+        } else if (wurmAktiv && zeitraum > 0) {
+            // ── KONTIGUIERLICH (bisheriger Wurm) ──────────
             const fenster = wurmFenster(zeitraum);
             this._wurmStatus = {
                 aktiv:       true,
                 eingefroren: fenster.eingefroren,
+                modus:       'kontiguierlich',
                 start:       fenster.start,
                 ende:        fenster.ende
             };
@@ -227,7 +291,7 @@ const GEHIRN = {
             );
 
         } else if (startDatum && endDatum) {
-            // ── MANUELLES FENSTER (explizite Grenzen) ─────
+            // ── MANUELLES FENSTER ─────────────────────────
             this._wurmStatus = { aktiv: false, eingefroren: false, start: startDatum, ende: endDatum };
             begrenzt = this._db.filter(e => e.datum >= startDatum && e.datum <= endDatum);
 
@@ -238,18 +302,7 @@ const GEHIRN = {
             begrenzt = zeitraum > 0 ? sortiert.slice(0, zeitraum) : sortiert;
         }
 
-        return begrenzt.filter(e => {
-            const datum = e.datum;
-            const k = e.kontext || {};
-
-            if (manuellAus.has(datum)) return false;
-            if (feiertageAus && (FEIERTAGE_NDS.includes(datum) || k.feiertag)) return false;
-            if (sondertageAus && (k.ausschluss_sondertag || k.ausschluss_einschraenkung)) {
-                return false;
-            }
-
-            return true;
-        });
+        return begrenzt.filter(e => !istGesperrt(e));
     },
 
     // ── BOS_STAMMDATEN AUFBAUEN ───────────────────────────

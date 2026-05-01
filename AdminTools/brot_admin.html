@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="admin_design.css">
     <script src="../brot_daten.js"></script>
     <style>
+        /* ── Bridge: eigene Vars → admin_design.css ── */
+        :root {
+          --text-main:     #1c1a17;
+          --text-muted:    #888077;
+          --border-color:  #d8d3ca;
+          --alert-color:   #c0392b;
+          --success-color: #2d7a4f;
+          --success-bg:    rgba(45,122,79,.1);
+          --btn-primary:   #a07020;
+        }
         .teig-card { border-left: 5px solid var(--btn-primary); margin-bottom: 20px; padding: 20px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }

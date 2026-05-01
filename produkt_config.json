@@ -1786,5 +1786,47 @@
       "Sa",
       "So"
     ]
+  },
+  {
+    "artNr": "133010",
+    "name": "Bienenstich Stück 1/6",
+    "kategorie": "Konditorei",
+    "charge": 1,
+    "einheit": "stueck",
+    "legacyKey": "bienenstich_stueck_1_6_stueck",
+    "station": "Nachtschicht",
+    "unit": 0,
+    "batchSize": 1,
+    "backTage": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "hinweis": "Automatisch erkannt — bitte prüfen"
+  },
+  {
+    "artNr": "134037",
+    "name": "vegane Aprikosen-Schiffchen (nur Henri)",
+    "kategorie": "Konditorei",
+    "charge": 1,
+    "einheit": "stueck",
+    "legacyKey": "vegane_aprikosen_schiffchen_nur_henri_stueck",
+    "station": "Nachtschicht",
+    "unit": 0,
+    "batchSize": 1,
+    "backTage": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "hinweis": "Automatisch erkannt — bitte prüfen"
   }
 ]

@@ -1,344 +1,413 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BäckereiOS - Chef Konsole</title>
-    <link rel="stylesheet" href="admin_design.css">
-    <style>
-        .admin-card { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: var(--border-radius); padding: 20px; display: flex; align-items: center; gap: 20px; margin-bottom: 12px; text-decoration: none; color: var(--text-main); transition: 0.2s; }
-        .admin-card:hover { border-color: var(--btn-primary); }
-        .admin-icon { font-size: 2rem; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--border-radius); flex-shrink: 0;}
-        .info-list { color: var(--text-muted); font-size: 0.85rem; line-height: 1.6; padding-left: 20px;}
-        .info-list strong { color: var(--text-main); }
-        
-        .group-header {
-            color: var(--text-muted); 
-            text-transform: uppercase; 
-            font-size: 0.85rem; 
-            font-weight: 800;
-            letter-spacing: 1px;
-            margin: 35px 0 10px 0; 
-            border-bottom: 2px solid var(--border-color); 
-            padding-bottom: 5px;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>BäckereiOS — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+  <link rel="stylesheet" href="admin_design.css">
+  <script src="../shell.js"></script>
 
-        .assistant-card {
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            color: white !important;
-            border: none;
-            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
-        }
-        .assistant-card .admin-icon { background: rgba(255,255,255,0.1); border: none; }
-        .assistant-card small { color: #94a3b8; }
-        .assistant-card strong { color: white; }
+  <style>
+    #pin-gate {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      transition: opacity .35s ease, transform .35s ease;
+    }
+    #pin-gate.fade-out {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.04);
+    }
 
-        /* ACCORDION */
-        .acc-header {
-            display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer; user-select: none;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            font-weight: 800;
-            letter-spacing: 1px;
-            margin: 35px 0 0;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 5px;
-        }
-        .acc-header:hover { color: var(--text-main); }
-        .acc-arrow { font-size: 0.75rem; transition: transform 0.25s; }
-        .acc-arrow.open { transform: rotate(90deg); }
-        .acc-body { display: none; padding-top: 4px; }
-        .acc-body.open { display: block; }
+    .pin-logo {
+      font-family: var(--font-serif);
+      font-size: 1.7rem;
+      color: var(--amber-dark);
+      letter-spacing: .03em;
+      margin-bottom: 4px;
+    }
+    .pin-logo em { font-style: italic; font-weight: 400; color: var(--amber); }
 
-        /* OFFENE SEKTION — kein Akkordeon */
-        .open-section-header {
-            color: #065f46;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            font-weight: 800;
-            letter-spacing: 1px;
-            margin: 35px 0 10px 0;
-            border-bottom: 2px solid #6ee7b7;
-            padding-bottom: 5px;
-        }
+    .pin-area {
+      font-size: .72rem;
+      color: var(--dim);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      margin-bottom: 44px;
+    }
 
-        /* HELP ACCORDION */
-        .help-acc-header {
-            display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer; padding: 14px 0 10px; border-bottom: 1px solid var(--border-color);
-            margin-bottom: 0; user-select: none;
-        }
-        .help-acc-header h3 { margin: 0; font-size: 1rem; color: var(--btn-primary); }
-        .help-acc-body { display: none; padding-top: 12px; }
-        .help-acc-body.open { display: block; }
-    </style>
+    .pin-label {
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--dim);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
+    .pin-dots {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+    .pin-dot {
+      width: 15px; height: 15px;
+      border-radius: 50%;
+      border: 2px solid var(--border-dark);
+      background: transparent;
+      transition: background .12s, border-color .12s, transform .1s;
+    }
+    .pin-dot.filled       { background: var(--amber); border-color: var(--amber); transform: scale(1.15); }
+    .pin-dot.error-flash  { background: var(--red);   border-color: var(--red); }
+
+    .pin-numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 72px);
+      gap: 10px;
+    }
+    .pin-key {
+      height: 58px;
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-ui);
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      box-shadow: var(--shadow-sm);
+      transition: background .1s, transform .08s;
+    }
+    .pin-key:active  { background: var(--surface2); transform: scale(.93); box-shadow: none; }
+    .pin-key.key-del { color: var(--dim); font-size: 1.1rem; }
+    .pin-key.key-ok  {
+      background: var(--amber); border-color: var(--amber);
+      color: #fff; font-size: 1rem; font-weight: 700; letter-spacing: .05em;
+    }
+    .pin-key.key-ok:active { background: var(--amber-dark); }
+
+    .pin-error {
+      margin-top: 18px;
+      font-size: .82rem;
+      color: var(--red);
+      min-height: 1.1em;
+      font-weight: 600;
+    }
+
+    #admin-content {
+      opacity: 0;
+      transition: opacity .4s ease .1s;
+      padding: 0 16px 32px;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    #admin-content.visible { opacity: 1; }
+  </style>
 </head>
 <body>
 
-<div class="container">
-    
-    <div style="text-align: center; margin-bottom: 10px; padding-bottom: 10px;">
-        <h1 style="margin: 0; font-size: 2.2rem; font-weight: 900;">BOS <span style="color: var(--text-muted); font-style: italic;">Chef</span></h1>
-        <small style="font-weight: bold; color: var(--btn-primary);">Kontrolle & Stammdaten</small>
-    </div>
+<!-- PIN GATE -->
+<div id="pin-gate">
+  <div class="pin-logo">Bäckerei<em>OS</em></div>
+  <div class="pin-area">Einstellungen &amp; Verwaltung</div>
+  <div class="pin-label">PIN eingeben</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-numpad">
+    <button class="pin-key" data-v="1">1</button>
+    <button class="pin-key" data-v="2">2</button>
+    <button class="pin-key" data-v="3">3</button>
+    <button class="pin-key" data-v="4">4</button>
+    <button class="pin-key" data-v="5">5</button>
+    <button class="pin-key" data-v="6">6</button>
+    <button class="pin-key" data-v="7">7</button>
+    <button class="pin-key" data-v="8">8</button>
+    <button class="pin-key" data-v="9">9</button>
+    <button class="pin-key key-del" data-v="del"><i class="ph-fill ph-backspace"></i></button>
+    <button class="pin-key" data-v="0">0</button>
+    <button class="pin-key key-ok" data-v="ok">OK</button>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+</div>
 
-    <a href="assistenten_fuehrer.html" class="admin-card assistant-card">
-        <div class="admin-icon">🚀</div>
-        <div>
-            <strong style="font-size: 1.2rem; display: block; margin-bottom: 3px;">Tages-Assistent</strong>
-            <small>Geführter Workflow für den heutigen Tag</small>
+<!-- ADMIN DASHBOARD -->
+<div id="admin-content">
+
+  <header class="adm-header">
+    <div class="adm-header-body">
+      <h1 class="adm-title">Admin</h1>
+      <span class="adm-subtitle">Einstellungen &amp; Verwaltung</span>
+    </div>
+    <div class="adm-header-right">
+      <div class="adm-session-pill" onclick="lockNow()">
+        <i class="ph-fill ph-lock-open"></i>
+        <span id="session-timer">–</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- DATENPFLEGE -->
+  <section class="adm-section">
+    <div class="adm-section-label">
+      <span class="adm-section-dot" style="background:var(--cat-daten)"></span>
+      <span>Datenpflege</span>
+      <span class="adm-section-count">4</span>
+    </div>
+    <div class="adm-tool-list">
+      <a class="adm-tool-card" href="datenbank_manager.html" style="--card-accent:var(--cat-daten)">
+        <div class="adm-tool-icon"><i class="ph-fill ph-database" style="color:var(--cat-daten)"></i></div>
+        <div class="adm-tool-body">
+          <div class="adm-tool-name">Datenbank Manager</div>
+          <div class="adm-tool-desc">Daten-Zentrale · Import &amp; Export</div>
         </div>
-    </a>
-
-    <a href="assistent_planer.html" class="admin-card" style="border-left: 4px solid var(--btn-primary); margin-top: -5px;">
-        <div class="admin-icon" style="font-size: 1.5rem;">⚙️</div>
-        <div>
-            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Wochenaufgaben konfigurieren</strong>
-            <small>Tages-Assistenten anpassen — Routinen & Wochentage</small>
+        <i class="ph ph-caret-right adm-tool-arrow"></i>
+      </a>
+      <a class="adm-tool-card" href="produkt_config_editor.html" style="--card-accent:var(--cat-daten)">
+        <div class="adm-tool-icon"><i class="ph-fill ph-cube" style="color:var(--cat-daten)"></i></div>
+        <div class="adm-tool-body">
+          <div class="adm-tool-name">Produkt-Config</div>
+          <div class="adm-tool-desc">Stammdaten · 88 Produkte</div>
         </div>
-    </a>
-
-    <!-- GEFÜHRTE KONFIGURATION -->
-    <h3 class="group-header" style="color: #0f172a; border-color: #0f172a;">🧭 Geführte Konfiguration</h3>
-
-    <a href="stammdaten_autosync.html" class="admin-card assistant-card">
-        <div class="admin-icon">⚙️</div>
-        <div>
-            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Stammdaten AutoSync</strong>
-            <small>Backmengen-Durchschnitt berechnen → stammdaten.js aktualisieren · Ausreißer filtern, Charge korrigieren</small>
+        <i class="ph ph-caret-right adm-tool-arrow"></i>
+      </a>
+      <a class="adm-tool-card" href="wochenconfig_editor.html" style="--card-accent:var(--cat-daten)">
+        <div class="adm-tool-icon"><i class="ph-fill ph-clock" style="color:var(--cat-daten)"></i></div>
+        <div class="adm-tool-body">
+          <div class="adm-tool-name">Zeit-Konfigurator</div>
+          <div class="adm-tool-desc">Wochenplan · Feiertage · Backtage</div>
         </div>
-    </a>
-
-    <a href="baeko_assistent.html" class="admin-card assistant-card">
-        <div class="admin-icon">🏢</div>
-        <div>
-            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">BÄKO Konfiguration</strong>
-            <small>Soll-Bestände & Produktkatalog — Schritt für Schritt</small>
+        <i class="ph ph-caret-right adm-tool-arrow"></i>
+      </a>
+      <a class="adm-tool-card" href="lieferanten_config_editor.html" style="--card-accent:var(--cat-daten)">
+        <div class="adm-tool-icon"><i class="ph-fill ph-truck" style="color:var(--cat-daten)"></i></div>
+        <div class="adm-tool-body">
+          <div class="adm-tool-name">Lieferanten-Config</div>
+          <div class="adm-tool-desc">Produkte · Bestellrhythmus · Lager</div>
         </div>
-    </a>
+        <i class="ph ph-caret-right adm-tool-arrow"></i>
+      </a>
+    </div>
+  </section>
 
-    <a href="ofen_assistent.html" class="admin-card assistant-card">
-        <div class="admin-icon">🔥</div>
-        <div>
-            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Ofenangriff-Pflege</strong>
-            <small>Backprogramme & Notizen — Schritt für Schritt</small>
+  <!-- SYSTEM -->
+  <section class="adm-section">
+    <div class="adm-section-label">
+      <span class="adm-section-dot" style="background:var(--cat-system)"></span>
+      <span>System</span>
+      <span class="adm-section-count">4</span>
+    </div>
+    <div class="adm-tool-list">
+      <a class="adm-tool-card" href="systemkarte.html" style="--card-accent:var(--cat-system)">
+        <div class="adm-tool-icon"><i class="ph-fill ph-map-trifold" style="color:var(--cat-system)"></i></div>
+        <div class="adm-tool-body">
+          <div class="adm-tool-name">Systemkarte</div>
+          <div class="adm-tool-desc">Übersicht aller Module &amp; Status</div>
         </div>
-    </a>
-
-    <a href="rezept_assistent.html" class="admin-card assistant-card">
-        <div class="admin-icon">🍞</div>
-        <div>
-            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Rezept-Tresor</strong>
-            <small>Sammelteige & 100 kg Basis — Schritt für Schritt</small>
+        <i class="ph ph-caret-right adm-tool-arrow"></i>
+      </a>
+      <a class="adm-tool-card" href="schichtplaner_config.html" style="--card-accent:var(--cat-system)">
+        <div class="adm-tool-icon"><i class="ph-fill ph-users" style="color:var(--cat-system)"></i></div>
+        <div class="adm-tool-body">
+          <div class="adm-tool-name">SchichtPlaner-Config</div>
+          <div class="adm-tool-desc">Team · Positionen · Regeln</div>
         </div>
-    </a>
-
-    <!-- BACKZETTEL — IMMER OFFEN -->
-    <h3 class="open-section-header">📋 Backzettel erfassen, bearbeiten und auswerten</h3>
-
-    <a href="datenbank_manager.html" class="admin-card" style="border-left: 4px solid #059669;">
-        <div class="admin-icon">📸</div>
-        <div>
-            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Backmengen täglich einlesen</strong>
-            <small>Backzettel-Fotos per KI einlesen · Ausreißer prüfen · Sondertag oder Anlagenausfall markieren · in Datenbank speichern</small>
+        <i class="ph ph-caret-right adm-tool-arrow"></i>
+      </a>
+      <a class="adm-tool-card" href="dioden_konfigurator.html" style="--card-accent:var(--cat-system)">
+        <div class="adm-tool-icon"><i class="ph-fill ph-traffic-signal" style="color:var(--cat-system)"></i></div>
+        <div class="adm-tool-body">
+          <div class="adm-tool-name">Dioden-Setup</div>
+          <div class="adm-tool-desc">Status-Symbole im Kopfbereich</div>
         </div>
-    </a>
-
-    <a href="flag_statistik.html" class="admin-card" style="border-left: 4px solid #059669;">
-        <div class="admin-icon">🚩</div>
-        <div>
-            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Tippfehler & Ausreißer-Protokoll</strong>
-            <small>Welche Backmengen wurden beim Einlesen als verdächtig markiert — und wie oft · hilft Erfassungsfehler aufzudecken</small>
+        <i class="ph ph-caret-right adm-tool-arrow"></i>
+      </a>
+      <a class="adm-tool-card" href="serviceworker_generator.html" style="--card-accent:var(--cat-system)">
+        <div class="adm-tool-icon"><i class="ph-fill ph-arrow-clockwise" style="color:var(--cat-system)"></i></div>
+        <div class="adm-tool-body">
+          <div class="adm-tool-name">Cache-Update erzwingen</div>
+          <div class="adm-tool-desc">Neue ServiceWorker-Datei ausstellen</div>
         </div>
-    </a>
+        <i class="ph ph-caret-right adm-tool-arrow"></i>
+      </a>
+    </div>
+  </section>
 
-    <a href="produkt_config_editor.html" class="admin-card" style="border-left: 4px solid #059669;">
-        <div class="admin-icon">⚙</div>
-        <div>
-            <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Produkt-Config Editor</strong>
-            <small>Produktliste bearbeiten — Artikel, Kategorien, Charge & Legacy-Keys · JSON direkt speichern</small>
+  <!-- INHALTE & AUSWERTUNG -->
+  <section class="adm-section">
+    <div class="adm-section-label">
+      <span class="adm-section-dot" style="background:var(--cat-inhalt)"></span>
+      <span>Inhalte &amp; Auswertung</span>
+      <span class="adm-section-count">3</span>
+    </div>
+    <div class="adm-tool-list">
+      <a class="adm-tool-card" href="shoutbox_meldungen.html" style="--card-accent:var(--cat-inhalt)">
+        <div class="adm-tool-icon"><i class="ph-fill ph-megaphone" style="color:var(--cat-inhalt)"></i></div>
+        <div class="adm-tool-body">
+          <div class="adm-tool-name">Ticker-Verwaltung</div>
+          <div class="adm-tool-desc">Meldungen · Laufschrift · Shoutbox</div>
         </div>
-    </a>
-
-    <!-- BÄKO MANAGEMENT -->
-    <div class="acc-header" onclick="toggleAcc('baeko')" style="color:#0369a1; border-color:#bae6fd;">
-        🛒 BÄKO Management
-        <span class="acc-arrow" id="arrow-baeko">▶</span>
-    </div>
-    <div class="acc-body" id="acc-baeko">
-        <a href="lager_inventur.html" class="admin-card" style="border-left: 4px solid #10b981; margin-top:8px;">
-            <div class="admin-icon">📱</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Lager zählen (Mitarbeiter)</strong>
-                <small>Mi & Fr: Bestände eingeben + Lieferung · Feiertag-Haken erhöht Soll automatisch · Weiter zur Auswertung</small>
-            </div>
-        </a>
-        <a href="lager_auswertung.html" class="admin-card" style="border-left: 4px solid #10b981;">
-            <div class="admin-icon">📋</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Bestellvorschlag & WhatsApp</strong>
-                <small>Zeigt was bestellt werden muss · Bestellung per WhatsApp an Chef senden (mit verstecktem BOS-SNAP Code)</small>
-            </div>
-        </a>
-        <a href="lager_admin.html" class="admin-card" style="border-left: 4px solid #94a3b8; margin-top:4px;">
-            <div class="admin-icon">🏢</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">BÄKO Katalog pflegen</strong>
-                <small>Sollmengen & Artikel anlegen — selten, nur bei Sortimentsänderungen</small>
-            </div>
-        </a>
-        <a href="baeko_historie_import.html" class="admin-card" style="border-left: 4px solid #0ea5e9;">
-            <div class="admin-icon">📥</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">WhatsApp-Bestellung importieren</strong>
-                <small>Komplette WhatsApp-Nachricht einfügen · BOS-SNAP Code wird extrahiert · baeko_historie.js herunterladen & hochladen</small>
-            </div>
-        </a>
-        <a href="baeko_lager_analyse.html" class="admin-card" style="border-left: 4px solid #10b981;">
-            <div class="admin-icon">📈</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Verbrauchsanalyse</strong>
-                <small>Verbrauch vs. Soll über Zeit · braucht mindestens 2 Zählungen · wird mit jeder Woche wertvoller</small>
-            </div>
-        </a>
-        <a href="lager_system.html" class="admin-card" style="border-left: 4px solid #94a3b8; opacity:0.7;">
-            <div class="admin-icon">🗺️</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Systemübersicht Lagerverwaltung</strong>
-                <small>Welche Datei macht was · Zusammenhänge · Ablauf von Zählung bis Analyse</small>
-            </div>
-        </a>
-    </div>
-
-    <!-- PRODUKTION & STAMMDATEN -->
-    <div class="acc-header" onclick="toggleAcc('stamm')">
-        ⚙️ Produktion &amp; Stammdaten <span style="font-size:0.7rem; font-weight:600; letter-spacing:1px; opacity:0.6; margin-left:6px;">EXPERTEN</span>
-        <span class="acc-arrow" id="arrow-stamm">▶</span>
-    </div>
-    <div class="acc-body" id="acc-stamm">
-        <a href="stammdaten_autosync.html" class="admin-card" style="border-left: 4px solid #10b981; margin-top:8px;">
-            <div class="admin-icon">⚙️</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Stammdaten AutoSync</strong>
-                <small>Backmengen-DB → Durchschnitt berechnen → stammdaten.js generieren · Ausreißer filtern · Charge korrigieren · alle paar Wochen</small>
-            </div>
-        </a>
-        <a href="system_uebersicht.html" class="admin-card" style="border-left: 4px solid #94a3b8; opacity:0.7;">
-            <div class="admin-icon">🗺️</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Systemübersicht AdminTools</strong>
-                <small>Datenpipeline vom Backzettel bis zur stammdaten.js · welches Tool wann benutzt wird</small>
-            </div>
-        </a>
-        <a href="brot_admin.html" class="admin-card">
-            <div class="admin-icon">🍞</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Brot- & Rezept-Tresor</strong>
-                <small>Sammelteige, Zutaten & Endprodukte verwalten</small>
-            </div>
-        </a>
-        <a href="inventur_dateneingabe.html" class="admin-card">
-            <div class="admin-icon">📦</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Froster-Inventur</strong>
-                <small>Bestände manuell zählen & JS exportieren</small>
-            </div>
-        </a>
-        <a href="verbrauchsdaten_admin.html" class="admin-card">
-            <div class="admin-icon">📊</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Verbrauchs-Master</strong>
-                <small>Produkte, Tagesbedarfe & Stationen pflegen</small>
-            </div>
-        </a>
-        <a href="ofenangriff_datenpflege.html" class="admin-card">
-            <div class="admin-icon">🔥</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Ofenangriff-Master</strong>
-                <small>Backprogramme & Backplan verwalten</small>
-            </div>
-        </a>
-    </div>
-
-    <!-- TICKER & KI -->
-    <div class="acc-header" onclick="toggleAcc('ticker')" style="color:#7c3aed; border-color:#ddd6fe;">
-        📢 Ticker &amp; KI-Analysen
-        <span class="acc-arrow" id="arrow-ticker">▶</span>
-    </div>
-    <div class="acc-body" id="acc-ticker">
-        <a href="shoutbox_meldungen.html" class="admin-card" style="border-left: 4px solid #f59e0b; margin-top:8px;">
-            <div class="admin-icon">📢</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Shoutbox</strong>
-                <small>Schwarzes Brett — Nachrichten für das Team</small>
-            </div>
-        </a>
-        <a href="wochenvorschau_prompt.html" class="admin-card" style="border-left: 4px solid #06b6d4;">
-            <div class="admin-icon">🤖</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Wochenvorschau-Prompt</strong>
-                <small>KI-Prompt für Wochenprognose generieren</small>
-            </div>
-        </a>
-        <a href="markt_prompt.html" class="admin-card" style="border-left: 4px solid #06b6d4;">
-            <div class="admin-icon">📰</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Markt-Radar-Prompt</strong>
-                <small>KI-Prompt für Markt- & Rohstoffanalyse generieren</small>
-            </div>
-        </a>
-    </div>
-
-    <!-- SYSTEM-WARTUNG -->
-    <div class="acc-header" onclick="toggleAcc('wartung')" style="color:#dc2626; border-color:#fecaca;">
-        ⚡ System-Wartung
-        <span class="acc-arrow" id="arrow-wartung">▶</span>
-    </div>
-    <div class="acc-body" id="acc-wartung">
-        <a href="serviceworker_generator.html" class="admin-card" style="border-left: 4px solid #dc2626; margin-top:8px;">
-            <div class="admin-icon">🔄</div>
-            <div>
-                <strong style="font-size: 1.1rem; display: block; margin-bottom: 3px;">Update-Assistent</strong>
-                <small>Browser-Caches zurücksetzen — neue Version auf allen Geräten erzwingen</small>
-            </div>
-        </a>
-    </div>
-
-    <!-- HILFE -->
-    <div class="acc-header" onclick="toggleAcc('hilfe')">
-        📖 System-Architektur &amp; Hilfe
-        <span class="acc-arrow" id="arrow-hilfe">▶</span>
-    </div>
-    <div class="acc-body" id="acc-hilfe">
-        <div class="card" style="margin-top: 12px; background-color: #f8fafc; border: 1px solid var(--border-color); box-shadow: none;">
-            <ul class="info-list" style="margin-top: 8px;">
-                <li><strong>Tages-Assistent:</strong> Führt dich durch deine hinterlegten Tagesroutinen — bündelt Inventur, Ticker und BÄKO in einem geführten Workflow.</li>
-                <li><strong>Wochenaufgaben konfigurieren:</strong> Hier legst du fest welche Routinen der Tages-Assistent an welchen Wochentagen anzeigt — ohne Programmieren.</li>
-                <li><strong>Geführte Konfiguration:</strong> Die vier Stammdaten-Assistenten führen Schritt für Schritt durch alle Einstellungen und erzeugen am Ende eine fertige JS-Datei zum Hochladen.</li>
-                <li><strong>Backzettel erfassen, bearbeiten und auswerten:</strong> Die vier Tools rund um die Backmengen-Datenbank — täglich einlesen, Dashboard-Sichtbarkeit konfigurieren, Fehler protokollieren, und die Produktliste (produkt_config.json) direkt im Browser bearbeiten & als Datei speichern.</li>
-                <li><strong>BÄKO Management:</strong> Der klassische Drei-Schritt-Workflow: Katalog anlegen → WhatsApp-Daten importieren → Verbrauch analysieren.</li>
-                <li><strong>Produktion & Stammdaten (Experten):</strong> Direkter Zugriff auf alle Admin-Editoren ohne Assistenten-Führung. Für schnelle Korrekturen wenn man weiß was man tut.</li>
-                <li><strong>Ticker & KI-Analysen:</strong> Schwarzes Brett für das Team aktualisieren, KI-Prompts für Wochenprognosen und Markt-Radar generieren.</li>
-                <li><strong>Update-Assistent:</strong> Zwingt Browser-Caches zur Erneuerung — wichtig nach Datei-Updates damit alle Geräte die neue Version laden.</li>
-                <li><strong>Wie werden Änderungen wirksam?</strong> Alle Assistenten erzeugen eine JS-Datei. Diese auf GitHub hochladen → nach 1–2 Minuten sind die Änderungen auf allen Geräten live.</li>
-                <li><strong>Was tun bei Fehlern?</strong> Erst Update-Assistent → Cache leeren → Seite neu laden. Wenn das nicht hilft: Letzte funktionierende JS-Datei aus dem GitHub-Verlauf wiederherstellen.</li>
-            </ul>
+        <i class="ph ph-caret-right adm-tool-arrow"></i>
+      </a>
+      <a class="adm-tool-card" href="flag_statistik.html" style="--card-accent:var(--cat-inhalt)">
+        <div class="adm-tool-icon"><i class="ph-fill ph-flag" style="color:var(--cat-inhalt)"></i></div>
+        <div class="adm-tool-body">
+          <div class="adm-tool-name">Fehler-Statistik</div>
+          <div class="adm-tool-desc">Flag-Auswertung aus Backmengen-DB</div>
         </div>
+        <i class="ph ph-caret-right adm-tool-arrow"></i>
+      </a>
+      <a class="adm-tool-card adm-wip" href="ofenangriff_datenpflege.html" style="--card-accent:var(--cat-inhalt)">
+        <div class="adm-tool-icon"><i class="ph-fill ph-fire" style="color:var(--cat-inhalt)"></i></div>
+        <div class="adm-tool-body">
+          <div class="adm-tool-name">Ofenangriff-Datenpflege</div>
+          <div class="adm-tool-desc">Ofenpläne · Tagesrhythmus</div>
+        </div>
+        <span class="adm-badge adm-badge-rework">Überarbeitung</span>
+      </a>
     </div>
+  </section>
 
-    <script>
-        function toggleAcc(id) {
-            const body = document.getElementById('acc-' + id);
-            const arrow = document.getElementById('arrow-' + id);
-            body.classList.toggle('open');
-            arrow.classList.toggle('open');
-            arrow.textContent = body.classList.contains('open') ? '▼' : '▶';
-        }
-    </script>
+  <!-- SPEZIALWERKZEUGE -->
+  <section class="adm-section">
+    <div class="adm-section-label">
+      <span class="adm-section-dot" style="background:var(--cat-spezial)"></span>
+      <span>Spezialwerkzeuge</span>
+      <span class="adm-section-count">2</span>
+    </div>
+    <div class="adm-tool-list">
+      <a class="adm-tool-card" href="mega_erfassung.html" style="--card-accent:var(--cat-spezial)">
+        <div class="adm-tool-icon"><i class="ph-fill ph-lightning" style="color:var(--amber)"></i></div>
+        <div class="adm-tool-body">
+          <div class="adm-tool-name">Mega-Erfassung</div>
+          <div class="adm-tool-desc">Alle Kategorien · Ein Prompt · Sofort fertig</div>
+        </div>
+        <span class="adm-badge adm-badge-cheat">Cheat</span>
+      </a>
+      <a class="adm-tool-card adm-wip" href="brot_admin.html" style="--card-accent:var(--cat-spezial)">
+        <div class="adm-tool-icon"><i class="ph-fill ph-bread" style="color:var(--amber)"></i></div>
+        <div class="adm-tool-body">
+          <div class="adm-tool-name">Rezept-Tresor</div>
+          <div class="adm-tool-desc">Brot-Rezepte · Spezialrechner</div>
+        </div>
+        <span class="adm-badge adm-badge-wip">In Entwicklung</span>
+      </a>
+    </div>
+  </section>
+
+  <div class="adm-action-bar">
+    <button class="adm-btn adm-btn-secondary adm-w-full" onclick="lockNow()">
+      <i class="ph-fill ph-lock"></i>
+      Sitzung sperren
+    </button>
+  </div>
 
 </div>
 
+<script>
+const ADMIN_PIN  = '1988';
+const SESSION_MS = 8 * 60 * 60 * 1000;
+
+const gate    = document.getElementById('pin-gate');
+const content = document.getElementById('admin-content');
+const errorEl = document.getElementById('pin-error');
+const dots    = [0,1,2,3].map(i => document.getElementById('pd'+i));
+let input = '', timerInterval = null;
+
+function init() {
+  const exp = parseInt(localStorage.getItem('BOS_ADMIN_EXP') || '0', 10);
+  if (Date.now() < exp) unlock(false);
+}
+
+document.querySelectorAll('.pin-key').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const v = btn.dataset.v;
+    if (v === 'del') {
+      if (input.length > 0) { input = input.slice(0,-1); updateDots(); errorEl.textContent = ''; }
+    } else if (v === 'ok') {
+      confirmPin();
+    } else if (input.length < 4) {
+      input += v; updateDots();
+      if (input.length === 4) setTimeout(confirmPin, 180);
+    }
+  });
+});
+
+function updateDots() {
+  dots.forEach((d,i) => { d.classList.toggle('filled', i < input.length); d.classList.remove('error-flash'); });
+}
+
+function confirmPin() {
+  if (input.length < 4) { shake(); errorEl.textContent = 'Bitte 4 Ziffern eingeben.'; return; }
+  if (input === ADMIN_PIN) {
+    localStorage.setItem('BOS_ADMIN_EXP', String(Date.now() + SESSION_MS));
+    unlock(true);
+  } else { wrongPin(); }
+}
+
+function wrongPin() {
+  shake();
+  dots.forEach(d => { d.classList.remove('filled'); d.classList.add('error-flash'); });
+  errorEl.textContent = 'Falscher PIN.';
+  input = '';
+  setTimeout(() => { dots.forEach(d => d.classList.remove('error-flash')); updateDots(); }, 600);
+}
+
+function shake() {
+  const np = document.querySelector('.pin-numpad');
+  np.classList.remove('adm-shake'); void np.offsetWidth;
+  np.classList.add('adm-shake');
+  setTimeout(() => np.classList.remove('adm-shake'), 380);
+}
+
+function unlock(animate) {
+  if (animate) {
+    gate.classList.add('fade-out');
+    setTimeout(() => { gate.style.display='none'; content.classList.add('visible'); startSessionTimer(); }, 350);
+  } else {
+    gate.style.display = 'none'; content.classList.add('visible'); startSessionTimer();
+  }
+}
+
+function lockNow() {
+  localStorage.removeItem('BOS_ADMIN_EXP');
+  gate.style.display = 'flex'; gate.classList.remove('fade-out');
+  content.classList.remove('visible');
+  input = ''; updateDots(); errorEl.textContent = '';
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function startSessionTimer() {
+  function tick() {
+    const rem = parseInt(localStorage.getItem('BOS_ADMIN_EXP')||'0',10) - Date.now();
+    if (rem <= 0) { lockNow(); return; }
+    const h = Math.floor(rem/3600000), m = Math.floor((rem%3600000)/60000);
+    document.getElementById('session-timer').textContent = h > 0 ? `${h}h ${m}m` : `${m} Min`;
+  }
+  tick();
+  timerInterval = setInterval(tick, 30000);
+}
+
+init();
+</script>
 </body>
 </html>

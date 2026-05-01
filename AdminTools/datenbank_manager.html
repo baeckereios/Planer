@@ -6,6 +6,14 @@
     <title>BäckereiOS - Datenbank Manager</title>
     <link rel="stylesheet" href="admin_design.css">
     <style>
+        /* ── Bridge: eigene Vars → admin_design.css ── */
+        :root {
+          --text-main:     #1c1a17;
+          --text-muted:    #888077;
+          --border-color:  #d8d3ca;
+          --alert-color:   #c0392b;
+          --success-color: #2d7a4f;
+        }
         .progress-bar { display:flex; gap:6px; margin:10px 0 4px 0; }
         .progress-step { flex:1; height:6px; border-radius:3px; background:#e2e8f0; transition:background 0.3s; }
         .progress-step.done { background:var(--success-color,#22c55e); }
@@ -485,8 +493,41 @@ function renderUnbekanntePanel() {
         const div = document.createElement('div');
         div.className = 'outlier-item';
         div.id = 'unk-' + i;
-        div.style.cssText = 'background:#eff6ff;border-color:#93c5fd;';
-        div.innerHTML = `
+        const isTK = u.quelle === 'tk';
+        div.style.cssText = isTK
+            ? 'background:#fff7ed;border-color:#fb923c;'
+            : 'background:#eff6ff;border-color:#93c5fd;';
+        const tkId = (u.name||'').toLowerCase()
+            .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+            .replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'') + '_tk';
+        div.innerHTML = isTK ? `
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+                <input type="checkbox" id="unk-cb-${i}" checked
+                    style="width:18px;height:18px;accent-color:#f97316;margin-top:3px;flex-shrink:0;cursor:pointer;">
+                <div style="flex:1;">
+                    <div class="oi-name">🚛 <strong>${u.name}</strong>${u.artNr ? ' · ArtNr ' + u.artNr : ''}</div>
+                    <div class="oi-vals" style="color:#92400e;margin-bottom:8px;">Neues TK-Produkt — nicht in lieferanten_config.json — wird beim Speichern hinzugefügt</div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;">
+                        <input type="text" id="unk-tkname-${i}" value="${u.name}" placeholder="Produktname"
+                            style="flex:2;min-width:140px;padding:6px 8px;border-radius:6px;border:1px solid #fed7aa;font-size:0.85rem;font-family:inherit;">
+                        <input type="text" id="unk-tkid-${i}" value="${tkId}" placeholder="id (z.B. buttercroissant_tk)"
+                            style="flex:2;min-width:140px;padding:6px 8px;border-radius:6px;border:1px solid #fed7aa;font-size:0.85rem;font-family:monospace;">
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <select id="unk-tkform-${i}" style="flex:1;min-width:100px;padding:6px 8px;border-radius:6px;border:1px solid #fed7aa;font-size:0.85rem;font-family:inherit;">
+                            <option>Karton</option><option>Kiste</option><option>Tray</option><option>Beutel</option><option>Stück</option>
+                        </select>
+                        <input type="number" id="unk-tkinhalt-${i}" value="1" min="1" placeholder="Inhalt (Stk)"
+                            style="width:90px;padding:6px 8px;border-radius:6px;border:1px solid #fed7aa;font-size:0.85rem;font-family:inherit;" title="Stück pro Gebinde">
+                        <select id="unk-tkeinheit-${i}" style="width:70px;padding:6px 8px;border-radius:6px;border:1px solid #fed7aa;font-size:0.85rem;font-family:inherit;">
+                            <option>Stk</option><option>g</option><option>ml</option><option>kg</option>
+                        </select>
+                    </div>
+                    <div style="font-size:0.72rem;color:#92400e;margin-top:5px;">
+                        <strong>id</strong> = Schlüssel in lieferanten_db · <strong>Inhalt</strong> = Stück pro Gebinde · Weitere Felder im Lieferanten-Editor ergänzen
+                    </div>
+                </div>
+            </div>` : `
             <div style="display:flex;align-items:flex-start;gap:10px;">
                 <input type="checkbox" id="unk-cb-${i}" checked
                     style="width:18px;height:18px;accent-color:#3b82f6;margin-top:3px;flex-shrink:0;cursor:pointer;">
@@ -616,10 +657,11 @@ function buildTKPrompt() {
         'Gib NUR {"eintraege":{...}} zurück. KEIN Markdown, KEIN ```json, KEINE Erklärungen.\n\n' +
         'MAPPING (ArtNr → Config-ID):\n' +
         mapping + '\n\n' +
-        'Produkte auf dem Zettel die NICHT im MAPPING stehen: ignorieren.\n' +
+        'Produkte auf dem Zettel die NICHT im MAPPING stehen: unter "unbekannt" aufführen (ArtNr + Name).\n' +
         'Produkte im MAPPING die nicht auf dem Zettel stehen: NICHT eintragen.\n' +
-        'Wenn Anzahl = 0: trotzdem eintragen mit menge:0.\n\n' +
-        'Format: {"eintraege":{"buttercroissant_tk":{"menge":2},"schokocroissant_tk":{"menge":1}}}';
+        'Wenn Anzahl = 0: trotzdem eintragen mit menge:0.\n' +
+        'Kein "unbekannt"-Feld wenn nichts Unbekanntes vorhanden.\n\n' +
+        'Format: {"eintraege":{"buttercroissant_tk":{"menge":2},"schokocroissant_tk":{"menge":1}},"unbekannt":[{"artNr":"134099","name":"Neues TK-Produkt"}]}';
 }
 
 // ── TK VALIDIERUNG ───────────────────────────────────────
@@ -634,8 +676,18 @@ function valTK() {
         const anzahl = Object.keys(p.eintraege).length;
         if (anzahl === 0) throw new Error('"eintraege" ist leer.');
         R.tk = p.eintraege;
+        // Unbekannte TK-Produkte sammeln (NICHT in produktConfig — müssen im Lieferanten-Editor angelegt werden)
+        if (Array.isArray(p.unbekannt)) {
+            p.unbekannt.forEach(u => {
+                if (u.name && !unbekannteProdukte.find(x => x.name === u.name)) {
+                    unbekannteProdukte.push({ artNr: u.artNr || null, name: u.name, quelle: 'tk' });
+                }
+            });
+            renderUnbekanntePanel();
+        }
+        const unbHinweis = p.unbekannt?.length ? ` · ⚠ ${p.unbekannt.length} unbekannt` : '';
         ta.className='pa valid'; st.className='zettel-status ok';
-        setHint('tk', '✅ ' + anzahl + ' TK-Produkt' + (anzahl !== 1 ? 'e' : '') + ' erfasst.', true);
+        setHint('tk', '✅ ' + anzahl + ' TK-Produkt' + (anzahl !== 1 ? 'e' : '') + ' erfasst.' + unbHinweis, true);
     } catch(e) {
         R.tk = null; ta.className='pa invalid'; st.className='zettel-status err';
         setHint('tk', '❌ ' + e.message, false);
@@ -1065,7 +1117,6 @@ function merge() {
             typ:       'ausgang_filialen',
             eintraege: R.tk
         };
-        // Bestehenden Eintrag für gleichen Tag + Typ ersetzen oder anhängen
         const tkIdx = lieferantenDb.findIndex(e => e.datum === ctx.datum && e.typ === 'ausgang_filialen');
         if (tkIdx !== -1) {
             lieferantenDb[tkIdx] = tkEintrag;
@@ -1074,11 +1125,15 @@ function merge() {
             lieferantenDb.sort((a,b) => a.datum.localeCompare(b.datum));
         }
         const blobTK = new Blob([JSON.stringify(lieferantenDb, null, 2)], {type:'application/json'});
-        const aTK = document.createElement('a');
-        aTK.href = URL.createObjectURL(blobTK);
-        aTK.download = 'lieferanten_db.json';
-        document.body.appendChild(aTK); aTK.click();
-        document.body.removeChild(aTK); URL.revokeObjectURL(aTK.href);
+        const urlTK = URL.createObjectURL(blobTK);
+        // Delay: Browser erlaubt nur 1 programmatischen Download pro User-Interaktion
+        setTimeout(function() {
+            const aTK = document.createElement('a');
+            aTK.href = urlTK;
+            aTK.download = 'lieferanten_db.json';
+            document.body.appendChild(aTK); aTK.click();
+            document.body.removeChild(aTK); URL.revokeObjectURL(urlTK);
+        }, 200);
     }
 
     // ── Erfassungskontrolle HTML ──────────────────────────
@@ -1165,11 +1220,14 @@ ${sektionen}
 </body></html>`;
 
         const blobH = new Blob([kontrollHTML], {type:'text/html'});
-        const aH = document.createElement('a');
-        aH.href = URL.createObjectURL(blobH);
-        aH.download = 'erfassungskontrolle_' + ctx.datum + '.html';
-        document.body.appendChild(aH); aH.click();
-        document.body.removeChild(aH); URL.revokeObjectURL(aH.href);
+        const urlH = URL.createObjectURL(blobH);
+        setTimeout(function() {
+            const aH = document.createElement('a');
+            aH.href = urlH;
+            aH.download = 'erfassungskontrolle_' + ctx.datum + '.html';
+            document.body.appendChild(aH); aH.click();
+            document.body.removeChild(aH); URL.revokeObjectURL(urlH);
+        }, 400);
     }
 
     // Flagging-Statistik
@@ -1186,9 +1244,33 @@ ${sektionen}
 
     // Neue Produkte: alle angehakten Checkboxen einsammeln und zur Config hinzufügen
     let neueHinzugefuegt = 0;
+    let neueTKHinzugefuegt = 0;
     unbekannteProdukte.forEach(function(u, i) {
         const cb = document.getElementById('unk-cb-' + i);
         if (!cb || !cb.checked) return;
+        // TK-Produkte → lieferantenConfig
+        if (u.quelle === 'tk') {
+            const nameEl   = document.getElementById('unk-tkname-' + i);
+            const idEl     = document.getElementById('unk-tkid-' + i);
+            const formEl   = document.getElementById('unk-tkform-' + i);
+            const inhaltEl = document.getElementById('unk-tkinhalt-' + i);
+            const einheitEl= document.getElementById('unk-tkeinheit-' + i);
+            const tkName   = nameEl   ? nameEl.value.trim()   : u.name;
+            const tkId     = idEl     ? idEl.value.trim()     : '';
+            const tkForm   = formEl   ? formEl.value          : 'Karton';
+            const tkInhalt = inhaltEl ? (parseInt(inhaltEl.value) || 1) : 1;
+            const tkEinheit= einheitEl? einheitEl.value        : 'Stk';
+            if (!tkName || !tkId) return;
+            if (lieferantenConfig.some(function(p){ return p.id === tkId; })) return;
+            lieferantenConfig.push({
+                id: tkId, artNr: u.artNr || null, name: tkName,
+                lagertyp: 'tk', lieferant: '',
+                gebinde: { form: tkForm, inhalt_stueck: tkInhalt, inhalt_einheit: tkEinheit },
+                hinweis: 'Automatisch erkannt — bitte prüfen'
+            });
+            neueTKHinzugefuegt++;
+            return;
+        }
         const nameEl = document.getElementById('unk-name-' + i);
         const katEl  = document.getElementById('unk-kat-' + i);
         const chEl   = document.getElementById('unk-charge-' + i);
@@ -1212,12 +1294,27 @@ ${sektionen}
 
     if (neueHinzugefuegt > 0) {
         const blobC = new Blob([JSON.stringify(produktConfig, null, 2)], {type:'application/json'});
-        const aC = document.createElement('a');
-        aC.href = URL.createObjectURL(blobC);
-        aC.download = 'produkt_config.json';
-        document.body.appendChild(aC); aC.click();
-        document.body.removeChild(aC);
-        setTimeout(function(){ URL.revokeObjectURL(aC.href); }, 1000);
+        const urlC = URL.createObjectURL(blobC);
+        setTimeout(function() {
+            const aC = document.createElement('a');
+            aC.href = urlC;
+            aC.download = 'produkt_config.json';
+            document.body.appendChild(aC); aC.click();
+            document.body.removeChild(aC); URL.revokeObjectURL(urlC);
+        }, 600);
+    }
+
+    // lieferanten_config.json — neue TK-Produkte
+    if (neueTKHinzugefuegt > 0) {
+        const blobLC = new Blob([JSON.stringify(lieferantenConfig, null, 2)], {type:'application/json'});
+        const urlLC = URL.createObjectURL(blobLC);
+        setTimeout(function() {
+            const aLC = document.createElement('a');
+            aLC.href = urlLC;
+            aLC.download = 'lieferanten_config.json';
+            document.body.appendChild(aLC); aLC.click();
+            document.body.removeChild(aLC); URL.revokeObjectURL(urlLC);
+        }, 800);
     }
 
     const s = document.getElementById('summary');
@@ -1233,6 +1330,7 @@ ${sektionen}
         ) +
         'Datenbank: <strong>' + db.length + ' Tage</strong><br>' +
         (neueHinzugefuegt > 0 ? '📦 <strong>' + neueHinzugefuegt + ' neue Produkte</strong> zur Config hinzugefügt → produkt_config.json hochladen!<br>' : '') +
+        (neueTKHinzugefuegt > 0 ? '🚛 <strong>' + neueTKHinzugefuegt + ' neue TK-Produkt' + (neueTKHinzugefuegt !== 1 ? 'e' : '') + '</strong> zur lieferanten_config hinzugefügt → hochladen!<br>' : '') +
         (R.tk && !uebersprungen.has('tk') ? '🚛 <strong>TK-Produkterfassung gespeichert</strong> → lieferanten_db.json hochladen!<br>' : '') +
         '<span style="color:#16a34a;font-size:0.8rem;">→ backmengen_db.json in den Stammordner hochladen!</span>';
 

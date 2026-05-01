@@ -12,10 +12,10 @@ var DZ_PRINT_CSS_A = [
     '.fs-item { display: flex; align-items: center; margin-bottom: 12px; font-size: 11pt; page-break-inside: avoid; break-inside: avoid; }',
     '.fs-name { width: 220px; font-weight: bold; }',
     '.fs-notiz-table { width: 100%; border-collapse: collapse; margin-top: 20px; break-inside: avoid; page-break-inside: avoid; }',
-    '.fs-notiz-table td { border: 1px solid #000; height: 60px; }',
+    '.fs-notiz-table td { border: 1px solid #000; min-height: 50px; height: auto; }',
     '.fs-notiz-table td:first-child { padding: 10px; vertical-align: top; }',
     '.fs-notiz-table td:last-child { padding: 10px; vertical-align: middle; }',
-    'input.fs-notiz-input { border: none !important; background: transparent !important; padding: 0 !important; height: 100%; width: 100%; box-shadow: none !important; outline: none; }',
+    'textarea.fs-notiz-input { border: none !important; background: transparent !important; padding: 0 !important; width: 100%; box-shadow: none !important; outline: none; resize: none; overflow: hidden; font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.4; display: block; }',
     '.fs-anmerkungen { border: 1px solid #000; padding: 10px; height: 150px; margin-top: 20px; break-inside: avoid; page-break-inside: avoid; display: flex; flex-direction: column; }',
     '.fs-anmerkungen-label { font-weight: bold; text-transform: uppercase; font-size: 9pt; color: #555; }',
     '.fs-anmerkungen textarea { border: none !important; background: transparent !important; padding: 0 !important; flex: 1; margin-top: 8px; resize: none; box-shadow: none !important; outline: none; }',
@@ -50,9 +50,9 @@ function DZ_A_render() {
         '    <div class="fs-item fs-zebra" style="background-color:#e8e8e8;-webkit-print-color-adjust:exact;print-color-adjust:exact;">',
         '      <span class="fs-name">Mohn + Sesam</span>',
         '      <div class="fs-dbl">',
-        '        <select class="fs-sel num-dd"></select>',
+        '        <select class="fs-sel num-dd-half" id="fs-mohn-dd"></select>',
         '        <span class="fs-dbl-sep" style="margin:0 6px;font-weight:bold;">/</span>',
-        '        <select class="fs-sel num-dd"></select>',
+        '        <select class="fs-sel num-dd-half" id="fs-sesam-dd"></select>',
         '      </div>',
         '    </div>',
         '    <div class="fs-item">',
@@ -99,6 +99,19 @@ function DZ_A_render() {
         '  </div>',
         '</div>'
     ].join('\n');
+
+    // Mohn + Sesam: 0–20 in 0,5-Schritten befüllen
+    ['fs-mohn-dd', 'fs-sesam-dd'].forEach(function(id) {
+        var sel = document.getElementById(id);
+        if (!sel) return;
+        for (var v = 0; v <= 40; v++) {
+            var val = v / 2;
+            var o = document.createElement('option');
+            o.value = val;
+            o.textContent = Number.isInteger(val) ? String(val) : val.toFixed(1);
+            sel.appendChild(o);
+        }
+    });
 }
 
 // ── EXTRA-ZEILEN (localStorage) ──────────────────────────────────────

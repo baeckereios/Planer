@@ -4,24 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zeit-Konfigurator – BäckereiOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,400&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="../feiertage_nds.js"></script>
 <style>
   :root {
-    --dunkel:  #0d1117;
-    --grau1:   #161b22;
-    --grau2:   #21262d;
-    --grau3:   #30363d;
-    --grau4:   #484f58;
-    --border:  #30363d;
-    --akzent:  #7c3aed;
-    --akzent2: #6d28d9;
-    --gruen:   #22c55e;
-    --rot:     #ef4444;
-    --amber:   #f59e0b;
-    --cyan:    #06b6d4;
-    --text:    #e6edf3;
-    --dim:     #8b949e;
-    --font:    'Courier New', 'Lucida Console', monospace;
+    --dunkel:  #f4f2ee;
+    --grau1:   #ffffff;
+    --grau2:   #f0ede8;
+    --grau3:   #e8e4dd;
+    --grau4:   #bbb5aa;
+    --border:  #d8d3ca;
+    --akzent:  #a07020;
+    --akzent2: #d49a36;
+    --gruen:   #2d7a4f;
+    --rot:     #c0392b;
+    --amber:   #d49a36;
+    --cyan:    #2563a8;
+    --text:    #1c1a17;
+    --dim:     #888077;
+    --font:    'Barlow Condensed', sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: var(--font); background: var(--dunkel); color: var(--text); min-height: 100vh; font-size: 13px; }
@@ -123,6 +125,9 @@
   .kal-tag.feiertag-auto  { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.3); }
   .kal-tag.in-wurm.feiertag-auto { background: rgba(124,58,237,0.25); border-color: var(--akzent); }
   .kal-tag.sondertag      { border-color: var(--amber); }
+  /* Stichproben-Modus: einzelne ausgewählte Tage */
+  .kal-tag.stichprobe { background: rgba(6,182,212,0.18); border-color: var(--cyan); border-style: solid; }
+  .kal-tag.stichprobe .kal-datum { color: var(--cyan); font-weight: bold; }
   
   .kal-tag.ausgeschlossen .kal-datum { color: #fca5a5; text-decoration: line-through; opacity: 0.8; }
   
@@ -257,6 +262,43 @@
       <div id="wurm-modus-hinweis-aus" class="einst-hinweis">
         Manueller Modus: Das Fenster wird über den Kalender unten fest eingestellt.
       </div>
+
+      <!-- Sub-Config: wird nur angezeigt wenn Wurm aktiv -->
+      <div id="wurm-sub-config" style="display:none; margin-top:12px; padding:10px 12px; background:rgba(6,182,212,0.04); border:1px solid rgba(6,182,212,0.2); border-radius:4px;">
+        <div class="einst-section-label" style="margin-bottom:8px;">Berechnungs-Methode</div>
+        <div class="einst-row">
+          <label>Modus:</label>
+          <select class="einst-select" id="einst-wurm-modus" onchange="einstWurmModus()">
+            <option value="kontiguierlich">Kontiguierlich — zusammenhängendes Zeitfenster</option>
+            <option value="stichproben">Stichproben — N gleiche Wochentage rückwärts</option>
+          </select>
+        </div>
+        <!-- Felder nur für Stichproben -->
+        <div id="stichproben-felder" style="display:none;">
+          <div class="einst-row" style="margin-top:6px;">
+            <label>Datenpunkte pro Wochentag:</label>
+            <select class="einst-select" id="einst-stichproben-anzahl" onchange="einstAktualisiere()">
+              <option value="3">3 Datenpunkte</option>
+              <option value="4">4 Datenpunkte</option>
+              <option value="5">5 Datenpunkte</option>
+              <option value="6">6 Datenpunkte</option>
+              <option value="8">8 Datenpunkte</option>
+            </select>
+          </div>
+          <div class="einst-row" style="margin-top:6px;">
+            <label>Suchfenster:</label>
+            <select class="einst-select" id="einst-suchfenster-wochen" onchange="einstAktualisiere()">
+              <option value="6">6 Wochen</option>
+              <option value="8">8 Wochen</option>
+              <option value="10">10 Wochen</option>
+              <option value="12">12 Wochen (~3 Monate)</option>
+              <option value="16">16 Wochen (~4 Monate)</option>
+              <option value="24">24 Wochen (~6 Monate)</option>
+            </select>
+          </div>
+          <div class="einst-hinweis" style="margin-top:6px;">Lücken werden überbrückt: fehlt ein Montag, wird der nächste verfügbare Montag weiter zurück gesucht.</div>
+        </div>
+      </div>
     </div>
     
     <div class="kalender-wrap" id="kalender-wrap-manuell">
@@ -327,23 +369,20 @@
 <script>
 const WT_KURZ = ['So','Mo','Di','Mi','Do','Fr','Sa'];
 const WT_LANG = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-// Statische Feiertags-Liste NDS (identisch zu produktions_gehirn.js)
-const FEIERTAGE_NDS = [
-    '2025-01-01','2025-04-18','2025-04-21','2025-05-01','2025-05-29',
-    '2025-06-09','2025-10-03','2025-10-31','2025-12-25','2025-12-26',
-    '2026-01-01','2026-04-03','2026-04-06','2026-05-01','2026-05-14',
-    '2026-05-25','2026-10-03','2026-10-31','2026-12-25','2026-12-26',
-    '2027-01-01','2027-04-02','2027-04-05','2027-05-01','2027-05-13',
-    '2027-05-24','2027-10-03','2027-10-31','2027-12-25','2027-12-26'
-];
+// Feiertage aus feiertage_nds.js — einzige Wahrheitsquelle (../feiertage_nds.js im Head geladen)
+const FEIERTAGE_NDS = (window.BOS_FEIERTAGE?.feiertage || []).map(f => f.datum);
 const TAGE = 14;
 let startDatum = new Date(); startDatum.setHours(0,0,0,0);
 let tageConfig = {};
 
 // ══ BERECHNUNGSGRUNDLAGE ══════════════════════════════
+let _stichprobenCache = null;
 let einstDaten = { 
     zeitraum_tage: 14,
     wurm_aktiv: false,
+    wurm_modus: 'kontiguierlich',
+    stichproben_anzahl: 5,
+    suchfenster_wochen: 12,
     start_datum: "", 
     end_datum: "", 
     feiertage_ausschliessen: true, 
@@ -364,7 +403,7 @@ async function ladeEinstellungen() {
   if (!einstDaten.start_datum && einstDaten.zeitraum_tage > 0) {
       const heute = new Date(); heute.setHours(12,0,0,0);
       const start = new Date(heute);
-      start.setDate(start.getDate() - einstDaten.zeitraum_tage);
+      start.setDate(start.getDate() - (einstDaten.zeitraum_tage - 1));
       einstDaten.start_datum = lds(start);
       einstDaten.end_datum = lds(heute);
   }
@@ -381,11 +420,23 @@ async function ladeEinstellungen() {
       document.getElementById('tog-wurm').classList.toggle('aktiv', wurmToggle.checked);
       _wurmToggleUI(wurmToggle.checked);
   }
+  // Stichproben-Felder
+  const modusSel = document.getElementById('einst-wurm-modus');
+  if (modusSel) {
+      modusSel.value = einstDaten.wurm_modus || 'kontiguierlich';
+      einstWurmModus(false); // UI anpassen, kein re-render
+  }
+  const anzahlSel = document.getElementById('einst-stichproben-anzahl');
+  if (anzahlSel) anzahlSel.value = einstDaten.stichproben_anzahl || 5;
+  const suchSel = document.getElementById('einst-suchfenster-wochen');
+  if (suchSel) suchSel.value = einstDaten.suchfenster_wochen || 12;
   einstKalenderRender(); einstListeRender();
 }
 
 function einstAktualisiere() { 
     einstDaten.zeitraum_tage = parseInt(document.getElementById('einst-zeitraum').value) || 14; 
+    einstDaten.stichproben_anzahl  = parseInt(document.getElementById('einst-stichproben-anzahl')?.value) || 5;
+    einstDaten.suchfenster_wochen  = parseInt(document.getElementById('einst-suchfenster-wochen')?.value) || 12;
     
     // Wurm-Ende an neue Länge anpassen, wenn er existiert
     if (einstDaten.zeitraum_tage > 0 && einstDaten.start_datum) {
@@ -414,18 +465,76 @@ function einstToggle(feld) {
 
 // Kalender und Hinweistexte je nach Wurm-Modus zeigen/verstecken
 function _wurmToggleUI(aktiv) {
-  const hinweisAn  = document.getElementById('wurm-modus-hinweis');
-  const hinweisAus = document.getElementById('wurm-modus-hinweis-aus');
-  const kalenderWrap = document.getElementById('kalender-wrap-manuell');
-  if (hinweisAn)  hinweisAn.style.display  = aktiv ? 'block' : 'none';
-  if (hinweisAus) hinweisAus.style.display = aktiv ? 'none'  : 'block';
-  if (kalenderWrap) kalenderWrap.style.display = aktiv ? 'none' : 'block';
+  const hinweisAn   = document.getElementById('wurm-modus-hinweis');
+  const hinweisAus  = document.getElementById('wurm-modus-hinweis-aus');
+  const subConfig   = document.getElementById('wurm-sub-config');
+  if (hinweisAn)    hinweisAn.style.display   = aktiv ? 'block' : 'none';
+  if (hinweisAus)   hinweisAus.style.display  = aktiv ? 'none'  : 'block';
+  if (subConfig)    subConfig.style.display    = aktiv ? 'block' : 'none';
+  // kalender-wrap-manuell wird NICHT versteckt — Grid und Info-Box
+  // steuern ihr Aussehen selbst über einstKalenderRender().
+  _zeitraumZeileToggle();
+}
+
+function _zeitraumZeileToggle() {
+  const istStichproben = einstDaten.wurm_aktiv && einstDaten.wurm_modus === 'stichproben';
+  const zeitraumRow = document.getElementById('einst-zeitraum')?.closest('.einst-row');
+  if (zeitraumRow) zeitraumRow.style.display = istStichproben ? 'none' : 'flex';
+}
+
+function einstWurmModus(doRender = true) {
+  const val = document.getElementById('einst-wurm-modus')?.value || 'kontiguierlich';
+  einstDaten.wurm_modus = val;
+  const isStichproben = val === 'stichproben';
+  const felder = document.getElementById('stichproben-felder');
+  if (felder) felder.style.display = isStichproben ? 'block' : 'none';
+  _zeitraumZeileToggle();
+  if (doRender) einstKalenderRender();
+}
+
+// Stichproben-Vorschau: Pro Wochentag die N letzten sauberen Tage ermitteln
+function berechneStichproben(anzahl, suchfensterWochen) {
+  const feiertageAus  = einstDaten.feiertage_ausschliessen;
+  const sondertageAus = einstDaten.sondertage_ausschliessen;
+  const manuellAus    = new Set((einstDaten.ausgeschlossene_tage || []).map(t => t.datum));
+
+  const heute = new Date(); heute.setHours(0,0,0,0);
+  const grenze = new Date(heute);
+  grenze.setDate(heute.getDate() - suchfensterWochen * 7);
+  const grenzeISO = lds(grenze);
+  const heuteISO  = lds(heute);
+
+  const kandidaten = Object.keys(dbTageMap)
+      .filter(d => d >= grenzeISO && d < heuteISO)
+      .sort((a, b) => b.localeCompare(a));
+
+  const sammlung = [[], [], [], [], [], [], []]; // jsDay 0=So..6=Sa
+
+  for (const datum of kandidaten) {
+      const jsDay = new Date(datum + 'T12:00:00').getDay();
+      if (sammlung[jsDay].length >= anzahl) continue;
+      const k = (typeof dbTageMap[datum] === 'object') ? dbTageMap[datum] : {};
+      if (manuellAus.has(datum)) continue;
+      if (feiertageAus && (FEIERTAGE_NDS.includes(datum) || k.feiertag)) continue;
+      if (sondertageAus && (k.ausschluss_sondertag || k.ausschluss_einschraenkung)) continue;
+      sammlung[jsDay].push(datum);
+  }
+  return sammlung; // Array[7], index = jsDay
 }
 
 function einstKalenderRender() {
   const grid = document.getElementById('einst-kalender');
   const infoDiv = document.getElementById('sondertage-info');
   const wurmBox = document.getElementById('wurm-info-box');
+
+  // Stichproben vorab berechnen (einmal für alle Monate)
+  _stichprobenCache = null;
+  if (einstDaten.wurm_aktiv && einstDaten.wurm_modus === 'stichproben') {
+      _stichprobenCache = berechneStichproben(
+          einstDaten.stichproben_anzahl || 5,
+          einstDaten.suchfenster_wochen || 12
+      );
+  }
 
   if (einstDaten.zeitraum_tage === 0) {
       wurmBox.style.display = 'none';
@@ -436,8 +545,33 @@ function einstKalenderRender() {
 
   // Wurm Info aktualisieren
   wurmBox.style.display = 'block';
-  if (einstDaten.wurm_aktiv) {
-      // Dynamisches Fenster berechnen wie produktions_gehirn.js
+  if (einstDaten.wurm_aktiv && einstDaten.wurm_modus === 'stichproben') {
+      // ── STICHPROBEN-VORSCHAU ──────────────────────────────
+      const anzahl  = einstDaten.stichproben_anzahl || 5;
+      const wochen  = einstDaten.suchfenster_wochen || 12;
+      const sammlung = berechneStichproben(anzahl, wochen);
+      const WT_NAMEN = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+      // Mo..Sa anzeigen (jsDay 1..6, So=0 weglassen wenn keine Daten)
+      const zeilen = [];
+      for (let wt = 1; wt <= 6; wt++) {
+          const n = sammlung[wt].length;
+          if (n === 0 && sammlung[wt].length === 0) {
+              zeilen.push(`<span style="color:var(--grau4)">${WT_NAMEN[wt]}: —</span>`);
+          } else if (n < anzahl) {
+              zeilen.push(`<span style="color:var(--amber)">${WT_NAMEN[wt]}: ${n}/${anzahl} ⚠</span>`);
+          } else {
+              zeilen.push(`<span style="color:var(--gruen)">${WT_NAMEN[wt]}: ${n}✓</span>`);
+          }
+      }
+      wurmBox.innerHTML =
+          `<span style="color:var(--cyan);font-weight:900;">⏱ Stichproben</span>` +
+          ` &nbsp;·&nbsp; ${wochen} Wochen Suchfenster &nbsp;·&nbsp; ${anzahl} Datenpunkte/Wochentag<br>` +
+          `<span style="font-size:10px;display:inline-block;margin-top:4px;">${zeilen.join(' &nbsp; ')}</span>`;
+      wurmBox.style.borderColor = 'rgba(6,182,212,0.3)';
+      wurmBox.style.background  = 'rgba(6,182,212,0.07)';
+
+  } else if (einstDaten.wurm_aktiv) {
+      // ── KONTIGUIERLICH-VORSCHAU (bisherige Logik) ────────
       const FEIERTAGE_JS = (window.BOS_FEIERTAGE?.feiertage || []).map(f => f.datum);
       const zeitraum = einstDaten.zeitraum_tage || 14;
       const heute = new Date(); heute.setHours(0,0,0,0);
@@ -446,7 +580,7 @@ function einstKalenderRender() {
       function _fensterFrei(ende) {
           for (let i = 0; i < zeitraum; i++) {
               const t = new Date(ende); t.setDate(ende.getDate() - i);
-              if (FEIERTAGE_NDS.includes(_toISO(t)) || FEIERTAGE_JS.includes(_toISO(t))) return false;
+              if (FEIERTAGE_NDS.includes(_toISO(t))) return false;
           }
           return true;
       }
@@ -525,6 +659,14 @@ function einstKalenderRender() {
           let isWurmStart = (datumStr === einstDaten.start_datum);
           let isWurmEnd = (datumStr === einstDaten.end_datum);
 
+          // Stichproben-Markierung
+          let istStichprobe = false;
+          if (einstDaten.wurm_aktiv && einstDaten.wurm_modus === 'stichproben' && hatDaten) {
+              const jsDay = dateObj.getDay();
+              const sammlung = _stichprobenCache || [];
+              if (sammlung[jsDay] && sammlung[jsDay].includes(datumStr)) istStichprobe = true;
+          }
+
           let cls = 'kal-tag';
           let sym = '';
 
@@ -534,6 +676,7 @@ function einstKalenderRender() {
           if (inWurm) cls += ' in-wurm';
           if (isWurmStart) cls += ' wurm-start';
           if (isWurmEnd) cls += ' wurm-ende';
+          if (istStichprobe) cls += ' stichprobe';
 
           if (istAusgesch) { 
               cls += ' ausgeschlossen'; sym = '✕'; 
@@ -611,18 +754,29 @@ function einstListeRender() {
 }
 
 function einstSpeichern() {
-  einstDaten.zeitraum_tage = parseInt(document.getElementById('einst-zeitraum').value) || 14;
-  einstDaten.wurm_aktiv = document.getElementById('einst-wurm')?.checked ?? false;
+  einstDaten.zeitraum_tage       = parseInt(document.getElementById('einst-zeitraum').value) || 14;
+  einstDaten.wurm_aktiv          = document.getElementById('einst-wurm')?.checked ?? false;
+  einstDaten.wurm_modus          = document.getElementById('einst-wurm-modus')?.value || 'kontiguierlich';
+  einstDaten.stichproben_anzahl  = parseInt(document.getElementById('einst-stichproben-anzahl')?.value) || 5;
+  einstDaten.suchfenster_wochen  = parseInt(document.getElementById('einst-suchfenster-wochen')?.value) || 12;
 
   // Im Wurm-Modus keine fixen Datumsgrenzen speichern —
   // produktions_gehirn.js berechnet das Fenster dynamisch.
   const output = {
-      zeitraum_tage:           einstDaten.zeitraum_tage,
-      wurm_aktiv:              einstDaten.wurm_aktiv,
-      feiertage_ausschliessen: einstDaten.feiertage_ausschliessen,
+      zeitraum_tage:            einstDaten.zeitraum_tage,
+      wurm_aktiv:               einstDaten.wurm_aktiv,
+      wurm_modus:               einstDaten.wurm_modus,
+      feiertage_ausschliessen:  einstDaten.feiertage_ausschliessen,
       sondertage_ausschliessen: einstDaten.sondertage_ausschliessen,
-      ausgeschlossene_tage:    einstDaten.ausgeschlossene_tage
+      ausgeschlossene_tage:     einstDaten.ausgeschlossene_tage
   };
+
+  // Stichproben-spezifische Felder nur wenn aktiv
+  if (einstDaten.wurm_aktiv && einstDaten.wurm_modus === 'stichproben') {
+      output.stichproben_anzahl = einstDaten.stichproben_anzahl;
+      output.suchfenster_wochen = einstDaten.suchfenster_wochen;
+  }
+
   // Nur im manuellen Modus werden start/end_datum mit gespeichert
   if (!einstDaten.wurm_aktiv && einstDaten.start_datum && einstDaten.end_datum) {
       output.start_datum = einstDaten.start_datum;

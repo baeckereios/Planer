@@ -1,0 +1,799 @@
+    :root {
+      --amber:      #b8790a;
+      --amber-dim:  #d49a36;
+      --amber-pale: #fdf6e8;
+      --bg:         #e8e4de;
+      --bg2:        #ffffff;
+      --bg3:        #d8d3cc;
+      --bg-tools:   #ddd8d1;
+      --border:     #c8c2b8;
+      --text:       #1e1a16;
+      --text-dim:   #7a6e64;
+      --green:      #2e6b42;
+      --green-bright:#3a8a55;
+      --green-bg:   #e8f5ec;
+      --red:        #9b2c2c;
+      --red-bright: #c04040;
+      --red-bg:     #fdf0f0;
+      --blue:       #2a4e7a;
+      --blue-bright:#3a6aa0;
+      --blue-bg:    #eef4fb;
+      --radius:     8px;
+      --radius-lg:  12px;
+      --shadow:     0 2px 12px rgba(0,0,0,0.09);
+      --shadow-sm:  0 1px 4px rgba(0,0,0,0.06);
+      /* Shell-Kompatibilität — falls shell.js diese Variablen braucht */
+      --surface:    #ffffff;
+      --surface2:   #f5f2ee;
+      --border-s:   #d8d2c8;
+      --dim:        #7a6e64;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+      background: var(--bg2);
+      border-bottom: 2px solid var(--amber);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header-back {
+      color: var(--amber);
+      text-decoration: none;
+      font-size: 22px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+    }
+    .header h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      color: var(--text);
+      flex: 1;
+      letter-spacing: -0.3px;
+    }
+    .header h1 span { color: var(--amber); }
+    .header-actions { display: flex; gap: 6px; }
+    .header-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 5px 10px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      text-decoration: none;
+      line-height: 1;
+      transition: all 0.15s;
+    }
+    .header-btn i { font-size: 18px; }
+    .header-btn span { font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .header-btn:hover { color: var(--amber); border-color: var(--amber); background: var(--amber-pale); }
+
+    /* ── Plan-Karte ──────────────────────────────── */
+    .plan-card {
+      margin: 12px 12px 0;
+      background: var(--bg2);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    /* ── Wochennavigation ───────────────────────── */
+    .wochennav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .wochennavBtn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 14px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      transition: all 0.15s;
+    }
+    .wochennavBtn:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-pale); }
+    .wochenLabel {
+      font-family: 'Fraunces', serif;
+      font-size: 16px;
+      color: var(--text-dim);
+    }
+    .wochenLabel span { color: var(--amber); font-size: 20px; }
+    .heute-badge {
+      font-size: 10px;
+      background: var(--amber-pale);
+      color: var(--amber);
+      border: 1px solid #e8d090;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    /* ── Warnungen (legacy, leer gelassen) ──────── */
+    .warnungen { padding: 0; }
+    .warnung-item {
+      background: var(--red-bg);
+      border: 1px solid #e8b0b0;
+      color: var(--red);
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Wochenplan Tabelle ─────────────────────── */
+    .table-wrapper {
+      overflow-x: auto;
+      padding: 12px 14px 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 480px; }
+    thead th {
+      padding: 8px 8px;
+      text-align: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid var(--border);
+    }
+    thead th.today-col { color: var(--amber); border-bottom-color: var(--amber); }
+    thead th:first-child { text-align: left; min-width: 95px; }
+    tbody td {
+      padding: 4px 5px;
+      border-bottom: 1px solid #edeae5;
+      vertical-align: middle;
+    }
+    tbody td:first-child {
+      font-weight: 700;
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      padding-left: 2px;
+      white-space: nowrap;
+    }
+    .plan-cell {
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      min-width: 66px;
+      line-height: 1.2;
+      user-select: none;
+    }
+    .plan-cell:active { transform: scale(0.95); }
+    .plan-cell.stammkraft { background: var(--green-bg); color: var(--green); border: 1px solid #b0d8bc; }
+    .plan-cell.kaskade    { background: #fff8e8; color: #7a5200; border: 1px solid #e8d090; }
+    .plan-cell.wolke      { background: var(--blue-bg); color: var(--blue); border: 1px solid #b8d0e8; }
+    .plan-cell.joker      { background: var(--red-bg); color: var(--red); border: 1px solid #e8b0b0; }
+    .plan-cell.gesperrt   { background: #f0ede8; color: #b0a898; font-style: italic; font-weight: 400; border: 1px solid #ddd8d0; }
+    .plan-cell.manuell    { background: #f0eafa; color: #5a2d8a; border: 1px solid #c8a8e8; }
+    .plan-cell .cell-name { display: block; }
+    .plan-cell .cell-sub  { display: block; font-size: 10px; opacity: 0.7; font-weight: 400; }
+
+    /* ── Aktionszentrale ────────────────────────── */
+    #aktionsZentrale {
+      padding: 10px 14px 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Legende ────────────────────────────────── */
+    .legende {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--bg-tools);
+      border-top: 1px solid var(--border);
+    }
+    .legende-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .legende-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 3px;
+    }
+
+    /* ── Werkzeuge-Zone ─────────────────────────── */
+    .werkzeuge-zone {
+      background: var(--bg-tools);
+      margin: 0 12px 16px;
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    /* ── Tabs ───────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 10px 12px 0;
+      background: var(--bg-tools);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      border-radius: 6px 6px 0 0;
+      color: var(--text-dim);
+      padding: 8px 14px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.15s;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+    }
+    .tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.4); }
+    .tab-btn.active {
+      background: var(--bg2);
+      color: var(--text);
+      font-weight: 700;
+      border-bottom: 2px solid var(--amber);
+    }
+
+    /* ── Tab-Inhalte ────────────────────────────── */
+    .tab-content { display: none; padding: 16px; background: var(--bg2); }
+    .tab-content.active { display: block; }
+
+    .section-title {
+      font-family: 'Fraunces', serif;
+      font-size: 16px;
+      color: var(--amber);
+      margin-bottom: 14px;
+    }
+
+    /* ── Formulare ──────────────────────────────── */
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: flex-end;
+      margin-bottom: 14px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 120px;
+    }
+    .form-group label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+    }
+    select, input[type="text"], input[type="date"] {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: var(--radius);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      width: 100%;
+      -webkit-appearance: none;
+      transition: border-color 0.15s;
+    }
+    select:focus, input:focus { outline: none; border-color: var(--amber); }
+
+    .btn {
+      background: var(--amber);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .btn:hover { background: #cc8c12; }
+    .btn-danger {
+      background: none;
+      border: 1px solid var(--red-bright);
+      color: var(--red-bright);
+    }
+    .btn-danger:hover { background: var(--red); color: #ffd0d0; }
+    .btn-secondary {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-secondary:hover { border-color: var(--amber); color: var(--amber); }
+
+    /* ── Listen ─────────────────────────────────── */
+    .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 6px;
+      gap: 10px;
+    }
+    .list-item-info { flex: 1; }
+    .list-item-name { font-weight: 700; font-size: 15px; }
+    .list-item-sub  { font-size: 12px; color: var(--text-dim); }
+
+    /* ── Freie Tage Grid ────────────────────────── */
+    .freitag-grid { display: flex; flex-direction: column; gap: 8px; }
+    .freitag-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+    }
+    .freitag-name { font-weight: 700; min-width: 90px; font-size: 15px; }
+    .freitag-row select { flex: 1; }
+
+    /* ── Konfiguration ──────────────────────────── */
+    .person-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .person-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      cursor: pointer;
+    }
+    .person-card-header:hover { background: var(--bg); }
+    .person-card-body {
+      padding: 12px 14px;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+    .person-card-body.open { display: block; }
+    .person-card-fields { display: flex; flex-direction: column; gap: 10px; }
+    .attr-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .attr-tag {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .attr-tag button {
+      background: none;
+      border: none;
+      color: var(--red-bright);
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0;
+    }
+    .attr-prio { font-size: 10px; color: var(--amber); font-weight: 700; min-width: 10px; }
+
+    /* ── Archiv ─────────────────────────────────── */
+    .archiv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .archiv-table th {
+      padding: 6px 8px; text-align: center;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;
+      color: var(--text-dim); border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    .archiv-table th:first-child { text-align: left; min-width: 80px; }
+    .archiv-table td {
+      padding: 5px 8px; text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .archiv-table td:first-child { font-weight: 700; text-align: left; }
+    .archiv-cell-sa   { background: #fff3d0; color: #8a6000; border-radius: 4px; padding: 2px 6px; font-weight: 700; }
+    .archiv-cell-tag  { background: var(--bg3); color: var(--text-dim); border-radius: 4px; padding: 2px 6px; }
+    .archiv-cell-leer { color: var(--border); }
+    .archiv-kw-header { color: var(--text-dim); font-size: 10px; }
+    .archiv-kw-header.current { color: var(--amber); }
+
+    /* ── Übersicht ───────────────────────────────── */
+    .uebersicht-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .ue-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+    .ue-card-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .ue-name {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      flex: 1;
+    }
+    .ue-rolle {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .ue-rolle.stammkraft { background: var(--green-bg); color: var(--green); border: 1px solid #b0d8bc; }
+    .ue-rolle.wolke      { background: var(--blue-bg); color: var(--blue); border: 1px solid #b8d0e8; }
+    .ue-attr-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .ue-attr {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 13px;
+    }
+    .ue-attr-num {
+      font-size: 10px;
+      color: var(--amber);
+      font-weight: 700;
+    }
+    .ue-footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .ue-tag {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 2px 7px;
+    }
+    .ue-tag.sperr { border-color: var(--red); color: #f08080; }
+
+    /* ── Detail-Modal ───────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 600;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px 12px 0 0;
+      padding: 20px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+    .modal-title {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      color: var(--amber);
+      margin-bottom: 12px;
+    }
+    .modal-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+    }
+    .modal-row:last-child { border-bottom: none; }
+    .modal-label { color: var(--text-dim); }
+    .modal-close {
+      float: right;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 22px;
+      cursor: pointer;
+      margin-top: -4px;
+    }
+
+    /* ── Export/Import ──────────────────────────── */
+    .import-export {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+    #importInput { display: none; }
+
+    .azubi-badge {
+      font-size: 10px;
+      background: var(--blue-bg);
+      color: var(--blue);
+      border: 1px solid #b8d0e8;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-left: 4px;
+    }
+
+    /* ── Print ──────────────────────────────────── */
+    #print-header { display: none; }
+    #print-freitag { display: none; }
+
+    @media print {
+      @page { size: A4 landscape; margin: 10mm 12mm; }
+
+      /* ── Alles ausblenden ── */
+      body { background: white !important; padding: 0 !important; margin: 0 !important; }
+
+      .bos-shell-header, .bos-shell-bottom,
+      .wochennavigation-bar, .legende,
+      .tabs, .tab-content, .modal-overlay,
+      .werkzeuge-zone, #aktionsZentrale,
+      [style*="display:flex;gap:6px;padding:8px 12px"],
+      #workflowBox { display: none !important; }
+
+      .plan-card {
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      /* ── Print-Header ── */
+      #print-header {
+        display: flex !important;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding-bottom: 8px;
+        margin-bottom: 10px;
+        border-bottom: 3px solid #1a1510;
+        page-break-inside: avoid;
+      }
+
+      .print-logo {
+        font-family: 'Fraunces', serif;
+        font-weight: 900;
+        font-size: 22px;
+        letter-spacing: -0.5px;
+        line-height: 1;
+        color: #1a1510;
+      }
+      .print-logo span { color: #b8790a; font-style: italic; }
+      .print-logo-sub {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 8px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #7a6e60;
+        margin-top: 3px;
+      }
+
+      .print-kw {
+        font-family: 'Fraunces', serif;
+        font-size: 36px;
+        font-weight: 900;
+        color: #b8790a;
+        line-height: 1;
+        text-align: center;
+      }
+      .print-kw-sub {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 11px;
+        color: #7a6e60;
+        text-align: center;
+        margin-top: 2px;
+        letter-spacing: 0.5px;
+      }
+
+      .print-meta {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 9px;
+        color: #7a6e60;
+        text-align: right;
+        line-height: 1.8;
+      }
+      .print-meta strong { color: #1a1510; font-size: 10px; }
+
+      /* ── Tabelle ── */
+      .table-wrapper {
+        overflow: visible !important;
+        padding: 0 !important;
+        page-break-inside: avoid;
+      }
+
+      #wochenplanTable {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-family: 'Barlow Condensed', sans-serif !important;
+        page-break-inside: avoid;
+      }
+
+      #wochenplanTable thead th {
+        font-size: 10px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        color: #7a6e60 !important;
+        padding: 4px 8px !important;
+        text-align: center !important;
+        border-bottom: 2px solid #1a1510 !important;
+        background: white !important;
+      }
+      #wochenplanTable thead th:first-child {
+        text-align: left !important;
+        width: 90px !important;
+      }
+      #wochenplanTable thead .date-sub {
+        font-size: 8px !important;
+        color: #aaa !important;
+        letter-spacing: 0 !important;
+      }
+
+      #wochenplanTable tbody tr { page-break-inside: avoid; }
+      #wochenplanTable tbody td {
+        padding: 5px 8px !important;
+        text-align: center !important;
+        border-bottom: 1px solid #e8e4de !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        background: white !important;
+      }
+      #wochenplanTable tbody td:first-child {
+        text-align: left !important;
+        font-size: 8px !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        color: #7a6e60 !important;
+        white-space: nowrap !important;
+        padding-left: 0 !important;
+      }
+
+      /* Trennlinie zwischen Positionen und Sonderzeilen */
+      #wochenplanTable tbody tr.trenn-zeile td {
+        border-top: 2px solid #1a1510 !important;
+        padding-top: 6px !important;
+      }
+
+      /* Plan-Zellen */
+      .plan-cell {
+        background: none !important;
+        border: none !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        display: inline !important;
+        cursor: default !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+      }
+      .plan-cell.stammkraft { color: #2e6b42 !important; font-weight: 800 !important; }
+      .plan-cell.kaskade    { color: #7a5200 !important; }
+      .plan-cell.wolke      { color: #1a3a5e !important; }
+      .plan-cell.joker      { color: #b03030 !important; font-style: italic !important; }
+      .plan-cell.gesperrt   { color: #ccc !important; }
+      .plan-cell.manuell    { color: #5a2d8a !important; }
+      .plan-cell .cell-sub  { display: none !important; }
+
+      /* Frühschicht-Zeile */
+      #wochenplanTable tbody td.fruehschicht-cell {
+        color: #b8790a !important;
+        font-weight: 700 !important;
+      }
+
+      /* FREI-Zeile */
+      #wochenplanTable tbody td.frei-cell {
+        font-size: 10px !important;
+        color: #9b2c2c !important;
+        font-weight: 600 !important;
+      }
+
+      /* AZUBI-Zeile */
+      #wochenplanTable tbody td.azubi-cell {
+        font-size: 10px !important;
+        color: #2a4e7a !important;
+        font-weight: 600 !important;
+      }
+
+      /* ── Print-Footer ── */
+      #print-freitag {
+        display: flex !important;
+        align-items: flex-start;
+        gap: 24px;
+        border-top: 1.5px solid #1a1510;
+        margin-top: 8px;
+        padding-top: 6px;
+        page-break-inside: avoid;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 9px;
+        color: #7a6e60;
+      }
+      #print-freitag .pf-block { flex: 1; }
+      #print-freitag .pf-label {
+        font-size: 7px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #aaa;
+        margin-bottom: 3px;
+      }
+      #print-freitag .pf-legende {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      #print-freitag .pf-leg-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      #print-freitag .pf-dot {
+        width: 8px; height: 8px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+    }

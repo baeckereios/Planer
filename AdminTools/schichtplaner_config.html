@@ -234,9 +234,10 @@
       gap: 4px;
     }
     .attr-tag .prio {
-      font-size: 10px;
+      font-size: 9px;
       color: var(--amber);
       font-weight: 700;
+      letter-spacing: -1px;
     }
     .attr-tag button {
       background: none;
@@ -301,9 +302,10 @@
       gap: 4px;
     }
     .ue-attr-num {
-      font-size: 10px;
+      font-size: 9px;
       color: var(--amber);
       font-weight: 700;
+      letter-spacing: -1px;
     }
     .ue-footer {
       padding: 6px 12px 10px;
@@ -434,13 +436,22 @@
           <input type="text" id="neu-person-name" placeholder="z.B. Klaus">
         </div>
         <div class="form-group">
+          <label>Stammschicht</label>
+          <select id="neu-person-stammschicht">
+            <option value="nacht">Nachtschicht</option>
+            <option value="frueh">Frühschicht</option>
+            <option value="kond">Konditorei</option>
+            <option value="azubi">Azubi</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
           <label>Stammkraft von</label>
           <select id="neu-person-stammkraft">
             <option value="">— Wolke —</option>
           </select>
         </div>
-      </div>
-      <div class="form-row">
         <div class="form-group">
           <label>Wunsch-Freier-Tag</label>
           <select id="neu-person-wunsch">
@@ -453,17 +464,13 @@
             <option value="samstag">Samstag</option>
           </select>
         </div>
-        <div class="form-group" style="justify-content:flex-end">
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding-bottom:8px">
-            <input type="checkbox" id="neu-person-azubi"> Azubi
-          </label>
-        </div>
       </div>
       <button class="btn" onclick="addPerson()">
         <i class="ph ph-plus"></i> Person hinzufügen
       </button>
     </div>
 
+    <!-- 4 Akkordeons nach Stammschicht -->
     <div id="personenListe"></div>
   </div>
 
@@ -494,25 +501,25 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Gesperrt am</label>
+          <label>Aktiv an</label>
           <div style="display:flex;flex-wrap:wrap;gap:8px;padding:8px 0">
             <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
-              <input type="checkbox" class="neu-pos-gesperrt" value="montag"> Mo
+              <input type="checkbox" class="neu-pos-aktiv" value="montag" checked> Mo
             </label>
             <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
-              <input type="checkbox" class="neu-pos-gesperrt" value="dienstag"> Di
+              <input type="checkbox" class="neu-pos-aktiv" value="dienstag" checked> Di
             </label>
             <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
-              <input type="checkbox" class="neu-pos-gesperrt" value="mittwoch"> Mi
+              <input type="checkbox" class="neu-pos-aktiv" value="mittwoch" checked> Mi
             </label>
             <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
-              <input type="checkbox" class="neu-pos-gesperrt" value="donnerstag"> Do
+              <input type="checkbox" class="neu-pos-aktiv" value="donnerstag" checked> Do
             </label>
             <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
-              <input type="checkbox" class="neu-pos-gesperrt" value="freitag"> Fr
+              <input type="checkbox" class="neu-pos-aktiv" value="freitag" checked> Fr
             </label>
             <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
-              <input type="checkbox" class="neu-pos-gesperrt" value="samstag"> Sa
+              <input type="checkbox" class="neu-pos-aktiv" value="samstag" checked> Sa
             </label>
           </div>
         </div>
@@ -592,6 +599,73 @@
       <div class="form-group" style="max-width:280px">
         <label>Joker-Name</label>
         <input type="text" id="jokerName" placeholder="z.B. Heinrich" oninput="saveJoker()">
+      </div>
+    </div>
+
+    <div class="export-block">
+      <h3>Freie-Tage-Algorithmus</h3>
+      <p>Steuert wie der Auto-Verteiler Tage bewertet. Höherer Wert = Tag wird seltener zugeteilt.
+         Samstag und Montag gelten als begehrtere freie Tage.</p>
+
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim);margin-bottom:8px">Tag-Gewichte</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="tagGewichteGrid"></div>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:8px;line-height:1.4">
+          Basisaufschlag auf den Score. <strong>0 = neutral</strong>, höher = wird gemieden.
+          Empfehlung: Mo&nbsp;0.5, Sa&nbsp;1.0 — alle anderen&nbsp;0.
+        </p>
+      </div>
+
+      <div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim);margin-bottom:8px">Wunsch-Gewicht</div>
+        <div style="display:flex;align-items:center;gap:12px;max-width:280px">
+          <input type="number" id="wunschGewichtInput" min="1" max="5" step="0.1"
+            style="width:100px" oninput="saveWunschGewicht(this.value)">
+          <span style="font-size:13px;color:var(--text-dim)">× pro Wunsch-Eintrag in der Historie</span>
+        </div>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:8px;line-height:1.4">
+          Wunsch-freie-Tage zählen in der Historie schwerer als zufällig verteilte.
+          Wer immer denselben Tag per Wunsch bekommt, belegt ihn stärker.
+          <strong>Standard: 1.5</strong>
+        </p>
+      </div>
+
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim);margin-bottom:8px">Wunsch-Bonus</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:380px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.3px">Basis-Stärke</label>
+            <input type="number" id="wunschBasisBonusInput" min="0" max="10" step="0.5"
+              style="width:100%" oninput="saveWunschBasisBonus(this.value)">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <label style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.3px">Abschwächung / Erfüllung</label>
+            <input type="number" id="wunschAbschwInput" min="0" max="3" step="0.1"
+              style="width:100%" oninput="saveWunschAbschwaecher(this.value)">
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:8px;line-height:1.4">
+          <strong>Basis-Stärke</strong> = wie stark der Wunschtag initial bevorzugt wird.
+          <strong>Abschwächung</strong> = wie viel Stärke pro Erfüllung verloren geht.
+          Bei Basis&nbsp;3 und Abschwächung&nbsp;0.5 ist der Bonus nach 6 Erfüllungen aufgebraucht.
+          <strong>Standards: 3 / 0.5</strong>
+        </p>
+      </div>
+
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim);margin-bottom:8px">Frühschicht — freier Tag anheften</div>
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
+          <input type="checkbox" id="fruehschichtAnheftenToggle" style="margin-top:3px;width:18px;height:18px;cursor:pointer"
+            onchange="saveFruehschichtAnheften(this.checked)">
+          <div>
+            <div style="font-size:14px;font-weight:700">Freier Tag direkt an Frühschicht-Block hängen</div>
+            <p style="font-size:12px;color:var(--text-dim);margin-top:4px;line-height:1.4">
+              Wenn aktiv: Person in <strong>Anfang-Block (Mo/Di/Mi)</strong> bekommt bevorzugt <strong>Donnerstag</strong> frei.
+              Person in <strong>Ende-Block (Do/Fr/Sa)</strong> bekommt bevorzugt <strong>Mittwoch</strong> frei.
+              Verlängert die Ruhezeit zwischen Früh- und Nachtschicht.
+            </p>
+          </div>
+        </label>
       </div>
     </div>
 
@@ -699,6 +773,13 @@ function saveToStorage() {
 }
 
 // ── Tabs ────────────────────────────────────────────────
+// Attribut-Rang → Sterne (3 Stufen, unabhängig von Gesamtanzahl)
+function attrSterne(idx) {
+  if (idx === 0) return '★★★';
+  if (idx === 1) return '★★';
+  return '★';
+}
+
 function switchTab(id, btn) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -714,112 +795,148 @@ function switchTab(id, btn) {
 }
 
 // ── Personen ─────────────────────────────────────────────
+const STAMMSCHICHTEN = [
+  { key: 'nacht', label: 'Nachtschicht', icon: 'ph-moon' },
+  { key: 'frueh', label: 'Frühschicht',  icon: 'ph-sun-horizon' },
+  { key: 'kond',  label: 'Konditorei',   icon: 'ph-cake' },
+  { key: 'azubi', label: 'Azubi',        icon: 'ph-student' }
+];
+
+function renderPersonCard(p, idx, positionen) {
+  const stammkraftPos = positionen.find(pp => pp.id === p.stammkraft_von);
+  return `<div class="card" style="margin-bottom:6px">
+    <div class="card-header" onclick="toggleCard('pc',${idx})">
+      <div class="card-header-info">
+        <strong>${p.name}</strong>
+        <div class="sub">${stammkraftPos ? `Stammkraft: ${stammkraftPos.label}` : 'Wolke'} · ${(p.attribute||[]).join(', ') || 'keine Attribute'}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
+        <button class="btn btn-danger" style="padding:5px 10px" onclick="event.stopPropagation();removePerson(${idx})">
+          <i class="ph ph-trash"></i>
+        </button>
+      </div>
+    </div>
+    <div class="card-body" id="pc-${idx}">
+      <div class="card-fields">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" value="${p.name}" onchange="updatePerson(${idx},'name',this.value)">
+        </div>
+        <div class="form-group">
+          <label>Stammschicht</label>
+          <select onchange="updatePerson(${idx},'stammschicht',this.value)">
+            ${STAMMSCHICHTEN.map(s => `<option value="${s.key}" ${p.stammschicht===s.key?'selected':''}>${s.label}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Stammkraft von</label>
+          <select onchange="updatePerson(${idx},'stammkraft_von',this.value)">
+            <option value="">— Wolke —</option>
+            ${positionen.map(pp => `<option value="${pp.id}" ${p.stammkraft_von===pp.id?'selected':''}>${pp.label}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Wunsch-Freier-Tag</label>
+          <select onchange="updatePerson(${idx},'wunschFreierTag',this.value||null)">
+            <option value="">— kein Wunsch —</option>
+            ${['montag','dienstag','mittwoch','donnerstag','freitag','samstag'].map((t,ti) =>
+              `<option value="${t}" ${p.wunschFreierTag===t?'selected':''}>${['Mo','Di','Mi','Do','Fr','Sa'][ti]}</option>`
+            ).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Attribute (Qualifikationen, in Priorität)</label>
+          <div class="attr-tags" id="attrTags-${idx}">
+            ${(p.attribute||[]).map((a,ai) =>
+              `<div class="attr-tag"><span class="prio">${attrSterne(ai)}</span>${a}<button onclick="removeAttr(${idx},${ai})">×</button></div>`
+            ).join('')}
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <select id="newAttr-${idx}" style="flex:1">
+              <option value="">— Attribut hinzufügen —</option>
+              ${[...new Set((config.positionen||[]).map(pp=>pp.attribut))]
+                .filter(a=>!(p.attribute||[]).includes(a))
+                .map(a=>`<option value="${a}">${a}</option>`).join('')}
+              <option value="__custom__">Eigenes eingeben...</option>
+            </select>
+            <button class="btn btn-secondary" onclick="addAttr(${idx})">+</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Sperrtage</label>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;padding:6px 0">
+            ${TAGE_NAMEN_LANG.slice(1).map((t,ti) => `
+              <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
+                <input type="checkbox" ${(p.gesperrt||[]).includes(t)?'checked':''}
+                  onchange="toggleSperrtag(${idx},'${t}',this.checked)">
+                ${TAGE_NAMEN_KURZ[ti+1]}
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderPersonenListe() {
   // Stammkraft-Dropdown für neue Person aktualisieren
   const sel = document.getElementById('neu-person-stammkraft');
-  sel.innerHTML = '<option value="">— Wolke —</option>' +
+  if (sel) sel.innerHTML = '<option value="">— Wolke —</option>' +
     (config.positionen || []).map(p =>
       `<option value="${p.id}">${p.label}</option>`
     ).join('');
 
   const liste = document.getElementById('personenListe');
+  if (!liste) return;
   const positionen = config.positionen || [];
-  liste.innerHTML = (config.personen || []).map((p, idx) => {
-    const stammkraftPos = positionen.find(pp => pp.id === p.stammkraft_von);
-    const azuBadge = p.azubi ? '<span class="azubi-badge">Azubi</span>' : '';
-    const prioAttr = (p.attribute || []).map((a,i) => `<span class="attr-tag"><span class="prio">${i+1}</span>${a}</span>`).join('');
-    return `<div class="card">
-      <div class="card-header" onclick="toggleCard('pc',${idx})">
-        <div class="card-header-info">
-          <strong>${p.name}</strong>${azuBadge}
-          <div class="sub">${stammkraftPos ? `Stammkraft: ${stammkraftPos.label}` : 'Wolke'} · ${(p.attribute||[]).join(', ') || 'keine Attribute'}</div>
-        </div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
-          <button class="btn btn-danger" style="padding:5px 10px" onclick="event.stopPropagation();removePerson(${idx})">
-            <i class="ph ph-trash"></i>
-          </button>
-        </div>
+  const personen   = config.personen   || [];
+
+  // Personen nach Stammschicht gruppieren
+  let html = '';
+  STAMMSCHICHTEN.forEach(gruppe => {
+    const gruppe_personen = personen.filter(p =>
+      gruppe.key === 'azubi'
+        ? (p.azubi || p.stammschicht === 'azubi')
+        : (!p.azubi && (!p.stammschicht || p.stammschicht === gruppe.key))
+    );
+    const anzahl = gruppe_personen.length;
+    html += `<details style="margin-bottom:8px;border:1.5px solid var(--border);border-radius:8px;overflow:hidden">
+      <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-tools);font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--text)">
+        <span><i class="ph ${gruppe.icon}" style="margin-right:8px;color:var(--amber)"></i>${gruppe.label}</span>
+        <span style="font-size:12px;color:var(--text-dim);font-weight:400">${anzahl} Person${anzahl!==1?'en':''}</span>
+      </summary>
+      <div style="padding:10px">
+        ${anzahl === 0
+          ? '<p style="color:var(--text-dim);font-size:13px;padding:4px 0">Keine Personen in dieser Gruppe.</p>'
+          : gruppe_personen.map(p => {
+              const idx = personen.indexOf(p);
+              return renderPersonCard(p, idx, positionen);
+            }).join('')
+        }
       </div>
-      <div class="card-body" id="pc-${idx}">
-        <div class="card-fields">
-          <div class="form-group">
-            <label>Name</label>
-            <input type="text" value="${p.name}" onchange="updatePerson(${idx},'name',this.value)">
-          </div>
-          <div class="form-group">
-            <label>Stammkraft von</label>
-            <select onchange="updatePerson(${idx},'stammkraft_von',this.value)">
-              <option value="">— Wolke —</option>
-              ${positionen.map(pp => `<option value="${pp.id}" ${p.stammkraft_von===pp.id?'selected':''}>${pp.label}</option>`).join('')}
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Wunsch-Freier-Tag</label>
-            <select onchange="updatePerson(${idx},'wunschFreierTag',this.value||null)">
-              <option value="">— kein Wunsch —</option>
-              ${['montag','dienstag','mittwoch','donnerstag','freitag','samstag'].map((t,ti) =>
-                `<option value="${t}" ${p.wunschFreierTag===t?'selected':''}>${['Mo','Di','Mi','Do','Fr','Sa'][ti]}</option>`
-              ).join('')}
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Attribute (Qualifikationen, in Priorität)</label>
-            <div class="attr-tags" id="attrTags-${idx}">
-              ${(p.attribute||[]).map((a,ai) =>
-                `<div class="attr-tag"><span class="prio">${ai+1}</span>${a}<button onclick="removeAttr(${idx},${ai})">×</button></div>`
-              ).join('')}
-            </div>
-            <div style="display:flex;gap:6px;margin-top:6px">
-              <select id="newAttr-${idx}" style="flex:1">
-                <option value="">— Attribut hinzufügen —</option>
-                ${[...new Set((config.positionen||[]).map(pp=>pp.attribut))]
-                  .filter(a=>!(p.attribute||[]).includes(a))
-                  .map(a=>`<option value="${a}">${a}</option>`).join('')}
-                <option value="__custom__">Eigenes eingeben...</option>
-              </select>
-              <button class="btn btn-secondary" onclick="addAttr(${idx})">+</button>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Sperrtage</label>
-            <div style="display:flex;flex-wrap:wrap;gap:8px;padding:6px 0">
-              ${TAGE_NAMEN_LANG.slice(1).map((t,ti) => `
-                <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
-                  <input type="checkbox" ${(p.gesperrt||[]).includes(t)?'checked':''}
-                    onchange="toggleSperrtag(${idx},'${t}',this.checked)">
-                  ${TAGE_NAMEN_KURZ[ti+1]}
-                </label>
-              `).join('')}
-            </div>
-          </div>
-          <div class="form-group">
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
-              <input type="checkbox" ${p.azubi?'checked':''}
-                onchange="updatePerson(${idx},'azubi',this.checked)">
-              Azubi (wird zuletzt eingeplant, darf kein Versand)
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+    </details>`;
+  });
+  liste.innerHTML = html;
 }
+
 
 function addPerson() {
   const name = document.getElementById('neu-person-name').value.trim();
   if (!name) { alert('Bitte Name eingeben.'); return; }
   const id = name.toLowerCase().replace(/[^a-z0-9]/g,'_') + '_' + Date.now();
+  const stammschicht = document.getElementById('neu-person-stammschicht')?.value || 'nacht';
   config.personen.push({
     id, name,
+    stammschicht,
     stammkraft_von: document.getElementById('neu-person-stammkraft').value || null,
     wunschFreierTag: document.getElementById('neu-person-wunsch').value || null,
     attribute: [],
     gesperrt: [],
-    azubi: document.getElementById('neu-person-azubi').checked
+    azubi: stammschicht === 'azubi'
   });
   document.getElementById('neu-person-name').value = '';
-  document.getElementById('neu-person-azubi').checked = false;
   saveToStorage();
   renderPersonenListe();
 }
@@ -877,9 +994,12 @@ function renderPositionenListe() {
   const liste = document.getElementById('positionenListe');
   const prioLabel = ['','Kritisch','Mittel','Joker-OK'];
   liste.innerHTML = (config.positionen || []).map((pos, idx) => {
-    const gesperrtStr = (pos.gesperrtAm||[]).length > 0
-      ? (pos.gesperrtAm||[]).map(t=>t.substring(0,2).toUpperCase()).join(', ')
-      : 'immer aktiv';
+    const alleTage = ['montag','dienstag','mittwoch','donnerstag','freitag','samstag'];
+    const gesperrt = pos.gesperrtAm || [];
+    const aktivTage = alleTage.filter(t => !gesperrt.includes(t));
+    const aktivStr = gesperrt.length === 0
+      ? 'immer aktiv'
+      : 'Aktiv: ' + aktivTage.map(t => t.substring(0,2).toUpperCase()).join(', ');
     return `<div class="card">
       <div class="card-header" onclick="toggleCard('posc',${idx})">
         <div class="card-header-info">
@@ -887,7 +1007,7 @@ function renderPositionenListe() {
             <strong>${pos.label}</strong>
             <span class="prio-badge prio-${pos.prioritaet||2}">${prioLabel[pos.prioritaet||2]}</span>
           </div>
-          <div class="sub">Attribut: <code>${pos.attribut}</code> · ${gesperrtStr}</div>
+          <div class="sub">Attribut: <code>${pos.attribut}</code> · ${aktivStr}</div>
         </div>
         <div style="display:flex;gap:6px;align-items:center">
           <i class="ph ph-caret-down" style="color:var(--text-dim)"></i>
@@ -917,11 +1037,11 @@ function renderPositionenListe() {
             </select>
           </div>
           <div class="form-group">
-            <label>Gesperrt am</label>
+            <label>Aktiv an</label>
             <div style="display:flex;flex-wrap:wrap;gap:8px;padding:6px 0">
               ${TAGE_NAMEN_LANG.slice(1).map((t,ti) => `
                 <label style="display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer">
-                  <input type="checkbox" ${(pos.gesperrtAm||[]).includes(t)?'checked':''}
+                  <input type="checkbox" ${!(pos.gesperrtAm||[]).includes(t)?'checked':''}
                     onchange="togglePosGesperrt(${idx},'${t}',this.checked)">
                   ${TAGE_NAMEN_KURZ[ti+1]}
                 </label>
@@ -939,12 +1059,14 @@ function addPosition() {
   const attribut = document.getElementById('neu-pos-attribut').value.trim().toLowerCase().replace(/\s+/g,'_');
   if (!label || !attribut) { alert('Bitte Bezeichnung und Attribut eingeben.'); return; }
   const prio = parseInt(document.getElementById('neu-pos-prio').value);
-  const gesperrtAm = [...document.querySelectorAll('.neu-pos-gesperrt:checked')].map(cb=>cb.value);
+  const alleTage = ['montag','dienstag','mittwoch','donnerstag','freitag','samstag'];
+  const aktivAm = [...document.querySelectorAll('.neu-pos-aktiv:checked')].map(cb=>cb.value);
+  const gesperrtAm = alleTage.filter(t => !aktivAm.includes(t));
   const id = attribut + '_' + Date.now();
   config.positionen.push({ id, label, attribut, gesperrtAm, prioritaet: prio });
   document.getElementById('neu-pos-label').value = '';
   document.getElementById('neu-pos-attribut').value = '';
-  document.querySelectorAll('.neu-pos-gesperrt').forEach(cb => cb.checked = false);
+  document.querySelectorAll('.neu-pos-aktiv').forEach(cb => cb.checked = true);
   saveToStorage();
   renderPositionenListe();
 }
@@ -956,8 +1078,13 @@ function updatePosition(idx, field, value) {
 
 function togglePosGesperrt(idx, tag, checked) {
   if (!config.positionen[idx].gesperrtAm) config.positionen[idx].gesperrtAm = [];
-  if (checked) { if (!config.positionen[idx].gesperrtAm.includes(tag)) config.positionen[idx].gesperrtAm.push(tag); }
-  else { config.positionen[idx].gesperrtAm = config.positionen[idx].gesperrtAm.filter(t=>t!==tag); }
+  // checked = aktiv = NICHT gesperrt → aus gesperrtAm entfernen
+  // unchecked = inaktiv = gesperrt → zu gesperrtAm hinzufügen
+  if (checked) {
+    config.positionen[idx].gesperrtAm = config.positionen[idx].gesperrtAm.filter(t => t !== tag);
+  } else {
+    if (!config.positionen[idx].gesperrtAm.includes(tag)) config.positionen[idx].gesperrtAm.push(tag);
+  }
   saveToStorage();
 }
 
@@ -1197,6 +1324,43 @@ function removeUrlaub(personId, idx) {
 function renderEinstellungen() {
   document.getElementById('jokerName').value = config.joker || '';
 
+  // Tag-Gewichte
+  const gewichte = config.tagGewichte || {};
+  const tage = [
+    { id: 'montag',     kurz: 'Mo' },
+    { id: 'dienstag',   kurz: 'Di' },
+    { id: 'mittwoch',   kurz: 'Mi' },
+    { id: 'donnerstag', kurz: 'Do' },
+    { id: 'freitag',    kurz: 'Fr' },
+    { id: 'samstag',    kurz: 'Sa' },
+  ];
+  const grid = document.getElementById('tagGewichteGrid');
+  if (grid) {
+    grid.innerHTML = tage.map(t => `
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <label style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim)">${t.kurz}</label>
+        <input type="number" min="0" max="5" step="0.5"
+          style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg2);font-family:'Barlow Condensed',sans-serif;font-size:15px"
+          value="${gewichte[t.id] ?? 0}"
+          oninput="saveTagGewicht('${t.id}', this.value)">
+      </div>
+    `).join('');
+  }
+
+  // Wunsch-Gewicht
+  const wg = document.getElementById('wunschGewichtInput');
+  if (wg) wg.value = config.wunschGewicht !== undefined ? config.wunschGewicht : 1.5;
+
+  // Wunsch-Bonus
+  const wb = document.getElementById('wunschBasisBonusInput');
+  if (wb) wb.value = config.wunschBasisBonus !== undefined ? config.wunschBasisBonus : 3;
+  const wa = document.getElementById('wunschAbschwInput');
+  if (wa) wa.value = config.wunschAbschwaecher !== undefined ? config.wunschAbschwaecher : 0.5;
+
+  // Frühschicht-Anheften Toggle
+  const anheftenToggle = document.getElementById('fruehschichtAnheftenToggle');
+  if (anheftenToggle) anheftenToggle.checked = config.fruehschichtFreitagAnheften !== false;
+
   // Azubi-Sperren
   const sperren = config.azubiGesperrteAttribute || ['versand'];
   const liste = document.getElementById('azubiSperrenListe');
@@ -1238,6 +1402,32 @@ function removeAzubiSperre(attr) {
   renderEinstellungen();
 }
 
+function saveTagGewicht(tag, val) {
+  if (!config.tagGewichte) config.tagGewichte = {};
+  config.tagGewichte[tag] = parseFloat(val) || 0;
+  saveToStorage();
+}
+
+function saveFruehschichtAnheften(val) {
+  config.fruehschichtFreitagAnheften = !!val;
+  saveToStorage();
+}
+
+function saveWunschBasisBonus(val) {
+  config.wunschBasisBonus = parseFloat(val) ?? 3;
+  saveToStorage();
+}
+
+function saveWunschAbschwaecher(val) {
+  config.wunschAbschwaecher = parseFloat(val) ?? 0.5;
+  saveToStorage();
+}
+
+function saveWunschGewicht(val) {
+  config.wunschGewicht = parseFloat(val) || 1.5;
+  saveToStorage();
+}
+
 function saveJoker() {
   config.joker = document.getElementById('jokerName').value;
   saveToStorage();
@@ -1259,7 +1449,7 @@ function renderUebersicht() {
         : `<span class="ue-rolle wolke">Wolke</span>`;
       const azubiBadge = p.azubi ? '<span class="azubi-badge">Azubi</span>' : '';
       const attrPills = (p.attribute||[]).map((a,i) =>
-        `<div class="ue-attr"><span class="ue-attr-num">${i+1}</span>${a}</div>`
+        `<div class="ue-attr"><span class="ue-attr-num">${attrSterne(i)}</span>${a}</div>`
       ).join('');
       const tags = [];
       if ((p.gesperrt||[]).length > 0) {
@@ -1325,7 +1515,12 @@ function exportConfig() {
     joker: config.joker,
     azubiGesperrteAttribute: config.azubiGesperrteAttribute,
     urlaub: config.urlaub || {},
-    fruehschichtEinsaetze: config.fruehschichtEinsaetze || []
+    fruehschichtEinsaetze: config.fruehschichtEinsaetze || [],
+    tagGewichte: config.tagGewichte || { montag:0, dienstag:0, mittwoch:0, donnerstag:0, freitag:0, samstag:0 },
+    wunschGewicht: config.wunschGewicht !== undefined ? config.wunschGewicht : 1.5,
+    wunschBasisBonus: config.wunschBasisBonus !== undefined ? config.wunschBasisBonus : 3,
+    wunschAbschwaecher: config.wunschAbschwaecher !== undefined ? config.wunschAbschwaecher : 0.5,
+    fruehschichtFreitagAnheften: config.fruehschichtFreitagAnheften !== false
   };
   const blob = new Blob([JSON.stringify(exp, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
@@ -1347,6 +1542,11 @@ function importConfig(event) {
       if (imp.azubiGesperrteAttribute) config.azubiGesperrteAttribute = imp.azubiGesperrteAttribute;
       if (imp.urlaub) config.urlaub = imp.urlaub;
       if (imp.fruehschichtEinsaetze) config.fruehschichtEinsaetze = imp.fruehschichtEinsaetze;
+      if (imp.tagGewichte) config.tagGewichte = imp.tagGewichte;
+      if (imp.wunschGewicht !== undefined) config.wunschGewicht = imp.wunschGewicht;
+      if (imp.wunschBasisBonus !== undefined) config.wunschBasisBonus = imp.wunschBasisBonus;
+      if (imp.wunschAbschwaecher !== undefined) config.wunschAbschwaecher = imp.wunschAbschwaecher;
+      if (imp.fruehschichtFreitagAnheften !== undefined) config.fruehschichtFreitagAnheften = imp.fruehschichtFreitagAnheften;
       saveToStorage();
       renderPersonenListe();
       renderPositionenListe();

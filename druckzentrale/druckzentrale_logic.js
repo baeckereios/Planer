@@ -30,10 +30,9 @@ function DZ_getStock(prodId) {
     var key = legacyKey || prodId;
     if (inv.products && inv.products[key]) {
         var p = inv.products[key];
-        if (p.ts && p.ts > 0) {
-            return p.stock || (p.locs ? p.locs.reduce(function(a, b) { return a + b; }, 0) : 0);
-        }
-        return null;
+        return p.stock !== undefined
+            ? p.stock
+            : (p.locs ? p.locs.reduce(function(a, b) { return a + b; }, 0) : 0);
     }
     if (inv.stocks && inv.stocks[key] !== undefined) return inv.stocks[key];
     return null;
@@ -156,60 +155,6 @@ function DZ_renderFroster() {
         html += '</div>';
     });
 
-    el.innerHTML = html;
-}
-
-// ── RENDER: WOCHENZIELE (2 ZIELTAGE MIT EINHEITEN) ───────────────────
-
-function DZ_renderWochenziele(zielDate1, zielDate2) {
-    var el = document.getElementById('wochenziele-content');
-    if (!el) return;
-    if (!window.BOS_STAMMDATEN) {
-        el.innerHTML = '<div class="dz-loading">Daten werden geladen…</div>';
-        return;
-    }
-
-    var groups = {}, order = [];
-    for (var k in window.BOS_STAMMDATEN) {
-        var p = window.BOS_STAMMDATEN[k];
-        if (!DZ_invRelevant.has(p.legacyKey)) continue;
-        var st = p.station || 'Sonstige';
-        if (!groups[st]) { groups[st] = []; order.push(st); }
-        groups[st].push(k);
-    }
-
-    var zielStr1 = zielDate1 ? (DZ_pad(zielDate1.getDate()) + '.' + DZ_pad(zielDate1.getMonth() + 1) + '.') : '?';
-    var zielStr2 = zielDate2 ? (DZ_pad(zielDate2.getDate()) + '.' + DZ_pad(zielDate2.getMonth() + 1) + '.') : '?';
-
-    var html = '<div class="wz-title">WOCHENZIELE</div>' +
-               '<table class="wz-table"><thead><tr>' +
-               '<th>Produkt</th>' +
-               '<th class="r">Bedarf bis ' + zielStr1 + '</th>' +
-               '<th class="r">Bedarf bis ' + zielStr2 + '</th>' +
-               '</tr></thead>';
-
-    order.forEach(function(st) {
-        html += '<tbody>';
-        html += '<tr class="wz-st"><td colspan="3">' + st + '</td></tr>';
-        groups[st].forEach(function(k) {
-            var p       = window.BOS_STAMMDATEN[k];
-            var einheit = DZ_getEinheit(p);
-            var need1   = zielDate1 ? DZ_calcNeed(k, zielDate1) : 0;
-            var need2   = zielDate2 ? DZ_calcNeed(k, zielDate2) : 0;
-            
-            var txt1 = need1 > 0 ? need1 + ' ' + einheit : '—';
-            var txt2 = need2 > 0 ? need2 + ' ' + einheit : '—';
-            
-            html += '<tr class="wz-row">' +
-                    '<td>' + p.name + '</td>' +
-                    '<td class="r">' + txt1 + '</td>' +
-                    '<td class="r">' + txt2 + '</td>' +
-                    '</tr>';
-        });
-        html += '</tbody>';
-    });
-
-    html += '</table>';
     el.innerHTML = html;
 }
 
