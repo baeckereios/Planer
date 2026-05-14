@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BäckereiOS – Schablone</title>
+<style>
+  /* ── FONTS ── */
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap');
+
+  /* ── VARIABLES ── */
+  :root {
+    --bg:       #f0ece4;
+    --surface:  #faf8f4;
+    --border:   #c8c0b0;
+    --border2:  #e0d8cc;
+    --ink:      #1a1410;
+    --ink2:     #5a5040;
+    --accent:   #c0392b;
+    --accent2:  #2980b9;
+    --row-alt:  #f5f1ea;
+    --header-bg:#1a1410;
+    --header-fg:#faf8f4;
+    --tag-bg:   #e8e0d0;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  /* ── RESET ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+  }
+
+  /* ── SCREEN UI ── */
+  .ui-bar {
+    background: var(--header-bg);
+    color: var(--header-fg);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .ui-bar h1 {
+    font-family: var(--mono);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    flex: 1;
+  }
+  .ui-bar h1 span { color: #e5a000; }
+  .btn {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 7px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-print  { background: #e5a000; color: #1a1410; }
+  .btn-reload { background: #2980b9; color: #fff; }
+
+  .settings-panel {
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-end;
+  }
+  .settings-panel label { font-size: 0.78rem; font-weight: 600; color: var(--ink2); display: block; margin-bottom: 4px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .settings-panel select, .settings-panel input[type=number] {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 4px;
+    color: var(--ink);
+  }
+  .day-checks { display: flex; gap: 6px; }
+  .day-checks label {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    text-transform: none;
+    transition: background 0.15s;
+    letter-spacing: 0;
+  }
+  .day-checks label:has(input:checked) { background: var(--header-bg); color: #e5a000; border-color: var(--header-bg); }
+  .day-checks input { display: none; }
+
+  .status-bar {
+    background: #fff8e8;
+    border-bottom: 1px solid #e5d090;
+    padding: 6px 20px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink2);
+  }
+
+  /* ── TABLE CONTAINER ── */
+  .table-wrap {
+    padding: 20px;
+    overflow-x: auto;
+  }
+
+  /* ── DOCUMENT HEADER (visible + printed) ── */
+  .doc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 3px solid var(--ink);
+  }
+  .doc-title {
+    font-family: var(--mono);
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+  }
+  .doc-title small { font-size: 0.65rem; font-weight: 400; color: var(--ink2); display: block; letter-spacing: 0.08em; margin-bottom: 2px; }
+  .doc-meta {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--ink2);
+    text-align: right;
+    line-height: 1.6;
+  }
+  .doc-meta strong { color: var(--ink); }
+
+  /* ── MAIN TABLE ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+  }
+  thead tr th {
+    background: var(--header-bg);
+    color: var(--header-fg);
+    padding: 7px 8px;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    font-size: 0.72rem;
+    border: 1px solid #444;
+    white-space: nowrap;
+  }
+  thead tr th.col-name {
+    text-align: left;
+    min-width: 200px;
+  }
+  thead tr th.col-charge { min-width: 55px; }
+  thead tr th.col-day    { min-width: 65px; background: #2c2c2c; }
+  thead tr th.col-ist    { min-width: 65px; background: #1a3a1a; color: #8fdb8f; }
+  thead tr th.col-diff   { min-width: 55px; background: #1a1a3a; color: #8f9fdb; }
+
+  /* Sub-header row */
+  .sub-header th {
+    background: #333 !important;
+    color: #bbb !important;
+    font-size: 0.62rem !important;
+    padding: 3px 8px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.03em !important;
+    border-top: none !important;
+  }
+  .sub-header th.col-ist { background: #1e3e1e !important; color: #6db86d !important; }
+  .sub-header th.col-diff { background: #1e1e3e !important; color: #6d7db8 !important; }
+
+  /* Kategorie rows */
+  tr.kat-row td {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    font-size: 0.68rem;
+    padding: 4px 10px;
+    text-transform: uppercase;
+    border: 1px solid #a02010;
+    font-family: var(--sans);
+  }
+
+  /* Data rows */
+  tbody tr.data-row td {
+    padding: 5px 8px;
+    border: 1px solid var(--border2);
+    vertical-align: middle;
+    color: var(--ink);
+  }
+  tbody tr.data-row:nth-child(even) td { background: var(--row-alt); }
+  tbody tr.data-row:nth-child(odd)  td { background: var(--surface); }
+
+  td.col-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: var(--sans);
+    white-space: nowrap;
+  }
+  td.col-name .artnr { font-size: 0.6rem; color: var(--ink2); font-family: var(--mono); font-weight: 400; display: block; }
+
+  td.col-charge {
+    text-align: center;
+    color: var(--ink2);
+    font-size: 0.72rem;
+  }
+
+  td.col-day {
+    text-align: center;
+    position: relative;
+  }
+  td.col-day .bleche { font-size: 0.88rem; font-weight: 700; }
+  td.col-day .stueck { font-size: 0.6rem; color: var(--ink2); display: block; }
+  td.col-day.no-data { color: #bbb; font-size: 0.7rem; }
+  td.col-day.today-col { background: #fff8e0 !important; }
+  td.col-day.today-col .bleche { color: #c07800; }
+
+  td.col-ist {
+    background: #f0f8f0 !important;
+    border: 1px solid #a8d8a8 !important;
+    text-align: center;
+  }
+  td.col-diff {
+    background: #f0f0f8 !important;
+    border: 1px solid #a8a8d8 !important;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.68rem;
+  }
+
+  /* ── LOADING / ERROR STATE ── */
+  .msg {
+    text-align: center;
+    padding: 60px 20px;
+    font-family: var(--mono);
+    color: var(--ink2);
+  }
+  .msg.error { color: var(--accent); }
+
+  /* ── PRINT ── */
+  @media print {
+    @page { size: A4 landscape; margin: 8mm 6mm; }
+
+    .ui-bar, .settings-panel, .status-bar { display: none !important; }
+
+    body { background: #fff; font-size: 9pt; }
+
+    .table-wrap { padding: 0; overflow: visible; }
+
+    .doc-title { font-size: 12pt; }
+    .doc-meta   { font-size: 7pt; }
+
+    table { font-size: 7.5pt; page-break-inside: auto; }
+    tr { page-break-inside: avoid; }
+
+    thead th { background: #111 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 4px 5px !important; font-size: 6.5pt !important; }
+    thead th.col-day   { background: #2c2c2c !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    thead th.col-ist   { background: #1a3a1a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    thead th.col-diff  { background: #1a1a3a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sub-header th     { background: #333 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 2px 5px !important; }
+    .sub-header th.col-ist  { background: #1e3e1e !important; }
+    .sub-header th.col-diff { background: #1e1e3e !important; }
+
+    tr.kat-row td { background: #c0392b !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 3px 6px !important; }
+
+    tbody tr.data-row td { padding: 3px 5px !important; border: 0.5pt solid #ccc !important; }
+    tbody tr.data-row:nth-child(even) td { background: #f5f5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    td.col-ist  { background: #eef8ee !important; border-color: #aad8aa !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    td.col-diff { background: #eeeef8 !important; border-color: #aaaad8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    td.col-day.today-col { background: #fff8dc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    td.col-day .stueck { font-size: 5.5pt; }
+    td.col-day .bleche { font-size: 8pt; }
+    td.col-name { font-size: 7.5pt; }
+    td.col-name .artnr { font-size: 5.5pt; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── SCREEN UI BAR ── -->
+<div class="ui-bar" id="ui-bar">
+  <h1>🥖 <span>BÄCKEREI</span>OS — Schablone</h1>
+  <button class="btn btn-reload" onclick="laden()">↺ Neu laden</button>
+  <button class="btn btn-print"  onclick="window.print()">🖨 Drucken</button>
+</div>
+
+<!-- ── SETTINGS PANEL ── -->
+<div class="settings-panel" id="settings-panel">
+  <div>
+    <label>Zeitraum (Tage zurück)</label>
+    <select id="sel-zeitraum" onchange="rendern()">
+      <option value="14">14 Tage</option>
+      <option value="28" selected>28 Tage (4 Wo)</option>
+      <option value="56">56 Tage (8 Wo)</option>
+      <option value="84">84 Tage (12 Wo)</option>
+      <option value="9999">Alle Daten</option>
+    </select>
+  </div>
+  <div>
+    <label>Angezeigte Wochentage</label>
+    <div class="day-checks">
+      <label><input type="checkbox" id="c-mo" value="1" checked onchange="rendern()"> Mo</label>
+      <label><input type="checkbox" id="c-di" value="2" checked onchange="rendern()"> Di</label>
+      <label><input type="checkbox" id="c-mi" value="3" checked onchange="rendern()"> Mi</label>
+      <label><input type="checkbox" id="c-do" value="4" checked onchange="rendern()"> Do</label>
+      <label><input type="checkbox" id="c-fr" value="5" checked onchange="rendern()"> Fr</label>
+      <label><input type="checkbox" id="c-sa" value="6"           onchange="rendern()"> Sa</label>
+      <label><input type="checkbox" id="c-so" value="0"           onchange="rendern()"> So</label>
+    </div>
+  </div>
+  <div>
+    <label>Heute hervorheben</label>
+    <select id="sel-heute" onchange="rendern()">
+      <option value="-1">— keinen —</option>
+      <option value="1">Mo</option>
+      <option value="2">Di</option>
+      <option value="3">Mi</option>
+      <option value="4" selected>Do</option>
+      <option value="5">Fr</option>
+      <option value="6">Sa</option>
+      <option value="0">So</option>
+    </select>
+  </div>
+</div>
+
+<!-- ── STATUS BAR ── -->
+<div class="status-bar" id="status-bar">Lade Datenbank…</div>
+
+<!-- ── CONTENT ── -->
+<div class="table-wrap" id="table-wrap">
+  <div class="msg" id="msg">Lade Daten…</div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// KONFIGURATION
+// ─────────────────────────────────────────────────────────────
+
+// Kategorien und Produkt-Reihenfolge — abgeleitet aus dem Backzettel-Foto + neuer JSON
+const PRODUKT_CONFIG = [
+  { kat: "Brot",    name: "Korbgerster 1250g",              charge: 1  },
+  { kat: "Brot",    name: "Korbgerster 750g",               charge: 1  },
+  { kat: "Brot",    name: "Gersterbrot 1250g",              charge: 1  },
+  { kat: "Brot",    name: "Bergsteiger 750g",               charge: 1  },
+  { kat: "Brot",    name: "Findling 500g",                  charge: 1  },
+  { kat: "Brot",    name: "Findling 250g",                  charge: 1  },
+  { kat: "Brot",    name: "Erntebrot 750g",                 charge: 1  },
+  { kat: "Brot",    name: "Vollkornbrot 750g",              charge: 1  },
+  { kat: "Brot",    name: "Dinkel-Gerster 750g",            charge: 1  },
+  { kat: "Brot",    name: "Kamut-Kruste",                   charge: 1  },
+  { kat: "Brot",    name: "Krosses Herri 750g Bierbrot",    charge: 1  },
+  { kat: "Brot",    name: "Stangen Gesamt",                 charge: 6  },
+  { kat: "Brot",    name: "Baguettestange Teig (3)",        charge: 3  },
+  { kat: "Brot",    name: "Zwiebelstange",                  charge: 6  },
+  { kat: "Brot",    name: "Zwiebelstange Teig",             charge: 3  },
+  { kat: "Brot",    name: "Kastenweißbrot 450g",            charge: 1  },
+  { kat: "Brot",    name: "L'amourette 250g",               charge: 1  },
+  { kat: "Brötchen", name: "Schrippen GESAMT",              charge: 28 },
+  { kat: "Brötchen", name: "Schrippen Teiglinge",           charge: 28 },
+  { kat: "Brötchen", name: "Schrippen Teiglinge gefroren",  charge: 28 },
+  { kat: "Brötchen", name: "Hasenberger",                   charge: 20 },
+  { kat: "Brötchen", name: "Käsebrötchen",                  charge: 16 },
+  { kat: "Brötchen", name: "Kornknacker",                   charge: 25 },
+  { kat: "Brötchen", name: "Dinkel-Zwerg süß",              charge: 25 },
+  { kat: "Brötchen", name: "Laugenstangen",                 charge: 18 },
+  { kat: "Brötchen", name: "Laugenecken GESAMT",            charge: 15 },
+  { kat: "Süßes",   name: "Rosinen-Hedwig",                 charge: 20 },
+  { kat: "Süßes",   name: "Hasenpfötchen",                  charge: 20 },
+  { kat: "Süßes",   name: "Rosinen-Batzen",                 charge: 12 },
+  { kat: "Süßes",   name: "Schoko-Batzen",                  charge: 12 },
+  { kat: "Süßes",   name: "Zimt-Wölkchen",                  charge: 14 },
+  { kat: "Süßes",   name: "Butter-Croissant",               charge: 16 },
+  { kat: "Süßes",   name: "Schoko-Croissant",               charge: 20 },
+  { kat: "Süßes",   name: "Mini-Croissant",                 charge: 30 },
+  { kat: "Süßes",   name: "Mini-Schoko-Croissant",          charge: 30 },
+  { kat: "Konditorei", name: "Käsekuchen",                  charge: 1  },
+  { kat: "Konditorei", name: "Oma Herta's Zuckerkuchen Stück 1/6", charge: 6 },
+  { kat: "Konditorei", name: "Streuselkuchen Stück 1/6",    charge: 6  },
+  { kat: "Konditorei", name: "Dinkel-Apfelkuchen",          charge: 1  },
+  { kat: "Konditorei", name: "Dinkel-Rüblikuchen",          charge: 1  },
+  { kat: "Konditorei", name: "Schnecken",                   charge: 12 },
+  { kat: "Konditorei", name: "Amis",                        charge: 12 },
+  { kat: "Konditorei", name: "Plunderstreifen",             charge: 16 },
+  { kat: "Konditorei", name: "Puddingbrezel",               charge: 16 },
+  { kat: "Konditorei", name: "Käse.Mohn.To. geb. Stü",     charge: 12 },
+  { kat: "Konditorei", name: "Donuts",                      charge: 24 },
+  { kat: "Konditorei", name: "Quarkinis",                   charge: 24 },
+  { kat: "Konditorei", name: "Krapfen GESAMT",              charge: 24 },
+  { kat: "Konditorei", name: "Schlawiner GESAMT",           charge: 48 },
+  { kat: "Konditorei", name: "Veganer Himbeerkuchen",       charge: 1  },
+  { kat: "Konditorei", name: "Carrot Cheesecake (nur Henri)", charge: 1 },
+];
+
+// Legacy-Mapping: alte snake_case-Keys → neuer Klartext
+const LEGACY = {
+  "baguettestange_teig_stueck":  "Baguettestange Teig (3)",
+  "dinkel_gerster_750g_stueck":  "Dinkel-Gerster 750g",
+  "eiszapfen_stueck":            "Eiszapfen",
+  "findling_500g_stueck":        "Findling 500g",
+  "gersterbrot_1250g_stueck":    "Gersterbrot 1250g",
+  "hasenberger_stueck":          "Hasenberger",
+  "hasenpfoetchen_stueck":       "Hasenpfötchen",
+  "kaesebroetchen_stueck":       "Käsebrötchen",
+  "kaesekuchen_stueck":          "Käsekuchen",
+  "korbgerster_1250g_stueck":    "Korbgerster 1250g",
+  "kornknacker_stueck":          "Kornknacker",
+  "laugenstangen_stueck":        "Laugenstangen",
+  "oma_hertas_stueck":           "Oma Herta's Zuckerkuchen Stück 1/6",
+  "plunderstreifen_stueck":      "Plunderstreifen",
+  "puddingbrezel_stueck":        "Puddingbrezel",
+  "rosinen_batzen_stueck":       "Rosinen-Batzen",
+  "rosinen_hedwig_stueck":       "Rosinen-Hedwig",
+  "schlawiner_gesamt_stueck":    "Schlawiner GESAMT",
+  "schoko_batzen_stueck":        "Schoko-Batzen",
+  "schwarzbrot_750g_stueck":     "Schwarzbrot 750g",
+  "stangen_gesamt_stueck":       "Stangen Gesamt",
+  "streuselkuchen_stueck":       "Streuselkuchen Stück 1/6",
+  "zwiebelstange_stueck":        "Zwiebelstange",
+  "zwiebelstange_teig_stueck":   "Zwiebelstange Teig",
+};
+
+const DAY_NAMES  = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+const DAY_IDS    = ["c-so","c-mo","c-di","c-mi","c-do","c-fr","c-sa"];
+
+// ─────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────
+let DB = null;  // raw JSON array
+
+// ─────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────
+async function laden() {
+  document.getElementById('msg').textContent = 'Lade Datenbank…';
+  document.getElementById('msg').style.display = 'block';
+  document.getElementById('table-wrap').innerHTML = '<div class="msg" id="msg">Lade Datenbank…</div>';
+  document.getElementById('status-bar').textContent = 'Lade…';
+
+  // Auto-set "Heute" selector
+  const todayWd = new Date().getDay(); // 0=So..6=Sa
+  document.getElementById('sel-heute').value = todayWd;
+
+  try {
+    const resp = await fetch('../backmengen_db.json', { cache: 'no-store' });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    DB = await resp.json();
+    document.getElementById('status-bar').textContent =
+      `✓ Datenbank geladen — ${DB.length} Einträge, ${DB[0]?.datum} bis ${DB[DB.length-1]?.datum}`;
+    rendern();
+  } catch(e) {
+    document.getElementById('table-wrap').innerHTML =
+      `<div class="msg error">❌ Fehler beim Laden: ${e.message}<br><small>Prüfe ob backmengen_db.json im Stammordner liegt.</small></div>`;
+    document.getElementById('status-bar').textContent = `Fehler: ${e.message}`;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// NORMALISIERUNG
+// ─────────────────────────────────────────────────────────────
+function normalKey(raw) {
+  if (raw.endsWith('_bleche')) return null;
+  if (LEGACY[raw]) return LEGACY[raw];
+  if (raw.endsWith('_stueck')) return null; // unbekannte alte Keys ignorieren
+  return raw;
+}
+
+// ─────────────────────────────────────────────────────────────
+// BERECHNUNG: Pro Produkt, pro Wochentag → Ø Bleche + Ø Stück
+// ─────────────────────────────────────────────────────────────
+function berechnen(tageLimit) {
+  // result[produktName][wochentag] = { stueckWerte: [] }
+  const result = {};
+  PRODUKT_CONFIG.forEach(p => {
+    result[p.name] = {};
+    for (let wd = 0; wd < 7; wd++) result[p.name][wd] = [];
+  });
+
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  const cutoff = new Date(today.getTime() - tageLimit * 24 * 60 * 60 * 1000);
+
+  DB.forEach(entry => {
+    const d = new Date(entry.datum + 'T12:00:00');
+    if (d < cutoff || d > today) return;
+
+    // JS: 0=So, 1=Mo … 6=Sa
+    const wd = d.getDay();
+
+    for (const [raw, val] of Object.entries(entry.produkte)) {
+      const key = normalKey(raw);
+      if (!key || !result[key]) continue;
+      const n = parseInt(val);
+      if (!isNaN(n) && n > 0) result[key][wd].push(n);
+    }
+  });
+
+  return result;
+}
+
+// ─────────────────────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────────────────────
+function rendern() {
+  if (!DB) return;
+
+  const tage   = parseInt(document.getElementById('sel-zeitraum').value) || 28;
+  const heute  = parseInt(document.getElementById('sel-heute').value);
+
+  // Welche Wochentage sollen Spalten bekommen?
+  const aktiveTage = [1,2,3,4,5,6,0].filter(wd => {
+    return document.getElementById(DAY_IDS[wd])?.checked;
+  });
+
+  const stats = berechnen(tage);
+
+  // ── DOCUMENT META ──
+  const now = new Date();
+  const datumStr = `${now.getDate().toString().padStart(2,'0')}.${(now.getMonth()+1).toString().padStart(2,'0')}.${now.getFullYear()}`;
+  const zeitraumLabel = tage >= 9000 ? 'Alle Daten' : `Letzte ${tage} Tage`;
+
+  // ── BUILD TABLE ──
+  let html = `
+    <div class="doc-header">
+      <div class="doc-title">
+        <small>BäckereiOS · Planungs-Schablone</small>
+        Ø-Backmengen nach Wochentag
+      </div>
+      <div class="doc-meta">
+        Erstellt: <strong>${datumStr}</strong><br>
+        Zeitraum: <strong>${zeitraumLabel}</strong><br>
+        Basis: <strong>${DB.length} Einträge</strong>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th class="col-name">Bezeichnung</th>
+          <th class="col-charge">Charge</th>`;
+
+  aktiveTage.forEach(wd => {
+    const isHeute = wd === heute;
+    html += `<th class="col-day${isHeute ? ' today-col' : ''}">${DAY_NAMES[wd]}${isHeute ? ' ★' : ''}</th>`;
+  });
+
+  html += `<th class="col-ist">IST<br><small style="font-weight:400;font-size:0.65em">Bleche</small></th>`;
+  html += `<th class="col-diff">Diff.</th>`;
+  html += `</tr>
+        <tr class="sub-header">
+          <th class="col-name">— Ø aus DB-Zeitraum —</th>
+          <th class="col-charge">Stk/Bl</th>`;
+
+  aktiveTage.forEach(wd => {
+    const isHeute = wd === heute;
+    html += `<th class="col-day${isHeute ? ' today-col' : ''}">Ø Bleche<br><span style="font-size:0.6em;opacity:0.7">Ø Stück</span></th>`;
+  });
+
+  html += `<th class="col-ist">Eintragen</th><th class="col-diff">±</th></tr>
+      </thead>
+      <tbody>`;
+
+  let aktuelleKat = null;
+
+  PRODUKT_CONFIG.forEach(({ kat, name, charge }) => {
+    if (kat !== aktuelleKat) {
+      aktuelleKat = kat;
+      const colspan = 3 + aktiveTage.length;
+      html += `<tr class="kat-row"><td colspan="${colspan}">▸ ${kat}</td></tr>`;
+    }
+
+    html += `<tr class="data-row">
+      <td class="col-name">${name}</td>
+      <td class="col-charge">${charge > 1 ? charge : '—'}</td>`;
+
+    aktiveTage.forEach(wd => {
+      const werte = stats[name]?.[wd] || [];
+      const isHeute = wd === heute;
+      if (werte.length === 0) {
+        html += `<td class="col-day no-data${isHeute ? ' today-col' : ''}">—</td>`;
+      } else {
+        const avgSt = werte.reduce((a, b) => a + b, 0) / werte.length;
+        const avgBl = charge > 1 ? avgSt / charge : null;
+        const blText = avgBl !== null
+          ? avgBl.toFixed(1).replace('.0', '')
+          : Math.round(avgSt);
+        const stText = avgBl !== null ? `${Math.round(avgSt)} Stk` : '';
+        const nLabel = `n=${werte.length}`;
+        html += `<td class="col-day${isHeute ? ' today-col' : ''}">
+          <span class="bleche">${blText}${avgBl !== null ? ' Bl' : ' Stk'}</span>
+          <span class="stueck">${stText ? stText + '  ' : ''}${nLabel}</span>
+        </td>`;
+      }
+    });
+
+    html += `<td class="col-ist"></td><td class="col-diff"></td></tr>`;
+  });
+
+  html += `</tbody></table>`;
+
+  document.getElementById('table-wrap').innerHTML = html;
+}
+
+// ─────────────────────────────────────────────────────────────
+// START
+// ─────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', laden);
+</script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BOS - Lager Zählung</title>
+    <link rel="stylesheet" href="../systemdesign.css">
+    <style>
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        input[type="number"] { width: 100%; padding: 15px; border: 2px solid var(--border); border-radius: 12px; font-family: 'Barlow'; font-weight: 700; font-size: 1.1rem; background: var(--surface); color: var(--text); }
+        .holiday-banner { background: var(--surface2); padding: 20px; border-radius: 20px; margin-bottom: 25px; border: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+    <header class="brand-header">
+        <div class="brand-logo" onclick="location.href='../index.html'">Bäckerei<span>OS</span></div>
+        <div class="slogan-bar">LAGER-ZÄHLUNG</div>
+    </header>
+    <main class="container">
+        
+        <div class="holiday-banner">
+            <div>
+                <div class="label" style="margin:0; font-size: 1.05rem;">Fällt ein Liefertag aus?</div>
+                <small class="dim">(z.B. wegen Feiertag - Erhöht das Soll-Ziel)</small>
+            </div>
+            <input type="checkbox" id="holidayToggle" style="width:30px; height:30px; accent-color:var(--amber);">
+        </div>
+        
+        <div id="productList"></div>
+        <div style="margin: 40px 0 60px;"><button class="btn-main" onclick="saveAndProceed()">Zählung abschließen</button></div>
+    </main>
+
+    <script src="../baeko_bestand.js"></script>
+    <script src="../baeko_historie.js"></script>
+    <script src="lager_gehirn.js"></script>
+    
+    <script>
+        function init() {
+            const list = document.getElementById('productList');
+            const products = window.BOS_BAEKO_CONFIG.products;
+            const history = window.BOS_BAEKO_HISTORIE || [];
+            const lastSession = history.length > 0 ? history[history.length - 1] : {};
+            for (let id in products) {
+                const p = products[id];
+                if (!p.show_in_inventory) continue;
+                const lastStock = (lastSession.stocks && lastSession.stocks[id] !== undefined) ? lastSession.stocks[id] : "?";
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `<div class="dim small" style="margin-bottom:5px; font-weight:700;">LETZTER STAND: ${lastStock} ${p.unit}</div>
+                    <h2 style="margin:0; font-size:1.4rem;">${p.name}</h2>
+                    <div class="grid-inputs">
+                        <div><div class="label">IST (Regal)</div><input type="number" class="count-input" data-id="${id}" data-type="count" placeholder="0"></div>
+                        <div><div class="label">NEU (Ware)</div><input type="number" class="count-input" data-id="${id}" data-type="delivery" placeholder="0"></div>
+                    </div>`;
+                list.appendChild(card);
+            }
+        }
+        function saveAndProceed() {
+            const results = [];
+            const isHoliday = document.getElementById('holidayToggle').checked;
+            const snapshot = { date: new Date().toISOString(), isHoliday, stocks: {} };
+            document.querySelectorAll('.count-input').forEach(inp => {
+                const id = inp.dataset.id; const type = inp.dataset.type;
+                if (!snapshot.stocks[id]) snapshot.stocks[id] = { count: 0, delivery: 0 };
+                snapshot.stocks[id][type] = inp.value || 0;
+            });
+            for (let id in snapshot.stocks) {
+                const res = window.BOS_LAGER_BRAIN.calculate(id, snapshot.stocks[id].count, snapshot.stocks[id].delivery, isHoliday);
+                results.push(res); snapshot.stocks[id] = res.current;
+            }
+            localStorage.setItem('BOS_LAGER_TEMP', JSON.stringify({ results, snapshot }));
+            location.href = 'lager_auswertung.html';
+        }
+        window.onload = () => { if (window.BOS_BAEKO_CONFIG) init(); else setTimeout(init, 200); };
+    </script>
+    <script src="../shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache-Update — BäckereiOS Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,400&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+    <link rel="stylesheet" href="admin_design.css">
+    <style>
+      body { padding: 0; }
+      .page { max-width: 480px; margin: 0 auto; padding: 24px 16px 48px; }
+    </style>
+</head>
+<body>
+<div class="page">
+
+  <header class="adm-header">
+    <div class="adm-header-body">
+      <h1 class="adm-title">Cache-Update</h1>
+      <span class="adm-subtitle">ServiceWorker neu ausstellen</span>
+    </div>
+    <a class="adm-back" href="admin_landing.html">
+      <i class="ph ph-caret-left"></i> Admin
+    </a>
+  </header>
+
+  <div class="adm-card">
+    <div class="adm-card-header">Aktuelle Version</div>
+    <div class="adm-card-body adm-flex-between">
+      <span class="adm-text-dim">Revisionsnummer im Gehirn</span>
+      <b id="display-v" class="adm-text-amber" style="font-size:1.2rem">Lade…</b>
+    </div>
+  </div>
+
+  <div class="adm-info adm-info-amber">
+    <strong>So funktioniert's:</strong> Der Generator liest die aktuelle Version direkt aus <code>service-worker.js</code> im Root-Ordner und rechnet +1. Ein Klick auf den Button lädt eine neue <code>service-worker.js</code> herunter — einfach in den Root-Ordner schieben und deployen. Beim nächsten Aufruf erkennt der Browser den neuen Cache-Namen und lädt alle Dateien frisch vom Server.
+  </div>
+
+  <button onclick="generateUpdate()" class="adm-btn adm-btn-primary adm-w-full" style="margin-top:8px; justify-content:center; font-size:1rem; padding:14px;">
+    <i class="ph-fill ph-arrow-clockwise"></i>
+    Update generieren &amp; herunterladen
+  </button>
+
+</div>
+<script>
+    let currentV = null;
+
+    // Version direkt aus service-worker.js im Root auslesen
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const res  = await fetch('../service-worker.js', { cache: 'no-store' });
+            const text = await res.text();
+            const match = text.match(/planer-cache-v(\d+)/);
+            if (match) {
+                currentV = parseInt(match[1], 10);
+                document.getElementById('display-v').innerText = 'V' + currentV;
+            } else {
+                document.getElementById('display-v').innerText = '?';
+                document.getElementById('display-v').style.color = 'var(--red)';
+            }
+        } catch (e) {
+            document.getElementById('display-v').innerText = 'Nicht gefunden';
+            document.getElementById('display-v').style.color = 'var(--red)';
+        }
+    });
+
+    function download(filename, text) {
+        const el = document.createElement('a');
+        el.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        el.setAttribute('download', filename);
+        el.click();
+    }
+
+    function generateUpdate() {
+        if (currentV === null) {
+            alert('Fehler: Version konnte nicht aus service-worker.js gelesen werden.');
+            return;
+        }
+        const nextV = currentV + 1;
+
+        const newSW = `const CACHE_NAME = 'planer-cache-v${nextV}';
+
+const STATIC_ASSETS = [
+    './index.html',
+    './systemdesign.css'
+];
+
+// Dynamische Datendateien – niemals cachen, immer frisch vom Netz
+const BYPASS_CACHE = [
+    'inventurdaten.js',
+    'backmengen_db.json',
+    'produkt_config.json'
+];
+
+self.addEventListener('install', e => {
+    self.skipWaiting();
+    e.waitUntil(
+        caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
+    );
+    console.log('Service Worker V${nextV} installiert');
+});
+
+self.addEventListener('activate', e => {
+    e.waitUntil(
+        caches.keys().then(keys => Promise.all(
+            keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+        ))
+    );
+    self.clients.claim();
+});
+
+self.addEventListener('fetch', e => {
+    const url = e.request.url;
+    if (BYPASS_CACHE.some(f => url.includes(f))) {
+        e.respondWith(fetch(e.request, { cache: 'no-store' }));
+        return;
+    }
+    e.respondWith(
+        caches.match(e.request).then(res => res || fetch(e.request))
+    );
+});`;
+
+        download('service-worker.js', newSW);
+        alert('Erfolg! service-worker.js V' + nextV + ' wurde erstellt.\n\nDatei in den Root-Ordner schieben und deployen.');
+    }
+</script>
+</body>
+</html>

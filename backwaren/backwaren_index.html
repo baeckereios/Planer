@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BäckereiOS — Backwaren</title>
+<link rel="stylesheet" href="../systemdesign.css">
+<script src="../shell.js" defer></script>
+<style>
+  body { background: var(--background,#f8f6f2); color: var(--text-primary,#1a1a1a); padding-bottom: 80px; }
+  .container { max-width: 600px; margin: 0 auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+
+  /* ── SUCHE ── */
+  .such-wrap { position: relative; }
+  .such-inp { width: 100%; padding: 12px 14px 12px 38px; border: 1.5px solid var(--border-color,#e5e0d8); border-radius: 12px; font-size: 0.9rem; font-family: inherit; background: var(--card-bg,#fff); color: var(--text-primary,#1a1a1a); box-sizing: border-box; }
+  .such-inp:focus { border-color: #e67e22; outline: none; }
+  .such-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 1rem; pointer-events: none; }
+
+  /* ── STATION AKKORDEON ── */
+  .station-block { background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8); border-radius: 14px; overflow: hidden; }
+
+  .station-header { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; cursor: pointer; user-select: none; gap: 10px; }
+  .station-header:active { background: var(--background,#f8f6f2); }
+  .station-left { display: flex; align-items: center; gap: 10px; }
+  .station-name { font-size: 1rem; font-weight: 900; }
+  .station-count { font-size: 0.7rem; font-weight: 700; color: var(--text-secondary,#6b7280); background: var(--background,#f8f6f2); border: 1px solid var(--border-color,#e5e0d8); padding: 2px 8px; border-radius: 20px; }
+  .station-count .hat-steckbrief { color: #10b981; }
+  .station-arrow { font-size: 0.8rem; color: var(--text-secondary,#6b7280); transition: transform 0.2s; flex-shrink: 0; }
+  .station-arrow.offen { transform: rotate(180deg); }
+
+  .station-body { display: none; border-top: 1px solid var(--border-color,#e5e0d8); padding: 8px; }
+  .station-body.offen { display: block; }
+
+  /* ── PRODUKT-KACHEL ── */
+  .prod-kachel { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border: 1px solid var(--border-color,#e5e0d8); border-radius: 10px; margin-bottom: 6px; cursor: pointer; text-decoration: none; color: inherit; transition: all 0.15s; background: var(--background,#f8f6f2); }
+  .prod-kachel:last-child { margin-bottom: 0; }
+  .prod-kachel:active { background: #fff7ed; border-color: #fed7aa; }
+  .prod-kachel.hat-steckbrief { border-left: 3px solid #10b981; }
+  .prod-kachel.kein-steckbrief { border-left: 3px solid #e5e7eb; opacity: 0.65; }
+
+  .prod-info { flex: 1; min-width: 0; }
+  .prod-name { font-size: 0.9rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .prod-sub  { font-size: 0.68rem; color: var(--text-secondary,#6b7280); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .prod-status { flex-shrink: 0; font-size: 0.68rem; font-weight: 800; padding: 3px 8px; border-radius: 8px; }
+  .status-ja   { background: #dcfce7; color: #15803d; }
+  .status-nein { background: #f3f4f6; color: #9ca3af; }
+
+  .prod-arrow { font-size: 0.75rem; color: var(--text-secondary,#6b7280); flex-shrink: 0; }
+
+  /* ── LEER / LADEN ── */
+  .status-karte { text-align: center; padding: 40px 20px; background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8); border-radius: 14px; }
+  .status-icon { font-size: 2rem; margin-bottom: 10px; }
+  .status-text { font-size: 0.85rem; color: var(--text-secondary,#6b7280); }
+
+  /* ── KEINE ERGEBNISSE ── */
+  .keine-ergebnisse { display: none; text-align: center; padding: 30px; font-size: 0.82rem; color: var(--text-secondary,#6b7280); font-style: italic; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1 style="margin:0 0 2px;font-size:1.4rem;font-weight:900;">🥐 Backwaren</h1>
+  <p style="font-size:0.78rem;color:var(--text-secondary,#6b7280);margin:0 0 4px;">Steckbriefe nach Station</p>
+
+  <div class="such-wrap">
+    <span class="such-icon">🔍</span>
+    <input type="search" class="such-inp" id="such-inp"
+      placeholder="Produkt suchen…" oninput="filterProdukte(this.value)">
+  </div>
+
+  <div id="listen-wrap"></div>
+  <div class="keine-ergebnisse" id="keine-ergebnisse">Keine Produkte gefunden.</div>
+
+</div>
+<script>
+var produktConfig = [];
+var steckbriefe   = {};
+var alleStationen = [];   // [{ name, produkte }]
+
+window.onload = async function() {
+  var wrap = document.getElementById('listen-wrap');
+  wrap.innerHTML = '<div class="status-karte"><div class="status-icon">⏳</div><div class="status-text">Wird geladen…</div></div>';
+
+  await ladeJSON('../produkt_config.json',       function(d){ produktConfig = Array.isArray(d) ? d : []; });
+  await ladeJSON('../backwaren_steckbrief.json',  function(d){ steckbriefe  = d || {}; });
+
+  if (!produktConfig.length) {
+    wrap.innerHTML = '<div class="status-karte"><div class="status-icon">⚠️</div><div class="status-text">produkt_config.json nicht geladen.</div></div>';
+    return;
+  }
+
+  // Nur Produkte mit vorhandenem Steckbrief-Eintrag
+  var relevant = produktConfig.filter(function(p) {
+    return !!steckbriefe[p.legacyKey || p.id];
+  });
+
+  // Nach Station gruppieren
+  var stationMap = {};
+  relevant.forEach(function(p) {
+    var station = (p.station || 'Sonstiges').trim();
+    if (!stationMap[station]) stationMap[station] = [];
+    stationMap[station].push(p);
+  });
+
+  // Stationen alphabetisch, "Sonstiges" ans Ende
+  alleStationen = Object.keys(stationMap).sort(function(a,b) {
+    if (a === 'Sonstiges') return 1;
+    if (b === 'Sonstiges') return -1;
+    return a.localeCompare(b, 'de');
+  }).map(function(name) {
+    return { name: name, produkte: stationMap[name] };
+  });
+
+  renderListe(alleStationen);
+};
+
+async function ladeJSON(pfad, onSuccess) {
+  try { var r = await fetch(pfad, {cache:'no-store'}); if (r.ok) onSuccess(await r.json()); } catch(e) {}
+}
+
+// ── RENDER ───────────────────────────────────────────────
+function renderListe(stationen) {
+  var wrap = document.getElementById('listen-wrap');
+  wrap.innerHTML = '';
+
+  if (!stationen.length) {
+    wrap.innerHTML = '<div class="status-karte"><div class="status-icon">📭</div><div class="status-text">Keine Backwaren in der Config gefunden.</div></div>';
+    return;
+  }
+
+  stationen.forEach(function(station, idx) {
+    var block = document.createElement('div');
+    block.className = 'station-block';
+    block.id = 'station-' + idx;
+
+    var hatSteckbriefCount = station.produkte.filter(function(p) {
+      return steckbriefe[(p.legacyKey||p.id)];
+    }).length;
+
+    var countHtml = hatSteckbriefCount > 0
+      ? '<span class="hat-steckbrief">' + hatSteckbriefCount + '</span>/' + station.produkte.length
+      : station.produkte.length;
+
+    // Header
+    var header = document.createElement('div');
+    header.className = 'station-header';
+    header.innerHTML =
+      '<div class="station-left">' +
+        '<span class="station-name">' + esc(station.name) + '</span>' +
+        '<span class="station-count">' + countHtml + '</span>' +
+      '</div>' +
+      '<span class="station-arrow" id="arrow-' + idx + '">▼</span>';
+    header.onclick = function() { toggleStation(idx); };
+
+    // Body
+    var body = document.createElement('div');
+    body.className = 'station-body' + (idx === 0 ? ' offen' : '');
+    body.id = 'body-' + idx;
+    if (idx === 0) document.getElementById && null; // erstes Akkordeon offen
+
+    station.produkte.forEach(function(p) {
+      var key         = p.legacyKey || p.id;
+      var hatSB       = !!steckbriefe[key];
+      var kachel      = document.createElement('a');
+      kachel.className = 'prod-kachel ' + (hatSB ? 'hat-steckbrief' : 'kein-steckbrief');
+      kachel.href      = 'steckbrief.html?id=' + encodeURIComponent(key);
+      kachel.dataset.name = (p.name || '').toLowerCase();
+      kachel.dataset.station = station.name.toLowerCase();
+
+      var subParts = [];
+      if (p.charge) subParts.push(p.charge + ' Stk/Blech');
+      if (p.legacyKey) subParts.push(p.legacyKey);
+
+      kachel.innerHTML =
+        '<div class="prod-info">' +
+          '<div class="prod-name">' + esc(p.name || key) + '</div>' +
+          (subParts.length ? '<div class="prod-sub">' + esc(subParts.join(' · ')) + '</div>' : '') +
+        '</div>' +
+        '<span class="prod-status ' + (hatSB ? 'status-ja' : 'status-nein') + '">' +
+          (hatSB ? '✓ Steckbrief' : 'fehlt') +
+        '</span>' +
+        '<span class="prod-arrow">›</span>';
+
+      body.appendChild(kachel);
+    });
+
+    // Erstes Akkordeon-Arrow offen markieren
+    if (idx === 0) {
+      setTimeout(function() {
+        var arr = document.getElementById('arrow-0');
+        if (arr) arr.classList.add('offen');
+      }, 0);
+    }
+
+    block.appendChild(header);
+    block.appendChild(body);
+    wrap.appendChild(block);
+  });
+}
+
+// ── AKKORDEON ────────────────────────────────────────────
+function toggleStation(idx) {
+  var body  = document.getElementById('body-' + idx);
+  var arrow = document.getElementById('arrow-' + idx);
+  if (!body) return;
+  var offen = body.classList.contains('offen');
+  body.classList.toggle('offen', !offen);
+  if (arrow) arrow.classList.toggle('offen', !offen);
+}
+
+// ── SUCHE ────────────────────────────────────────────────
+function filterProdukte(query) {
+  var q = query.toLowerCase().trim();
+  var irgendwas = false;
+
+  document.querySelectorAll('.prod-kachel').forEach(function(k) {
+    var name    = k.dataset.name    || '';
+    var station = k.dataset.station || '';
+    var zeigen  = !q || name.includes(q) || station.includes(q);
+    k.style.display = zeigen ? '' : 'none';
+    if (zeigen) irgendwas = true;
+  });
+
+  // Stationen ausblenden wenn alle Kinder versteckt
+  document.querySelectorAll('.station-block').forEach(function(block) {
+    var kacheln = block.querySelectorAll('.prod-kachel');
+    var sichtbar = Array.from(kacheln).some(function(k) { return k.style.display !== 'none'; });
+    block.style.display = sichtbar ? '' : 'none';
+    // Bei Suche: alle sichtbaren Stationen aufklappen
+    if (q && sichtbar) {
+      var body = block.querySelector('.station-body');
+      var arrow = block.querySelector('.station-arrow');
+      if (body)  body.classList.add('offen');
+      if (arrow) arrow.classList.add('offen');
+    }
+  });
+
+  document.getElementById('keine-ergebnisse').style.display = irgendwas ? 'none' : 'block';
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>

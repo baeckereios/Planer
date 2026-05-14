@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BäckereiOS — Lieferanten-Auswertung</title>
+<link rel="stylesheet" href="../systemdesign.css">
+<script src="../shell.js" defer></script>
+<script src="lieferungen_gehirn.js"></script>
+<style>
+  body { background: var(--background,#f8f6f2); color: var(--text-primary,#1a1a1a); padding-bottom: 120px; }
+  .container { max-width: 680px; margin: 0 auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+  /* ── TABS ── */
+  .tab-wrap { display: flex; align-items: center; background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 6px; }
+  .tab-btn { padding: 12px; text-align: center; font-size: 0.85rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); user-select: none; }
+  .tab-btn.active.tab-verbrauch  { background: #1e293b; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  .tab-btn.active.tab-backstube  { background: #92400e; color: #fff; box-shadow: 0 2px 8px rgba(146,64,14,0.25); }
+  .tab-btn.inactive { background: transparent; color: var(--text-secondary,#6b7280); }
+  .tab-btn.inactive.tab-backstube { background: rgba(146,64,14,0.07); color: #92400e; }
+
+  /* ── DETAIL-TABELLE: Keine-Daten-Zeilen ── */
+  .detail-tabelle tr.kein-tag { opacity: 0.4; }
+
+  /* ── EINSTELLUNGEN ── */
+  .einst-card { background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8); border-radius: 14px; padding: 13px 14px; }
+  .einst-label { font-size: 0.65rem; font-weight: 800; color: var(--text-secondary,#6b7280); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .einst-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .einst-field { display: flex; align-items: center; gap: 6px; }
+  .einst-field label { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary,#6b7280); white-space: nowrap; }
+  .einst-inp { text-align: center; padding: 8px 6px; border: 1.5px solid var(--border-color,#e5e0d8); border-radius: 8px; font-size: 0.95rem; font-weight: 800; font-family: inherit; background: var(--card-bg,#fff); color: var(--text-primary,#1a1a1a); }
+  .einst-inp-sm  { width: 52px; }
+  .einst-inp-date{ width: 136px; }
+  .einst-pct { font-size: 0.95rem; font-weight: 800; color: #f59e0b; }
+  .einst-divider { width: 100%; height: 1px; background: var(--border-color,#e5e0d8); margin: 10px 0; }
+  .messschieber-label { font-size: 0.7rem; color: var(--text-secondary,#6b7280); font-weight: 600; }
+  .messschieber-hint  { font-size: 0.65rem; color: #94a3b8; margin-top: 2px; }
+
+  /* ── LAGERTYP-SEKTIONEN ── */
+  .lagertyp-sektion { border-radius: 16px; padding: 10px 10px 4px; margin-bottom: 8px; }
+  .sektion-tk       { background: #eff6ff; border: 1.5px solid #bfdbfe; }
+  .sektion-kuehl    { background: #f0fdf4; border: 1.5px solid #bbf7d0; }
+  .sektion-trocken  { background: #fefce8; border: 1.5px solid #fde68a; }
+  .sektion-sonstiges{ background: #faf5ff; border: 1.5px solid #e9d5ff; }
+
+  .lagertyp-header { display: flex; align-items: center; gap: 8px; padding: 4px 4px 10px; }
+  .lagertyp-badge { font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; }
+  .badge-tk        { background: #1d4ed8; color: #fff; }
+  .badge-kuehl     { background: #15803d; color: #fff; }
+  .badge-trocken   { background: #92400e; color: #fff; }
+  .badge-sonstiges { background: #6b21a8; color: #fff; }
+
+  /* ── PRODUKT-KACHEL ── */
+  .prod-kachel { background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8); border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
+  .prod-kachel.typ-tk       { border-top: 3px solid #3b82f6; }
+  .prod-kachel.typ-kuehl    { border-top: 3px solid #22c55e; }
+  .prod-kachel.typ-trocken  { border-top: 3px solid #f59e0b; }
+  .prod-kachel.typ-sonstiges{ border-top: 3px solid #a855f7; }
+
+  .kachel-header { display: flex; justify-content: space-between; align-items: center; padding: 13px 14px 10px; cursor: pointer; user-select: none; gap: 10px; }
+  .kachel-header:active { background: var(--background,#f8f6f2); }
+  .kachel-name { font-size: 0.95rem; font-weight: 800; }
+  .kachel-sub  { font-size: 0.7rem; color: var(--text-secondary,#6b7280); margin-top: 2px; }
+  .kachel-arrow{ font-size: 0.8rem; color: var(--text-secondary,#6b7280); flex-shrink: 0; }
+
+  /* Schnell-Statistiken */
+  .kachel-stats { display: flex; gap: 8px; padding: 0 14px 10px; }
+  .stat-box { flex: 1; background: var(--background,#f8f6f2); border: 1px solid var(--border-color,#e5e0d8); border-radius: 10px; padding: 9px 10px; }
+  .stat-label { font-size: 0.62rem; font-weight: 800; color: var(--text-secondary,#6b7280); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .stat-wert  { font-size: 1.15rem; font-weight: 900; color: var(--text-primary,#1a1a1a); }
+  .stat-unit  { font-size: 0.68rem; font-weight: 600; color: var(--text-secondary,#6b7280); }
+  .stat-n     { font-size: 0.62rem; color: var(--text-secondary,#6b7280); margin-top: 2px; }
+  .stat-n.wenig { color: #f59e0b; font-weight: 700; }
+  .stat-n.keine { color: #ef4444; font-weight: 700; }
+
+  /* Bestellbedarf-Box */
+  .bestellbox { margin: 0 14px 12px; background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 10px; padding: 10px 13px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .bestell-label { font-size: 0.7rem; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px; }
+  .bestell-zeitraum { font-size: 0.68rem; color: #b45309; margin-top: 2px; }
+  .bestell-wert { font-size: 1.5rem; font-weight: 900; color: #92400e; text-align: right; flex-shrink: 0; }
+  .bestell-einheit { font-size: 0.72rem; font-weight: 600; color: #b45309; }
+  .bestell-kein { font-size: 0.78rem; color: var(--text-secondary,#6b7280); font-style: italic; }
+
+  /* Detail-Panel */
+  .detail-panel { display: none; border-top: 1px solid var(--border-color,#e5e0d8); padding: 14px; }
+  .detail-panel.open { display: block; }
+  .detail-titel { font-size: 0.68rem; font-weight: 800; color: var(--text-secondary,#6b7280); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; margin-top: 12px; }
+  .detail-titel:first-child { margin-top: 0; }
+
+  .detail-tabelle { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-bottom: 4px; }
+  .detail-tabelle th { font-size: 0.62rem; font-weight: 800; color: var(--text-secondary,#6b7280); text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 6px 6px; text-align: right; border-bottom: 2px solid var(--border-color,#e5e0d8); }
+  .detail-tabelle th:first-child { text-align: left; }
+  .detail-tabelle td { padding: 6px 6px; border-bottom: 1px solid var(--border-color,#e5e0d8); vertical-align: middle; font-weight: 600; }
+  .detail-tabelle td:not(:first-child) { text-align: right; }
+  .detail-tabelle tr:last-child td { border-bottom: none; }
+
+  .wt-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
+  .wt-cell { background: var(--background,#f8f6f2); border: 1px solid var(--border-color,#e5e0d8); border-radius: 6px; padding: 6px 2px; text-align: center; }
+  .wt-cell-label { font-size: 0.6rem; font-weight: 800; color: var(--text-secondary,#6b7280); }
+  .wt-cell-wert  { font-size: 0.78rem; font-weight: 900; color: var(--text-primary,#1a1a1a); margin-top: 2px; }
+  .wt-cell-leer  { color: var(--text-secondary,#6b7280); font-weight: 400; }
+
+  .eingang-chip { font-size: 0.6rem; background: #dbeafe; color: #1d4ed8; padding: 1px 5px; border-radius: 6px; font-weight: 700; margin-left: 4px; vertical-align: middle; }
+
+  /* Kein-Daten Zustand */
+  .kein-daten-card { text-align: center; padding: 30px 16px; color: var(--text-secondary,#6b7280); font-size: 0.82rem; }
+
+  /* ── BACKSTUBE-TAB ── */
+  #view-backstube { display: none; }
+  .backstube-form { background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .form-row { display: flex; align-items: center; gap: 10px; }
+  .form-label { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary,#6b7280); min-width: 52px; }
+  .form-select, .form-date { flex: 1; padding: 10px 10px; border: 1.5px solid var(--border-color,#e5e0d8); border-radius: 9px; font-size: 0.88rem; font-weight: 700; font-family: inherit; background: var(--card-bg,#fff); color: var(--text-primary,#1a1a1a); }
+  .btn-berechnen { width: 100%; background: #92400e; color: #fff; font-size: 0.95rem; padding: 14px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; font-family: inherit; box-shadow: 0 3px 10px rgba(146,64,14,0.2); }
+  .btn-berechnen:disabled { background: #cbd5e1; box-shadow: none; cursor: default; }
+
+  .backstube-ergebnis { background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8); border-radius: 14px; padding: 14px; }
+  .ergebnis-hero { display: flex; align-items: flex-end; gap: 16px; padding: 8px 0 14px; border-bottom: 1px solid var(--border-color,#e5e0d8); margin-bottom: 12px; }
+  .ergebnis-kartons { font-size: 2.4rem; font-weight: 900; color: #92400e; line-height: 1; }
+  .ergebnis-label   { font-size: 0.72rem; font-weight: 700; color: #b45309; margin-bottom: 4px; }
+  .ergebnis-stueck  { font-size: 1.1rem; font-weight: 800; color: var(--text-secondary,#6b7280); }
+  .ergebnis-divider { width: 1px; height: 40px; background: var(--border-color,#e5e0d8); }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1 style="margin:0 0 2px;font-size:1.4rem;font-weight:900;">📊 Lieferanten-Auswertung</h1>
+
+<div class="tab-wrap">
+  <div class="tab-btn active tab-verbrauch" id="tab-verbrauch" style="flex:2" onclick="switchTab('verbrauch')">📊 Verbrauch &amp; Bestellung</div>
+  <div class="tab-btn inactive tab-backstube" id="tab-backstube" style="flex:1" onclick="switchTab('backstube')">🗂 Aufschlüsselung</div>
+</div>
+
+<!-- ── TAB 1: VERBRAUCH ── -->
+<div id="view-verbrauch">
+
+  <div class="einst-card">
+    <div class="einst-label">Einstellungen</div>
+
+    <div class="einst-row">
+      <div class="einst-field">
+        <label>Aufschlag</label>
+        <input type="number" id="inp-aufschlag" class="einst-inp einst-inp-sm" min="0" max="99" value="15"
+          oninput="renderVerbrauch()">
+        <span class="einst-pct">%</span>
+      </div>
+    </div>
+
+    <div class="einst-divider"></div>
+
+    <div class="einst-label" style="margin-bottom:8px;">Bestellzeitraum</div>
+    <div class="einst-row">
+      <div class="einst-field">
+        <label>Von</label>
+        <input type="date" id="inp-bestell-von" class="einst-inp einst-inp-date" onchange="renderVerbrauch()">
+      </div>
+      <div class="einst-field">
+        <label>Bis</label>
+        <input type="date" id="inp-bestell-bis" class="einst-inp einst-inp-date" onchange="renderVerbrauch()">
+      </div>
+    </div>
+
+    <div class="einst-divider"></div>
+
+    <div class="einst-field" style="margin-top:0;">
+      <div>
+        <div class="messschieber-label">🎚 Berechnungsbasis bis (Messschieber)</div>
+        <div class="messschieber-hint">Nur Daten bis zu diesem Datum verwenden. Leer = alle Daten.</div>
+      </div>
+      <input type="date" id="inp-messschieber" class="einst-inp einst-inp-date" style="margin-left:auto;"
+        onchange="renderVerbrauch()">
+    </div>
+  </div>
+
+  <div id="produkt-liste"></div>
+
+</div>
+
+<!-- ── TAB 2: AUFSCHLÜSSELUNG ── -->
+<div id="view-backstube">
+
+  <div class="backstube-form">
+    <div class="einst-label" style="margin-bottom:0;">Detaillierte Aufschlüsselung</div>
+
+    <div class="form-row">
+      <span class="form-label">Produkt</span>
+      <select id="bs-produkt" class="form-select">
+        <option value="">— Produkt wählen —</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <span class="form-label">Von</span>
+      <input type="date" id="bs-von" class="form-date">
+    </div>
+    <div class="form-row">
+      <span class="form-label">Bis</span>
+      <input type="date" id="bs-bis" class="form-date">
+    </div>
+
+    <button class="btn-berechnen" id="btn-bs-berechnen" onclick="berechneDetailUI()" disabled>
+      Aufschlüsselung anzeigen
+    </button>
+  </div>
+
+  <div id="backstube-ergebnis" style="margin-top:10px;"></div>
+
+</div>
+
+</div><!-- /container -->
+
+<script>
+// ── DATEN ────────────────────────────────────────────────
+var lieferantenConfig = [];
+var db            = [];   // lieferanten_db.json (bestand + eingang)
+var backmengenDb  = [];   // backmengen_db.json
+var produktConfig = [];   // produkt_config.json
+var LG            = null;
+
+var WT_LABEL      = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+var LAGERTYP_ORDER = ['tk','kuehl','trocken','sonstiges'];
+var LAGERTYP_LABEL = { tk:'Tiefkühl', kuehl:'Kühl', trocken:'Trocken', sonstiges:'Sonstiges' };
+
+// ── LADEN ────────────────────────────────────────────────
+window.onload = async function() {
+  LG = window.LieferungenGehirn;
+
+  var pfadPaare = [
+    { key:'lieferantenConfig', pfade:['../lieferanten_config.json'] },
+    { key:'db',                pfade:['lieferanten_db.json','../lieferanten_db.json'] },
+    { key:'backmengenDb',      pfade:['backmengen_db.json','../backmengen_db.json'] },
+    { key:'produktConfig',     pfade:['produkt_config.json','../produkt_config.json'] }
+  ];
+
+  for (var i = 0; i < pfadPaare.length; i++) {
+    var pp = pfadPaare[i];
+    for (var j = 0; j < pp.pfade.length; j++) {
+      try {
+        var r = await fetch(pp.pfade[j], {cache:'no-store'});
+        if (r.ok) {
+          var d = await r.json();
+          if (pp.key === 'lieferantenConfig') {
+            lieferantenConfig = Array.isArray(d) ? d : (d.produkte || []);
+          } else {
+            window[pp.key] = d;
+          }
+          break;
+        }
+      } catch(e) {}
+    }
+  }
+
+  // Datum-Defaults setzen
+  var heute    = localDateStr(new Date());
+  var in7Tagen = localDateStr(addDays(new Date(), 6));
+  document.getElementById('inp-bestell-von').value = heute;
+  document.getElementById('inp-bestell-bis').value = in7Tagen;
+
+  // Backstube-Produkte befüllen
+  initBackstubeForm();
+
+  renderVerbrauch();
+};
+
+// ── TAB-STEUERUNG ────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('tab-verbrauch').className  = 'tab-btn ' + (tab==='verbrauch' ? 'active' : 'inactive') + ' tab-verbrauch';
+  document.getElementById('tab-backstube').className  = 'tab-btn ' + (tab==='backstube' ? 'active' : 'inactive') + ' tab-backstube';
+  document.getElementById('view-verbrauch').style.display  = tab === 'verbrauch'  ? 'block' : 'none';
+  document.getElementById('view-backstube').style.display  = tab === 'backstube'  ? 'block' : 'none';
+}
+
+// ── RENDER VERBRAUCH ─────────────────────────────────────
+function renderVerbrauch() {
+  if (!LG) return;
+  var container = document.getElementById('produkt-liste');
+  container.innerHTML = '';
+
+  var aufschlag   = (parseFloat(document.getElementById('inp-aufschlag').value) || 0) / 100;
+  var bestellVon  = document.getElementById('inp-bestell-von').value;
+  var bestellBis  = document.getElementById('inp-bestell-bis').value;
+  var bisDatum    = document.getElementById('inp-messschieber').value || null;
+
+  if (!lieferantenConfig.length) {
+    container.innerHTML = '<div class="kein-daten-card">⚠️ Keine Produktkonfiguration geladen.</div>';
+    return;
+  }
+
+  LAGERTYP_ORDER.forEach(function(typ) {
+    var gruppe = lieferantenConfig.filter(function(p) { return (p.lagertyp||'sonstiges') === typ; });
+    if (!gruppe.length) return;
+
+    var sektion = document.createElement('div');
+    sektion.className = 'lagertyp-sektion sektion-' + typ;
+
+    var header = '<div class="lagertyp-header">'
+      + '<span class="lagertyp-badge badge-' + typ + '">' + (LAGERTYP_LABEL[typ]||typ) + '</span>'
+      + '</div>';
+    sektion.innerHTML = header;
+
+    gruppe.forEach(function(p) {
+      var intervalle = LG.berechneIntervalle(p, db, produktConfig, bisDatum);
+      var schnitt    = LG.berechneSchnittProTag(intervalle);
+      var wtSchnitte = LG.berechneWochentagsSchnitte(intervalle);
+      var bedarf     = (schnitt !== null && bestellVon && bestellBis)
+        ? LG.berechneBestellbedarf(schnitt, bestellVon, bestellBis, aufschlag)
+        : null;
+
+      sektion.appendChild(buildProduktKachel(p, intervalle, schnitt, wtSchnitte, bedarf, bestellVon, bestellBis, aufschlag));
+    });
+
+    container.appendChild(sektion);
+  });
+}
+
+// ── PRODUKT-KACHEL BAUEN ────────────────────────────────
+function buildProduktKachel(p, intervalle, schnitt, wtSchnitte, bedarf, bestellVon, bestellBis, aufschlag) {
+  var einheit = p.soll_einheit || '';
+  var n       = intervalle.length;
+  var kachel  = document.createElement('div');
+  kachel.className = 'prod-kachel typ-' + (p.lagertyp||'sonstiges');
+
+  var subParts = [];
+  if (p.lieferant) subParts.push(p.lieferant);
+  if (p.gebinde && p.gebinde.form) {
+    var geb = cap(p.gebinde.form);
+    if (p.gebinde.inhalt_stueck && p.gebinde.inhalt_einheit) {
+      geb += ' à ' + p.gebinde.inhalt_stueck + '\u202f' + p.gebinde.inhalt_einheit;
+    }
+    subParts.push(geb);
+  }
+
+  // ── Header ──
+  var headerHtml =
+    '<div class="kachel-header" onclick="toggleDetail(\'' + p.id + '\')">' +
+      '<div>' +
+        '<div class="kachel-name">' + esc(p.name) + '</div>' +
+        (subParts.length ? '<div class="kachel-sub">' + esc(subParts.join(' · ')) + '</div>' : '') +
+      '</div>' +
+      '<span class="kachel-arrow" id="arrow_' + p.id + '">▼</span>' +
+    '</div>';
+
+  // ── Schnitt + Intervall-Zähler ──
+  var schnittWert  = schnitt !== null ? fmtEins(schnitt) : '–';
+  var nClass       = n === 0 ? 'keine' : n < 3 ? 'wenig' : '';
+  var nText        = n === 0 ? 'Noch keine Daten' : n + ' Intervall' + (n!==1?'e':'');
+
+  var statsHtml =
+    '<div class="kachel-stats">' +
+      '<div class="stat-box">' +
+        '<div class="stat-label">Ø / Tag</div>' +
+        '<div class="stat-wert">' + schnittWert + '<span class="stat-unit">&nbsp;' + esc(einheit) + '</span></div>' +
+        '<div class="stat-n ' + nClass + '">' + nText + '</div>' +
+      '</div>' +
+    '</div>';
+
+  // ── Bestellbedarf ──
+  var bestellHtml;
+  if (!bestellVon || !bestellBis) {
+    bestellHtml = '<div class="bestellbox"><span class="bestell-kein">Bestellzeitraum noch nicht gesetzt</span></div>';
+  } else if (bedarf === null) {
+    bestellHtml = '<div class="bestellbox"><span class="bestell-kein">Zu wenig Daten für Empfehlung</span></div>';
+  } else {
+    var vonFmt = fmtDatum(bestellVon);
+    var bisFmt = fmtDatum(bestellBis);
+    var aufPct = Math.round(aufschlag * 100);
+    bestellHtml =
+      '<div class="bestellbox">' +
+        '<div>' +
+          '<div class="bestell-label">Bestellbedarf</div>' +
+          '<div class="bestell-zeitraum">' + vonFmt + ' – ' + bisFmt + ' · +' + aufPct + '%</div>' +
+        '</div>' +
+        '<div>' +
+          '<div class="bestell-wert">' + fmtEins(bedarf) + '</div>' +
+          '<div class="bestell-einheit">' + esc(einheit) + '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  // ── Detail-Panel ──
+  var detailHtml = buildDetailPanel(p, intervalle, wtSchnitte);
+
+  kachel.innerHTML = headerHtml + statsHtml + bestellHtml
+    + '<div class="detail-panel" id="detail_' + p.id + '">' + detailHtml + '</div>';
+
+  return kachel;
+}
+
+// ── DETAIL-PANEL ────────────────────────────────────────
+function buildDetailPanel(p, intervalle, wtSchnitte) {
+  var html = '';
+  var einheit = p.soll_einheit || '';
+
+  if (!intervalle.length) {
+    return '<div style="text-align:center;padding:20px;font-size:0.8rem;color:var(--text-secondary,#6b7280);">'
+      + 'Mindestens 2 Inventur-Snapshots werden benötigt.</div>';
+  }
+
+  // ── Wochentag-Übersicht ──
+  html += '<div class="detail-titel">Verbrauch nach Wochentag</div>';
+  html += '<div class="wt-grid">';
+  for (var wi = 0; wi < 7; wi++) {
+    var s = wtSchnitte[wi];
+    html += '<div class="wt-cell">'
+      + '<div class="wt-cell-label">' + WT_LABEL[wi] + '</div>'
+      + '<div class="wt-cell-wert ' + (s ? '' : 'wt-cell-leer') + '">'
+        + (s ? fmtEins(s.schnitt) : '–') + '</div>'
+      + '</div>';
+  }
+  html += '</div>';
+  html += '<div style="font-size:0.62rem;color:var(--text-secondary,#6b7280);margin-bottom:12px;">Ø in ' + esc(einheit) + '/Tag (Näherung)</div>';
+
+  // ── Intervall-Tabelle ──
+  html += '<div class="detail-titel">Valide Intervalle</div>';
+  html += '<table class="detail-tabelle"><thead><tr>'
+    + '<th>Zeitraum</th>'
+    + '<th>Tage</th>'
+    + '<th>Eingang</th>'
+    + '<th>Verbrauch</th>'
+    + '<th>∅/Tag</th>'
+    + '</tr></thead><tbody>';
+
+  intervalle.forEach(function(iv) {
+    var vonLabel = getWtKurz(iv.von) + ' ' + fmtDatum(iv.von);
+    var bisLabel = getWtKurz(iv.bis) + ' ' + fmtDatum(iv.bis);
+    var eingangZelle = iv.eingang_bekannt
+      ? iv.eingang + '<span class="eingang-chip">✓</span>'
+      : '<span style="color:var(--text-secondary,#6b7280);">–</span>';
+
+    html += '<tr>'
+      + '<td><div style="font-size:0.72rem;font-weight:700;">' + vonLabel + '</div>'
+        + '<div style="font-size:0.65rem;color:var(--text-secondary,#6b7280);">→ ' + bisLabel + '</div></td>'
+      + '<td>' + iv.tageAnzahl + '</td>'
+      + '<td>' + eingangZelle + '</td>'
+      + '<td>' + fmtEins(iv.netVerbrauch) + '</td>'
+      + '<td>' + fmtZwei(iv.verbrauchProTag) + '</td>'
+      + '</tr>';
+  });
+
+  html += '</tbody></table>';
+  return html;
+}
+
+// ── TOGGLE ───────────────────────────────────────────────
+function toggleDetail(id) {
+  var panel = document.getElementById('detail_' + id);
+  var arrow = document.getElementById('arrow_' + id);
+  var open  = panel.classList.contains('open');
+  panel.classList.toggle('open', !open);
+  arrow.textContent = open ? '▼' : '▲';
+}
+
+// ── AUFSCHLÜSSELUNG: FORM INIT ───────────────────────────
+function initBackstubeForm() {
+  var select = document.getElementById('bs-produkt');
+  var heute  = localDateStr(new Date());
+  var vor7   = localDateStr(addDays(new Date(), -6));
+
+  document.getElementById('bs-von').value = vor7;
+  document.getElementById('bs-bis').value = heute;
+
+  // Nur Produkte mit Backstube- ODER Filialen-Daten
+  lieferantenConfig.forEach(function(p) {
+    if (!p.in_backstube_gebacken && !p.lieferung_filiale) return;
+    var opt = document.createElement('option');
+    opt.value       = p.id;
+    opt.textContent = p.name;
+    select.appendChild(opt);
+  });
+
+  select.addEventListener('change', function() {
+    document.getElementById('btn-bs-berechnen').disabled = !this.value;
+  });
+}
+
+// ── AUFSCHLÜSSELUNG: BERECHNUNG ─────────────────────────
+function berechneDetailUI() {
+  if (!LG) return;
+  var produktId = document.getElementById('bs-produkt').value;
+  var von       = document.getElementById('bs-von').value;
+  var bis       = document.getElementById('bs-bis').value;
+  if (!produktId || !von || !bis) return;
+
+  var p = lieferantenConfig.find(function(x) { return x.id === produktId; });
+  if (!p) return;
+
+  var el = document.getElementById('backstube-ergebnis');
+  var einheit = p.soll_einheit || 'Karton';
+
+  // ── Datenquellen ──
+  var backstubeResult = p.in_backstube_gebacken
+    ? LG.berechneBackstubeVerbrauch(p, von, bis, backmengenDb, produktConfig)
+    : null;
+  var filialeResult = p.lieferung_filiale
+    ? LG.berechneFilialeVerbrauch(p, von, bis, db)
+    : null;
+
+  var hatBackstube = backstubeResult !== null;
+  var hatFiliale   = filialeResult   !== null;
+
+  if (!hatBackstube && !hatFiliale) {
+    el.innerHTML = '<div style="text-align:center;padding:24px;font-size:0.82rem;color:var(--text-secondary,#6b7280);">'
+      + 'Für dieses Produkt sind weder Backstube- noch Filialen-Daten verfügbar.</div>';
+    return;
+  }
+
+  // ── Lookup-Maps: datum → Eintrag ──
+  var backstubeMap = {};
+  if (backstubeResult) {
+    backstubeResult.tageDetail.forEach(function(t) { backstubeMap[t.datum] = t; });
+  }
+  var filialeMap = {};
+  if (filialeResult) {
+    filialeResult.tageDetail.forEach(function(t) { filialeMap[t.datum] = t; });
+  }
+
+  // ── Alle Tage im Zeitraum generieren ──
+  var alleDaten = [];
+  var cursor = new Date(von + 'T00:00:00');
+  var ende   = new Date(bis + 'T00:00:00');
+  while (cursor <= ende) {
+    alleDaten.push(localDateStr(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  // ── Gesamtsummen ──
+  var sumBackstube = backstubeResult ? backstubeResult.kartons : 0;
+  var sumFiliale   = filialeResult   ? filialeResult.kartons   : 0;
+  var sumGesamt    = sumBackstube + sumFiliale;
+
+  var vonFmt = getWtKurz(von) + ', ' + fmtDatum(von);
+  var bisFmt = getWtKurz(bis) + ', ' + fmtDatum(bis);
+
+  // ── Hero-Zahlen ──
+  var html = '<div class="backstube-ergebnis">';
+  html += '<div style="font-size:0.68rem;font-weight:800;color:var(--text-secondary,#6b7280);'
+    + 'text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">'
+    + esc(p.name) + ' · ' + vonFmt + ' – ' + bisFmt + '</div>';
+
+  html += '<div class="ergebnis-hero">';
+  if (hatBackstube) {
+    html += '<div><div class="ergebnis-label">Backstube</div>'
+      + '<div class="ergebnis-kartons" style="font-size:1.6rem;">' + fmtEins(sumBackstube) + '</div>'
+      + '<div style="font-size:0.65rem;color:#b45309;">' + esc(einheit) + '</div></div>'
+      + '<div class="ergebnis-divider"></div>';
+  }
+  if (hatFiliale) {
+    html += '<div><div class="ergebnis-label">Filialen</div>'
+      + '<div class="ergebnis-kartons" style="font-size:1.6rem;">' + fmtEins(sumFiliale) + '</div>'
+      + '<div style="font-size:0.65rem;color:#b45309;">' + esc(einheit) + '</div></div>';
+  }
+  if (hatBackstube && hatFiliale) {
+    html += '<div class="ergebnis-divider"></div>'
+      + '<div><div class="ergebnis-label" style="color:#1e293b;">Gesamt</div>'
+      + '<div class="ergebnis-kartons" style="font-size:1.9rem;color:#1e293b;">' + fmtEins(sumGesamt) + '</div>'
+      + '<div style="font-size:0.65rem;color:#475569;">' + esc(einheit) + '</div></div>';
+  }
+  html += '</div>';
+
+  // ── Tages-Tabelle ──
+  html += '<table class="detail-tabelle"><thead><tr><th>Datum</th>';
+  if (hatBackstube) html += '<th>Backstube</th>';
+  if (hatFiliale)   html += '<th>Filialen</th>';
+  if (hatBackstube && hatFiliale) html += '<th>Summe</th>';
+  html += '</tr></thead><tbody>';
+
+  alleDaten.forEach(function(datum) {
+    var bTag    = backstubeMap[datum] || null;
+    var fTag    = filialeMap[datum]   || null;
+    var hatDaten = !!(bTag || fTag);
+    var rowClass = hatDaten ? '' : ' class="kein-tag"';
+
+    html += '<tr' + rowClass + '>';
+    html += '<td><div style="font-size:0.75rem;font-weight:700;">'
+      + getWtKurz(datum) + ', ' + fmtDatum(datum) + '</div>'
+      + (!hatDaten ? '<div style="font-size:0.62rem;">Keine Daten</div>' : '')
+      + '</td>';
+
+    if (hatBackstube) {
+      html += '<td>' + (bTag
+        ? fmtZwei(bTag.kartons)
+        : '<span style="color:#94a3b8;">–</span>') + '</td>';
+    }
+    if (hatFiliale) {
+      html += '<td>' + (fTag
+        ? fmtZwei(fTag.kartons)
+        : '<span style="color:#94a3b8;">–</span>') + '</td>';
+    }
+    if (hatBackstube && hatFiliale) {
+      var s = (bTag ? bTag.kartons : 0) + (fTag ? fTag.kartons : 0);
+      html += '<td><strong>' + (hatDaten
+        ? fmtZwei(s)
+        : '<span style="color:#94a3b8;">–</span>') + '</strong></td>';
+    }
+    html += '</tr>';
+  });
+
+  // ── Summen-Zeile ──
+  html += '<tr style="border-top:2px solid var(--border-color,#e5e0d8);background:var(--background,#f8f6f2);">';
+  html += '<td style="font-size:0.72rem;font-weight:800;color:var(--text-secondary,#6b7280);">Gesamt</td>';
+  if (hatBackstube) html += '<td><strong>' + fmtEins(sumBackstube) + '</strong></td>';
+  if (hatFiliale)   html += '<td><strong>' + fmtEins(sumFiliale)   + '</strong></td>';
+  if (hatBackstube && hatFiliale) {
+    html += '<td><strong style="color:#1e293b;">' + fmtEins(sumGesamt) + '</strong></td>';
+  }
+  html += '</tr>';
+
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+// ── HILFSFUNKTIONEN ──────────────────────────────────────
+function localDateStr(d) {
+  return d.getFullYear() + '-'
+    + String(d.getMonth()+1).padStart(2,'0') + '-'
+    + String(d.getDate()).padStart(2,'0');
+}
+function addDays(d, n) {
+  var r = new Date(d); r.setDate(r.getDate() + n); return r;
+}
+function fmtDatum(d) {
+  if (!d) return '?';
+  var p = d.split('-');
+  return p[2] + '.' + p[1] + '.' + p[0].slice(2);
+}
+function getWtKurz(datum) {
+  if (!datum || !LG) return '';
+  return WT_LABEL[LG.getWochentagIndex(datum)] || '';
+}
+function fmtEins(v) {
+  if (v === null || v === undefined) return '–';
+  return Number(v).toLocaleString('de-DE', {minimumFractionDigits:1, maximumFractionDigits:1});
+}
+function fmtZwei(v) {
+  if (v === null || v === undefined) return '–';
+  return Number(v).toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+</script>
+</body>
+</html>

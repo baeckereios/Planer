@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BäckereiOS - 14-Tage Logbuch</title>
+    
+    <link rel="stylesheet" href="../systemdesign.css">
+    
+    <script src="durchschnittsverbrauch_gehirn.js"></script>
+    
+    <style>
+        .container { max-width: 900px; margin: 30px auto; padding: 0 15px; }
+        
+        .header-box { text-align: center; margin-bottom: 40px; }
+        .header-box h1 { font-size: 2.2rem; color: #1f2937; margin-bottom: 5px; }
+        .header-box p { color: #6b7280; font-size: 1.05rem; margin: 0; }
+
+        .kategorie-titel { 
+            font-size: 1.3rem; 
+            color: #111827; 
+            margin: 40px 0 15px; 
+            padding-bottom: 8px; 
+            border-bottom: 3px solid #e5e7eb; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+        }
+
+        /* --- AKKORDEON DESIGN --- */
+        .acc-card { 
+            background: #ffffff; 
+            border: 1px solid #e5e7eb; 
+            border-radius: 12px; 
+            margin-bottom: 12px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: box-shadow 0.2s;
+        }
+        .acc-card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
+        
+        .acc-summary { 
+            padding: 16px 20px; 
+            font-weight: bold; 
+            font-size: 1.1rem;
+            cursor: pointer; 
+            list-style: none; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: #f8fafc;
+            border-radius: 12px;
+            color: #374151;
+        }
+        .acc-summary::-webkit-details-marker { display: none; }
+        .acc-summary::after { content: '▼'; font-size: 0.8rem; color: #9ca3af; transition: transform 0.2s;}
+        .acc-card[open] .acc-summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: 1px solid #e5e7eb; }
+        .acc-card[open] .acc-summary::after { transform: rotate(180deg); }
+        
+        .acc-body { padding: 20px; }
+
+        /* --- 3-SPALTEN GRID FÜR DIE WOCHENTAGE --- */
+        .wochentag-row { 
+            display: flex; 
+            border-bottom: 1px dashed #e5e7eb; 
+            padding: 12px 0; 
+            align-items: center;
+        }
+        .wochentag-row:last-child { border-bottom: none; padding-bottom: 0; }
+        
+        .wochentag-name { 
+            width: 45px; 
+            font-weight: 900; 
+            color: #6b7280; 
+            text-transform: uppercase; 
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        
+        .wochentag-werte { 
+            display: flex; 
+            flex: 1; 
+            gap: 12px; 
+        }
+        
+        .wert-box { 
+            flex: 1; 
+            background: #f3f4f6; 
+            border-radius: 8px; 
+            padding: 10px; 
+            text-align: center; 
+            border: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+        
+        /* Hervorhebung für die aktuellste (rechte) Spalte */
+        .wert-box.aktuell {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .wert-datum { font-size: 0.75rem; color: #6b7280; margin-bottom: 4px; display: block; font-weight: bold;}
+        .wert-menge { font-size: 1.1rem; font-weight: 900; color: #111827; }
+        .wert-sub { font-size: 0.75rem; color: #6b7280; margin-top: 2px;}
+        
+        /* Das neue, sanft-rote Design für Daten älter als 14 Tage */
+        .wert-box.empty { 
+            background: #fef2f2; 
+            border: 1px dashed #fca5a5; 
+            opacity: 0.85; 
+        }
+        .wert-box.empty .wert-datum { color: #ef4444; opacity: 0.8;}
+        .wert-box.empty .wert-menge { color: #ef4444; font-weight: bold; opacity: 0.6;}
+
+        /* Status Anzeige */
+        #lade-status { text-align: center; padding: 40px; color: #6b7280; font-style: italic; }
+        .error-box { background: #fef2f2; color: #b91c1c; border: 1px solid #f87171; padding: 20px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 20px;}
+
+        @media (max-width: 600px) {
+            .wochentag-werte { gap: 6px; }
+            .wert-box { padding: 8px 4px; }
+            .wert-datum { font-size: 0.65rem; }
+            .wert-menge { font-size: 0.95rem; }
+            .wert-sub { font-size: 0.65rem; }
+            .acc-summary { font-size: 1rem; padding: 14px 15px;}
+            .acc-body { padding: 15px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ergebnis-container" style="display: none;"></div>
+
+    <div class="container">
+        
+        <div class="header-box">
+            <h1>📖 14-Tage Logbuch</h1>
+            <p>Die letzten zwei Wochen im direkten Wochentags-Vergleich</p>
+        </div>
+
+        <div id="lade-status">Datenbank wird geladen und analysiert...</div>
+        
+        <div id="logbuch-inhalt"></div>
+
+    </div>
+
+    <script src="../shell.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', ladeHistorie);
+
+        async function ladeHistorie() {
+            const statusDiv = document.getElementById('lade-status');
+            const inhaltDiv = document.getElementById('logbuch-inhalt');
+
+            if (typeof erlaubteProdukte === 'undefined') {
+                statusDiv.innerHTML = `<div class="error-box">Fehler: Das Dashboard-Gehirn wurde noch nicht generiert.<br>Bitte führe zuerst die Schablone 'Konfiguration_Durchschnitt_Produkte' im Admin-Bereich aus.</div>`;
+                return;
+            }
+
+            try {
+                const response = await fetch('../backmengen_db.json');
+                if (!response.ok) throw new Error('Konnte Datenbank nicht laden.');
+                const db = await response.json();
+
+                const dbMap = {};
+                db.forEach(eintrag => {
+                    dbMap[eintrag.datum] = eintrag.produkte;
+                });
+
+                const heute = new Date();
+                heute.setHours(0,0,0,0);
+                
+                const cutoffDate = new Date(heute);
+                cutoffDate.setDate(heute.getDate() - 13); 
+
+                const dayLabels = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+                const orderedDays = [1, 2, 3, 4, 5, 6, 0]; 
+                
+                const gridDates = {};
+                orderedDays.forEach(dayIndex => {
+                    gridDates[dayIndex] = [];
+                    
+                    let d = new Date(heute);
+                    while(d.getDay() !== dayIndex) {
+                        d.setDate(d.getDate() - 1);
+                    }
+                    
+                    // Spalte 1 (Ganz links): Vor zwei Wochen
+                    let d3 = new Date(d); d3.setDate(d.getDate() - 14);
+                    gridDates[dayIndex].push(d3);
+
+                    // Spalte 2 (Mitte): Vor einer Woche
+                    let d2 = new Date(d); d2.setDate(d.getDate() - 7);
+                    gridDates[dayIndex].push(d2);
+                    
+                    // Spalte 3 (Ganz rechts): Aktuellste Woche / Dieser Wochentag
+                    gridDates[dayIndex].push(new Date(d));
+                });
+
+                let finalesHTML = "";
+
+                kategorieReihenfolge.forEach(kat => {
+                    const produkteInKat = erlaubteProdukte.filter(p => (produktKategorien[p] || "sonstiges") === kat);
+                    
+                    if (produkteInKat.length === 0) return; 
+
+                    finalesHTML += `<h2 class="kategorie-titel">${kat}</h2>`;
+
+                    produkteInKat.forEach(prodKey => {
+                        const anzeigeName = typeof bereinigeAnzeigeName === 'function' ? bereinigeAnzeigeName(prodKey) : prodKey;
+                        const config = produktEinstellungen[prodKey] || {};
+                        const zeigeBleche = config.einheit === 'blech';
+                        const teiler = config.stueckProBlech || 1;
+
+                        let akkordeonHTML = `
+                            <details class="acc-card">
+                                <summary class="acc-summary">${anzeigeName}</summary>
+                                <div class="acc-body">
+                        `;
+
+                        orderedDays.forEach(dayIndex => {
+                            akkordeonHTML += `<div class="wochentag-row">
+                                <div class="wochentag-name">${dayLabels[dayIndex]}</div>
+                                <div class="wochentag-werte">`;
+
+                            gridDates[dayIndex].forEach((dateObj, colIndex) => {
+                                const y = dateObj.getFullYear();
+                                const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                                const d_str = String(dateObj.getDate()).padStart(2, '0');
+                                const dateStr = `${y}-${m}-${d_str}`; 
+                                
+                                const dateLabel = `${d_str}.${m}.`;
+                                
+                                const kastenKlasse = (colIndex === 2) ? "wert-box aktuell" : "wert-box";
+
+                                if (dateObj < cutoffDate) {
+                                    akkordeonHTML += `<div class="wert-box empty"><span class="wert-datum">${dateLabel}</span><span class="wert-menge">-</span></div>`;
+                                } else {
+                                    const amount = dbMap[dateStr] ? parseInt(dbMap[dateStr][prodKey]) : NaN;
+                                    
+                                    if (!isNaN(amount) && amount > 0) {
+                                        let anzeigeWert = `${amount} <span style="font-size:0.8em; font-weight:normal;">Stk</span>`;
+                                        let subText = "";
+                                        
+                                        if (zeigeBleche) {
+                                            const bleche = (amount / teiler).toFixed(1).replace('.0', '');
+                                            anzeigeWert = `${bleche} <span style="font-size:0.8em; font-weight:normal;">Bl.</span>`;
+                                            subText = `(${amount} Stk)`;
+                                        }
+
+                                        akkordeonHTML += `
+                                            <div class="${kastenKlasse}">
+                                                <span class="wert-datum">${dateLabel}</span>
+                                                <span class="wert-menge">${anzeigeWert}</span>
+                                                <span class="wert-sub">${subText}</span>
+                                            </div>`;
+                                    } else {
+                                        akkordeonHTML += `<div class="${kastenKlasse} empty" style="background:#f9fafb; border-color:#e5e7eb;"><span class="wert-datum">${dateLabel}</span><span class="wert-menge">0</span></div>`;
+                                    }
+                                }
+                            });
+
+                            akkordeonHTML += `</div></div>`; 
+                        });
+
+                        akkordeonHTML += `</div></details>`; 
+                        finalesHTML += akkordeonHTML;
+                    });
+                });
+
+                statusDiv.style.display = 'none';
+                inhaltDiv.innerHTML = finalesHTML;
+
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error-box">Verbindungsfehler: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

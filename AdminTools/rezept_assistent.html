@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BäckereiOS — Rezept Assistent</title>
+    <link rel="stylesheet" href="admin_design.css">
+    <style>
+        .wiz-wrap { max-width: 720px; margin: 0 auto; padding: 30px 16px 80px; }
+        .wiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+        .wiz-logo { font-size: 1.6rem; font-weight: 900; }
+        .wiz-logo span { font-style: italic; }
+        .wiz-back { text-decoration: none; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; }
+
+        .prog-bar-wrap { background: var(--border-color); border-radius: 99px; height: 6px; margin-bottom: 8px; }
+        .prog-bar-fill { background: #0f172a; height: 6px; border-radius: 99px; transition: width 0.4s ease; }
+        .prog-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 700; text-align: right; margin-bottom: 24px; }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .intro-icon { font-size: 3.5rem; text-align: center; margin-bottom: 16px; }
+        .intro-title { font-size: 1.6rem; font-weight: 900; text-align: center; margin-bottom: 8px; }
+        .intro-sub { font-size: 0.95rem; color: var(--text-muted); text-align: center; line-height: 1.6; margin-bottom: 28px; }
+
+        /* LIST */
+        .teig-row { background: var(--card-bg); border: 1px solid var(--border-color); border-left: 4px solid #0f172a; border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+        .teig-row-left { flex: 1; min-width: 0; }
+        .teig-row-name { font-weight: 800; font-size: 1rem; }
+        .teig-row-meta { font-size: 0.78rem; color: var(--text-muted); }
+        .teig-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .btn-sm { padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: none; margin: 0; width: auto; }
+        .btn-edit { background: #f1f5f9; color: var(--text-main); }
+        .btn-del  { background: #fef2f2; color: #dc2626; }
+        .prod-count { display: inline-block; background: #f1f5f9; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-left: 8px; }
+
+        /* EDIT */
+        .edit-card { background: var(--card-bg); border: 1.5px solid #0f172a; border-radius: 14px; padding: 24px; margin-bottom: 16px; }
+        .sect { font-size: 0.7rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin: 22px 0 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; }
+        .sect:first-child { margin-top: 0; }
+        .hint { background: #f8fafc; border-left: 3px solid #94a3b8; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; margin: 6px 0 12px; }
+        .hint b { color: var(--text-main); }
+
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+        /* DAY PILLS */
+        .days-wrap { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+        .day-pill { padding: 8px 14px; border-radius: 6px; border: 1.5px solid var(--border-color); background: #f8fafc; color: var(--text-muted); font-size: 0.82rem; font-weight: 800; cursor: pointer; transition: all 0.15s; }
+        .day-pill.on { border-color: #0f172a; background: #0f172a; color: white; }
+
+        /* TOGGLE */
+        .toggle-row { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 10px; margin-bottom: 8px; cursor: pointer; }
+        .toggle-row input[type=checkbox] { width: 20px; height: 20px; margin: 0; accent-color: #0f172a; flex-shrink: 0; }
+        .toggle-label { font-size: 0.9rem; font-weight: 700; flex: 1; line-height: 1.4; }
+        .toggle-sub { font-size: 0.75rem; font-weight: 500; }
+
+        /* REZEPT LINES */
+        .rezept-block { background: #f8fafc; border-radius: 12px; border: 1px solid var(--border-color); padding: 16px; }
+        .rezept-line { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 8px; background: white; border: 1px solid var(--border-color); margin-bottom: 8px; }
+        .rezept-line:last-of-type { margin-bottom: 0; }
+        .rezept-line label { font-weight: 700; font-size: 0.95rem; margin: 0; }
+        .rezept-line-input { display: flex; align-items: center; gap: 6px; }
+        .rezept-inp { width: 90px; text-align: right; margin: 0; font-weight: 700; font-size: 1rem; border-color: var(--border-color); }
+        .rezept-inp:focus { border-color: #3b82f6; }
+        .unit-lbl { font-size: 0.85rem; color: var(--text-muted); font-weight: 700; min-width: 20px; }
+
+        .line-sauer { background: #f0fdf4; border-color: #bbf7d0; }
+        .line-sauer label { color: #166534; }
+        .line-sauer .rezept-inp { border-color: #bbf7d0; color: #166534; }
+        .line-brueh { background: #fffbeb; border-color: #fde68a; }
+        .line-brueh label { color: #b45309; }
+        .line-brueh .rezept-inp { border-color: #fde68a; color: #b45309; }
+
+        /* SUMME */
+        .summen-strich { border-top: 3px solid var(--text-main); margin: 14px 0; }
+        .summe-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-radius: 10px; transition: all 0.3s; margin-top: 4px; }
+        .summe-row.ok   { background: var(--success-color); }
+        .summe-row.warn { background: var(--alert-color); }
+        .summe-label { color: white; font-weight: 900; font-size: 1rem; }
+        .summe-val   { color: white; font-weight: 900; font-size: 1.3rem; }
+        .summe-hint { font-size: 0.8rem; color: var(--alert-color); font-weight: 700; text-align: right; margin-top: 6px; }
+
+        /* ENDPRODUKTE */
+        .endprod-box { background: #f1f5f9; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+        .btn-add-small { background: #f8fafc; color: var(--text-main); border: 1.5px dashed #cbd5e1; border-radius: 8px; padding: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; width: 100%; margin: 8px 0 0; }
+
+        /* KORREKTUR */
+        .korr-box { background: #fefce8; border: 1px solid #fef08a; border-radius: 10px; padding: 16px; }
+        .korr-box .toggle-row { background: transparent; padding: 0 0 12px; border-bottom: 1px solid #fde68a; }
+        .korr-box label { color: #a16207; }
+
+        /* VORTAG */
+        .vortag-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 14px; }
+        .vortag-box .toggle-row { background: transparent; padding: 0; }
+
+        /* ACTIONS */
+        .action-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .btn-primary { background: #0f172a; color: white; border: none; border-radius: 8px; padding: 14px 24px; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin: 0; width: auto; flex: 1; }
+        .btn-primary:hover { background: #1e293b; }
+        .btn-secondary { background: #f1f5f9; color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 20px; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin: 0; width: auto; }
+
+        .success-box { background: #ecfdf5; border: 1.5px solid #10b981; border-radius: 14px; padding: 28px; text-align: center; margin-bottom: 20px; }
+        .success-icon { font-size: 3rem; margin-bottom: 12px; }
+        .success-title { font-size: 1.3rem; font-weight: 900; color: #065f46; margin-bottom: 8px; }
+        .success-sub { font-size: 0.88rem; color: #047857; line-height: 1.6; }
+        .instructions { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; }
+        .instructions h3 { font-size: 0.8rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin: 0 0 14px; }
+        .step-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+        .step-list li { display: flex; gap: 12px; align-items: flex-start; font-size: 0.88rem; line-height: 1.5; }
+        .step-num { flex-shrink: 0; width: 24px; height: 24px; background: #0f172a; color: white; border-radius: 50%; font-weight: 900; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; }
+
+        /* endprodukte delete btn */
+        .btn-del-ep { background: #fef2f2; color: #dc2626; border: 1px solid #fecdd3; border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 8px; }
+    </style>
+</head>
+<body>
+<div class="wiz-wrap">
+    <div class="wiz-header">
+        <div class="wiz-logo">Bäckerei<span>OS</span></div>
+        <a href="admin_landing.html" class="wiz-back">← Admin</a>
+    </div>
+    <div class="prog-bar-wrap"><div class="prog-bar-fill" id="progBar" style="width:0%"></div></div>
+    <div class="prog-label" id="progLabel"> </div>
+
+    <!-- INTRO -->
+    <div class="screen active" id="screen-intro">
+        <div class="intro-icon">🍞</div>
+        <div class="intro-title">Rezept-Assistent</div>
+        <div class="intro-sub">Hier verwaltest du alle Sammelteige — Rezepte, Wochentage, Backprogramme und Endprodukte.</div>
+
+        <div class="card" style="margin-bottom: 20px;">
+            <h2>Das 100 kg Prinzip</h2>
+            <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin: 0 0 12px;">
+                Alle Rezepte basieren auf <b>exakt 100 kg Teig</b>. Das System skaliert automatisch auf die tatsächliche Brotanzahl hoch oder runter.
+            </p>
+            <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                Ein Live-Balken zeigt dir bei der Eingabe ob die Summe stimmt.
+                <b style="color: var(--success-color);">Grün = genau 100 kg ✓</b> &nbsp;
+                <b style="color: var(--alert-color);">Rot = Abweichung</b>
+            </p>
+        </div>
+
+        <div class="card" style="margin-bottom: 24px; background: #fffbeb; border-color: #fcd34d;">
+            <h2 style="color: #92400e; border-color: #fcd34d;">⚠️ Wichtig</h2>
+            <p style="font-size: 0.88rem; color: #78350f; line-height: 1.6; margin: 0;">
+                Rezeptänderungen wirken sich direkt auf Nachtschicht-Berechnungen aus.
+                Bitte nur Werte eintragen die du kennst und die geprüft sind.
+            </p>
+        </div>
+
+        <button class="btn-primary" style="width: 100%; padding: 16px;" onclick="goScreen('screen-list')">Los geht's →</button>
+    </div>
+
+    <!-- LISTE -->
+    <div class="screen" id="screen-list">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 style="margin: 0; font-size: 1.2rem;">Sammelteige <span class="prod-count" id="teig-count">0</span></h2>
+            <button class="btn-sm btn-edit" onclick="newTeig()" style="padding: 8px 14px; font-size: 0.85rem;">➕ Neu</button>
+        </div>
+        <div id="teig-list"></div>
+        <div class="action-row">
+            <button class="btn-secondary" onclick="goScreen('screen-intro')">← Zurück</button>
+            <button class="btn-primary" onclick="goScreen('screen-export')">Weiter zur Ausgabe →</button>
+        </div>
+    </div>
+
+    <!-- EDIT -->
+    <div class="screen" id="screen-edit">
+        <h2 id="edit-title" style="margin: 0 0 20px; font-size: 1.2rem;">Teig bearbeiten</h2>
+        <div class="edit-card" id="edit-card">
+
+            <!-- NAME -->
+            <div class="sect">Name & Produktion</div>
+            <div class="hint">Name des Sammelteigs wie er in BrotRechner und Sauerteig-Rechner erscheint.</div>
+            <input type="text" id="edit-name" placeholder="z.B. Weizenmischbrot" maxlength="40">
+
+            <div class="two-col" style="margin-top: 12px;">
+                <div><label>Backprogramm</label><input type="text" id="edit-prog" placeholder="z.B. Vollkornbrot 028"></div>
+                <div><label>Kneter-Info</label><input type="text" id="edit-komm" placeholder="z.B. 5 Min langsam, 8 Min schnell"></div>
+            </div>
+
+            <!-- WOCHENTAGE -->
+            <div class="sect">Produktionstage</div>
+            <div class="hint">An welchen Tagen wird dieser Teig angesetzt?</div>
+            <div class="days-wrap" id="edit-days">
+                <span class="day-pill" data-d="Montag"     onclick="toggleDay(this)">Mo</span>
+                <span class="day-pill" data-d="Dienstag"   onclick="toggleDay(this)">Di</span>
+                <span class="day-pill" data-d="Mittwoch"   onclick="toggleDay(this)">Mi</span>
+                <span class="day-pill" data-d="Donnerstag" onclick="toggleDay(this)">Do</span>
+                <span class="day-pill" data-d="Freitag"    onclick="toggleDay(this)">Fr</span>
+                <span class="day-pill" data-d="Samstag"    onclick="toggleDay(this)">Sa</span>
+                <span class="day-pill" data-d="Sonntag"    onclick="toggleDay(this)">So</span>
+            </div>
+
+            <!-- REZEPT -->
+            <div class="sect">Basis-Rezept (für 100 kg Teig)</div>
+            <div class="hint">Alle Mengen in <b>kg</b> — Kommazahlen sind erlaubt. Die Summe muss exakt <b>100,00 kg</b> ergeben. Nicht benötigte Zutaten auf 0 lassen.</div>
+            <div class="rezept-block">
+                <div class="rezept-line">
+                    <label>+ Mehl</label>
+                    <div class="rezept-line-input"><input class="rezept-inp" type="number" id="r-mehl" step="0.01" min="0" value="0" oninput="updateSumme()"><span class="unit-lbl">kg</span></div>
+                </div>
+                <div class="rezept-line">
+                    <label>+ Wasser</label>
+                    <div class="rezept-line-input"><input class="rezept-inp" type="number" id="r-wasser" step="0.01" min="0" value="0" oninput="updateSumme()"><span class="unit-lbl">kg</span></div>
+                </div>
+                <div class="rezept-line">
+                    <label style="color: var(--alert-color);">+ Zutaten</label>
+                    <div class="rezept-line-input"><input class="rezept-inp" type="number" id="r-zutaten" step="0.01" min="0" value="0" oninput="updateSumme()"><span class="unit-lbl">kg</span></div>
+                </div>
+                <div class="rezept-line line-sauer">
+                    <label>+ Sauerteig</label>
+                    <div class="rezept-line-input"><input class="rezept-inp" type="number" id="r-sauer" step="0.01" min="0" value="0" oninput="updateSumme()"><span class="unit-lbl">kg</span></div>
+                </div>
+                <div class="rezept-line line-brueh">
+                    <label>+ Brühstück</label>
+                    <div class="rezept-line-input"><input class="rezept-inp" type="number" id="r-brueh" step="0.01" min="0" value="0" oninput="updateSumme()"><span class="unit-lbl">kg</span></div>
+                </div>
+                <div class="summen-strich"></div>
+                <div class="summe-row warn" id="summe-row">
+                    <span class="summe-label">= TEIG GESAMT</span>
+                    <span class="summe-val" id="summe-val">0.00 kg</span>
+                </div>
+                <div class="summe-hint" id="summe-hint"></div>
+            </div>
+
+            <!-- BRÜHSTÜCK EIMER -->
+            <div id="eimer-section" style="margin-top: 12px; display: none;">
+                <div class="hint" style="background: #fffbeb; border-color: #fcd34d;">
+                    <b>Brühstück aktiv</b> — Wie viele Brote reichen aus einem Eimer Brühstück?
+                </div>
+                <div><label>1 Eimer reicht für (Brote)</label><input type="number" id="edit-charge" min="1" value="21" style="max-width: 120px;"></div>
+            </div>
+
+            <!-- KORREKTUR -->
+            <div class="sect">Automatische Korrektur</div>
+            <div class="hint">Wenn aktiviert, zieht das System bei bestimmten Brotmengen automatisch etwas Wasser und Hefe ab — basierend auf gemessenen Beobachtungen.</div>
+            <div class="korr-box">
+                <label class="toggle-row">
+                    <input type="checkbox" id="edit-korr-aktiv" onchange="document.getElementById('korr-felder').style.display=this.checked?'grid':'none'">
+                    <span class="toggle-label" style="color: #a16207;">Automatische Korrektur AKTIVIEREN</span>
+                </label>
+                <div id="korr-felder" class="three-col" style="display: none; margin-top: 12px;">
+                    <div><label style="color:#854d0e; font-size:0.75rem;">Beobachtung bei<br>(Anzahl Brote)</label><input type="number" id="edit-korr-brote" value="0" placeholder="113"></div>
+                    <div><label style="color:#854d0e; font-size:0.75rem;">Wasser abgezogen<br>(Liter)</label><input type="number" id="edit-korr-wasser" step="0.1" value="0" placeholder="3"></div>
+                    <div><label style="color:#854d0e; font-size:0.75rem;">Hefe abgezogen<br>(Gramm)</label><input type="number" id="edit-korr-hefe" value="0" placeholder="50"></div>
+                </div>
+            </div>
+
+            <!-- VORTAG -->
+            <div class="sect">Vortags-Erinnerung</div>
+            <div class="vortag-box">
+                <label class="toggle-row">
+                    <input type="checkbox" id="edit-vortag">
+                    <span class="toggle-label" style="color: #991b1b;">⚠️ Quell-/Brühstück im Vortags-Rechner anzeigen</span>
+                </label>
+            </div>
+
+            <!-- ENDPRODUKTE -->
+            <div class="sect">Endprodukte aus diesem Teig</div>
+            <div class="hint">Das <b>erste</b> Produkt in der Liste gilt als Standard-Brot für die Eimer-Rechnung. Weitere Einträge sind Gewichtsvarianten desselben Teigs.</div>
+            <div id="endprod-list"></div>
+            <button class="btn-add-small" onclick="addEndprod()">➕ Variante hinzufügen</button>
+
+        </div>
+        <div class="action-row">
+            <button class="btn-secondary" onclick="cancelEdit()">Abbrechen</button>
+            <button class="btn-primary" onclick="saveEdit()">✓ Speichern</button>
+        </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="screen" id="screen-export">
+        <div class="success-box">
+            <div class="success-icon">✅</div>
+            <div class="success-title">Rezepte bereit!</div>
+            <div class="success-sub"><span id="export-count">0</span> Sammelteige konfiguriert.<br>Lade jetzt die neue <b>brot_daten.js</b> herunter.</div>
+        </div>
+        <div class="instructions">
+            <h3>So geht es weiter</h3>
+            <ol class="step-list">
+                <li><span class="step-num">1</span><span>Klicke auf <b>„brot_daten.js herunterladen"</b>.</span></li>
+                <li><span class="step-num">2</span><span>GitHub → BäckereiOS → <b>AdminTools/</b> Ordner öffnen.</span></li>
+                <li><span class="step-num">3</span><span>Alte <b>brot_daten.js</b> ersetzen → Upload → bestätigen.</span></li>
+                <li><span class="step-num">4</span><span>1–2 Minuten warten, dann Seite neu laden.</span></li>
+            </ol>
+        </div>
+        <div class="action-row" style="margin-top: 20px;">
+            <button class="btn-secondary" onclick="goScreen('screen-list')">← Zurück</button>
+            <button class="btn-primary" onclick="downloadJS()">⬇️ brot_daten.js herunterladen</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── DATEN ───────────────────────────────────────────────────────────────────
+let db = {};
+let editId = null;
+let endprodukte = []; // temp while editing
+
+const SCREENS = ["screen-intro","screen-list","screen-edit","screen-export"];
+const PROG = {"screen-intro":0,"screen-list":40,"screen-edit":70,"screen-export":100};
+const PROG_LABEL = {"screen-intro":"Einführung","screen-list":"Teige verwalten","screen-edit":"Teig bearbeiten","screen-export":"Fertig"};
+const DAYS_LONG = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+
+function goScreen(id) {
+    SCREENS.forEach(s => document.getElementById(s).classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.getElementById('progBar').style.width = (PROG[id]||0) + '%';
+    document.getElementById('progLabel').textContent = PROG_LABEL[id] || '';
+    if (id === 'screen-list') renderList();
+    if (id === 'screen-export') document.getElementById('export-count').textContent = Object.keys(db).length;
+    window.scrollTo(0, 0);
+}
+
+// ── LISTE ───────────────────────────────────────────────────────────────────
+function renderList() {
+    const el = document.getElementById('teig-list');
+    document.getElementById('teig-count').textContent = Object.keys(db).length;
+    if (Object.keys(db).length === 0) {
+        el.innerHTML = '<div style="text-align:center; color: var(--text-muted); padding: 40px; font-size: 0.9rem;">Noch keine Teige angelegt. Klicke auf ➕ Neu.</div>';
+        return;
+    }
+    el.innerHTML = Object.entries(db).map(([id, t]) => {
+        const tageStr = (t.wochentage || []).map(d => d.substring(0,2)).join(', ') || '—';
+        const prodStr = (t.endprodukte || []).map(p => p.name).join(', ') || '—';
+        return `<div class="teig-row">
+            <div class="teig-row-left">
+                <div class="teig-row-name">${t.name}</div>
+                <div class="teig-row-meta">${tageStr} · ${prodStr}</div>
+            </div>
+            <div class="teig-row-actions">
+                <button class="btn-sm btn-edit" onclick="editTeig('${id}')">✏️ Bearbeiten</button>
+                <button class="btn-sm btn-del" onclick="deleteTeig('${id}')">🗑️</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function deleteTeig(id) {
+    if (!confirm(`„${db[id].name}" wirklich löschen?`)) return;
+    delete db[id];
+    renderList();
+}
+
+// ── DAYS ────────────────────────────────────────────────────────────────────
+function toggleDay(pill) { pill.classList.toggle('on'); }
+
+// ── SUMME ───────────────────────────────────────────────────────────────────
+function updateSumme() {
+    const keys = ['mehl','wasser','zutaten','sauer','brueh'];
+    let sum = 0;
+    keys.forEach(k => { sum += parseFloat(document.getElementById('r-' + k).value) || 0; });
+    const sumKg = sum.toFixed(2);
+    const isPerfect = Math.abs(sum - 100) < 0.005;
+    document.getElementById('summe-val').textContent = sumKg + ' kg';
+    document.getElementById('summe-row').className = 'summe-row ' + (isPerfect ? 'ok' : 'warn');
+    document.getElementById('summe-hint').textContent = isPerfect ? '' :
+        (sum < 100 ? `⚠️ Noch ${(100 - sum).toFixed(2)} kg bis zur 100 kg Basis` : `⚠️ ${(sum - 100).toFixed(2)} kg zu viel`);
+    // Show/hide Eimer section
+    const brueh = parseFloat(document.getElementById('r-brueh').value) || 0;
+    document.getElementById('eimer-section').style.display = brueh > 0 ? 'block' : 'none';
+}
+
+// ── ENDPRODUKTE ──────────────────────────────────────────────────────────────
+function renderEndprodukte() {
+    const el = document.getElementById('endprod-list');
+    el.innerHTML = endprodukte.map((p, i) => `
+        <div class="endprod-box">
+            <div class="two-col">
+                <div><label style="margin-top:0;">Produktname</label><input type="text" value="${p.name}" oninput="endprodukte[${i}].name=this.value" placeholder="z.B. Weizenmischbrot 850g"></div>
+                <div><label style="margin-top:0;">Einwaage (g)</label><input type="number" value="${p.einwaage}" oninput="endprodukte[${i}].einwaage=parseInt(this.value)||0" placeholder="850"></div>
+            </div>
+            ${i === 0 ? '<small style="color:var(--text-muted);">⭐ Standard-Brot (Basis für Eimer-Rechnung)</small>' : ''}
+            ${endprodukte.length > 1 ? `<button class="btn-del-ep" onclick="removeEndprod(${i})">🗑️ Variante entfernen</button>` : ''}
+        </div>
+    `).join('');
+}
+
+function addEndprod() {
+    endprodukte.push({name: '', einwaage: 0});
+    renderEndprodukte();
+}
+
+function removeEndprod(i) {
+    endprodukte.splice(i, 1);
+    renderEndprodukte();
+}
+
+// ── EDIT TEIG ────────────────────────────────────────────────────────────────
+function editTeig(id) {
+    editId = id;
+    const t = db[id];
+    document.getElementById('edit-title').textContent = '✏️ ' + t.name;
+    document.getElementById('edit-name').value = t.name;
+    document.getElementById('edit-prog').value = t.programm || '';
+    document.getElementById('edit-komm').value = t.kommentar || '';
+
+    // Days
+    document.querySelectorAll('#edit-days .day-pill').forEach(p =>
+        p.classList.toggle('on', (t.wochentage || []).includes(p.dataset.d)));
+
+    // Rezept (g → kg)
+    ['mehl','wasser','zutaten','sauer','brueh'].forEach(k =>
+        document.getElementById('r-' + k).value = ((t.r100[k] || 0) / 1000).toFixed(2));
+    updateSumme();
+
+    // Charge brote
+    document.getElementById('edit-charge').value = t.charge_brote || 21;
+
+    // Korrektur
+    const ka = t.korrektur_aktiv || false;
+    document.getElementById('edit-korr-aktiv').checked = ka;
+    document.getElementById('korr-felder').style.display = ka ? 'grid' : 'none';
+    document.getElementById('edit-korr-brote').value = t.korrektur_referenz_brote || 0;
+    document.getElementById('edit-korr-wasser').value = t.korrektur_wasser || 0;
+    document.getElementById('edit-korr-hefe').value = t.korrektur_hefe || 0;
+
+    // Vortag
+    document.getElementById('edit-vortag').checked = t.braucht_vortag || false;
+
+    // Endprodukte
+    endprodukte = JSON.parse(JSON.stringify(t.endprodukte || [{name:'', einwaage:0}]));
+    renderEndprodukte();
+
+    goScreen('screen-edit');
+}
+
+function newTeig() {
+    editId = null;
+    document.getElementById('edit-title').textContent = '➕ Neuer Sammelteig';
+    document.getElementById('edit-name').value = '';
+    document.getElementById('edit-prog').value = '';
+    document.getElementById('edit-komm').value = '';
+    document.querySelectorAll('#edit-days .day-pill').forEach(p => p.classList.remove('on'));
+    ['mehl','wasser','zutaten','sauer','brueh'].forEach(k =>
+        document.getElementById('r-' + k).value = '0');
+    updateSumme();
+    document.getElementById('edit-charge').value = 21;
+    document.getElementById('edit-korr-aktiv').checked = false;
+    document.getElementById('korr-felder').style.display = 'none';
+    document.getElementById('edit-korr-brote').value = 0;
+    document.getElementById('edit-korr-wasser').value = 0;
+    document.getElementById('edit-korr-hefe').value = 0;
+    document.getElementById('edit-vortag').checked = false;
+    endprodukte = [{name:'', einwaage: 0}];
+    renderEndprodukte();
+    goScreen('screen-edit');
+}
+
+function cancelEdit() { goScreen('screen-list'); }
+
+function saveEdit() {
+    const name = document.getElementById('edit-name').value.trim();
+    if (!name) { alert('Bitte einen Namen eingeben.'); return; }
+
+    const r100 = {};
+    let sum = 0;
+    ['mehl','wasser','zutaten','sauer','brueh'].forEach(k => {
+        const kg = parseFloat(document.getElementById('r-' + k).value) || 0;
+        r100[k] = Math.round(kg * 1000);
+        sum += kg;
+    });
+    r100.gesamt = 100000;
+
+    if (Math.abs(sum - 100) > 0.5) {
+        if (!confirm(`Die Rezeptsumme ist ${sum.toFixed(2)} kg (Soll: 100 kg). Trotzdem speichern?`)) return;
+    }
+
+    const wochentage = Array.from(document.querySelectorAll('#edit-days .day-pill.on')).map(p => p.dataset.d);
+    const ka = document.getElementById('edit-korr-aktiv').checked;
+
+    const id = editId || 'teig_' + Date.now();
+    db[id] = {
+        name,
+        wochentage,
+        programm: document.getElementById('edit-prog').value.trim(),
+        kommentar: document.getElementById('edit-komm').value.trim(),
+        r100,
+        charge_brote: parseInt(document.getElementById('edit-charge').value) || 21,
+        braucht_vortag: document.getElementById('edit-vortag').checked,
+        korrektur_aktiv: ka,
+        korrektur_referenz_brote: ka ? (parseFloat(document.getElementById('edit-korr-brote').value) || 0) : 0,
+        korrektur_wasser: ka ? (parseFloat(document.getElementById('edit-korr-wasser').value) || 0) : 0,
+        korrektur_hefe: ka ? (parseFloat(document.getElementById('edit-korr-hefe').value) || 0) : 0,
+        endprodukte: endprodukte.filter(p => p.name.trim())
+    };
+    goScreen('screen-list');
+}
+
+// ── EXPORT ───────────────────────────────────────────────────────────────────
+function downloadJS() {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('de-DE') + ' ' + now.toLocaleTimeString('de-DE', {hour:'2-digit',minute:'2-digit'});
+    const output = `// brot_daten.js — BäckereiOS Sammelteig-Rezepte
+// Generiert: ${dateStr} via Rezept Assistent
+// Teige: ${Object.keys(db).length}
+//
+// ANLEITUNG: Diese Datei ersetzt die bestehende brot_daten.js im AdminTools/ Ordner.
+// Auf GitHub hochladen → Änderungen nach 1-2 Minuten aktiv.
+
+window.BOS_BROT_DATEN = ${JSON.stringify(db, null, 4)};
+`;
+    const blob = new Blob([output], {type:'application/javascript'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'brot_daten.js';
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+renderList();
+goScreen('screen-intro');
+</script>
+</body>
+</html>

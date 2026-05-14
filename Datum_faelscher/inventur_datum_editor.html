@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventurdaten · Datum-Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;1,400&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --amber: #d49a36;
+    --amber-dim: #a07520;
+    --bg: #1a1a1a;
+    --surface: #242424;
+    --surface2: #2e2e2e;
+    --border: #3a3a3a;
+    --text: #e8e0d0;
+    --text-dim: #888;
+    --green: #6abf69;
+    --red: #e57373;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    color: var(--amber);
+  }
+  header span {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  main { padding: 20px; max-width: 860px; }
+
+  /* Drop zone */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 24px;
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--amber);
+    background: rgba(212,154,54,0.05);
+  }
+  .drop-zone p { color: var(--text-dim); margin-bottom: 12px; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .drop-zone input[type=file] { display: none; }
+  .btn-load {
+    background: var(--amber);
+    color: #1a1a1a;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+  .btn-load:hover { background: #e6ab40; }
+
+  /* Toolbar */
+  .toolbar {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .toolbar.visible { display: flex; }
+  .toolbar label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .toolbar input[type=datetime-local] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+  }
+  .btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn:hover { border-color: var(--amber); color: var(--amber); }
+  .btn-primary {
+    background: var(--amber);
+    color: #1a1a1a;
+    border-color: var(--amber);
+  }
+  .btn-primary:hover { background: #e6ab40; color: #1a1a1a; }
+
+  /* Product table */
+  .product-list {
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .product-list.visible { display: flex; }
+
+  .product-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 12px;
+    transition: border-color 0.15s;
+  }
+  .product-row:hover { border-color: #4a4a4a; }
+  .product-row.ts-zero { opacity: 0.5; }
+
+  .prod-key {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--amber);
+    letter-spacing: 0.03em;
+    word-break: break-all;
+  }
+  .prod-stock {
+    font-size: 13px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .prod-stock b { color: var(--text); }
+
+  .prod-datetime {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 13px;
+    transition: border-color 0.15s;
+  }
+  .prod-datetime:focus { outline: none; border-color: var(--amber); }
+  .prod-datetime.changed { border-color: var(--green); }
+  .prod-datetime:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .prod-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .fehlmenge-badge {
+    font-size: 11px;
+    color: var(--red);
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.04em;
+  }
+
+  /* Export area */
+  .export-area {
+    display: none;
+    margin-top: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .export-area.visible { display: block; }
+  .export-area h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  .export-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .status-bar {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    color: var(--text-dim);
+    padding: 6px 0 0 2px;
+  }
+  .status-bar.ok { color: var(--green); }
+  .status-bar.err { color: var(--red); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Inventur · Datum-Editor</h1>
+  <span>BäckereiOS Hilfswerkzeug</span>
+</header>
+
+<main>
+
+  <!-- Drop / Load Zone -->
+  <div class="drop-zone" id="dropZone">
+    <p>inventurdaten.js hier ablegen oder auswählen</p>
+    <button class="btn-load" onclick="document.getElementById('fileInput').click()">Datei wählen</button>
+    <input type="file" id="fileInput" accept=".js">
+  </div>
+
+  <!-- Toolbar (bulk actions) -->
+  <div class="toolbar" id="toolbar">
+    <div>
+      <label>Alle Timestamps setzen auf</label>
+      <input type="datetime-local" id="bulkDate" step="1">
+    </div>
+    <div style="display:flex; gap:8px; align-items:flex-end;">
+      <button class="btn" onclick="applyBulkDate()">Alle übernehmen</button>
+      <button class="btn" onclick="setToNow()">Jetzt</button>
+      <button class="btn" id="resetBtn" onclick="resetAll()">Reset</button>
+    </div>
+    <div style="margin-left: auto; display:flex; gap:8px; align-items:flex-end;">
+      <button class="btn btn-primary" onclick="exportFile()">⬇ Datei exportieren</button>
+    </div>
+  </div>
+
+  <!-- Product rows -->
+  <div class="product-list" id="productList"></div>
+
+  <div class="status-bar" id="statusBar"></div>
+
+</main>
+
+<script>
+let originalData = null;
+let parsedData = null;
+
+// ── File loading ────────────────────────────────────────────────────────────
+document.getElementById('fileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) loadFile(file);
+});
+
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+
+function loadFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    try {
+      // Execute in sandbox to get the object
+      const fn = new Function(text + '; return window.BOS_INVENTUR;');
+      // Safer: parse by executing and catching the assignment
+      const sandbox = {};
+      const execFn = new Function('window', text);
+      execFn(sandbox);
+      parsedData = JSON.parse(JSON.stringify(sandbox.BOS_INVENTUR));
+      originalData = JSON.parse(JSON.stringify(parsedData));
+      renderProducts();
+      setStatus(`${file.name} geladen — ${Object.keys(parsedData.products).length} Produkte`, 'ok');
+    } catch(err) {
+      setStatus('Fehler beim Einlesen: ' + err.message, 'err');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ── Render ──────────────────────────────────────────────────────────────────
+function tsToLocalInput(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  // datetime-local needs "YYYY-MM-DDTHH:MM:SS"
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+function localInputToTs(val) {
+  if (!val) return 0;
+  return new Date(val).getTime();
+}
+
+function renderProducts() {
+  const list = document.getElementById('productList');
+  list.innerHTML = '';
+
+  for (const [key, prod] of Object.entries(parsedData.products)) {
+    const row = document.createElement('div');
+    row.className = 'product-row' + (prod.ts === 0 ? ' ts-zero' : '');
+    row.dataset.key = key;
+
+    const meta = document.createElement('div');
+    meta.className = 'prod-meta';
+    meta.innerHTML = `<div class="prod-key">${key}</div>
+      <div class="prod-stock">Bestand: <b>${prod.stock}</b>${prod.fehlmenge > 0 ? '' : ''}</div>
+      ${prod.fehlmenge > 0 ? `<div class="fehlmenge-badge">⚠ Fehlmenge: ${prod.fehlmenge}</div>` : ''}`;
+
+    const dtInput = document.createElement('input');
+    dtInput.type = 'datetime-local';
+    dtInput.className = 'prod-datetime';
+    dtInput.step = '1';
+    dtInput.value = tsToLocalInput(prod.ts);
+    dtInput.disabled = prod.ts === 0;
+    dtInput.dataset.key = key;
+    dtInput.addEventListener('change', function() {
+      parsedData.products[key].ts = localInputToTs(this.value);
+      parsedData.stocks[key] = parsedData.products[key].stock; // keep in sync
+      this.classList.add('changed');
+      row.classList.remove('ts-zero');
+    });
+
+    const stockBadge = document.createElement('div');
+    stockBadge.className = 'prod-stock';
+    stockBadge.style.textAlign = 'right';
+    stockBadge.innerHTML = `locs: [${prod.locs.join(', ')}]`;
+
+    row.appendChild(meta);
+    row.appendChild(dtInput);
+    row.appendChild(stockBadge);
+    list.appendChild(row);
+  }
+
+  document.getElementById('toolbar').classList.add('visible');
+  document.getElementById('productList').classList.add('visible');
+
+  // Pre-fill bulk date with the median timestamp
+  const tsList = Object.values(parsedData.products).map(p => p.ts).filter(t => t > 0);
+  if (tsList.length) {
+    const median = tsList.sort((a,b)=>a-b)[Math.floor(tsList.length/2)];
+    document.getElementById('bulkDate').value = tsToLocalInput(median);
+  }
+}
+
+// ── Bulk actions ─────────────────────────────────────────────────────────────
+function applyBulkDate() {
+  const val = document.getElementById('bulkDate').value;
+  if (!val) return;
+  const ts = localInputToTs(val);
+  document.querySelectorAll('.prod-datetime').forEach(inp => {
+    const key = inp.dataset.key;
+    // Only update products that already had a ts (skip ts:0 ones)
+    if (originalData.products[key].ts !== 0) {
+      inp.value = val;
+      inp.classList.add('changed');
+      parsedData.products[key].ts = ts;
+      inp.closest('.product-row').classList.remove('ts-zero');
+    }
+  });
+  setStatus(`Alle Timestamps auf ${new Date(ts).toLocaleString('de-DE')} gesetzt`, 'ok');
+}
+
+function setToNow() {
+  const now = tsToLocalInput(Date.now());
+  document.getElementById('bulkDate').value = now;
+}
+
+function resetAll() {
+  parsedData = JSON.parse(JSON.stringify(originalData));
+  renderProducts();
+  setStatus('Auf Originalwerte zurückgesetzt', '');
+}
+
+// ── Export ───────────────────────────────────────────────────────────────────
+function exportFile() {
+  const json = JSON.stringify(parsedData, null, 2);
+  const output = `window.BOS_INVENTUR = ${json};`;
+  const blob = new Blob([output], { type: 'application/javascript' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'inventurdaten.js';
+  a.click();
+  URL.revokeObjectURL(url);
+  setStatus('✓ inventurdaten.js exportiert', 'ok');
+}
+
+function setStatus(msg, type) {
+  const bar = document.getElementById('statusBar');
+  bar.textContent = msg;
+  bar.className = 'status-bar' + (type ? ' ' + type : '');
+}
+</script>
+</body>
+</html>

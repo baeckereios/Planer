@@ -1,0 +1,9 @@
+{
+  "zeitraum_tage": 14,
+  "wurm_aktiv": false,
+  "feiertage_ausschliessen": true,
+  "sondertage_ausschliessen": true,
+  "ausgeschlossene_tage": [],
+  "start_datum": "2026-03-09",
+  "end_datum": "2026-03-22"
+}

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BäckereiOS Logo Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Barlow Condensed', sans-serif;
+    background: #1e1e1e;
+    color: #ddd;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    color: #d49a36;
+    font-size: 1.3rem;
+    margin-bottom: 4px;
+  }
+  .subtitle { font-size: 0.8rem; color: #666; margin-bottom: 24px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* Preview */
+  .preview-box {
+    background: #fff;
+    border-radius: 10px;
+    padding: 32px 28px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .preview-dark {
+    background: #1a1a1a;
+    border-radius: 10px;
+    padding: 32px 28px;
+    margin-bottom: 24px;
+  }
+
+  svg#logo-preview, svg#logo-preview-dark {
+    max-width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  /* Controls */
+  .section {
+    background: #2a2a2a;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #d49a36;
+    margin-bottom: 12px;
+  }
+
+  .ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .ctrl-row label {
+    font-size: 0.8rem;
+    color: #aaa;
+    width: 130px;
+    flex-shrink: 0;
+  }
+  .ctrl-row input[type="text"],
+  .ctrl-row input[type="number"],
+  .ctrl-row select {
+    flex: 1;
+    background: #111;
+    border: 1px solid #444;
+    border-radius: 5px;
+    padding: 6px 10px;
+    color: #eee;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.9rem;
+  }
+  .ctrl-row input[type="color"] {
+    width: 44px;
+    height: 32px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    background: #111;
+    cursor: pointer;
+    padding: 2px;
+  }
+  .ctrl-row input:focus, .ctrl-row select:focus { outline: none; border-color: #d49a36; }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  .btn {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+  .btn-primary { background: #d49a36; color: #1a1a1a; }
+  .btn-primary:hover { background: #f0c060; }
+  .btn-secondary { background: #333; color: #ccc; border: 1px solid #555; }
+  .btn-secondary:hover { border-color: #aaa; color: #fff; }
+
+  .copy-box {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.72rem;
+    color: #aaa;
+    font-family: monospace;
+    white-space: pre;
+    overflow-x: auto;
+    margin-top: 16px;
+    display: none;
+  }
+  .copy-box.visible { display: block; }
+
+  .tag { font-size: 0.72rem; background: #333; color: #d49a36; padding: 2px 7px; border-radius: 4px; display: inline-block; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<h1>BäckereiOS · Logo Editor</h1>
+<div class="subtitle">Wortmarke anpassen → SVG exportieren → als Schablone verwenden</div>
+
+<!-- Light preview -->
+<div class="preview-box">
+  <span class="tag">HELL · für weißen Hintergrund</span>
+  <svg id="logo-preview" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 80" width="420" height="80"></svg>
+</div>
+
+<!-- Dark preview -->
+<div class="preview-dark">
+  <span class="tag" style="background:#333;color:#d49a36">DUNKEL · für dunklen Hintergrund</span>
+  <svg id="logo-preview-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 80" width="420" height="80"></svg>
+</div>
+
+<!-- Controls -->
+<div class="section">
+  <div class="section-title">Wortmarke</div>
+  <div class="ctrl-row">
+    <label>Haupttext</label>
+    <input type="text" id="mainText" value="Bäckerei">
+  </div>
+  <div class="ctrl-row">
+    <label>Suffix (OS)</label>
+    <input type="text" id="suffix" value="OS">
+  </div>
+  <div class="ctrl-row">
+    <label>Untertitel</label>
+    <input type="text" id="subtitle" value="BÄCKEREI LANGREHR · GARBSEN · HAVELSE">
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Schrift & Größe</div>
+  <div class="ctrl-row">
+    <label>Haupttext Größe</label>
+    <input type="number" id="mainSize" value="48" min="24" max="80">
+  </div>
+  <div class="ctrl-row">
+    <label>Suffix Größe</label>
+    <input type="number" id="suffixSize" value="36" min="18" max="60">
+  </div>
+  <div class="ctrl-row">
+    <label>Suffix Gewicht</label>
+    <select id="suffixWeight">
+      <option value="300">300 · Light</option>
+      <option value="400" selected>400 · Regular</option>
+      <option value="600">600 · SemiBold</option>
+      <option value="700">700 · Bold</option>
+    </select>
+  </div>
+  <div class="ctrl-row">
+    <label>Untertitel Größe</label>
+    <input type="number" id="subSize" value="11" min="6" max="18">
+  </div>
+  <div class="ctrl-row">
+    <label>Letter Spacing OS</label>
+    <input type="number" id="suffixSpacing" value="0" min="-3" max="10" step="0.5">
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Farben</div>
+  <div class="ctrl-row">
+    <label>Haupttext (hell)</label>
+    <input type="color" id="mainColorLight" value="#1a1a1a">
+  </div>
+  <div class="ctrl-row">
+    <label>Haupttext (dunkel)</label>
+    <input type="color" id="mainColorDark" value="#f5f0e8">
+  </div>
+  <div class="ctrl-row">
+    <label>Suffix / Amber</label>
+    <input type="color" id="amberColor" value="#d49a36">
+  </div>
+  <div class="ctrl-row">
+    <label>Untertitel (hell)</label>
+    <input type="color" id="subColorLight" value="#888888">
+  </div>
+  <div class="ctrl-row">
+    <label>Untertitel (dunkel)</label>
+    <input type="color" id="subColorDark" value="#666666">
+  </div>
+  <div class="ctrl-row">
+    <label>Trennlinie anzeigen</label>
+    <select id="showLine">
+      <option value="1" selected>Ja</option>
+      <option value="0">Nein</option>
+    </select>
+  </div>
+</div>
+
+<div class="btn-row">
+  <button class="btn btn-primary" onclick="exportSVG('light')">⬇ SVG Hell exportieren</button>
+  <button class="btn btn-primary" onclick="exportSVG('dark')">⬇ SVG Dunkel exportieren</button>
+  <button class="btn btn-secondary" onclick="toggleCode()">{ } SVG-Code anzeigen</button>
+</div>
+
+<div class="copy-box" id="codeBox"></div>
+
+<script>
+// ── RENDER ─────────────────────────────────────────────────
+function val(id) { return document.getElementById(id).value; }
+function num(id) { return parseFloat(document.getElementById(id).value); }
+
+function buildSVG(mode) {
+  const mainText   = val('mainText');
+  const suffix     = val('suffix');
+  const subtitleTx = val('subtitle');
+  const mainSize   = num('mainSize');
+  const sufSize    = num('suffixSize');
+  const subSize    = num('subSize');
+  const sufWeight  = val('suffixWeight');
+  const sufSpacing = num('suffixSpacing');
+  const amber      = val('amberColor');
+  const showLine   = val('showLine') === '1';
+
+  const mainColor = mode === 'dark' ? val('mainColorDark') : val('mainColorLight');
+  const subColor  = mode === 'dark' ? val('subColorDark')  : val('subColorLight');
+
+  // Approximate x position for suffix (rough glyph width estimate)
+  // Fraunces 900 at 48px: ~approx 13px per char average for "Bäckerei" (8 chars) = ~104
+  // Better: we use a rough multiplier
+  const charW = mainSize * 0.58;
+  const sufX  = mainText.length * charW - (mainSize * 0.1);
+  const baseY = mainSize + 2;
+  const lineY = baseY + 8;
+  const subY  = lineY + subSize + 4;
+  const totalW = Math.max(sufX + suffix.length * sufSize * 0.65 + 10, subtitleTx.length * subSize * 0.62 + 4);
+  const totalH = subY + 4;
+
+  const lineEl = showLine
+    ? `<line x1="0" y1="${lineY}" x2="${totalW}" y2="${lineY}" stroke="${amber}" stroke-width="1.2"/>`
+    : '';
+
+  return {
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${Math.ceil(totalW)} ${Math.ceil(totalH)}" width="${Math.ceil(totalW)}" height="${Math.ceil(totalH)}">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700;900&amp;family=Barlow+Condensed:wght@400;500&amp;display=swap');</style>
+  </defs>
+  <text x="0" y="${baseY}"
+    font-family="'Fraunces','Georgia',serif"
+    font-weight="900"
+    font-size="${mainSize}"
+    fill="${mainColor}"
+    letter-spacing="-0.5">${mainText}</text>
+  <text x="${Math.round(sufX)}" y="${baseY}"
+    font-family="'Fraunces','Georgia',serif"
+    font-weight="${sufWeight}"
+    font-size="${sufSize}"
+    fill="${amber}"
+    letter-spacing="${sufSpacing}">${suffix}</text>
+  ${lineEl}
+  <text x="0" y="${subY}"
+    font-family="'Barlow Condensed','Arial Narrow',sans-serif"
+    font-weight="500"
+    font-size="${subSize}"
+    fill="${subColor}"
+    letter-spacing="2.5">${subtitleTx}</text>
+</svg>`,
+    w: Math.ceil(totalW),
+    h: Math.ceil(totalH),
+    sufX: Math.round(sufX),
+    baseY, lineY, subY, lineEl,
+    mainColor, subColor, amber,
+    mainText, suffix, subtitleTx,
+    mainSize, sufSize, subSize, sufWeight, sufSpacing, showLine, totalW
+  };
+}
+
+function render() {
+  ['light','dark'].forEach(mode => {
+    const d = buildSVG(mode);
+    const id = mode === 'light' ? 'logo-preview' : 'logo-preview-dark';
+    const svg = document.getElementById(id);
+    svg.setAttribute('viewBox', `0 0 ${d.w} ${d.h}`);
+    svg.setAttribute('width', d.w);
+    svg.setAttribute('height', d.h);
+    svg.innerHTML = `
+      <defs><style>@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700;900&family=Barlow+Condensed:wght@400;500&display=swap');</style></defs>
+      <text x="0" y="${d.baseY}"
+        font-family="'Fraunces','Georgia',serif"
+        font-weight="900" font-size="${d.mainSize}"
+        fill="${d.mainColor}" letter-spacing="-0.5">${d.mainText}</text>
+      <text x="${d.sufX}" y="${d.baseY}"
+        font-family="'Fraunces','Georgia',serif"
+        font-weight="${val('suffixWeight')}" font-size="${d.sufSize}"
+        fill="${d.amber}" letter-spacing="${d.sufSpacing}">${d.suffix}</text>
+      ${d.lineEl}
+      <text x="0" y="${d.subY}"
+        font-family="'Barlow Condensed','Arial Narrow',sans-serif"
+        font-weight="500" font-size="${d.subSize}"
+        fill="${d.subColor}" letter-spacing="2.5">${d.subtitleTx}</text>
+    `;
+  });
+}
+
+function exportSVG(mode) {
+  const d = buildSVG(mode);
+  const blob = new Blob([d.svg], { type: 'image/svg+xml' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `baeckereios_logo_${mode}.svg`;
+  a.click();
+}
+
+let codeVisible = false;
+function toggleCode() {
+  const box = document.getElementById('codeBox');
+  codeVisible = !codeVisible;
+  if (codeVisible) {
+    box.textContent = buildSVG('light').svg;
+    box.classList.add('visible');
+  } else {
+    box.classList.remove('visible');
+  }
+}
+
+// ── LIVE UPDATES ──────────────────────────────────────────
+document.querySelectorAll('input, select').forEach(el => {
+  el.addEventListener('input', render);
+});
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BäckereiOS – Hilfe Lieferanten-Auswertung</title>
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #fdfaf6; --surface: #ffffff; --surface2: #f8f5ee;
+            --text: #222222; --dim: #666666; --border: #e8e2d5; --border-s: #dcd4c3;
+            --amber: #d99b28; --green: #59a87d; --red: #d96c6c;
+            --blue: #1d4ed8; --blue-light: #eff6ff; --blue-border: #bfdbfe;
+            --shadow: rgba(0,0,0,0.05);
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding-bottom: 80px;
+            background: var(--bg); overflow-x: hidden;
+        }
+        body.sheet-open .container { padding-bottom: 70vh; }
+
+        .brand-header { background: var(--surface); text-align: center; padding: 15px 0; box-shadow: 0 4px 10px var(--shadow); margin-bottom: 20px; }
+        .brand-logo { font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 900; color: var(--text); margin: 0; }
+        .brand-logo span { color: var(--amber); font-style: italic; }
+        .help-banner { background: #111; color: var(--amber); text-align: center; padding: 10px; font-family: 'Barlow Condensed'; font-size: 0.9rem; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 0 16px; }
+
+        /* ── PAGE TITLE ── */
+        .page-title { font-size: 1.5rem; font-weight: 900; margin: 0 0 4px; }
+        .page-sub   { font-size: 0.78rem; color: var(--dim); margin: 0 0 18px; }
+
+        /* ── SEKTIONS-BLOCK (Lagertyp) ── */
+        .sektion-tk { background: var(--blue-light); border: 1.5px solid var(--blue-border); border-radius: 16px; padding: 10px 10px 6px; margin-bottom: 12px; }
+        .sektion-header { display: flex; align-items: center; gap: 8px; padding: 4px 4px 10px; }
+        .lagertyp-badge { font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; background: var(--blue); color: #fff; }
+        .sektion-count { font-size: 0.72rem; color: var(--dim); font-weight: 700; }
+
+        /* ── PRODUKT-KACHEL ── */
+        .prod-kachel { background: #fff; border: 1px solid var(--border); border-top: 3px solid #3b82f6; border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
+        .kachel-header { padding: 13px 14px; }
+        .kachel-name { font-size: 0.95rem; font-weight: 800; }
+        .kachel-sub  { font-size: 0.7rem; color: var(--dim); margin-top: 2px; }
+
+        .chip { display: inline-block; font-size: 0.6rem; font-weight: 800; padding: 2px 6px; border-radius: 8px; margin-left: 4px; vertical-align: middle; }
+        .chip-filiale   { background: #dbeafe; color: #1d4ed8; }
+        .chip-backstube { background: #dcfce7; color: #15803d; }
+
+        /* ── BESTELLEMPFEHLUNG-BOX ── */
+        .bestell-box { border-top: 1px solid var(--border); background: #fffbeb; padding: 10px 14px; }
+        .bestell-label { font-size: 0.72rem; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px; }
+        .bestell-row { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+        .bestell-tag  { font-size: 0.8rem; font-weight: 900; color: #92400e; }
+        .bestell-wert { font-size: 1.2rem; font-weight: 900; color: #92400e; }
+        .bestell-basis { font-size: 0.65rem; color: #b45309; margin-top: 3px; }
+
+        /* ── INTERVALL-KÄSTCHEN ── */
+        .intervall-wrap { display: flex; gap: 8px; padding: 0 14px 14px; }
+        .intervall-box { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+        .intervall-label { font-size: 0.68rem; font-weight: 800; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .intervall-wert  { font-size: 1.2rem; font-weight: 900; color: var(--text); }
+        .intervall-einheit { font-size: 0.7rem; color: var(--dim); font-weight: 600; }
+        .intervall-n { font-size: 0.65rem; color: var(--dim); margin-top: 3px; }
+        .intervall-n.duenn { color: #f59e0b; }
+
+        /* ── ZUSAMMENFASSUNG ── */
+        .zusammenfassung { border-top: 1px solid var(--border); padding: 14px; display: none; }
+        .zusammenfassung.open { display: block; }
+        .detail-titel { font-size: 0.72rem; font-weight: 800; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .zf-tabelle { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-bottom: 14px; }
+        .zf-tabelle th { font-size: 0.65rem; font-weight: 800; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 6px 8px; text-align: right; border-bottom: 2px solid var(--border); }
+        .zf-tabelle th:first-child { text-align: left; }
+        .zf-tabelle td { padding: 7px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        .zf-tabelle td:not(:first-child) { text-align: right; font-weight: 700; }
+        .zf-tabelle tr:last-child td { border-bottom: none; }
+        .row-berechnet td { color: #1d4ed8; font-weight: 800; }
+        .row-inventur  td { color: #6b21a8; font-weight: 800; }
+        .row-differenz td.neg { color: var(--red); font-weight: 800; }
+        .rechen-hint { background: #f0f9ff; border-left: 3px solid #60a5fa; border-radius: 0 8px 8px 0; padding: 8px 12px; font-size: 0.72rem; color: #1e40af; line-height: 1.6; margin-bottom: 12px; }
+
+        /* ── WOCHENDETAIL-TABELLE ── */
+        .wt-tabelle { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        .wt-tabelle th { font-size: 0.65rem; font-weight: 800; color: var(--dim); text-transform: uppercase; padding: 4px 6px 8px; text-align: right; border-bottom: 2px solid var(--border); }
+        .wt-tabelle th:first-child { text-align: left; }
+        .wt-tabelle td { padding: 8px 6px; border-bottom: 1px solid var(--border); font-weight: 700; text-align: right; }
+        .wt-tabelle td:first-child { text-align: left; font-weight: 700; }
+        .wt-tabelle tr.liefertag { background: rgba(89,168,125,0.06); }
+        .wt-tabelle tr.bestelltag { background: rgba(217,155,40,0.08); }
+        .liefertag-icon { font-size: 0.8rem; margin-left: 3px; }
+        .wt-tabelle tr:last-child td { border-bottom: none; }
+
+        /* ── EINSTELLUNGEN-KASTEN ── */
+        .einst-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 13px 14px; margin-bottom: 12px; }
+        .einst-label { font-size: 0.65rem; font-weight: 800; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .einst-row { display: flex; align-items: flex-start; gap: 12px; }
+        .einst-desc strong { font-size: 0.82rem; display: block; margin-bottom: 3px; }
+        .einst-desc small { font-size: 0.7rem; color: var(--dim); line-height: 1.5; display: block; }
+        .einst-ctrl { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .einst-mock { width: 68px; text-align: center; padding: 8px 4px; border: 1.5px solid var(--border-s); border-radius: 8px; font-size: 1rem; font-weight: 800; background: var(--surface2); color: var(--text); }
+        .einst-pct  { font-size: 1rem; font-weight: 800; color: var(--amber); }
+
+        /* ── DATENSTATUS-FOOTER ── */
+        .daten-footer { background: var(--surface2); border-top: 1px solid var(--border); border-radius: 0 0 12px 12px; padding: 8px 14px; font-size: 0.72rem; color: var(--dim); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; margin-bottom: 16px; }
+        .daten-footer span { font-weight: 700; }
+        .dot-red { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--red); margin-right: 3px; vertical-align: middle; }
+
+        /* ── HILFE: SPOTLIGHT ── */
+        body.help-active #app-wrapper { pointer-events: none; }
+        #spotlight-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+        }
+        body.sheet-open #spotlight-overlay { opacity: 1; pointer-events: auto; }
+        .card-hl { border-radius: 16px; transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .card-hl.spotlight { z-index: 45; position: relative; box-shadow: 0 0 0 4px var(--amber), 0 20px 40px rgba(0,0,0,0.3); transform: scale(1.015); }
+
+        /* ── HOTSPOTS ── */
+        #hotspots-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; display: none; }
+        body.help-active #hotspots-layer { display: block; }
+        .hotspot {
+            position: absolute; width: 34px; height: 34px; background-color: var(--amber); border-radius: 50%;
+            cursor: pointer; pointer-events: auto; display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 900; font-size: 14px; border: none; padding: 0;
+            box-shadow: 0 0 0 0 rgba(217,155,40,0.7); animation: pulse 2s infinite;
+            -webkit-tap-highlight-color: transparent;
+        }
+        @keyframes pulse {
+            0%   { box-shadow: 0 0 0 0   rgba(217,155,40,0.7); }
+            70%  { box-shadow: 0 0 0 12px rgba(217,155,40,0);   }
+            100% { box-shadow: 0 0 0 0   rgba(217,155,40,0);   }
+        }
+        .hotspot:active { transform: scale(0.9); }
+        .hotspot.active { background-color: #fff; color: var(--amber); border: 3px solid var(--amber); animation: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        body.sheet-open .hotspot:not(.active) { opacity: 0; pointer-events: none; }
+
+        /* ── BOTTOM SHEET ── */
+        #help-sheet {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: #171717; color: #eeeeee;
+            border-top-left-radius: 24px; border-top-right-radius: 24px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+            transform: translateY(110%); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            z-index: 100; display: flex; flex-direction: column; max-height: 85vh;
+        }
+        body.sheet-open #help-sheet { transform: translateY(0); }
+        .sheet-drag-handle { width: 40px; height: 4px; background: #444; border-radius: 2px; margin: 12px auto 20px; flex-shrink: 0; }
+        .sheet-close { position: absolute; top: 15px; right: 20px; background: #2a2a2a; border: none; color: #aaa; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
+        .sheet-close:active { background: #444; color: #fff; }
+        .sheet-content { padding: 0 24px 30px 24px; max-width: 600px; margin: 0 auto; width: 100%; overflow-y: auto; }
+        .sheet-header-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .sheet-number { background: var(--amber); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.9rem; flex-shrink: 0; }
+        .sheet-subtitle { color: var(--amber); font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 0.9rem; letter-spacing: 1.5px; text-transform: uppercase; }
+        .sheet-title { font-family: 'Fraunces', serif; font-size: 1.8rem; font-weight: 900; color: #ffffff; margin: 0 0 15px; line-height: 1.2; }
+        .sheet-text { font-size: 0.95rem; line-height: 1.7; color: #cccccc; margin: 0; }
+        .sheet-text p { margin-top: 0; margin-bottom: 15px; }
+        .sheet-text strong { color: var(--amber); font-weight: 800; }
+        .sheet-text .pill {
+            display: inline-block; font-size: 0.65rem; font-weight: 800;
+            padding: 2px 7px; border-radius: 10px; vertical-align: middle; margin: 0 2px;
+        }
+        .pill-blue   { background: #1d4ed8; color: #fff; }
+        .pill-green  { background: #15803d; color: #fff; }
+        .pill-purple { background: #6b21a8; color: #fff; }
+        .sheet-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid #333; padding-top: 15px; }
+        .nav-btn { background: none; border: none; color: #888; font-weight: 800; font-size: 0.9rem; cursor: pointer; padding: 10px 0; display: flex; align-items: center; gap: 5px; }
+        .nav-btn.active { color: var(--amber); }
+        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    </style>
+</head>
+<body class="help-active">
+
+<div id="spotlight-overlay" onclick="closeSheet()"></div>
+
+<div id="app-wrapper">
+    <div class="help-banner" id="banner-text">LIEFERANTEN-AUSWERTUNG – SO GEHT'S</div>
+    <div class="brand-header">
+        <div class="brand-logo">Bäckerei<span>OS</span></div>
+    </div>
+
+    <div class="container">
+
+        <!-- SEITE: TITEL -->
+        <div class="card-hl" id="card-titel" style="margin-bottom:14px;">
+            <h1 class="page-title">📊 Lieferanten-Auswertung</h1>
+            <p class="page-sub">Verbrauch zwischen Liefertagen · Ø-Werte · Bestellempfehlungen</p>
+        </div>
+
+        <!-- SEKTION TIEFKÜHL -->
+        <div class="card-hl sektion-tk" id="card-sektion">
+            <div class="sektion-header">
+                <span class="lagertyp-badge">🧊 Tiefkühl</span>
+                <span class="sektion-count">2 Produkte</span>
+            </div>
+
+            <!-- PRODUKT-KACHEL -->
+            <div class="prod-kachel card-hl" id="card-kachel">
+                <div class="kachel-header">
+                    <div class="kachel-name">
+                        Butter-Croissant
+                        <span class="chip chip-filiale">Filiale</span>
+                        <span class="chip chip-backstube">Backstube</span>
+                    </div>
+                    <div class="kachel-sub">Liefertage: Di · Fr</div>
+                </div>
+
+                <!-- BESTELLEMPFEHLUNG -->
+                <div class="bestell-box card-hl" id="card-bestell">
+                    <div class="bestell-label">✏️ Bestellvorschlag</div>
+                    <div class="bestell-row">
+                        <span class="bestell-tag">Bestellung Do</span>
+                        <span class="bestell-wert">9,2 karton</span>
+                    </div>
+                    <div class="bestell-row">
+                        <span class="bestell-tag">Bestellung So</span>
+                        <span class="bestell-wert">4,6 karton</span>
+                    </div>
+                    <div class="bestell-basis">Ø Inventur × 115% · 25.03.26 – 08.04.26</div>
+                </div>
+
+                <!-- INTERVALL-KÄSTCHEN -->
+                <div class="intervall-wrap card-hl" id="card-intervall">
+                    <div class="intervall-box">
+                        <div class="intervall-label">Mi → Sa (3 Tage)</div>
+                        <div class="intervall-wert">8,7 <span class="intervall-einheit">karton</span></div>
+                        <div class="intervall-n duenn">1 Messung</div>
+                    </div>
+                    <div class="intervall-box">
+                        <div class="intervall-label">Sa → Mi (4 Tage)</div>
+                        <div class="intervall-wert">14,4 <span class="intervall-einheit">karton</span></div>
+                        <div class="intervall-n duenn">1 Messung</div>
+                    </div>
+                </div>
+
+                <!-- ZUSAMMENFASSUNG (ausgeklappt zur Anschauung) -->
+                <div class="zusammenfassung open card-hl" id="card-zusammenfassung">
+                    <div class="detail-titel">Zusammenfassung</div>
+
+                    <div class="rechen-hint">
+                        ① <strong>Berechnet</strong> = TK-Zettel + Backzettel.&nbsp;&nbsp;
+                        ② <strong>Inventur</strong> = Bestand-Anfang + Eingang − Bestand-Ende.&nbsp;&nbsp;
+                        Differenz = nicht erfasster Verbrauch / Messfehler.
+                    </div>
+
+                    <table class="zf-tabelle">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Mi→Sa<br><small style="font-weight:600;letter-spacing:0;">(3 Tage)</small></th>
+                                <th>Sa→Mi<br><small style="font-weight:600;letter-spacing:0;">(4 Tage)</small></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="row-berechnet">
+                                <td>① Berechnet<br><small style="font-weight:600;color:var(--dim);">Filiale + Backstube</small></td>
+                                <td>8,7 karton</td>
+                                <td>14,4 karton</td>
+                            </tr>
+                            <tr class="row-inventur">
+                                <td>② Inventur<br><small style="font-weight:600;color:var(--dim);">Zählung</small></td>
+                                <td>8,0 karton</td>
+                                <td>4,0 karton</td>
+                            </tr>
+                            <tr class="row-differenz">
+                                <td><strong>Differenz</strong><br><small style="font-weight:600;color:var(--dim);">②−① ungeklärter Rest</small></td>
+                                <td class="neg">−0,7 karton</td>
+                                <td class="neg">−10,4 karton</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- WOCHENDETAIL -->
+                    <div class="detail-titel" style="margin-top:4px;">Wochendetail</div>
+                    <table class="wt-tabelle card-hl" id="card-wochendetail">
+                        <thead>
+                            <tr>
+                                <th style="text-align:left;">Tag</th>
+                                <th>Filiale</th>
+                                <th>Backstube</th>
+                                <th>Gesamt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Mo</td><td>2,0</td><td>0,0</td><td>2,0</td></tr>
+                            <tr class="liefertag"><td>Di <span class="liefertag-icon">🚚</span></td><td>1,0</td><td>0,0</td><td>1,0</td></tr>
+                            <tr><td>Mi</td><td>2,0</td><td>1,1</td><td>3,1</td></tr>
+                            <tr class="bestelltag"><td>Do ✏️</td><td>1,0</td><td>1,3</td><td>2,3</td></tr>
+                            <tr class="liefertag"><td>Fr <span class="liefertag-icon">🚚</span></td><td>2,0</td><td>1,3</td><td>3,3</td></tr>
+                            <tr><td>Sa</td><td>2,0</td><td>6,4</td><td>8,4</td></tr>
+                            <tr class="bestelltag"><td>So ✏️</td><td>3,0</td><td>0,0</td><td>3,0</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div><!-- /prod-kachel -->
+        </div><!-- /sektion -->
+
+        <!-- EINSTELLUNGEN -->
+        <div class="card-hl einst-card" id="card-einst">
+            <div class="einst-label">⚙️ Einstellungen</div>
+            <div class="einst-row">
+                <div class="einst-desc">
+                    <strong>Sicherheitsaufschlag</strong>
+                    <small>Auf den errechneten Ø-Verbrauch wird dieser Puffer addiert, bevor der Bestellvorschlag erscheint.</small>
+                </div>
+                <div class="einst-ctrl">
+                    <div class="einst-mock">15</div>
+                    <div class="einst-pct">%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DATENSTATUS -->
+        <div class="card-hl daten-footer" id="card-footer">
+            <div>DATENSATZ BIS<br><span>28.03.26</span></div>
+            <div style="text-align:right;"><span class="dot-red"></span> INVENTUR VON<br><span>04.04. 03:01</span></div>
+        </div>
+
+    </div><!-- /container -->
+</div><!-- /app-wrapper -->
+
+<!-- HOTSPOTS -->
+<div id="hotspots-layer">
+    <div class="container" style="position:relative; height:100%;">
+        <!-- Positionen passen zur Reihenfolge der Cards im DOM -->
+        <button class="hotspot" style="top:30px;  right:20px;" data-step="1">1</button>
+        <button class="hotspot" style="top:170px; left:14px;"  data-step="2">2</button>
+        <button class="hotspot" style="top:270px; right:14px;" data-step="3">3</button>
+        <button class="hotspot" style="top:430px; left:14px;"  data-step="4">4</button>
+        <button class="hotspot" style="top:680px; right:14px;" data-step="5">5</button>
+        <button class="hotspot" style="top:940px; left:14px;"  data-step="6">6</button>
+    </div>
+</div>
+
+<!-- BOTTOM SHEET -->
+<div id="help-sheet">
+    <div class="sheet-drag-handle"></div>
+    <button class="sheet-close" onclick="closeSheet()">✕</button>
+    <div class="sheet-content">
+        <div class="sheet-header-row">
+            <div class="sheet-number" id="hs-num">ℹ️</div>
+            <div class="sheet-subtitle" id="hs-sub">ÜBERSICHT</div>
+        </div>
+        <h2 class="sheet-title" id="hs-title">Worum geht es hier?</h2>
+        <div class="sheet-text" id="hs-text"></div>
+        <div class="sheet-nav">
+            <button class="nav-btn" id="nav-prev" onclick="prevStep()"><i class="ph ph-caret-left"></i> Zurück</button>
+            <button class="nav-btn active" id="nav-next" onclick="nextStep()">Weiter <i class="ph ph-caret-right"></i></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ── INHALT DER HILFE-SCHRITTE ── */
+    const helpData = {
+        0: {
+            subtitle: 'HILFE-MODUS',
+            title: 'Was zeigt diese Seite?',
+            cardId: null,
+            text: `<p>Die <strong>Lieferanten-Auswertung</strong> beantwortet eine Frage: <em>Wie viel verbrauchen wir wirklich zwischen zwei Liefertagen — und wie viel sollten wir beim nächsten Mal bestellen?</em></p>
+                   <p>Die Seite berechnet das automatisch aus unseren Inventur-Snapshots und Backmengen-Daten. Du musst nichts eingeben — nur lesen und einschätzen.</p>
+                   <ul style="padding-left:20px; color:#ccc;">
+                       <li style="margin-bottom:10px;">📍 <strong style="color:var(--amber);">Tippe auf die orangefarbenen Zahlen</strong>, um die einzelnen Bereiche erklärt zu bekommen.</li>
+                       <li>✕ <strong style="color:#aaa;">Schließen</strong> bringt dich jederzeit zurück zur Übersicht.</li>
+                   </ul>`
+        },
+        1: {
+            subtitle: 'LAGERTYP-SEKTION',
+            title: 'Produkte sind nach Lagertyp gruppiert.',
+            cardId: 'card-sektion',
+            text: `<p>Alle Artikel sind in Sektionen aufgeteilt: <strong>Tiefkühl</strong> (blau), <strong>Kühl</strong> (grün), <strong>Trocken</strong> (gelb) und <strong>Sonstiges</strong> (lila).</p>
+                   <p>Jeder Produkt-Header zeigt außerdem, <em>woher</em> der Verbrauch kommt — per farbigen Chips:
+                   <span class="pill pill-blue">Filiale</span> bedeutet Ware geht an die Filiale,
+                   <span class="pill pill-green">Backstube</span> bedeutet sie wird hier verarbeitet.</p>
+                   <p>Die <strong>Liefertage</strong> darunter zeigen, an welchen Wochentagen eine Lieferung eintrifft — das ist die Grundlage für die Intervall-Berechnung.</p>`
+        },
+        2: {
+            subtitle: 'BESTELLVORSCHLAG',
+            title: 'Was sollen wir bestellen — und warum diese Zahl?',
+            cardId: 'card-bestell',
+            text: `<p>Der <strong>Bestellvorschlag</strong> erscheint direkt unter dem Produktnamen. Er gibt an, wie viel du am jeweiligen Bestelltag ordern solltest, damit die Ware bis zur nächsten Lieferung reicht.</p>
+                   <p>Die Formel dahinter: <strong>Ø-Verbrauch im Intervall × Sicherheitsaufschlag</strong> (z.&nbsp;B. 115&nbsp;%). Der Zeitraum unter dem Vorschlag zeigt dir, auf welchen Datenzeitraum sich dieser Schnitt stützt.</p>
+                   <p>Tipp auf den Bestellvorschlag-Bereich, um die Zusammenfassung mit Berechnet / Inventur / Differenz aufzuklappen.</p>`
+        },
+        3: {
+            subtitle: 'INTERVALL-KÄSTCHEN',
+            title: 'Zwei Kästchen — zwei Zeitfenster.',
+            cardId: 'card-intervall',
+            text: `<p>Die zwei Kästchen zeigen den <strong>durchschnittlichen Verbrauch je Lieferintervall</strong>. Ein Intervall ist die Zeitspanne zwischen zwei Liefertagen.</p>
+                   <p>Beispiel: <strong>Mi → Sa (3 Tage)</strong> zeigt, wie viel zwischen Mittwoch-Lieferung und Samstag-Lieferung verbraucht wird. <strong>Sa → Mi (4 Tage)</strong> zeigt das längere Wochenend-Fenster.</p>
+                   <p>Die kleine Zahl darunter (<em>1 Messung</em>, orange wenn wenig) zeigt, wie viele vollständige Zyklen in die Berechnung eingeflossen sind. <strong>Wenige Messungen = weniger verlässlicher Schnitt.</strong> Hier lohnt es sich, besonders kritisch hinzuschauen.</p>`
+        },
+        4: {
+            subtitle: 'ZUSAMMENFASSUNG & DIFFERENZ',
+            title: 'Berechnet vs. Inventur — und was dazwischen fehlt.',
+            cardId: 'card-zusammenfassung',
+            text: `<p>Die Zusammenfassung vergleicht zwei Wege, den Verbrauch zu messen:</p>
+                   <p>① <strong style="color:#93c5fd;">Berechnet</strong> = was laut TK-Zettel und Backzettel weggegangen ist. Das ist was wir <em>gedacht haben</em> zu verbrauchen.</p>
+                   <p>② <strong style="color:#c4b5fd;">Inventur</strong> = Bestand Anfang + Eingang − Bestand Ende. Das ist was <em>tatsächlich</em> weg ist.</p>
+                   <p>Die <strong>Differenz</strong> (②−①) ist der ungeklärte Rest — z.&nbsp;B. durch Schwund, Retouren, nicht erfasste Entnahmen oder Messfehler bei der Zählung. Eine große negative Differenz (wie −10,4 hier) ist ein <strong style="color:var(--red);">klares Signal</strong> zum Nachforschen.</p>`
+        },
+        5: {
+            subtitle: 'WOCHENDETAIL-TABELLE',
+            title: 'Jeder Tag einzeln aufgeschlüsselt.',
+            cardId: 'card-wochendetail',
+            text: `<p>Die Tabelle zeigt den <strong>täglichen Ø-Verbrauch</strong> aufgeteilt nach Filiale und Backstube. So siehst du auf einen Blick, an welchen Tagen besonders viel verbraucht wird.</p>
+                   <p>🚚 <strong>Liefertage</strong> sind grün hinterlegt — am Liefertag selbst ist der gemessene Verbrauch oft niedrig, weil frische Ware reinkommt.</p>
+                   <p>✏️ <strong>Bestelltage</strong> sind amber hinterlegt — das sind die Tage, an denen der Bestellvorschlag gilt. Die Tabelle hilft dir einzuschätzen, ob der Vorschlag realistisch ist.</p>`
+        },
+        6: {
+            subtitle: 'EINSTELLUNGEN & DATENSTATUS',
+            title: 'Puffer anpassen — und wie aktuell sind die Daten?',
+            cardId: 'card-einst',
+            text: `<p>Den <strong>Sicherheitsaufschlag</strong> kannst du im Einstellungsbereich verändern. 15&nbsp;% bedeutet: wir bestellen 15&nbsp;% mehr als der reine Ø-Bedarf — als Puffer für Mehrverbrauch, Nachbestellungen oder Schätzschwankungen.</p>
+                   <p>Unten auf der Seite siehst du den <strong>Datenstatus</strong>: Bis wann reichen die Verbrauchsdaten, und wann war die letzte Inventur-Erfassung? Der <span style="color:var(--red);">●&nbsp;rote Punkt</span> signalisiert, dass die Inventur älter als die Verbrauchsdaten ist — die Empfehlung stützt sich dann auf einen Teil-Datensatz.</p>
+                   <p>Je frischer und vollständiger die Daten, desto verlässlicher der Bestellvorschlag.</p>`
+        }
+    };
+
+    const totalSteps = 6;
+    let currentStep = 0;
+
+    const hotspots = document.querySelectorAll('.hotspot');
+    const cards    = document.querySelectorAll('.card-hl');
+
+    window.addEventListener('load', () => openStep(0));
+
+    // Klick auf abgedunkelten Hintergrund schließt Sheet
+    document.body.addEventListener('click', function(e) {
+        if (document.body.classList.contains('help-active') &&
+            !document.body.classList.contains('sheet-open') &&
+            !e.target.classList.contains('hotspot')) {
+            if (currentStep === 0) openStep(1);
+        }
+    });
+
+    hotspots.forEach(spot => {
+        spot.addEventListener('click', function(e) {
+            e.preventDefault();
+            openStep(parseInt(this.dataset.step));
+        });
+    });
+
+    function scrollToCardSmart(targetCard) {
+        const sheet = document.getElementById('help-sheet');
+        const visH  = window.innerHeight - sheet.offsetHeight;
+        const rect  = targetCard.getBoundingClientRect();
+        const absTop = window.scrollY + rect.top;
+        window.scrollTo({ top: Math.max(0, absTop - visH / 2 + rect.height / 2), behavior: 'smooth' });
+    }
+
+    function openStep(step) {
+        currentStep = step;
+        const d = helpData[step];
+
+        document.getElementById('hs-num').innerText   = step === 0 ? 'ℹ️' : step;
+        document.getElementById('hs-sub').innerText   = d.subtitle;
+        document.getElementById('hs-title').innerText = d.title;
+        document.getElementById('hs-text').innerHTML  = d.text;
+
+        hotspots.forEach(h => h.classList.remove('active'));
+        if (step > 0) {
+            const hs = document.querySelector(`.hotspot[data-step="${step}"]`);
+            if (hs) hs.classList.add('active');
+        }
+
+        document.getElementById('nav-prev').style.display = (step <= 1) ? 'none' : 'flex';
+
+        const nextBtn = document.getElementById('nav-next');
+        if (step === totalSteps) {
+            nextBtn.innerHTML = 'Fertig <i class="ph ph-check"></i>';
+            nextBtn.onclick = closeSheet;
+        } else if (step === 0) {
+            nextBtn.innerHTML = 'Los geht\'s <i class="ph ph-arrow-right"></i>';
+            nextBtn.onclick = nextStep;
+        } else {
+            nextBtn.innerHTML = 'Weiter <i class="ph ph-caret-right"></i>';
+            nextBtn.onclick = nextStep;
+        }
+
+        cards.forEach(c => c.classList.remove('spotlight'));
+        document.body.classList.add('sheet-open');
+
+        if (d.cardId) {
+            const target = document.getElementById(d.cardId);
+            if (target) {
+                target.classList.add('spotlight');
+                setTimeout(() => scrollToCardSmart(target), 50);
+            }
+        }
+    }
+
+    function closeSheet() {
+        document.body.classList.remove('sheet-open');
+        hotspots.forEach(h => h.classList.remove('active'));
+        cards.forEach(c => c.classList.remove('spotlight'));
+    }
+
+    function nextStep() { if (currentStep < totalSteps) openStep(currentStep + 1); }
+    function prevStep() { if (currentStep > 1)          openStep(currentStep - 1); }
+</script>
+</body>
+</html>

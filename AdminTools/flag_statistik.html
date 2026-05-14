@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BäckereiOS — Fehler-Statistik</title>
+    <link rel="stylesheet" href="admin_design.css">
+    <style>
+        /* ── Bridge: eigene Vars → admin_design.css ── */
+        :root {
+          --text-main:   #1c1a17;
+          --text-muted:  #888077;
+          --border-color:#d8d3ca;
+          --btn-primary: #a07020;
+          --bg-color:    #f4f2ee;
+        }
+        .load-area { text-align:center; padding:30px 20px; }
+        .btn-load { background:var(--btn-primary,#c07a10); color:white; border:none; border-radius:8px; padding:12px 20px; font-weight:800; font-size:0.95rem; cursor:pointer; margin-bottom:10px; display:block; width:100%; }
+        .btn-load-ls { background:var(--text-muted,#64748b); color:white; border:none; border-radius:8px; padding:10px 20px; font-weight:700; font-size:0.85rem; cursor:pointer; display:block; width:100%; }
+
+        /* KPI Kacheln */
+        .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+        .kpi { background:white; border:1px solid var(--border-color,#e2e8f0); border-radius:10px; padding:13px 14px; }
+        .kpi-val { font-size:1.8rem; font-weight:800; color:var(--text-main); line-height:1; }
+        .kpi-lbl { font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-top:4px; }
+        .kpi.red .kpi-val  { color:#dc2626; }
+        .kpi.amber .kpi-val { color:#d97706; }
+        .kpi.green .kpi-val { color:#16a34a; }
+
+        /* Tabellen */
+        .section-label { font-size:0.68rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); padding:16px 0 6px 0; display:block; }
+
+        .rank-list { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+        .rank-item { background:white; border:1px solid var(--border-color,#e2e8f0); border-radius:8px; padding:10px 13px; display:flex; justify-content:space-between; align-items:center; }
+        .rank-name { font-size:0.85rem; font-weight:700; color:var(--text-main); }
+        .rank-sub  { font-size:0.75rem; color:var(--text-muted); margin-top:2px; }
+        .rank-badge { font-size:0.75rem; font-weight:800; padding:3px 9px; border-radius:10px; flex-shrink:0; }
+        .badge-corr { background:#dbeafe; color:#1d4ed8; }
+        .badge-excl { background:#fee2e2; color:#991b1b; }
+        .badge-acpt { background:#dcfce7; color:#166534; }
+        .badge-total { background:#f3f4f6; color:#374151; }
+
+        /* Zeitverlauf */
+        .timeline { display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
+        .tl-item { display:flex; align-items:center; gap:8px; font-size:0.8rem; }
+        .tl-date { color:var(--text-muted); width:90px; flex-shrink:0; font-size:0.75rem; }
+        .tl-bar-wrap { flex:1; background:var(--bg-color,#f1f5f9); border-radius:4px; height:18px; overflow:hidden; position:relative; }
+        .tl-bar { height:100%; border-radius:4px; display:flex; align-items:center; padding-left:6px; font-size:0.7rem; font-weight:700; color:white; min-width:20px; transition:width 0.3s; }
+        .tl-bar.corr { background:#3b82f6; }
+        .tl-bar.excl { background:#ef4444; }
+        .tl-bar.acpt { background:#22c55e; }
+        .tl-count { width:30px; text-align:right; color:var(--text-muted); flex-shrink:0; font-size:0.75rem; font-weight:700; }
+
+        /* Detail-Log */
+        .log-table { width:100%; border-collapse:collapse; font-size:0.78rem; margin-bottom:14px; }
+        .log-table th { text-align:left; padding:6px 8px; background:var(--bg-color,#f8fafc); color:var(--text-muted); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em; border-bottom:2px solid var(--border-color,#e2e8f0); }
+        .log-table td { padding:7px 8px; border-bottom:1px solid var(--border-color,#e2e8f0); color:var(--text-main); vertical-align:top; }
+        .log-table tr:last-child td { border-bottom:none; }
+        .type-pill { display:inline-block; padding:2px 7px; border-radius:8px; font-size:0.65rem; font-weight:800; text-transform:uppercase; }
+        .type-corr { background:#dbeafe; color:#1d4ed8; }
+        .type-excl { background:#fee2e2; color:#991b1b; }
+        .type-acpt { background:#dcfce7; color:#166534; }
+
+        #no-data { display:none; text-align:center; padding:40px 20px; color:var(--text-muted); font-size:0.9rem; }
+        #stats-body { display:none; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <h1 style="margin:0;font-size:1.5rem;font-weight:800;">🚩 Fehler-Statistik</h1>
+        <a href="admin_landing.html" style="text-decoration:none;color:var(--text-muted);font-size:0.8rem;font-weight:bold;padding:5px 10px;border-radius:6px;background:#fff;border:1px solid var(--border-color);">Zurück</a>
+    </div>
+    <p style="color:var(--text-muted);font-size:0.82rem;margin:0 0 14px 0;">Wie oft wurden Ausreißer erkannt? Welche Produkte sind Wiederholungstäter?</p>
+
+    <!-- DB laden -->
+    <div id="load-area">
+        <input type="file" id="fileInput" accept=".json" style="display:none">
+        <button class="btn-load" onclick="document.getElementById('fileInput').click()">📂 backmengen_db.json laden</button>
+        <button class="btn-load-ls" onclick="loadLS()">Aus Browser-Zwischenspeicher laden</button>
+        <p id="load-hint" style="color:var(--text-muted);font-size:0.8rem;margin-top:8px;"></p>
+    </div>
+
+    <div id="no-data">Keine Flags in der Datenbank gefunden.<br>Ausreißer werden ab jetzt beim Speichern markiert.</div>
+
+    <!-- Hauptinhalt -->
+    <div id="stats-body">
+
+        <!-- KPIs -->
+        <div class="kpi-grid">
+            <div class="kpi red">
+                <div class="kpi-val" id="kpi-total">–</div>
+                <div class="kpi-lbl">Flags gesamt</div>
+            </div>
+            <div class="kpi amber">
+                <div class="kpi-val" id="kpi-tage">–</div>
+                <div class="kpi-lbl">Betroffene Tage</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-val" id="kpi-corr">–</div>
+                <div class="kpi-lbl">Korrigiert</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-val" id="kpi-excl">–</div>
+                <div class="kpi-lbl">Ausgeschlossen</div>
+            </div>
+        </div>
+        <div class="kpi" style="margin-bottom:14px;">
+            <div class="kpi-val" id="kpi-rate" style="font-size:1.3rem;">–</div>
+            <div class="kpi-lbl">Fehlerquote (Tage mit Flags / Gesamttage)</div>
+        </div>
+
+        <!-- Top-Produkte -->
+        <span class="section-label">🔁 Wiederholungstäter — häufigste Ausreißer-Produkte</span>
+        <div class="rank-list" id="rank-list"></div>
+
+        <!-- Zeitverlauf -->
+        <span class="section-label">📅 Zeitverlauf — Flags pro Monat</span>
+        <div class="timeline" id="timeline"></div>
+
+        <!-- Detail-Log -->
+        <span class="section-label">📋 Alle Flags — Detail-Log</span>
+        <div style="overflow-x:auto;">
+            <table class="log-table" id="log-table">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Tag</th>
+                        <th>Produkt</th>
+                        <th>Typ</th>
+                        <th>Original → Neu</th>
+                    </tr>
+                </thead>
+                <tbody id="log-body"></tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+<script>
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = ev => {
+        try {
+            const db = JSON.parse(ev.target.result);
+            localStorage.setItem('baeckerei_db', JSON.stringify(db));
+            render(db);
+        } catch { setHint('❌ Kein gültiges JSON.'); }
+    };
+    r.readAsText(f);
+});
+
+function loadLS() {
+    const s = localStorage.getItem('baeckerei_db');
+    if (s) render(JSON.parse(s));
+    else setHint('Kein Zwischenspeicher gefunden. Bitte Datei laden.');
+}
+
+function setHint(msg) {
+    document.getElementById('load-hint').textContent = msg;
+}
+
+function productLabel(key) {
+    return key.replace(/_stueck$/,'').replace(/_bleche$/,'').replace(/_/g,' ')
+              .replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function render(db) {
+    document.getElementById('load-area').style.display = 'none';
+
+    // Alle Flags sammeln
+    const allFlags = []; // {datum, wochentag, key, flag}
+    db.forEach(tag => {
+        if (!tag.flags) return;
+        Object.entries(tag.flags).forEach(([key, flag]) => {
+            allFlags.push({ datum: tag.datum, wochentag: tag.wochentag || '?', key, ...flag });
+        });
+    });
+
+    if (allFlags.length === 0) {
+        document.getElementById('no-data').style.display = 'block';
+        return;
+    }
+
+    document.getElementById('stats-body').style.display = 'block';
+
+    const tageMitFlags = new Set(allFlags.map(f => f.datum)).size;
+    const corrFlags = allFlags.filter(f => f.type === 'outlier_corrected');
+    const exclFlags = allFlags.filter(f => f.type === 'outlier_excluded');
+    const acptFlags = allFlags.filter(f => f.type === 'outlier_accepted');
+    const rate = db.length > 0 ? ((tageMitFlags / db.length) * 100).toFixed(1) : 0;
+
+    document.getElementById('kpi-total').textContent = allFlags.length;
+    document.getElementById('kpi-tage').textContent  = tageMitFlags;
+    document.getElementById('kpi-corr').textContent  = corrFlags.length;
+    document.getElementById('kpi-excl').textContent  = exclFlags.length;
+    document.getElementById('kpi-rate').textContent  = rate + '%';
+
+    // Farbe Fehlerquote
+    const rateKpi = document.getElementById('kpi-rate').closest('.kpi');
+    if (parseFloat(rate) > 10) rateKpi.classList.add('red');
+    else if (parseFloat(rate) > 5) rateKpi.classList.add('amber');
+    else rateKpi.classList.add('green');
+
+    // Wiederholungstäter
+    const prodCount = {};
+    allFlags.forEach(f => {
+        const k = f.key;
+        if (!prodCount[k]) prodCount[k] = {total:0, corr:0, excl:0, acpt:0};
+        prodCount[k].total++;
+        if (f.type==='outlier_corrected') prodCount[k].corr++;
+        if (f.type==='outlier_excluded')  prodCount[k].excl++;
+        if (f.type==='outlier_accepted')  prodCount[k].acpt++;
+    });
+    const sorted = Object.entries(prodCount).sort((a,b) => b[1].total - a[1].total).slice(0,10);
+    const rl = document.getElementById('rank-list');
+    rl.innerHTML = '';
+    sorted.forEach(([key, c], i) => {
+        const div = document.createElement('div');
+        div.className = 'rank-item';
+        div.innerHTML = `
+            <div>
+                <div class="rank-name">${i+1}. ${productLabel(key)}</div>
+                <div class="rank-sub">
+                    <span class="type-pill type-corr">${c.corr}× korr.</span>
+                    <span class="type-pill type-excl">${c.excl}× ausgeschl.</span>
+                    <span class="type-pill type-acpt">${c.acpt}× akzept.</span>
+                </div>
+            </div>
+            <span class="rank-badge badge-total">${c.total}×</span>
+        `;
+        rl.appendChild(div);
+    });
+
+    // Zeitverlauf pro Monat
+    const monate = {};
+    allFlags.forEach(f => {
+        const m = f.datum ? f.datum.substring(0,7) : '?';
+        if (!monate[m]) monate[m] = {total:0, corr:0, excl:0, acpt:0};
+        monate[m].total++;
+        if (f.type==='outlier_corrected') monate[m].corr++;
+        if (f.type==='outlier_excluded')  monate[m].excl++;
+        if (f.type==='outlier_accepted')  monate[m].acpt++;
+    });
+    const maxMonat = Math.max(...Object.values(monate).map(m=>m.total), 1);
+    const tl = document.getElementById('timeline');
+    tl.innerHTML = '';
+    Object.entries(monate).sort((a,b) => b[0].localeCompare(a[0])).forEach(([m, c]) => {
+        const pct = Math.round((c.total / maxMonat) * 100);
+        const [y,mo] = m.split('-');
+        const moLabel = new Date(y,parseInt(mo)-1,1).toLocaleDateString('de-DE',{month:'short',year:'2-digit'});
+        const div = document.createElement('div');
+        div.className = 'tl-item';
+        div.innerHTML = `
+            <div class="tl-date">${moLabel}</div>
+            <div class="tl-bar-wrap">
+                <div class="tl-bar ${c.corr>=c.excl?'corr':'excl'}" style="width:${pct}%">${c.total > 1 ? c.total : ''}</div>
+            </div>
+            <div class="tl-count">${c.total}</div>
+        `;
+        tl.appendChild(div);
+    });
+
+    // Detail-Log
+    const tbody = document.getElementById('log-body');
+    tbody.innerHTML = '';
+    allFlags.sort((a,b) => (b.datum||'').localeCompare(a.datum||'')).forEach(f => {
+        const tr = document.createElement('tr');
+        const typeLabel = f.type==='outlier_corrected' ? '<span class="type-pill type-corr">Korrigiert</span>'
+                        : f.type==='outlier_excluded'  ? '<span class="type-pill type-excl">Ausgeschl.</span>'
+                        :                                '<span class="type-pill type-acpt">Akzeptiert</span>';
+        const delta = f.type==='outlier_corrected'
+            ? (f.original||'?') + ' → ' + (f.corrected||'?') + ' Stk'
+            : f.type==='outlier_excluded'
+            ? (f.original||'?') + ' → null'
+            : (f.value||'?') + ' Stk (behalten)';
+        tr.innerHTML = `
+            <td>${f.datum||'?'}</td>
+            <td>${f.wochentag||'?'}</td>
+            <td style="font-weight:600;">${productLabel(f.key)}</td>
+            <td>${typeLabel}</td>
+            <td style="font-family:monospace;font-size:0.76rem;">${delta}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+</script>
+</body>
+</html>
