@@ -99,8 +99,8 @@ var DZ_SCHILD_PRINT_CSS = [
     '.p-main { flex:1; display:grid; grid-template-columns:1fr auto; gap:7mm; min-height:0; margin-top:3mm; }',
 
     // Name — vertikal und horizontal zentriert
-    '.p-name-area { display:flex; align-items:center; justify-content:flex-start; overflow:hidden; }',
-    '.p-name { font-family:Georgia,serif; font-size:82pt; line-height:.85; letter-spacing:-.03em; color:#1a1a1a; font-weight:900; }',
+    '.p-name-area { display:flex; align-items:center; justify-content:flex-start; }',
+    '.p-name { font-family:Georgia,serif; font-size:82pt; line-height:.85; letter-spacing:-.03em; color:#1a1a1a; font-weight:900; word-break:break-word; overflow-wrap:break-word; hyphens:auto; }',
 
     // Rechte Spalte: Spruch-Streifen + NFC/QR
     '.p-right-wrap { display:flex; flex-direction:row; }',
