@@ -79,7 +79,55 @@ var CSS = `
 }
 .panel-del-btn:hover { color: #e55; }
 
-.panel-add-btn {
+.panel-pick-btn {
+    background: none; border: none;
+    color: var(--amber, #d49a36); cursor: pointer;
+    font-size: 1.1rem; padding: 2px 5px; border-radius: 4px;
+    transition: opacity .15s; flex-shrink: 0;
+}
+.panel-pick-btn:hover { opacity: .7; }
+
+/* Picker Overlay */
+#panel-picker-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 9999;
+    display: flex; align-items: flex-end; justify-content: center;
+}
+.panel-picker-box {
+    background: var(--surface, #fff);
+    border-radius: 16px 16px 0 0;
+    width: 100%; max-width: 600px;
+    max-height: 70vh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+}
+.panel-picker-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-s, #eee);
+    font-weight: 700; font-size: 0.9rem;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--amber, #d49a36);
+}
+.panel-picker-head button {
+    background: none; border: none; cursor: pointer;
+    font-size: 1.1rem; color: var(--dim, #999);
+}
+.panel-picker-list {
+    overflow-y: auto; padding: 8px 0 24px;
+}
+.panel-picker-item {
+    width: 100%; background: none; border: none;
+    padding: 12px 20px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    border-bottom: 1px solid var(--border-s, #f0f0f0);
+    transition: background .1s; text-align: left;
+}
+.panel-picker-item:hover { background: var(--surface2, #f5f5f5); }
+.ppi-title { font-weight: 700; font-size: 0.95rem; color: var(--text, #1a1a1a); }
+.ppi-url   { font-size: 0.72rem; color: var(--dim, #999); }
+
     width: 100%; background: transparent;
     border: 1.5px dashed var(--border-s, #ddd);
     border-radius: 8px; padding: 10px;
@@ -230,6 +278,54 @@ function init() {
 }
 
 // ── AREA EDITOR ────────────────────────────────────────────────────────
+function getPageList() {
+    var cfg = window.BOS_PAGE_CONFIG || {};
+    return Object.keys(cfg).map(function(key) {
+        return { key: key, title: (cfg[key].title || key).replace(/\n/g, ' ') };
+    }).filter(function(p) { return p.key.indexOf('frosterauslastung/froster_bedarf') === -1; });
+}
+
+window.PANEL_openPicker = function(i) {
+    var pages = getPageList();
+    if (!pages.length) {
+        alert('BOS_PAGE_CONFIG nicht geladen — Shell aktiv?');
+        return;
+    }
+    var base = 'https://baeckereios.github.io/';
+    var existing = document.getElementById('panel-area-list');
+    // Picker-Overlay erzeugen
+    var overlay = document.createElement('div');
+    overlay.id = 'panel-picker-overlay';
+    overlay.innerHTML =
+        '<div class="panel-picker-box">' +
+            '<div class="panel-picker-head">' +
+                '<span>Seite wählen</span>' +
+                '<button onclick="document.getElementById(\'panel-picker-overlay\').remove()">✕</button>' +
+            '</div>' +
+            '<div class="panel-picker-list">' +
+                pages.map(function(p) {
+                    return '<button class="panel-picker-item" onclick="PANEL_pickPage(' + i + ',\'' +
+                        escH(p.title) + '\',\'' + escH(base + p.key) + '\')">' +
+                        '<span class="ppi-title">' + escH(p.title) + '</span>' +
+                        '<span class="ppi-url">' + escH(p.key) + '</span>' +
+                    '</button>';
+                }).join('') +
+            '</div>' +
+        '</div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+};
+
+window.PANEL_pickPage = function(i, title, url) {
+    state.areas[i].name = title;
+    state.areas[i].url  = url;
+    saveState();
+    var overlay = document.getElementById('panel-picker-overlay');
+    if (overlay) overlay.remove();
+    renderAreaList();
+    PANEL_render();
+};
+
 function renderAreaList() {
     var list = document.getElementById('panel-area-list');
     if (!list) return;
@@ -239,15 +335,16 @@ function renderAreaList() {
             ' oninput="PANEL_updateArea(' + i + ',\'name\',this.value)">' +
             '<input class="panel-area-url" type="text" value="' + escH(a.url) + '" placeholder="https://…"' +
             ' oninput="PANEL_updateArea(' + i + ',\'url\',this.value)">' +
-            '<button class="panel-del-btn" onclick="PANEL_removeArea(' + i + ')">✕</button>' +
+            '<button class="panel-pick-btn" onclick="PANEL_openPicker(' + i + ')" title="Aus BOS-Seiten wählen">⊕</button>' +
+            '<button class="panel-del-btn"  onclick="PANEL_removeArea(' + i + ')">✕</button>' +
         '</div>';
     }).join('');
 }
 
-window.PANEL_onStation   = function(v) { state.station = v; saveState(); var el = document.querySelector('#panel-a4 .pa-station'); if (el) el.textContent = v; };
-window.PANEL_addArea     = function() { state.areas.push({ name: 'Neuer Bereich', url: 'https://baeckereios.github.io/' }); saveState(); renderAreaList(); };
-window.PANEL_removeArea  = function(i) { state.areas.splice(i, 1); saveState(); renderAreaList(); };
-window.PANEL_updateArea  = function(i, f, v) { state.areas[i][f] = v; saveState(); };
+window.PANEL_onStation   = function(v) { state.station = v; saveState(); PANEL_render(); };
+window.PANEL_addArea     = function() { state.areas.push({ name: 'Neuer Bereich', url: '' }); saveState(); renderAreaList(); };
+window.PANEL_removeArea  = function(i) { state.areas.splice(i, 1); saveState(); renderAreaList(); PANEL_render(); };
+window.PANEL_updateArea  = function(i, f, v) { state.areas[i][f] = v; saveState(); PANEL_render(); };
 
 // ── QR HELPER ─────────────────────────────────────────────────────────
 function makeQR(container, url) {
@@ -305,7 +402,34 @@ window.PANEL_render = function() {
     });
 };
 
-window.PANEL_print = function() { window.print(); };
+window.PANEL_print = function() {
+    var panel = document.getElementById('panel-a4');
+    if (!panel) return;
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+        '<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700;900&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">' +
+        '<style>' +
+        '* { box-sizing: border-box; margin: 0; padding: 0; }' +
+        'body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
+        '#panel-a4 { width: 210mm; padding: 10mm 14mm; font-family: "Barlow Condensed","Arial Narrow",sans-serif; }' +
+        document.getElementById('panel-a4').closest('.panel-preview-wrap').previousElementSibling ? '' : '' +
+        // Alle pa-* Styles aus dem Dokument übernehmen
+        Array.from(document.styleSheets).reduce(function(acc, ss) {
+            try {
+                return acc + Array.from(ss.cssRules)
+                    .filter(function(r) { return r.cssText && r.cssText.indexOf('.pa-') !== -1; })
+                    .map(function(r) { return r.cssText; }).join('\n');
+            } catch(e) { return acc; }
+        }, '') +
+        '@page { size: A4 portrait; margin: 0; }' +
+        '</style></head><body>' +
+        '<div id="panel-a4">' + panel.innerHTML + '</div>' +
+        '<script>window.onload=function(){window.print();window.close();}<\/script>' +
+        '</body></html>';
+    var w = window.open('', '_blank', 'width=900,height=700');
+    if (!w) { alert('Popup blockiert — bitte Popup-Blocker deaktivieren'); return; }
+    w.document.write(html);
+    w.document.close();
+};
 
 // ── START ──────────────────────────────────────────────────────────────
 if (document.readyState === 'loading') {
