@@ -18,7 +18,7 @@ window.BOS_BRAIN = {
         
         // Effektiver Startbestand
         const effectiveStock = stock - shortage;
-        const startStep   = (session.frosterDone && shortage === 0) ? 2 : 1;
+        const startStep   = session.frosterDone ? 2 : 1;
 
         let currentRest = effectiveStock;
         let results = [];
@@ -104,7 +104,7 @@ window.BOS_BRAIN = {
         
         const BATCH = p.batchSize || 1; 
 
-        const startStep  = (session.frosterDone && shortage === 0) ? 2 : 1;
+        const startStep  = session.frosterDone ? 2 : 1;
         const rawSteps   = (targetDay - todayIdx + 7) % 7 || 7;
         const totalSteps = rawSteps < 3 ? rawSteps + 7 : rawSteps;
         const prodDayIdxs = session.productionDays?.[prodId] || [];
