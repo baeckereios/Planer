@@ -48,12 +48,10 @@ var DZ_SCHILD_SCREEN_CSS = [
     '.sp-tag { font-size:clamp(5px,.72vw,8px); letter-spacing:.14em; text-transform:uppercase; color:#bbb; font-family:monospace; }',
     '.sp-body { flex:1; display:grid; grid-template-columns:1fr auto; gap:3%; min-height:0; }',
     '.sp-left { display:flex; flex-direction:column; justify-content:space-between; gap:1.5%; min-width:0; }',
-    '.sp-name { font-family:Georgia,serif; font-size:clamp(28px,9.5vw,104px); line-height:.85; letter-spacing:-.03em; color:#1a1a1a; flex:1; display:flex; align-items:center; font-weight:900; }',
+    '.sp-name { font-family:Georgia,serif; font-size:clamp(22px,6.5vw,72px); line-height:.9; letter-spacing:-.02em; color:#1a1a1a; flex:1; display:flex; align-items:center; font-weight:900; }',
     '.sp-hinweis { background:#f5f2ed; border-left:3px solid #1a1a1a; border-radius:0 4px 4px 0; padding:clamp(3px,.55vw,7px) clamp(5px,.8vw,10px); }',
     '.sp-hinweis-title { font-family:monospace; font-size:clamp(3px,.48vw,6px); text-transform:uppercase; letter-spacing:.15em; color:#999; margin-bottom:2px; }',
-    '.sp-hinweis-text { font-size:clamp(6px,.9vw,12px); color:#333; line-height:1.45; }',
-    '.sp-right-wrap { display:flex; flex-direction:row; flex-shrink:0; }',
-    '.sp-spruch { writing-mode:vertical-rl; transform:rotate(180deg); display:flex; align-items:center; justify-content:center; font-family:Georgia,serif; font-style:italic; font-size:clamp(4px,.6vw,7.5px); color:#aaa; letter-spacing:.08em; padding-right:clamp(2px,.4vw,5px); white-space:nowrap; flex-shrink:0; border-right:1px solid #e8e4de; margin-right:clamp(2px,.4vw,5px); }',
+    '.sp-hinweis-text { font-size:clamp(5px,.7vw,9px); color:#444; line-height:1.4; }',
     '.sp-steps { display:flex; gap:3%; }',
     '.sp-step { display:flex; gap:4px; flex:1; align-items:flex-start; }',
     '.sp-step-num { font-family:monospace; font-size:clamp(5px,.7vw,9px); color:#1a1a1a; font-weight:700; flex-shrink:0; line-height:1.45; }',
@@ -96,16 +94,14 @@ var DZ_SCHILD_PRINT_CSS = [
     '.p-tag { font-size:7.5pt; letter-spacing:.14em; text-transform:uppercase; color:#bbb; font-family:monospace; padding-top:1mm; }',
 
     // ── Hauptbereich: Name links | NFC+QR rechts ──
-    '.p-main { flex:1; display:grid; grid-template-columns:1fr auto; gap:7mm; min-height:0; margin-top:3mm; }',
+    '.p-main { flex:1; display:grid; grid-template-columns:1fr 46mm; gap:7mm; min-height:0; margin-top:3mm; }',
 
     // Name — vertikal und horizontal zentriert
     '.p-name-area { display:flex; align-items:center; justify-content:flex-start; overflow:hidden; }',
-    '.p-name { font-family:Georgia,serif; font-size:82pt; line-height:.85; letter-spacing:-.03em; color:#1a1a1a; font-weight:900; }',
+    '.p-name { font-family:Georgia,serif; font-size:58pt; line-height:.88; letter-spacing:-.02em; color:#1a1a1a; font-weight:900; }',
 
-    // Rechte Spalte: Spruch-Streifen + NFC/QR
-    '.p-right-wrap { display:flex; flex-direction:row; }',
-    '.p-spruch { writing-mode:vertical-rl; transform:rotate(180deg); display:flex; align-items:center; justify-content:center; font-family:Georgia,serif; font-style:italic; font-size:7pt; color:#aaa; letter-spacing:.08em; padding-right:2mm; white-space:nowrap; flex-shrink:0; border-right:0.5pt solid #e8e4de; margin-right:2mm; -webkit-print-color-adjust:exact; print-color-adjust:exact; }',
-    '.p-right { display:flex; flex-direction:column; gap:2.5mm; width:46mm; }',
+    // Rechte Spalte: NFC oben, QR unten — gleiche Höhe
+    '.p-right { display:flex; flex-direction:column; gap:2.5mm; }',
     '.p-nfc { flex:1; border:1pt dashed #ccc; border-radius:3pt; overflow:hidden; display:flex; flex-direction:row; min-height:0; }',
     '.p-nfc-main { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.5mm; padding:3mm 2mm; }',
     '.p-nfc-icon { width:18mm; height:18mm; border:1.5pt solid #1a1a1a; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }',
@@ -119,7 +115,7 @@ var DZ_SCHILD_PRINT_CSS = [
     // ── Hinweis — volle Breite, grau ──
     '.p-hinweis { background:#f0ede8; border-left:3pt solid #1a1a1a; border-radius:0 3pt 3pt 0; padding:2.5mm 4mm; flex-shrink:0; margin-top:3mm; -webkit-print-color-adjust:exact; print-color-adjust:exact; }',
     '.p-hinweis-title { font-family:monospace; font-size:6.5pt; text-transform:uppercase; letter-spacing:.14em; color:#999; margin-bottom:1.5pt; }',
-    '.p-hinweis-text { font-size:12pt; color:#333; line-height:1.45; }',
+    '.p-hinweis-text { font-size:10pt; color:#333; line-height:1.4; }',
 
     // ── Schritte — volle Breite ──
     '.p-steps { display:flex; gap:0; flex-shrink:0; margin-top:2.5mm; padding-top:2.5mm; border-top:0.5pt solid #e0e0e0; }',
@@ -186,11 +182,6 @@ function DZ_SCHILD_render() {
           '<input class="schild-input" id="schild-hinweis" type="text" value="Chip mit Smartphone antippen, um direkt zu diesem Bereich in BäckereiOS zu gelangen." oninput="DZ_SCHILD_updatePreview()">' +
         '</div>' +
 
-        '<div class="schild-field">' +
-          '<label class="schild-section-title">Spruch (Streifen neben Scan-Kästen)</label>' +
-          '<input class="schild-input" id="schild-spruch" type="text" value="Scan mich — BäckereiOS öffnet direkt." oninput="DZ_SCHILD_updatePreview()" placeholder="z.B. Bestand? Den gibt es hier. Scan mich.">' +
-        '</div>' +
-
         '<div>' +
           '<label class="schild-section-title">NFC-Ziel-URL</label>' +
           '<div class="schild-row">' +
@@ -223,20 +214,17 @@ function DZ_SCHILD_render() {
                   '</div>' +
                   '<div class="sp-steps">' + stepsHTML + '</div>' +
                 '</div>' +
-                '<div class="sp-right-wrap">' +
-                  '<div class="sp-spruch" id="sp-spruch">Scan mich — BäckereiOS öffnet direkt.</div>' +
-                  '<div class="sp-right">' +
-                    '<div class="sp-nfc">' +
-                      '<div class="sp-nfc-main">' +
-                        '<div class="sp-nfc-icon">' + nfcSvg + '</div>' +
-                        '<div class="sp-nfc-lbl">NFC&#8209;Chip<br>hier platzieren</div>' +
-                      '</div>' +
-                      '<div class="sp-nfc-url" id="sp-nfc-url">https://baeckereios.github.io</div>' +
+                '<div class="sp-right">' +
+                  '<div class="sp-nfc">' +
+                    '<div class="sp-nfc-main">' +
+                      '<div class="sp-nfc-icon">' + nfcSvg + '</div>' +
+                      '<div class="sp-nfc-lbl">NFC&#8209;Chip<br>hier platzieren</div>' +
                     '</div>' +
-                    '<div class="sp-qr">' +
-                      '<div id="sp-qr-canvas"></div>' +
-                      '<div class="sp-qr-lbl">QR&#8209;Code</div>' +
-                    '</div>' +
+                    '<div class="sp-nfc-url" id="sp-nfc-url">https://baeckereios.github.io</div>' +
+                  '</div>' +
+                  '<div class="sp-qr">' +
+                    '<div id="sp-qr-canvas"></div>' +
+                    '<div class="sp-qr-lbl">QR&#8209;Code</div>' +
                   '</div>' +
                 '</div>' +
               '</div>' +
@@ -274,20 +262,17 @@ function DZ_SCHILD_render() {
                 '<div class="p-name-area">' +
                   '<div class="p-name" id="p-name">Froster</div>' +
                 '</div>' +
-                '<div class="p-right-wrap">' +
-                  '<div class="p-spruch" id="p-spruch">Scan mich — BäckereiOS öffnet direkt.</div>' +
-                  '<div class="p-right">' +
-                    '<div class="p-nfc">' +
-                      '<div class="p-nfc-main">' +
-                        '<div class="p-nfc-icon">' + nfcSvg + '</div>' +
-                        '<div class="p-nfc-lbl">NFC&#8209;Chip<br>hier platzieren</div>' +
-                      '</div>' +
-                      '<div class="p-nfc-url" id="p-nfc-url">https://baeckereios.github.io</div>' +
+                '<div class="p-right">' +
+                  '<div class="p-nfc">' +
+                    '<div class="p-nfc-main">' +
+                      '<div class="p-nfc-icon">' + nfcSvg + '</div>' +
+                      '<div class="p-nfc-lbl">NFC&#8209;Chip<br>hier platzieren</div>' +
                     '</div>' +
-                    '<div class="p-qr">' +
-                      '<img id="p-qr-img" src="" alt="QR-Code">' +
-                      '<div class="p-qr-lbl">QR&#8209;Code</div>' +
-                    '</div>' +
+                    '<div class="p-nfc-url" id="p-nfc-url">https://baeckereios.github.io</div>' +
+                  '</div>' +
+                  '<div class="p-qr">' +
+                    '<img id="p-qr-img" src="" alt="QR-Code">' +
+                    '<div class="p-qr-lbl">QR&#8209;Code</div>' +
                   '</div>' +
                 '</div>' +
               '</div>' +
@@ -352,26 +337,21 @@ function DZ_SCHILD_getLabel() {
 function DZ_SCHILD_updatePreview() {
     var label   = DZ_SCHILD_getLabel();
     var hinweis = (document.getElementById('schild-hinweis') || {}).value || '';
-    var url     = (document.getElementById('schild-url')    || {}).value || '';
-    var spruch  = (document.getElementById('schild-spruch') || {}).value || '';
+    var url     = (document.getElementById('schild-url') || {}).value || '';
 
-    var spName   = document.getElementById('sp-name');
-    var spHinw   = document.getElementById('sp-hinweis');
-    var spUrl    = document.getElementById('sp-nfc-url');
-    var spSpruch = document.getElementById('sp-spruch');
-    var pName    = document.getElementById('p-name');
-    var pHinw    = document.getElementById('p-hinweis');
-    var pUrl     = document.getElementById('p-nfc-url');
-    var pSpruch  = document.getElementById('p-spruch');
+    var spName = document.getElementById('sp-name');
+    var spHinw = document.getElementById('sp-hinweis');
+    var spUrl  = document.getElementById('sp-nfc-url');
+    var pName  = document.getElementById('p-name');
+    var pHinw  = document.getElementById('p-hinweis');
+    var pUrl   = document.getElementById('p-nfc-url');
 
-    if (spName)   spName.textContent   = label;
-    if (spHinw)   spHinw.textContent   = hinweis;
-    if (spUrl)    spUrl.textContent    = url;
-    if (spSpruch) spSpruch.textContent = spruch;
-    if (pName)    pName.textContent    = label;
-    if (pHinw)    pHinw.textContent    = hinweis;
-    if (pUrl)     pUrl.textContent     = url;
-    if (pSpruch)  pSpruch.textContent  = spruch;
+    if (spName) spName.textContent = label;
+    if (spHinw) spHinw.textContent = hinweis;
+    if (spUrl)  spUrl.textContent  = url;
+    if (pName)  pName.textContent  = label;
+    if (pHinw)  pHinw.textContent  = hinweis;
+    if (pUrl)   pUrl.textContent   = url;
 
     DZ_SCHILD_genQR(url);
 }
