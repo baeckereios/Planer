@@ -85,6 +85,9 @@
   .kopier-result-leer { font-size: 0.8rem; color: var(--text-secondary,#6b7280); font-style: italic; text-align: center; }
   .kopier-schritt { font-size: 0.72rem; font-weight: 800; color: var(--text-secondary,#6b7280); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
 
+  
+  .tab-btn.active.stationen   { background: #7c3aed; box-shadow: 0 2px 8px rgba(124,58,237,0.25); }
+  .tab-btn.inactive.stationen { background: rgba(124,58,237,0.08); color: #7c3aed; }
   @keyframes puls { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
   .kein-daten { text-align: center; padding: 20px; font-size: 0.8rem; color: var(--text-secondary,#6b7280); font-style: italic; }
 </style>
@@ -101,6 +104,7 @@
     <div class="tab-btn inactive back"     id="tab-back"    onclick="switchTab('back')">🥐 Backwaren</div>
     <div class="tab-btn inactive seiten"   id="tab-seiten"  onclick="switchTab('seiten')">📄 Seiten</div>
     <div class="tab-btn inactive kopieren" id="tab-kopieren" onclick="switchTab('kopieren')">🔁 Kopieren</div>
+    <div class="tab-btn inactive stationen" id="tab-stationen" onclick="switchTab('stationen')">🏭 Stationen</div>
   </div>
 
   <!-- ── TAB 1: LIEFERANTEN ── -->
@@ -173,6 +177,21 @@
       <div class="sektion-body" id="seiten-liste">
         <div class="kein-daten">Wird geladen…</div>
       </div>
+    </div>
+  </div>
+
+
+  <!-- ── TAB STATIONEN (neu) ── -->
+  <div id="view-stationen" style="display:none;">
+    <div class="sektion">
+      <div class="sektion-header">
+        <span class="sektion-icon">🏭</span>
+        <div>
+          <div class="sektion-titel">Produktionsstationen</div>
+          <div class="sektion-sub">NFC-Chips für Backtage & Wochenplanung</div>
+        </div>
+      </div>
+      <div class="sektion-body" id="stationen-liste"></div>
     </div>
   </div>
 
@@ -277,6 +296,7 @@ window.onload = async function() {
   renderLieferanten();
   renderBackwaren();
   renderSeiten();
+  renderStationen();
 };
 
 // ── TABS ─────────────────────────────────────────────────
@@ -285,10 +305,12 @@ function switchTab(tab) {
   document.getElementById('tab-back').className     = 'tab-btn back '     + (tab==='back'     ? 'active' : 'inactive');
   document.getElementById('tab-seiten').className   = 'tab-btn seiten '   + (tab==='seiten'   ? 'active' : 'inactive');
   document.getElementById('tab-kopieren').className = 'tab-btn kopieren ' + (tab==='kopieren' ? 'active' : 'inactive');
+  document.getElementById('tab-stationen').className = 'tab-btn stationen ' + (tab==='stationen' ? 'active' : 'inactive');
   document.getElementById('view-lief').style.display     = tab==='lief'     ? 'block' : 'none';
   document.getElementById('view-back').style.display     = tab==='back'     ? 'block' : 'none';
   document.getElementById('view-seiten').style.display   = tab==='seiten'   ? 'block' : 'none';
   document.getElementById('view-kopieren').style.display = tab==='kopieren' ? 'block' : 'none';
+  document.getElementById('view-stationen').style.display = tab==='stationen' ? 'block' : 'none';
 }
 
 // ── PWA-URL ───────────────────────────────────────────────
@@ -571,6 +593,30 @@ function zeigeBtn(btn, z, t) {
 function alleDeaktiv(d) {
   document.querySelectorAll('.btn-nfc:not([disabled]),.btn-nfc-gross:not([disabled])').forEach(function(b){ b.disabled=d; });
 }
+
+var STATIONS_NFC = [
+  { name: 'NFC Hub',                 url: 'nfc_seiten/nfc_hub.html',                     typ: 'typ-seite' },
+  { name: 'Brötchenstraße',          url: 'nfc_seiten/station_broetchenstrasse.html',     typ: 'typ-seite' },
+  { name: 'Frühschicht',             url: 'nfc_seiten/station_fruehschicht.html',         typ: 'typ-seite' },
+  { name: 'Nachtschicht',            url: 'nfc_seiten/station_nachtschicht.html',         typ: 'typ-seite' },
+  { name: 'Rondo',                   url: 'nfc_seiten/station_rondo.html',                typ: 'typ-seite' },
+  { name: 'Froster Bestand',         url: 'nfc_seiten/froster_nfc.html',                  typ: 'typ-kuehl' },
+  { name: 'Froster Bedarf Mo',       url: 'nfc_seiten/froster_bedarf_mo.html',            typ: 'typ-kuehl' },
+  { name: 'Froster Bedarf Di',       url: 'nfc_seiten/froster_bedarf_di.html',            typ: 'typ-kuehl' },
+  { name: 'Stangenrechner Mo',       url: 'nfc_seiten/stangenrechner_nfc_mo.html',        typ: 'typ-backware' },
+  { name: 'Stangenrechner Di',       url: 'nfc_seiten/stangenrechner_nfc_di.html',        typ: 'typ-backware' },
+  { name: 'Einstieg (Frühstückstisch)', url: 'nfc_einstieg.html',                         typ: 'typ-seite' },
+];
+
+function renderStationen() {
+  var c = document.getElementById('stationen-liste');
+  c.innerHTML = '';
+  STATIONS_NFC.forEach(function(s) {
+    var url = baseUrl + s.url;
+    c.appendChild(buildChipRow(s.typ, s.name, url, 'btn_st_' + s.url.replace(/[^a-z0-9]/gi,'_'), false));
+  });
+}
+
 function renderSeiten() {
   var c = document.getElementById('seiten-liste');
   var cfg = window.BOS_PAGE_CONFIG;
