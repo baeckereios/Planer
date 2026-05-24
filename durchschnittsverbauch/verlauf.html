@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BäckereiOS — Produktverlauf</title>
+<link rel="stylesheet" href="../systemdesign.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+       background: var(--background, #f8f6f2); color: var(--text-primary, #1a1a1a); }
+.container { max-width: 900px; margin: 0 auto; padding: 16px 12px 80px; }
+.page-header { text-align: center; margin-bottom: 20px; }
+.page-header h1 { font-size: 1.3rem; font-weight: 900; margin-bottom: 4px; }
+.page-header p  { font-size: 0.8rem; color: #6b7280; }
+.card { background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e5e0d8);
+        border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+.card-titel { font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px;
+  text-transform: uppercase; color: #6b7280; margin-bottom: 12px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color, #e5e0d8);
+  display: flex; justify-content: space-between; align-items: center; }
+.zeitraum-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.zt-btn { font-family: inherit; font-size: 0.75rem; font-weight: 700; padding: 6px 12px;
+  border-radius: 20px; border: 1.5px solid var(--border-color, #e5e0d8);
+  background: var(--card-bg, #fff); color: #6b7280; cursor: pointer; transition: all 0.15s; }
+.zt-btn:hover { border-color: #e67e22; color: #e67e22; }
+.zt-btn.aktiv { background: #e67e22; border-color: #e67e22; color: #fff; }
+.einheit-toggle { display: flex; gap: 6px; }
+.ein-btn { font-family: inherit; font-size: 0.7rem; font-weight: 700; padding: 4px 10px;
+  border-radius: 6px; border: 1px solid var(--border-color, #e5e0d8);
+  background: var(--card-bg, #fff); color: #6b7280; cursor: pointer; }
+.ein-btn.aktiv { background: #1e293b; color: #fff; border-color: #1e293b; }
+.prod-such { width: 100%; padding: 9px 12px; border-radius: 8px; margin-bottom: 10px;
+  border: 1.5px solid var(--border-color, #e5e0d8); font-family: inherit; font-size: 0.85rem;
+  background: var(--card-bg, #fff); color: var(--text-primary, #1a1a1a); }
+.prod-such:focus { outline: none; border-color: #e67e22; }
+.prod-liste { display: flex; flex-wrap: wrap; gap: 6px; max-height: 220px; overflow-y: auto; }
+.prod-chip { font-size: 0.72rem; padding: 5px 10px; border-radius: 20px;
+  border: 1.5px solid var(--border-color, #e5e0d8); background: var(--card-bg, #fff);
+  color: #6b7280; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.prod-chip.sel-0 { background: #fee2e2; border-color: #ef4444; color: #991b1b; font-weight: 700; }
+.prod-chip.sel-1 { background: #dbeafe; border-color: #3b82f6; color: #1e40af; font-weight: 700; }
+.prod-chip.sel-2 { background: #d1fae5; border-color: #10b981; color: #065f46; font-weight: 700; }
+.prod-chip.sel-3 { background: #fef3c7; border-color: #f59e0b; color: #92400e; font-weight: 700; }
+.prod-chip.sel-4 { background: #ede9fe; border-color: #8b5cf6; color: #4c1d95; font-weight: 700; }
+.max-hinweis { font-size: 0.72rem; color: #9ca3af; font-style: italic; margin-top: 6px; }
+.ausgewaehlt-liste { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; min-height: 28px; }
+.ausgewaehlt-chip { font-size: 0.72rem; padding: 4px 9px; border-radius: 20px;
+  font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+.ausgewaehlt-chip .x { opacity: 0.6; font-size: 0.65rem; }
+.chart-wrap { position: relative; width: 100%; height: 320px; }
+.legende { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.legende-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600; }
+.legende-farbe { width: 20px; height: 3px; border-radius: 2px; }
+.lade-info { text-align: center; padding: 30px; color: #9ca3af; font-size: 0.85rem; }
+
+/* ── TAB-TOGGLE ── */
+.tab-toggle { display: flex; gap: 0; margin-bottom: 16px; border-radius: 10px;
+  border: 1.5px solid var(--border-color, #e5e0d8); overflow: hidden; background: var(--card-bg,#fff); }
+.tab-btn { flex: 1; font-family: inherit; font-size: 0.75rem; font-weight: 800;
+  letter-spacing: 0.8px; text-transform: uppercase; padding: 10px 8px;
+  border: none; background: transparent; color: #9ca3af; cursor: pointer; transition: all 0.18s; }
+.tab-btn.aktiv { background: #1e293b; color: #fff; }
+
+/* ── TRENDÜBERSICHT ── */
+.trend-toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+.trend-sort-label { font-size: 0.68rem; font-weight: 800; letter-spacing: 1px;
+  text-transform: uppercase; color: #9ca3af; }
+.trend-sort-btn { font-family: inherit; font-size: 0.72rem; font-weight: 700; padding: 5px 11px;
+  border-radius: 20px; border: 1.5px solid var(--border-color,#e5e0d8);
+  background: var(--card-bg,#fff); color: #6b7280; cursor: pointer; transition: all 0.15s; }
+.trend-sort-btn.aktiv { background: #1e293b; color: #fff; border-color: #1e293b; }
+.trend-min-label { font-size: 0.68rem; color: #9ca3af; margin-left: auto; }
+
+.trend-liste { display: flex; flex-direction: column; gap: 8px; }
+.trend-row { display: grid; grid-template-columns: 1fr 72px 52px;
+  align-items: center; gap: 10px; padding: 10px 12px;
+  background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8);
+  border-radius: 10px; cursor: pointer; transition: border-color 0.15s; }
+.trend-row:hover { border-color: #e67e22; }
+.trend-row.zu-wenig { opacity: 0.42; cursor: default; }
+.trend-row.zu-wenig:hover { border-color: var(--border-color,#e5e0d8); }
+.trend-name { font-size: 0.82rem; font-weight: 700; color: var(--text-primary,#1a1a1a);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trend-meta { font-size: 0.65rem; color: #9ca3af; margin-top: 1px; }
+.trend-sparkline { width: 72px; height: 30px; }
+.trend-indikator { font-size: 1.1rem; font-weight: 900; text-align: center; }
+.trend-pct { font-size: 0.65rem; font-weight: 700; text-align: center;
+  display: block; margin-top: 1px; }
+.trend-vergleich { font-size: 0.63rem; color: #9ca3af; margin-top: 2px;
+  white-space: nowrap; }
+.trend-vergleich .vv { color: #9ca3af; }
+.trend-vergleich .vn-steigt { color: #16a34a; font-weight: 700; }
+.trend-vergleich .vn-faellt { color: #dc2626; font-weight: 700; }
+.trend-vergleich .vn-stabil { color: #6b7280; font-weight: 600; }
+.ti-steigt  { color: #16a34a; }
+.ti-faellt  { color: #dc2626; }
+.ti-stabil  { color: #9ca3af; }
+.kein-daten { text-align: center; padding: 30px; color: #9ca3af; font-size: 0.85rem; }
+.trend-zeitraum { font-size: 0.6rem; color: #9ca3af; margin-top: 1px;
+  white-space: nowrap; letter-spacing: 0.2px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-header">
+    <h1>📈 Produktverlauf</h1>
+    <p>Rohdaten aus der Backmengen-Datenbank · bis zu 5 Produkte vergleichen</p>
+  </div>
+
+  <div class="tab-toggle">
+    <button class="tab-btn aktiv" id="tab-einzel"  onclick="setTab('einzel')">Einzelansicht</button>
+    <button class="tab-btn"       id="tab-trend"   onclick="setTab('trend')">Trendübersicht</button>
+  </div>
+
+  <div id="einzel-bereich">
+  <div class="card">
+    <div class="card-titel">
+      <span>Zeitraum &amp; Einheit</span>
+      <div class="einheit-toggle">
+        <button class="ein-btn aktiv" id="btn-stueck" onclick="setEinheit('stueck')">Stück</button>
+        <button class="ein-btn" id="btn-bleche" onclick="setEinheit('bleche')">Bleche</button>
+      </div>
+    </div>
+    <div class="zeitraum-btns">
+      <button class="zt-btn" onclick="setZeitraum(7, this)">7 Tage</button>
+      <button class="zt-btn aktiv" onclick="setZeitraum(14, this)">14 Tage</button>
+      <button class="zt-btn" onclick="setZeitraum(28, this)">28 Tage</button>
+      <button class="zt-btn" onclick="setZeitraum(0, this)">Alle</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-titel" onclick="toggleAuswahl()" style="cursor:pointer;">
+      <span>Produkte wählen <span style="font-weight:400;font-size:0.65rem;">(max. 5)</span></span>
+      <span id="auswahl-toggle-info" style="font-size:0.72rem;font-weight:600;color:#e67e22;"></span>
+    </div>
+    <div id="auswahl-body">
+      <div class="ausgewaehlt-liste" id="ausgewaehlt"></div>
+      <input class="prod-such" type="text" placeholder="Produkt suchen…" id="suchfeld" oninput="filterProdukte()">
+      <div class="prod-liste" id="prodListe"><div class="lade-info">Lade…</div></div>
+      <div class="max-hinweis" id="maxHinweis" style="display:none;">Maximal 5 Produkte — erst abwählen um ein anderes hinzuzufügen.</div>
+    </div>
+  </div>
+
+  <div class="card" id="chartCard" style="display:none;">
+    <div class="card-titel">Verlauf</div>
+    <div class="chart-wrap"><canvas id="myChart"></canvas></div>
+    <div class="legende" id="legende"></div>
+  </div>
+  </div>
+
+  <!-- TRENDÜBERSICHT -->
+  <div id="trend-bereich" style="display:none;">
+    <div class="card">
+      <div class="card-titel">
+        <span>Zeitraum &amp; Einheit</span>
+        <div class="einheit-toggle">
+          <button class="ein-btn aktiv" id="tbtn-stueck" onclick="setTrendEinheit('stueck')">Stück</button>
+          <button class="ein-btn"       id="tbtn-bleche" onclick="setTrendEinheit('bleche')">Bleche</button>
+        </div>
+      </div>
+      <div class="zeitraum-btns">
+        <button class="zt-btn" onclick="setTrendZeitraum(7,this)">7 Tage</button>
+        <button class="zt-btn aktiv" id="tzt-14" onclick="setTrendZeitraum(14,this)">14 Tage</button>
+        <button class="zt-btn" onclick="setTrendZeitraum(28,this)">28 Tage</button>
+        <button class="zt-btn" onclick="setTrendZeitraum(0,this)">Alle</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-titel">
+        <span>Alle Produkte</span>
+        <span id="trend-count" style="font-size:0.68rem;font-weight:600;color:#9ca3af;"></span>
+      </div>
+      <div class="trend-toolbar">
+        <span class="trend-sort-label">Sortieren:</span>
+        <button class="trend-sort-btn aktiv" id="tsort-trend" onclick="setTrendSort('trend')">Trend ↓↑</button>
+        <button class="trend-sort-btn" id="tsort-name"  onclick="setTrendSort('name')">Name</button>
+        <button class="trend-sort-btn" id="tsort-menge" onclick="setTrendSort('menge')">Menge</button>
+        <span class="trend-min-label" id="trend-min-label"></span>
+      </div>
+      <div class="trend-liste" id="trend-liste">
+        <div class="kein-daten">Daten werden geladen…</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="../shell.js"></script>
+<script>
+const FARBEN = [
+  { line: '#ef4444', bg: 'rgba(239,68,68,0.08)' },
+  { line: '#3b82f6', bg: 'rgba(59,130,246,0.08)' },
+  { line: '#10b981', bg: 'rgba(16,185,129,0.08)' },
+  { line: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
+  { line: '#8b5cf6', bg: 'rgba(139,92,246,0.08)' },
+];
+const SEL_KLASSEN = ['sel-0','sel-1','sel-2','sel-3','sel-4'];
+
+let db = [], produktConfig = [], alleProdukte = [];
+let ausgewaehlt = [], gefiltertProdukte = [];
+let zeitraumTage = 14, einheit = 'stueck', chart = null;
+
+let auswahlOffen = true;
+
+function toggleAuswahl() {
+  auswahlOffen = !auswahlOffen;
+  document.getElementById('auswahl-body').style.display = auswahlOffen ? 'block' : 'none';
+  aktualisiereAuswahlHeader();
+}
+
+function aktualisiereAuswahlHeader() {
+  const info = document.getElementById('auswahl-toggle-info');
+  if (!auswahlOffen && ausgewaehlt.length > 0) {
+    info.textContent = ausgewaehlt.join(', ');
+  } else if (!auswahlOffen) {
+    info.textContent = 'Nichts ausgewählt — tippen zum Öffnen';
+  } else {
+    info.textContent = '';
+  }
+}
+
+async function init() {
+  try {
+    const [r1, r2] = await Promise.all([
+      fetch('../backmengen_db.json', { cache: 'no-store' }),
+      fetch('../produkt_config.json', { cache: 'no-store' }),
+    ]);
+    db = await r1.json();
+    produktConfig = await r2.json();
+  } catch(e) {
+    document.getElementById('prodListe').innerHTML = `<div class="lade-info">Fehler: ${e.message}</div>`;
+    return;
+  }
+  alleProdukte = produktConfig.filter(p => p.legacyKey)
+    .map(p => ({ name: p.name, legacyKey: p.legacyKey, einheit: p.einheit || 'stueck' }));
+  gefiltertProdukte = [...alleProdukte];
+  renderProdListe();
+
+  // Sniper-Menü: Produkt per URL-Parameter vorauswählen (?key=legacyKey)
+  const urlKey = new URLSearchParams(window.location.search).get('key');
+  if (urlKey) {
+    const treffer = alleProdukte.find(p => p.legacyKey === urlKey);
+    if (treffer) toggleProdukt(treffer.name);
+  }
+
+  // Tab per URL-Parameter (?tab=trend)
+  const urlTab = new URLSearchParams(window.location.search).get('tab');
+  if (urlTab === 'trend') setTab('trend');
+}
+
+function renderProdListe() {
+  const cont = document.getElementById('prodListe');
+  cont.innerHTML = '';
+  if (!gefiltertProdukte.length) {
+    cont.innerHTML = '<div class="lade-info">Keine Produkte gefunden.</div>';
+    return;
+  }
+  gefiltertProdukte.forEach(p => {
+    const selIdx = ausgewaehlt.indexOf(p.name);
+    const chip = document.createElement('span');
+    chip.className = 'prod-chip' + (selIdx !== -1 ? ' ' + SEL_KLASSEN[selIdx] : '');
+    chip.textContent = p.name;
+    chip.onclick = () => toggleProdukt(p.name);
+    cont.appendChild(chip);
+  });
+  document.getElementById('maxHinweis').style.display = ausgewaehlt.length >= 5 ? 'block' : 'none';
+}
+
+function filterProdukte() {
+  const suche = document.getElementById('suchfeld').value.toLowerCase();
+  gefiltertProdukte = suche ? alleProdukte.filter(p => p.name.toLowerCase().includes(suche)) : [...alleProdukte];
+  renderProdListe();
+}
+
+function toggleProdukt(name) {
+  const idx = ausgewaehlt.indexOf(name);
+  if (idx !== -1) ausgewaehlt.splice(idx, 1);
+  else { if (ausgewaehlt.length >= 5) return; ausgewaehlt.push(name); }
+  renderProdListe();
+  renderAusgewaehlt();
+  updateChart();
+}
+
+function renderAusgewaehlt() {
+  const cont = document.getElementById('ausgewaehlt');
+  cont.innerHTML = '';
+  ausgewaehlt.forEach((name, i) => {
+    const f = FARBEN[i];
+    const chip = document.createElement('span');
+    chip.className = 'ausgewaehlt-chip';
+    chip.style.cssText = `background:${f.bg};border:1.5px solid ${f.line};color:${f.line};`;
+    chip.innerHTML = `${name} <span class="x">✕</span>`;
+    chip.onclick = () => toggleProdukt(name);
+    cont.appendChild(chip);
+  });
+  // Automatisch zuklappen sobald ein Produkt gewählt wurde
+  if (ausgewaehlt.length > 0 && auswahlOffen) {
+    auswahlOffen = false;
+    document.getElementById('auswahl-body').style.display = 'none';
+  }
+  aktualisiereAuswahlHeader();
+}
+
+function setZeitraum(tage, btn) {
+  zeitraumTage = tage;
+  document.querySelectorAll('.zt-btn').forEach(b => b.classList.remove('aktiv'));
+  if (btn) btn.classList.add('aktiv');
+  updateChart();
+}
+
+function setEinheit(e) {
+  einheit = e;
+  document.getElementById('btn-stueck').classList.toggle('aktiv', e === 'stueck');
+  document.getElementById('btn-bleche').classList.toggle('aktiv', e === 'bleche');
+  updateChart();
+}
+
+function getProduktDaten(prodName) {
+  const cfg = alleProdukte.find(p => p.name === prodName);
+  if (!cfg) return { labels: [], werte: [] };
+  const dbKey = einheit === 'bleche' ? cfg.legacyKey.replace('_stueck', '_bleche') : cfg.legacyKey;
+  const sortiert = [...db].sort((a, b) => a.datum.localeCompare(b.datum));
+  const begrenzt = zeitraumTage > 0 ? sortiert.slice(-zeitraumTage) : sortiert;
+  const labels = [], werte = [];
+  begrenzt.forEach(e => {
+    const p = e.produkte || e;
+    const val = p[dbKey] !== undefined ? parseFloat(p[dbKey]) : null;
+    labels.push(e.datum);
+    werte.push(val !== null && val > 0 ? val : null);
+  });
+  return { labels, werte };
+}
+
+function updateChart() {
+  const card = document.getElementById('chartCard');
+  if (!ausgewaehlt.length) {
+    card.style.display = 'none';
+    if (chart) { chart.destroy(); chart = null; }
+    return;
+  }
+  card.style.display = 'block';
+
+  // Gemeinsame Zeitachse
+  const alleDaten = new Set();
+  ausgewaehlt.forEach(name => getProduktDaten(name).labels.forEach(l => alleDaten.add(l)));
+  const zeitachse = [...alleDaten].sort();
+
+  const datasets = ausgewaehlt.map((name, i) => {
+    const { labels, werte } = getProduktDaten(name);
+    const f = FARBEN[i];
+    const gemappt = zeitachse.map(datum => {
+      const idx = labels.indexOf(datum);
+      return idx !== -1 ? werte[idx] : null;
+    });
+    return {
+      label: name, data: gemappt,
+      borderColor: f.line, backgroundColor: f.bg,
+      borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 7,
+      pointBackgroundColor: f.line,
+      tension: 0.3,  // leichte Kurve bei vorhandenen Punkten
+      spanGaps: true, // Gerade zwischen fehlenden Punkten
+      fill: false,
+    };
+  });
+
+  const WT = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  const achsenLabels = zeitachse.map(datum => {
+    const d = new Date(datum + 'T12:00:00');
+    return `${WT[d.getDay()]} ${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.`;
+  });
+
+  const einheitLabel = einheit === 'bleche' ? 'Bleche' : 'Stück';
+  if (chart) chart.destroy();
+
+  const ctx = document.getElementById('myChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: achsenLabels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y !== null ? ctx.parsed.y + ' ' + einheitLabel : '–'}`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 }, maxRotation: 45 } },
+        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' },
+             ticks: { font: { size: 11 } },
+             title: { display: true, text: einheitLabel, font: { size: 11 }, color: '#9ca3af' } }
+      }
+    }
+  });
+
+  const leg = document.getElementById('legende');
+  leg.innerHTML = '';
+  ausgewaehlt.forEach((name, i) => {
+    const f = FARBEN[i];
+    leg.innerHTML += `<div class="legende-item"><div class="legende-farbe" style="background:${f.line}"></div><span>${name}</span></div>`;
+  });
+}
+
+// ── TAB ──────────────────────────────────────────────
+let aktiverTab = 'einzel';
+
+function setTab(tab) {
+  aktiverTab = tab;
+  document.getElementById('tab-einzel').classList.toggle('aktiv', tab === 'einzel');
+  document.getElementById('tab-trend').classList.toggle('aktiv', tab === 'trend');
+  document.getElementById('einzel-bereich').style.display = tab === 'einzel' ? '' : 'none';
+  document.getElementById('trend-bereich').style.display  = tab === 'trend'  ? '' : 'none';
+  if (tab === 'trend') {
+    renderTrendListe();
+  } else {
+    // Chart muss nach DOM-Paint neu erstellt werden (Canvas hatte 0px während display:none)
+    if (chart) { chart.destroy(); chart = null; }
+    if (ausgewaehlt.length) {
+      requestAnimationFrame(() => requestAnimationFrame(() => updateChart()));
+    }
+  }
+}
+
+// ── TREND-EINSTELLUNGEN ───────────────────────────────
+let trendZeitraum = 14;
+let trendEinheit  = 'stueck';
+let trendSort     = 'trend';
+
+function setTrendZeitraum(tage, btn) {
+  trendZeitraum = tage;
+  document.querySelectorAll('#trend-bereich .zt-btn').forEach(b => b.classList.remove('aktiv'));
+  if (btn) btn.classList.add('aktiv');
+  renderTrendListe();
+}
+
+function setTrendEinheit(e) {
+  trendEinheit = e;
+  document.getElementById('tbtn-stueck').classList.toggle('aktiv', e === 'stueck');
+  document.getElementById('tbtn-bleche').classList.toggle('aktiv', e === 'bleche');
+  renderTrendListe();
+}
+
+function setTrendSort(s) {
+  trendSort = s;
+  ['trend','name','menge'].forEach(k =>
+    document.getElementById(`tsort-${k}`).classList.toggle('aktiv', k === s));
+  renderTrendListe();
+}
+
+// ── TREND BERECHNEN ───────────────────────────────────
+function berechneTrend(prodName, tage, einh) {
+  const cfg = alleProdukte.find(p => p.name === prodName);
+  if (!cfg) return null;
+  const dbKey = einh === 'bleche'
+    ? cfg.legacyKey.replace('_stueck','_bleche')
+    : cfg.legacyKey;
+
+  const sortiert = [...db].sort((a,b) => a.datum.localeCompare(b.datum));
+  const begrenzt = tage > 0 ? sortiert.slice(-tage) : sortiert;
+
+  // Nur Einträge mit echtem Wert für dieses Produkt
+  const mitWert = begrenzt.filter(e => {
+    const p = e.produkte || e;
+    const v = p[dbKey];
+    return v !== undefined && v > 0;
+  });
+
+  const punkte = mitWert.map(e => { const p = e.produkte || e; return +p[dbKey]; });
+
+  if (punkte.length < 4) return { punkte, richtung: null, delta: 0, schnitt: 0 };
+
+  const mitte  = Math.floor(punkte.length / 2);
+  const frueh  = punkte.slice(0, mitte);
+  const spaet  = punkte.slice(-mitte);
+  const avgF   = frueh.reduce((a,b) => a+b, 0) / frueh.length;
+  const avgS   = spaet.reduce((a,b) => a+b, 0) / spaet.length;
+  const delta  = avgF > 0 ? ((avgS - avgF) / avgF) * 100 : 0;
+  const schnitt = punkte.reduce((a,b) => a+b, 0) / punkte.length;
+
+  const richtung = Math.abs(delta) < 5 ? 'stabil'
+                 : delta > 0           ? 'steigt'
+                 :                       'faellt';
+
+  // Datumsbereiche der beiden Hälften
+  const fmtD = iso => { const [,m,d] = iso.split('-'); return `${+d}.${+m}.`; };
+  const datumF1 = mitWert[0]?.datum,         datumF2 = mitWert[mitte-1]?.datum;
+  const datumS1 = mitWert[mitWert.length-mitte]?.datum, datumS2 = mitWert[mitWert.length-1]?.datum;
+  const bereichF = datumF1 ? `${fmtD(datumF1)}–${fmtD(datumF2)}` : '';
+  const bereichS = datumS1 ? `${fmtD(datumS1)}–${fmtD(datumS2)}` : '';
+
+  return { punkte, richtung, delta, schnitt, avgF, avgS, bereichF, bereichS };
+}
+
+// ── SPARKLINE SVG ─────────────────────────────────────
+function sparklineSVG(punkte, richtung) {
+  if (!punkte || punkte.length < 2) return `<svg class="trend-sparkline" viewBox="0 0 72 30"><line x1="4" y1="15" x2="68" y2="15" stroke="#e5e7eb" stroke-width="1.5"/></svg>`;
+  const farbe = richtung === 'steigt' ? '#16a34a' : richtung === 'faellt' ? '#dc2626' : '#9ca3af';
+  const min = Math.min(...punkte), max = Math.max(...punkte);
+  const spanne = max - min || 1;
+  const W = 72, H = 30, PAD = 4;
+  const xs = punkte.map((_,i) => PAD + (i/(punkte.length-1)) * (W-PAD*2));
+  const ys = punkte.map(v => (H-PAD) - ((v-min)/spanne) * (H-PAD*2));
+  const path = xs.map((x,i) => `${i===0?'M':'L'}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' ');
+  return `<svg class="trend-sparkline" viewBox="0 0 72 30">
+    <path d="${path}" fill="none" stroke="${farbe}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${xs[xs.length-1].toFixed(1)}" cy="${ys[ys.length-1].toFixed(1)}" r="2.5" fill="${farbe}"/>
+  </svg>`;
+}
+
+// ── RENDERE LISTE ─────────────────────────────────────
+function renderTrendListe() {
+  const cont = document.getElementById('trend-liste');
+  cont.innerHTML = '<div class="kein-daten">…</div>';
+  if (!alleProdukte.length) return;
+
+  const einh = trendEinheit;
+  const MIN_PUNKTE = 4;
+
+  // Trend für alle Produkte berechnen
+  const reihen = alleProdukte.map(p => {
+    const t = berechneTrend(p.name, trendZeitraum, einh);
+    return { name: p.name, ...t };
+  });
+
+  // Sortieren
+  const sortFn = {
+    trend: (a,b) => {
+      const ord = {faellt:0, stabil:1, steigt:2, null:3};
+      const oa = ord[a.richtung ?? 'null'], ob = ord[b.richtung ?? 'null'];
+      if (oa !== ob) return oa - ob;
+      return (a.delta||0) - (b.delta||0);
+    },
+    name:  (a,b) => a.name.localeCompare(b.name),
+    menge: (a,b) => (b.schnitt||0) - (a.schnitt||0),
+  };
+  reihen.sort(sortFn[trendSort]);
+
+  const mitDaten = reihen.filter(r => r.punkte?.length >= MIN_PUNKTE).length;
+  document.getElementById('trend-count').textContent = `${mitDaten} Produkte mit Daten`;
+  document.getElementById('trend-min-label').textContent = `mind. ${MIN_PUNKTE} Datenpunkte nötig`;
+
+  const ICONS = { steigt:'↑', faellt:'↓', stabil:'→' };
+
+  cont.innerHTML = reihen.map(r => {
+    const hatDaten = r.punkte?.length >= MIN_PUNKTE;
+    const klasse   = hatDaten ? '' : 'zu-wenig';
+    const onclick  = hatDaten ? `onclick="oeffneInEinzelansicht('${r.name.replace(/'/g,"\'")}')"` : '';
+    const iklass   = r.richtung ? `ti-${r.richtung}` : 'ti-stabil';
+    const icon     = hatDaten ? (ICONS[r.richtung] || '·') : '·';
+    const pct      = hatDaten && r.richtung !== 'stabil'
+      ? `${r.delta > 0 ? '+' : ''}${r.delta.toFixed(0)}%` : '';
+    const spark    = sparklineSVG(r.punkte, r.richtung);
+
+    // Vergleichszeile mit Datumsbereichen
+    let vergleich = '';
+    if (hatDaten && r.avgF !== undefined && r.avgS !== undefined) {
+      const vnKlasse = `vn-${r.richtung || 'stabil'}`;
+      vergleich =
+        `<div class="trend-vergleich">` +
+          `<span class="vv" title="${r.bereichF}">${r.avgF.toFixed(1)}</span>` +
+          ` <span style="color:#cbd5e1;font-size:0.6rem;">→</span> ` +
+          `<span class="${vnKlasse}" title="${r.bereichS}">${r.avgS.toFixed(1)}</span>` +
+          `<span style="color:#cbd5e1;font-size:0.6rem;margin-left:5px;">${r.punkte.length}×</span>` +
+        `</div>` +
+        `<div class="trend-zeitraum">` +
+          `<span>${r.bereichF}</span>` +
+          `<span style="color:#cbd5e1;margin:0 3px;">vs.</span>` +
+          `<span class="${vnKlasse}">${r.bereichS}</span>` +
+        `</div>`;
+    } else if (!hatDaten) {
+      vergleich = `<div class="trend-meta">${r.punkte?.length || 0} Punkte — zu wenig</div>`;
+    }
+
+    return `<div class="trend-row ${klasse}" ${onclick}>
+      <div>
+        <div class="trend-name">${r.name}</div>
+        ${vergleich}
+      </div>
+      ${spark}
+      <div style="text-align:center;">
+        <div class="trend-indikator ${iklass}">${icon}</div>
+        <span class="trend-pct ${iklass}">${pct}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function oeffneInEinzelansicht(name) {
+  setTab('einzel');
+  ausgewaehlt = [name];
+  renderAusgewaehlt();
+  renderProdListe();
+  auswahlOffen = false;
+  document.getElementById('auswahl-body').style.display = 'none';
+  aktualisiereAuswahlHeader();
+  // setTab hat bereits einen setTimeout für updateChart
+}
+
+init();
+</script>
+</body>
+</html>

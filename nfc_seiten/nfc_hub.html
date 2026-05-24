@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>BOS · NFC Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../systemdesign.css">
+  <style>
+    body { margin: 0; padding-bottom: 40px; background: var(--bg); }
+
+    /* ─── HEADER ─── */
+    .hub-header {
+      background: #111;
+      padding: 32px 20px 24px;
+      text-align: center;
+    }
+    .hub-kicker {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: 0.72rem;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: rgba(255,255,255,0.35); margin-bottom: 6px;
+    }
+    .hub-title {
+      font-family: 'Fraunces', serif; font-weight: 900;
+      font-size: 2.8rem; color: var(--amber); line-height: 1; margin: 0;
+    }
+    .hub-sub {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.78rem; color: rgba(255,255,255,0.3);
+      margin-top: 7px; letter-spacing: 1px;
+    }
+
+    /* ─── CONTAINER ─── */
+    .container { max-width: 600px; margin: 0 auto; padding: 22px 14px; }
+
+    /* ─── SECTION LABEL ─── */
+    .section-label {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 900;
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 2px;
+      color: var(--dim); margin: 0 4px 10px; padding-left: 2px;
+      border-left: 3px solid var(--amber); padding-left: 10px;
+    }
+
+    /* ─── LINK CARDS ─── */
+    .card-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+
+    .nfc-link {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--surface); border: 2px solid var(--border);
+      border-radius: 16px; padding: 14px 16px;
+      text-decoration: none; color: var(--text);
+      box-shadow: 0 3px 12px var(--shadow);
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      position: relative; overflow: hidden;
+    }
+    .nfc-link::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 4px; background: var(--border-s); transition: background 0.2s;
+    }
+    .nfc-link:active { transform: scale(0.98); }
+    .nfc-link:hover { border-color: var(--amber); box-shadow: 0 4px 20px rgba(192,122,16,0.12); }
+    .nfc-link:hover::before { background: var(--amber); }
+
+    .link-emoji { font-size: 2rem; line-height: 1; flex-shrink: 0; }
+    .link-text { flex: 1; min-width: 0; }
+    .link-name {
+      font-family: 'Fraunces', serif; font-weight: 900;
+      font-size: 1.15rem; color: var(--text); line-height: 1.1;
+    }
+    .link-sub {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+      font-size: 0.72rem; color: var(--dim); margin-top: 3px;
+      letter-spacing: 0.5px; white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .link-arrow {
+      font-size: 1.2rem; color: var(--amber); flex-shrink: 0;
+      opacity: 0.6; font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+    }
+
+    /* ─── BACK LINK ─── */
+    .back-row {
+      text-align: center; padding-top: 4px;
+    }
+    .btn-back {
+      display: inline-block; text-decoration: none;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 900;
+      font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--dim); background: var(--surface2);
+      border: 2px solid var(--border-s); border-radius: 10px;
+      padding: 9px 18px; transition: 0.15s;
+    }
+    .btn-back:hover { border-color: var(--amber); color: var(--amber); }
+  </style>
+</head>
+<body>
+
+<div class="hub-header">
+  <div class="hub-kicker">BäckereiOS</div>
+  <h1 class="hub-title">📡 NFC Hub</h1>
+  <div class="hub-sub">Alle Stationen auf einen Blick</div>
+</div>
+
+<div class="container">
+
+  <!-- ── Produktionsstationen ── -->
+  <div class="section-label">Produktionsstationen</div>
+  <div class="card-grid">
+
+    <a href="station_broetchenstrasse.html" class="nfc-link">
+      <div class="link-emoji">🥐</div>
+      <div class="link-text">
+        <div class="link-name">Brötchenstraße</div>
+        <div class="link-sub">5 Produkte · Backtage &amp; Zahlen</div>
+      </div>
+      <div class="link-arrow">›</div>
+    </a>
+
+    <a href="station_fruehschicht.html" class="nfc-link">
+      <div class="link-emoji">🌅</div>
+      <div class="link-text">
+        <div class="link-name">Frühschicht</div>
+        <div class="link-sub">6 Produkte · Backtage &amp; Zahlen</div>
+      </div>
+      <div class="link-arrow">›</div>
+    </a>
+
+    <a href="station_nachtschicht.html" class="nfc-link">
+      <div class="link-emoji">🌙</div>
+      <div class="link-text">
+        <div class="link-name">Nachtschicht</div>
+        <div class="link-sub">4 Produkte · Backtage &amp; Zahlen</div>
+      </div>
+      <div class="link-arrow">›</div>
+    </a>
+
+    <a href="station_rondo.html" class="nfc-link">
+      <div class="link-emoji">🌀</div>
+      <div class="link-text">
+        <div class="link-name">Rondo</div>
+        <div class="link-sub">6 Produkte · Backtage &amp; Zahlen</div>
+      </div>
+      <div class="link-arrow">›</div>
+    </a>
+
+  </div>
+
+  <!-- ── Sonstiges ── -->
+  <div class="section-label">Sonstiges</div>
+  <div class="card-grid">
+
+    <a href="nfc_einstieg.html" class="nfc-link">
+      <div class="link-emoji">🚪</div>
+      <div class="link-text">
+        <div class="link-name">NFC Einstieg</div>
+        <div class="link-sub">Allgemeiner Einstiegspunkt</div>
+      </div>
+      <div class="link-arrow">›</div>
+    </a>
+
+    <a href="stangenrechner_nfc_mo.html" class="nfc-link">
+      <div class="link-emoji">🥖</div>
+      <div class="link-text">
+        <div class="link-name">Stangenrechner Mo</div>
+        <div class="link-sub">Baguette & Stangen · Montag</div>
+      </div>
+      <div class="link-arrow">›</div>
+    </a>
+
+    <a href="stangenrechner_nfc_di.html" class="nfc-link">
+      <div class="link-emoji">🥖</div>
+      <div class="link-text">
+        <div class="link-name">Stangenrechner Di</div>
+        <div class="link-sub">Baguette & Stangen · Dienstag</div>
+      </div>
+      <div class="link-arrow">›</div>
+    </a>
+
+  </div>
+
+  <!-- ── Froster ── -->
+  <div class="section-label">Froster</div>
+  <div class="card-grid">
+
+    <a href="froster_nfc.html" class="nfc-link">
+      <div class="link-emoji">❄️</div>
+      <div class="link-text">
+        <div class="link-name">Froster Bestand</div>
+        <div class="link-sub">Inventur · Ist-Bestand erfassen</div>
+      </div>
+      <div class="link-arrow">›</div>
+    </a>
+
+    <a href="froster_bedarf_mo.html" class="nfc-link">
+      <div class="link-emoji">📋</div>
+      <div class="link-text">
+        <div class="link-name">Froster Bedarf bis Montag</div>
+        <div class="link-sub">Wochenbedarf · Ziel Montag</div>
+      </div>
+      <div class="link-arrow">›</div>
+    </a>
+
+    <a href="froster_bedarf_di.html" class="nfc-link">
+      <div class="link-emoji">📋</div>
+      <div class="link-text">
+        <div class="link-name">Froster Bedarf bis Dienstag</div>
+        <div class="link-sub">Wochenbedarf · Ziel Dienstag</div>
+      </div>
+      <div class="link-arrow">›</div>
+    </a>
+
+  </div>
+
+  <div class="back-row">
+    <a href="../index.html" class="btn-back">← BäckereiOS Startseite</a>
+  </div>
+
+</div>
+
+</body>
+</html>

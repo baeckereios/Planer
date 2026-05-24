@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Froster · bis Dienstag</title>
+<script>
+  (function() {
+    try { document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light'); }
+    catch(e) { document.documentElement.setAttribute('data-theme', 'light'); }
+  })();
+</script>
+<script>window.BOS_BASEPATH = '../';</script>
+<script src="../feiertage_nds.js"></script>
+<script src="../produktions_gehirn.js"></script>
+<script src="../inventurdaten.js" defer></script>
+<script src="../druckzentrale/druckzentrale_logic.js"></script>
+<script src="../druckzentrale/druckzentrale_modul_c.js"></script>
+<style>
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Tokens ── */
+:root {
+  --bg:        #f4f1ec;
+  --surface:   #ffffff;
+  --border:    #e0dbd2;
+  --text:      #1a1a1a;
+  --muted:     #888;
+  --gold:      #c8a96e;
+  --warn-bg:   #fff8ed;
+  --warn-bdr:  #e8a020;
+  --err-bg:    #fdf0f0;
+  --err-bdr:   #d04040;
+  --ok-bg:     #f0f8f4;
+  --ok-bdr:    #3a9a68;
+}
+[data-theme="dark"] {
+  --bg:        #181818;
+  --surface:   #242424;
+  --border:    #333;
+  --text:      #e0d8cc;
+  --muted:     #666;
+  --warn-bg:   #2a2010;
+  --warn-bdr:  #c8820a;
+  --err-bg:    #2a1010;
+  --err-bdr:   #b03030;
+  --ok-bg:     #0f2018;
+  --ok-bdr:    #2a7a50;
+}
+
+body {
+  font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.header-brand {
+  font-family: Georgia, serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1;
+}
+.header-brand span {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--muted);
+}
+.header-sep {
+  color: var(--border);
+  font-size: 16px;
+}
+.header-sub {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ── Main ── */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  gap: 28px;
+}
+
+/* ── Blocker (Feiertag / Fehler) ── */
+.blocker {
+  background: var(--err-bg);
+  border: 1.5px solid var(--err-bdr);
+  border-radius: 12px;
+  padding: 24px 20px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  display: none;
+}
+.blocker.warn {
+  background: var(--warn-bg);
+  border-color: var(--warn-bdr);
+}
+.blocker-icon { font-size: 32px; margin-bottom: 10px; }
+.blocker-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.blocker-text {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+/* ── Rechner ── */
+.rechner {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Datum-Badge */
+.ziel-badge {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 14px;
+}
+
+/* Dropdown */
+.produkt-wrap {
+  width: 100%;
+  position: relative;
+}
+.produkt-select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 13px 44px 13px 16px;
+  font-size: 16px;
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color .15s;
+}
+.produkt-select:focus { border-color: var(--gold); }
+.produkt-wrap::after {
+  content: '▾';
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+  font-size: 14px;
+}
+
+/* Ergebnis */
+.ergebnis-card {
+  width: 100%;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: border-color .2s;
+}
+.ergebnis-card.loaded { border-color: var(--gold); }
+.ergebnis-card.zero   { border-color: var(--ok-bdr); background: var(--ok-bg); }
+.ergebnis-card.warn   { border-color: var(--warn-bdr); background: var(--warn-bg); }
+.ergebnis-card.err    { border-color: var(--err-bdr); background: var(--err-bg); }
+
+.ergebnis-label {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.5;
+}
+.ergebnis-zahl {
+  font-size: 72px;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1;
+  letter-spacing: -2px;
+}
+.ergebnis-einheit {
+  font-size: 16px;
+  color: var(--muted);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+.ergebnis-hint {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.5;
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  width: 100%;
+}
+
+/* Froster Toggle */
+.froster-toggle {
+  width: 100%;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.froster-toggle-label {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 14px 6px;
+  display: block;
+}
+.froster-toggle-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--border);
+}
+.ftbtn {
+  padding: 12px 8px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+  line-height: 1.3;
+}
+.ftbtn:first-child { border-right: 1px solid var(--border); }
+.ftbtn.active-ja  { background: var(--ok-bg);   color: var(--ok-bdr);   font-weight: 700; }
+.ftbtn.active-nei { background: var(--warn-bg);  color: var(--warn-bdr); font-weight: 700; }
+
+/* Disclaimer (Feiertag-Hinweis) */
+.disclaimer {
+  width: 100%;
+  max-width: 360px;
+  background: var(--warn-bg);
+  border: 1.5px solid var(--warn-bdr);
+  border-radius: 12px;
+  padding: 14px 16px;
+  text-align: center;
+  line-height: 1.6;
+}
+.disclaimer-icon {
+  font-size: 24px;
+  display: block;
+  margin-bottom: 6px;
+}
+.disclaimer-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--warn-bdr);
+  letter-spacing: 0.04em;
+  display: block;
+  margin-bottom: 4px;
+}
+.disclaimer p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+/* Loading */
+.loading-text {
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* Manuelle Bestandseingabe (Inventur veraltet) */
+.manual-stock-area {
+  width: 100%;
+  background: var(--warn-bg);
+  border: 1.5px solid var(--warn-bdr);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: none;
+}
+.manual-stock-header {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--warn-bdr);
+  margin-bottom: 8px;
+}
+.manual-stock-prompt {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+.manual-stock-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1.5px solid var(--warn-bdr);
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  -moz-appearance: textfield;
+}
+.manual-stock-input::-webkit-outer-spin-button,
+.manual-stock-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.manual-stock-input:focus { border-color: var(--gold); }
+
+/* Verbrauchstabelle Mo–So */
+.verbrauch-card {
+  width: 100%;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px 8px;
+  display: none;
+}
+.verbrauch-title {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.verbrauch-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.verbrauch-table td {
+  padding: 6px 2px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.verbrauch-table tr:last-child td { border-bottom: none; }
+.vt-day { color: var(--muted); font-size: 12px; font-weight: 600; width: 50%; }
+.vt-val { text-align: right; font-weight: 700; }
+.vt-einh { text-align: right; font-size: 11px; color: var(--muted); padding-left: 4px; }
+
+/* Zielzeile */
+.verbrauch-table tr.vt-ziel .vt-day { color: var(--gold); font-weight: 700; }
+.verbrauch-table tr.vt-ziel .vt-val { color: var(--gold); }
+.verbrauch-table tr.vt-ziel td { border-bottom-color: var(--gold); border-bottom-width: 1.5px; }
+
+/* Heute-Zeile */
+.verbrauch-table tr.vt-heute td { opacity: 0.45; font-style: italic; }
+
+/* Berechnungsfenster (Anker → Ziel) */
+.verbrauch-table tr.vt-fenster { background: rgba(200, 169, 110, 0.08); }
+.verbrauch-table tr.vt-fenster .vt-day { color: var(--text); }
+.verbrauch-table tr.vt-fenster .vt-val { color: var(--text); }
+
+/* Außerhalb Fenster (nach Ziel) */
+.verbrauch-table tr.vt-muted td { opacity: 0.35; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">Bäckerei<span>OS</span></div>
+  <span class="header-sep">·</span>
+  <span class="header-sub">Froster Bedarf</span>
+</div>
+
+<main>
+
+  <!-- Feiertag-Sperre -->
+  <div class="blocker" id="feiertag-block">
+    <div class="blocker-icon">🗓️</div>
+    <div class="blocker-title">Feiertag in dieser Woche</div>
+    <div class="blocker-text" id="feiertag-text">
+      In der Zielwoche liegt ein Feiertag. Bitte den Schnellrechner mit entsprechenden Einstellungen nutzen.
+    </div>
+  </div>
+
+  <!-- Inventur-Fehler -->
+  <div class="blocker" id="inv-block">
+    <div class="blocker-icon">⚠️</div>
+    <div class="blocker-title">Keine aktuellen Inventurdaten</div>
+    <div class="blocker-text">
+      Es wurden keine gültigen Inventurdaten gefunden. Bitte zuerst eine Inventur erfassen.
+    </div>
+  </div>
+
+  <!-- Lade-Anzeige -->
+  <div class="loading-text" id="loading">Daten werden geladen…</div>
+
+  <!-- Rechner -->
+  <div class="rechner" id="rechner" style="display:none;">
+
+    <div class="ziel-badge" id="ziel-badge">bis Dienstag, __.__ .</div>
+
+    <!-- Froster Toggle -->
+    <div class="froster-toggle">
+      <span class="froster-toggle-label">Wurde der Froster schon gemacht?</span>
+      <div class="froster-toggle-btns">
+        <button class="ftbtn" id="ftbtn-ja"  onclick="setFroster(true)">✓ Ja, gemacht</button>
+        <button class="ftbtn" id="ftbtn-nei" onclick="setFroster(false)">✗ Noch nicht</button>
+      </div>
+    </div>
+
+    <!-- Dropdown -->
+    <div class="produkt-wrap">
+      <select class="produkt-select" id="produkt-select" onchange="_onProduktWechsel()">
+        <option value="">— Produkt wählen —</option>
+      </select>
+    </div>
+
+    <!-- Manuelle Bestandseingabe (erscheint wenn Inventur > 24 h alt) -->
+    <div class="manual-stock-area" id="manual-stock-area">
+      <div class="manual-stock-header">⚠️ Inventur älter als 24 Std.</div>
+      <div class="manual-stock-prompt" id="manual-stock-prompt">
+        Bitte nenne mir die momentane Anzahl der Bleche, die gerade noch im Froster sind.
+      </div>
+      <input class="manual-stock-input" type="number" id="manual-stock-input"
+             inputmode="numeric" placeholder="0" oninput="berechne()">
+    </div>
+
+    <!-- Ergebnis -->
+    <div class="ergebnis-card" id="ergebnis-card">
+      <div class="ergebnis-label" id="ergebnis-label">Produkt wählen</div>
+      <div class="ergebnis-zahl" id="ergebnis-zahl" style="display:none;">0</div>
+      <div class="ergebnis-einheit" id="ergebnis-einheit" style="display:none;"></div>
+      <div class="ergebnis-hint" id="ergebnis-hint" style="display:none;"></div>
+    </div>
+
+    <!-- Verbrauchstabelle Mo–So -->
+    <div class="verbrauch-card" id="verbrauch-card">
+      <div class="verbrauch-title">Tagesbedarf <span id="verbrauch-produkt-name"></span></div>
+      <table class="verbrauch-table" id="verbrauch-table"></table>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+      <span class="disclaimer-icon">📅</span>
+      <span class="disclaimer-title">Achtung bei besonderen Wochen</span>
+      <p>Gibt es <strong>Feiertage</strong> oder geschlossene Tage im Berechnungszeitraum, bitte den <strong>Schnellrechner</strong> mit den entsprechenden Einstellungen nutzen.</p>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+// ── Konfiguration ─────────────────────────────────────────────────────
+var ZIEL_WOCHENTAG = 2; // 1 = Montag
+var ZIEL_TAG_NAME  = 'Dienstag';
+var INV_STALE_H    = 24; // ab dieser Stundenzahl → manuelle Eingabe nötig
+
+// ── Hilfsfunktionen ───────────────────────────────────────────────────
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+function fmtDate(d) {
+  return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.';
+}
+
+// Nächsten Wochentag (1=Mo … 7=So) ab heute berechnen
+function naechsterWochentag(wd) {
+  var d = new Date();
+  d.setHours(0, 0, 0, 0);
+  var jsWd = wd % 7; // Mo=1→1, So=7→0
+  var diff = (jsWd - d.getDay() + 7) % 7;
+  if (diff === 0) diff = 7;
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
+// Feiertag in Zeitraum [von, bis] prüfen
+function hatFeiertag(von, bis) {
+  if (!window.BOS_FEIERTAGE || !window.BOS_FEIERTAGE.length) return false;
+  var d = new Date(von);
+  while (d <= bis) {
+    var str = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    if (window.BOS_FEIERTAGE.indexOf(str) !== -1) return str;
+    d.setDate(d.getDate() + 1);
+  }
+  return false;
+}
+
+// Ist Froster noch nicht gemacht? (18–03 Uhr)
+// → ersetzt durch expliziten Toggle
+var _frosterGemacht = null; // null = noch nicht gewählt
+var _invStale = false;      // true wenn Inventur > INV_STALE_H Stunden alt
+
+function setFroster(gemacht) {
+  _frosterGemacht = gemacht;
+  document.getElementById('ftbtn-ja').className  = 'ftbtn' + (gemacht  ? ' active-ja'  : '');
+  document.getElementById('ftbtn-nei').className = 'ftbtn' + (!gemacht ? ' active-nei' : '');
+  berechne();
+}
+
+// Inventur-Alter in Stunden
+function invAlterH() {
+  if (!window.BOS_INVENTUR || !window.BOS_INVENTUR.products) return 9999;
+  var max = 0;
+  for (var k in window.BOS_INVENTUR.products) {
+    var ts = window.BOS_INVENTUR.products[k].ts || 0;
+    if (ts > max) max = ts;
+  }
+  return max > 0 ? (Date.now() - max) / 3600000 : 9999;
+}
+
+// ── Initialisierung ───────────────────────────────────────────────────
+var _retries = 0;
+
+function init() {
+  if (!window.BOS_GEHIRN) {
+    if (++_retries < 60) { setTimeout(init, 100); return; }
+    zeigeBlock('inv-block');
+    return;
+  }
+
+  if (!window.BOS_STAMMDATEN) {
+    window.BOS_GEHIRN.init().then(function() { _start(); }).catch(function() { _start(); });
+    return;
+  }
+  _start();
+}
+
+function _start() {
+  // Auf Inventur warten
+  if (!window.BOS_INVENTUR) {
+    if (++_retries < 80) { setTimeout(_start, 100); return; }
+  }
+
+  document.getElementById('loading').style.display = 'none';
+
+  // Inventur völlig leer → blocken
+  var alterH = invAlterH();
+  if (alterH === 9999) {
+    zeigeBlock('inv-block');
+    return;
+  }
+
+  // Inventur veraltet → manuelle Eingabe nötig (kein harter Block)
+  if (alterH > INV_STALE_H) {
+    _invStale = true;
+  }
+
+  // DZ-Globals setzen
+  DZ_initialized = false;
+  _DZ_retryCount = 0;
+  DZ_init(function() {
+    _aufbauen();
+  });
+}
+
+function _aufbauen() {
+  var zielDate = naechsterWochentag(ZIEL_WOCHENTAG);
+
+  // Feiertag prüfen
+  var anchorNow = new Date(); anchorNow.setHours(0,0,0,0);
+  anchorNow.setDate(anchorNow.getDate() + 1);
+  var feiertag = hatFeiertag(anchorNow, zielDate);
+  if (feiertag) {
+    var ftEl = document.getElementById('feiertag-block');
+    ftEl.style.display = 'block';
+    document.getElementById('feiertag-text').textContent =
+      'In der Zielwoche liegt ein Feiertag (' + feiertag.split('-').reverse().join('.').slice(0,5) + '). ' +
+      'Bitte den Schnellrechner mit entsprechenden Einstellungen nutzen.';
+    return;
+  }
+
+  // Ziel-Badge setzen
+  document.getElementById('ziel-badge').textContent =
+    'bis ' + ZIEL_TAG_NAME + ', ' + fmtDate(zielDate);
+
+  // Produkt-Dropdown befüllen (nur inventurRelevant)
+  var sel = document.getElementById('produkt-select');
+  var sd  = window.BOS_STAMMDATEN || {};
+  var produkte = [];
+  for (var k in sd) {
+    var p = sd[k];
+    if (p.inventurRelevant) produkte.push({ id: k, name: p.name });
+  }
+  produkte.sort(function(a, b) { return a.name.localeCompare(b.name, 'de'); });
+  produkte.forEach(function(pr) {
+    var opt = document.createElement('option');
+    opt.value = pr.id;
+    opt.textContent = pr.name;
+    sel.appendChild(opt);
+  });
+
+  document.getElementById('rechner').style.display = 'flex';
+}
+
+// ── Produkt-Wechsel ───────────────────────────────────────────────────
+function _onProduktWechsel() {
+  // Manuelle Bestandseingabe zurücksetzen wenn Produkt wechselt
+  document.getElementById('manual-stock-input').value = '';
+  berechne();
+}
+
+// ── Berechnung ────────────────────────────────────────────────────────
+function berechne() {
+  var sel    = document.getElementById('produkt-select');
+  var prodId = sel.value;
+  var card   = document.getElementById('ergebnis-card');
+  var lbl    = document.getElementById('ergebnis-label');
+  var zahl   = document.getElementById('ergebnis-zahl');
+  var einh   = document.getElementById('ergebnis-einheit');
+  var hint   = document.getElementById('ergebnis-hint');
+  var manArea = document.getElementById('manual-stock-area');
+  var manInp  = document.getElementById('manual-stock-input');
+
+  // Toggle noch nicht gewählt
+  if (_frosterGemacht === null) {
+    manArea.style.display = 'none';
+    _zeigeVerbrauch(null);
+    card.className = 'ergebnis-card';
+    lbl.textContent = '↑ Zuerst Froster-Status wählen';
+    zahl.style.display = 'none';
+    einh.style.display = 'none';
+    hint.style.display = 'none';
+    return;
+  }
+
+  // Produkt noch nicht gewählt
+  if (!prodId) {
+    manArea.style.display = 'none';
+    _zeigeVerbrauch(null);
+    card.className = 'ergebnis-card';
+    lbl.textContent = 'Produkt wählen';
+    zahl.style.display = 'none';
+    einh.style.display = 'none';
+    hint.style.display = 'none';
+    return;
+  }
+
+  var p = window.BOS_STAMMDATEN[prodId];
+
+  // Verbrauchstabelle immer aktualisieren sobald Produkt bekannt
+  _zeigeVerbrauch(prodId);
+
+  // Manuelle Eingabe-Box zeigen/ausblenden
+  if (_invStale) {
+    var promptEl = document.getElementById('manual-stock-prompt');
+    promptEl.textContent = 'Bitte nenne mir die momentane Anzahl der Bleche ' +
+      (p ? ('von »' + p.name + '«') : '') +
+      ', die gerade noch im Froster sind.';
+    manArea.style.display = 'block';
+
+    // Ohne Eingabe: kein Ergebnis
+    var manValRaw = manInp.value.trim();
+    if (manValRaw === '') {
+      card.className = 'ergebnis-card warn';
+      lbl.textContent = 'Bestand manuell eintragen ↑';
+      zahl.style.display = 'none';
+      einh.style.display = 'none';
+      hint.style.display = 'none';
+      return;
+    }
+  } else {
+    manArea.style.display = 'none';
+  }
+
+  var zielDate = naechsterWochentag(ZIEL_WOCHENTAG);
+
+  // Anchor-Datum aus Toggle ableiten
+  DZ_anchorDate = new Date();
+  DZ_anchorDate.setHours(0, 0, 0, 0);
+  DZ_anchorDate.setDate(DZ_anchorDate.getDate() + (_frosterGemacht ? 2 : 1));
+
+  var einheit  = typeof DZ_getEinheit === 'function' ? DZ_getEinheit(p) : 'Bl.';
+  var need     = DZ_calcNeed(prodId, zielDate);
+
+  // Bestand: manuell (wenn stale) oder aus Inventur
+  var stock;
+  if (_invStale) {
+    stock = parseInt(manInp.value) || 0;
+  } else {
+    stock = DZ_getStock(prodId) || 0;
+  }
+
+  // Fehlmenge
+  var fehlmenge = (typeof DZ_C_getFehlmenge === 'function') ? DZ_C_getFehlmenge(prodId) : 0;
+
+  var total = Math.max(0, need - stock) + fehlmenge;
+
+  // Ergebnis anzeigen
+  if (total <= 0) {
+    card.className = 'ergebnis-card zero';
+    lbl.textContent = p.name + ' — alles in Ordnung';
+    zahl.style.display = 'block';
+    zahl.textContent = '0';
+    einh.style.display = 'block';
+    einh.textContent = einheit + ' fehlen';
+    hint.style.display = 'block';
+    hint.textContent = 'Bestand deckt den Bedarf bis ' + ZIEL_TAG_NAME + ' vollständig.';
+  } else {
+    card.className = 'ergebnis-card loaded';
+    lbl.textContent = 'Es werden noch benötigt bis ' + ZIEL_TAG_NAME;
+    zahl.style.display = 'block';
+    zahl.textContent = total;
+    einh.style.display = 'block';
+    einh.textContent = einheit;
+    hint.style.display = 'block';
+    var hintParts = [];
+    if (stock > 0)         hintParts.push('Bestand: −' + stock + ' ' + einheit);
+    if (!_frosterGemacht)  hintParts.push('Folgetag eingerechnet');
+    if (fehlmenge > 0)     hintParts.push('Fehlmenge: +' + fehlmenge + ' ' + einheit);
+    if (_invStale)         hintParts.push('Bestand manuell');
+    hint.textContent = hintParts.length ? hintParts.join(' · ') : 'Rohbedarf ohne Korrekturen';
+  }
+}
+
+// ── Verbrauchstabelle (rollend ab heute) ─────────────────────────────
+function _zeigeVerbrauch(prodId) {
+  var card   = document.getElementById('verbrauch-card');
+  var table  = document.getElementById('verbrauch-table');
+  var nameEl = document.getElementById('verbrauch-produkt-name');
+
+  if (!prodId || !window.BOS_STAMMDATEN || !window.BOS_STAMMDATEN[prodId]) {
+    card.style.display = 'none';
+    return;
+  }
+
+  var p = window.BOS_STAMMDATEN[prodId];
+  if (!p.needs || !p.needs.length) { card.style.display = 'none'; return; }
+
+  nameEl.textContent = p.name;
+
+  var TAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+  var einheit = typeof DZ_getEinheit === 'function' ? DZ_getEinheit(p) : 'Bl.';
+
+  // Heute (BOS: 0=Mo … 6=So)
+  var todayBosIdx = (new Date().getDay() + 6) % 7;
+
+  // Tage bis Ziel ab heute (1–7)
+  var targetJsDay = ZIEL_WOCHENTAG % 7; // Mo=1→1, So=7→0
+  var diff = (targetJsDay - new Date().getDay() + 7) % 7;
+  if (diff === 0) diff = 7;
+  var targetOffset = diff;
+
+  // Anker-Offset (abhängig von Froster-Toggle-Zustand)
+  var anchorOffset = _frosterGemacht === null ? null : (_frosterGemacht ? 2 : 1);
+
+  var html = '';
+  for (var i = 0; i < 7; i++) {
+    var bosIdx = (todayBosIdx + i) % 7;
+    var val = p.needs[bosIdx] !== undefined ? p.needs[bosIdx] : '–';
+
+    var isToday  = (i === 0);
+    var isTarget = (targetOffset <= 6) && (i === targetOffset);
+    var inWindow = anchorOffset !== null
+      && targetOffset <= 6
+      && i >= anchorOffset
+      && i <= targetOffset;
+
+    var dayLabel = TAGE[bosIdx] + (isToday ? ' (heute)' : '');
+    var targetMark = isTarget ? ' ★' : '';
+
+    var rowClass;
+    if (isTarget)       rowClass = 'vt-ziel';
+    else if (isToday)   rowClass = 'vt-heute';
+    else if (inWindow)  rowClass = 'vt-fenster';
+    else                rowClass = 'vt-muted';
+
+    html += '<tr class="' + rowClass + '">' +
+      '<td class="vt-day">' + dayLabel + targetMark + '</td>' +
+      '<td class="vt-val">' + val + '</td>' +
+      '<td class="vt-einh">' + einheit + '</td>' +
+      '</tr>';
+  }
+  table.innerHTML = html;
+  card.style.display = 'block';
+}
+
+function zeigeBlock(id) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById(id).style.display = 'block';
+}
+
+// Start
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(init, 50);
+});
+</script>
+</body>
+</html>

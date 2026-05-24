@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BäckereiOS — Meldung</title>
+    <style>
+        :root {
+            --cream:   #f7f3ec;
+            --warm:    #f0e8d8;
+            --border:  #d6cdb8;
+            --text:    #1e1a14;
+            --muted:   #8a7f6e;
+            --gold:    #a07020;
+            --gold-dk: #7a5518;
+            --red:     #c0392b;
+            --amber:   #d97706;
+            --green:   #16a34a;
+            --r:       10px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--cream);
+            color: var(--text);
+            font-family: 'Georgia', serif;
+            font-size: 15px;
+            min-height: 100vh;
+        }
+
+        .wrap { padding: 14px 14px 180px; max-width: 520px; margin: 0 auto; }
+
+        /* ── Meta-Block (Datum / Uhrzeit / Name) ── */
+        .meta-block {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 13px 14px;
+            margin-bottom: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .meta-block .full { grid-column: 1 / -1; }
+
+        .field-label {
+            display: block;
+            font-size: 0.68rem;
+            font-weight: bold;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 4px;
+            font-family: sans-serif;
+        }
+        input[type=text], textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            padding: 9px 11px;
+            font-size: 0.95rem;
+            color: var(--text);
+            background: var(--cream);
+            font-family: inherit;
+        }
+        input[type=text]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: white;
+        }
+        input[readonly] { color: var(--muted); cursor: default; }
+        textarea { resize: vertical; min-height: 64px; }
+
+        /* ── Meldungs-Karte ── */
+        .meldung-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .meldung-card.type-material { border-left: 3px solid var(--amber); }
+        .meldung-card.type-defekt   { border-left: 3px solid var(--red); }
+
+        .card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 9px 13px;
+            background: var(--cream);
+            border-bottom: 1px solid var(--border);
+        }
+        .card-num {
+            font-size: 0.68rem;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-family: sans-serif;
+        }
+        .btn-remove {
+            background: none; border: none;
+            color: var(--muted); font-size: 1rem;
+            cursor: pointer; padding: 0 4px; line-height: 1;
+        }
+        .btn-remove:active { color: var(--red); }
+
+        .card-body { padding: 13px 13px; display: flex; flex-direction: column; gap: 12px; }
+
+        /* Typ */
+        .typ-toggle { display: flex; gap: 6px; }
+        .typ-btn {
+            flex: 1; padding: 10px 0;
+            border-radius: 8px; border: 1px solid var(--border);
+            background: var(--cream); color: var(--muted);
+            font-size: 0.88rem; font-weight: bold;
+            cursor: pointer; text-align: center;
+            font-family: sans-serif; transition: all 0.15s;
+        }
+        .typ-btn.active-material { background: #fef3c7; border-color: var(--amber); color: var(--gold-dk); }
+        .typ-btn.active-defekt   { background: #fee2e2; border-color: var(--red);   color: var(--red); }
+
+        /* Dringlichkeit */
+        .dring-toggle { display: flex; gap: 5px; }
+        .dring-btn {
+            flex: 1; padding: 9px 0;
+            border-radius: 7px; border: 1px solid var(--border);
+            background: var(--cream); color: var(--muted);
+            font-size: 0.78rem; font-weight: bold;
+            cursor: pointer; text-align: center;
+            font-family: sans-serif; transition: all 0.15s;
+        }
+        .dring-btn.active-normal  { background: #f0fdf4; border-color: var(--green); color: var(--green); }
+        .dring-btn.active-dringend{ background: #fef3c7; border-color: var(--amber); color: #b45309; }
+        .dring-btn.active-sofort  { background: #fee2e2; border-color: var(--red);   color: var(--red); }
+
+        .desc-field { display: none; }
+        .desc-field.visible { display: block; }
+
+        /* ── Noch mehr ── */
+        .mehr-btn {
+            display: block; width: 100%;
+            text-align: center; padding: 12px;
+            color: var(--gold); font-size: 0.85rem;
+            font-family: sans-serif; font-weight: bold;
+            cursor: pointer; letter-spacing: 0.02em;
+            border: 1px dashed var(--border);
+            border-radius: var(--r);
+            background: transparent; margin-top: 4px;
+        }
+        .mehr-btn:active { background: var(--warm); }
+
+        /* ── Senden ── */
+        .send-bar {
+            position: fixed;
+            bottom: 95px; left: 0; right: 0;
+            background: white;
+            border-top: 1px solid var(--border);
+            padding: 10px 14px;
+        }
+        .btn-send {
+            width: 100%; background: #25d366;
+            color: white; border: none;
+            border-radius: 9px; padding: 14px;
+            font-size: 1rem; font-weight: bold;
+            cursor: pointer; font-family: sans-serif;
+            letter-spacing: 0.02em;
+        }
+        .btn-send:active { background: #1da851; }
+    </style>
+    <script src="../shell.js"></script>
+</head>
+<body>
+
+<div class="wrap">
+
+    <!-- Meta -->
+    <div class="meta-block">
+        <div>
+            <span class="field-label">Datum</span>
+            <input type="text" id="datum" readonly>
+        </div>
+        <div>
+            <span class="field-label">Uhrzeit</span>
+            <input type="text" id="uhrzeit" readonly>
+        </div>
+        <div class="full">
+            <span class="field-label">Eingereicht von</span>
+            <input type="text" id="absender" placeholder="Name…" autocomplete="off">
+        </div>
+    </div>
+
+    <!-- Meldungen -->
+    <div id="pos-list"></div>
+
+    <!-- Noch mehr -->
+    <button class="mehr-btn" onclick="addPosition()">+ Noch etwas melden</button>
+
+</div>
+
+<div class="send-bar">
+    <button class="btn-send" onclick="senden()">📲 Per WhatsApp senden</button>
+</div>
+
+<script>
+let posCounter = 0;
+
+// ── Datum / Uhrzeit ────────────────────────────────────────────
+(function() {
+    const now = new Date();
+    document.getElementById('datum').value =
+        now.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+    document.getElementById('uhrzeit').value =
+        now.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
+    window._isoDate = now.toISOString().slice(0,10);
+    window._isoTime = now.toISOString().slice(11,16);
+})();
+
+// ── Absender aus localStorage ──────────────────────────────────
+const savedName = localStorage.getItem('meldung_absender');
+if (savedName) document.getElementById('absender').value = savedName;
+document.getElementById('absender').addEventListener('input', function() {
+    localStorage.setItem('meldung_absender', this.value.trim());
+});
+
+// ── Erste Karte sofort anzeigen ────────────────────────────────
+addPosition();
+
+// ── Position hinzufügen ────────────────────────────────────────
+function addPosition() {
+    posCounter++;
+    const id = posCounter;
+
+    const div = document.createElement('div');
+    div.className = 'meldung-card type-material';
+    div.id = 'pos-' + id;
+
+    const headLabel = posCounter === 1 ? 'Deine Meldung' : 'Meldung ' + id;
+
+    div.innerHTML = `
+        <div class="card-head">
+            <span class="card-num">${headLabel}</span>
+            ${id > 1 ? `<button class="btn-remove" onclick="removePos(${id})">✕</button>` : ''}
+        </div>
+        <div class="card-body">
+            <div>
+                <span class="field-label">Was möchtest du melden?</span>
+                <div class="typ-toggle">
+                    <button class="typ-btn active-material" onclick="setTyp(${id},'material',this)">📦 Material fehlt</button>
+                    <button class="typ-btn" onclick="setTyp(${id},'defekt',this)">🔧 Defekt / Problem</button>
+                </div>
+                <input type="hidden" id="typ-${id}" value="material">
+            </div>
+            <div>
+                <span class="field-label" id="bez-label-${id}">Was wird benötigt?</span>
+                <input type="text" id="bez-${id}" placeholder="z. B. Backpapier 60×40, Handschuhe M…">
+            </div>
+            <div class="desc-field" id="desc-wrap-${id}">
+                <span class="field-label">Was genau ist das Problem?</span>
+                <textarea id="desc-${id}" placeholder="Kurze Beschreibung…"></textarea>
+            </div>
+            <div>
+                <span class="field-label">Wie dringend?</span>
+                <div class="dring-toggle">
+                    <button class="dring-btn active-normal"  onclick="setDring(${id},'normal',this)">Normal</button>
+                    <button class="dring-btn"                onclick="setDring(${id},'dringend',this)">Dringend</button>
+                    <button class="dring-btn"                onclick="setDring(${id},'sofort',this)">Sofort</button>
+                </div>
+                <input type="hidden" id="dring-${id}" value="normal">
+            </div>
+        </div>
+    `;
+    document.getElementById('pos-list').appendChild(div);
+    if (id > 1) div.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function removePos(id) {
+    document.getElementById('pos-' + id)?.remove();
+}
+
+function setTyp(id, typ, btn) {
+    document.getElementById('typ-' + id).value = typ;
+    document.getElementById('pos-' + id).className = 'meldung-card type-' + typ;
+    btn.parentElement.querySelectorAll('.typ-btn').forEach(b => b.className = 'typ-btn');
+    btn.className = 'typ-btn active-' + typ;
+    const bezLabel = document.getElementById('bez-label-' + id);
+    const descWrap = document.getElementById('desc-wrap-' + id);
+    if (typ === 'defekt') {
+        bezLabel.textContent = 'Wo / Was ist defekt?';
+        descWrap.classList.add('visible');
+    } else {
+        bezLabel.textContent = 'Was wird benötigt?';
+        descWrap.classList.remove('visible');
+    }
+}
+
+function setDring(id, val, btn) {
+    document.getElementById('dring-' + id).value = val;
+    btn.parentElement.querySelectorAll('.dring-btn').forEach(b => b.className = 'dring-btn');
+    btn.className = 'dring-btn active-' + val;
+}
+
+// ── Senden ─────────────────────────────────────────────────────
+function collect() {
+    const absender = document.getElementById('absender').value.trim() || 'Anonym';
+    const positionen = [];
+    document.querySelectorAll('[id^="pos-"]').forEach(card => {
+        const id    = card.id.replace('pos-', '');
+        const typ   = document.getElementById('typ-'   + id)?.value;
+        const bez   = document.getElementById('bez-'   + id)?.value.trim();
+        const desc  = document.getElementById('desc-'  + id)?.value.trim();
+        const dring = document.getElementById('dring-' + id)?.value;
+        if (!bez) return;
+        positionen.push({ typ, bezeichnung: bez, beschreibung: desc || '', dringlichkeit: dring });
+    });
+    return { datum: window._isoDate, uhrzeit: window._isoTime, absender, positionen };
+}
+
+function senden() {
+    const data = collect();
+    if (!data.positionen.length) {
+        alert('Bitte mindestens eine Meldung ausfüllen.');
+        return;
+    }
+    const dringLabel = { normal: 'Normal', dringend: 'Dringend', sofort: '🔴 Sofort' };
+    const typIcon    = { material: '📦', defekt: '🔧' };
+
+    let text = `📋 MELDUNG – BäckereiOS\n`;
+    text += `Datum: ${data.datum} · ${data.uhrzeit} Uhr\n`;
+    text += `Eingereicht von: ${data.absender}\n`;
+    text += `─────────────────────\n`;
+    data.positionen.forEach((p, i) => {
+        if (data.positionen.length > 1) text += `\n── Meldung ${i+1} ──\n`;
+        else text += `\n`;
+        text += `Meldungstyp: ${p.typ === 'material' ? '📦 Material' : '🔧 Defekt'}\n`;
+        text += `Priorität: ${dringLabel[p.dringlichkeit]}\n`;
+        text += `${p.bezeichnung}\n`;
+        if (p.beschreibung) text += `↳ ${p.beschreibung}\n`;
+    });
+    text += `\n─────────────────────\n`;
+    text += `[BOS-MELDUNG:${btoa(unescape(encodeURIComponent(JSON.stringify(data))))}]`;
+
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+}
+</script>
+</body>
+</html>

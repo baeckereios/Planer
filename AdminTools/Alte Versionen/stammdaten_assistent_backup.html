@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BäckereiOS — StammdatenAssistent</title>
+    <link rel="stylesheet" href="admin_design.css">
+    <style>
+        /* ── WIZARD SHELL ── */
+        .wiz-wrap { max-width: 700px; margin: 0 auto; padding: 30px 16px 80px; }
+
+        .wiz-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 28px;
+        }
+        .wiz-logo { font-size: 1.6rem; font-weight: 900; color: var(--text-main); }
+        .wiz-logo span { color: #0f172a; font-style: italic; }
+        .wiz-back { text-decoration: none; color: var(--text-muted); font-size: 0.85rem; font-weight: 700; }
+
+        /* PROGRESS */
+        .prog-bar-wrap { background: var(--border-color); border-radius: 99px; height: 6px; margin-bottom: 8px; }
+        .prog-bar-fill { background: #0f172a; height: 6px; border-radius: 99px; transition: width 0.4s ease; }
+        .prog-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 700; text-align: right; margin-bottom: 24px; }
+
+        /* SCREENS */
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* INTRO */
+        .intro-icon { font-size: 3.5rem; text-align: center; margin-bottom: 16px; }
+        .intro-title { font-size: 1.6rem; font-weight: 900; text-align: center; color: var(--text-main); margin-bottom: 8px; }
+        .intro-sub { font-size: 0.95rem; color: var(--text-muted); text-align: center; line-height: 1.6; margin-bottom: 28px; }
+        
+        /* WEGWEISER KARTEN */
+        .wegweiser-card { border-radius: 12px; padding: 25px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .wegweiser-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.05); }
+
+        /* PRODUCT LIST */
+        .prod-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+        .prod-row {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 14px 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .prod-row:hover { border-color: #94a3b8; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .prod-row.editing { border-color: #0f172a; box-shadow: 0 0 0 3px rgba(15,23,42,0.08); }
+        .prod-row-left { display: flex; flex-direction: column; gap: 2px; }
+        .prod-row-name { font-weight: 800; font-size: 1rem; color: var(--text-main); }
+        .prod-row-meta { font-size: 0.78rem; color: var(--text-muted); }
+        .prod-row-actions { display: flex; gap: 8px; }
+        .btn-sm { padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: none; margin: 0; width: auto; }
+        .btn-edit { background: #f1f5f9; color: var(--text-main); }
+        .btn-edit:hover { background: #e2e8f0; }
+        .btn-del { background: #fef2f2; color: #dc2626; }
+        .btn-del:hover { background: #fee2e2; }
+
+        /* EDIT FORM */
+        .edit-card { background: var(--card-bg); border: 1.5px solid #0f172a; border-radius: 14px; padding: 24px; margin-bottom: 16px; }
+        .edit-section-title { font-size: 0.7rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin: 20px 0 8px; }
+        .edit-section-title:first-child { margin-top: 0; }
+
+        /* DAYS GRID */
+        .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 8px; }
+        .day-col { display: flex; flex-direction: column; gap: 4px; text-align: center; }
+        .day-lbl { font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+        .day-inp { width: 100%; text-align: center; padding: 10px 2px; border: 1px solid var(--border-color); border-radius: 6px; font-weight: 700; font-size: 0.95rem; background: #f8fafc; }
+        .day-inp:focus { border-color: #3b82f6; background: white; }
+
+        /* HINT BOX */
+        .hint { background: #f8fafc; border-left: 3px solid #94a3b8; border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; margin: 6px 0 12px; }
+        .hint b { color: var(--text-main); }
+
+        /* UNIT BUTTONS */
+        .unit-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
+        .unit-btn { padding: 12px 8px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; border: 1.5px solid var(--border-color); background: #f8fafc; color: var(--text-muted); text-align: center; transition: all 0.15s; margin: 0; width: 100%; }
+        .unit-btn.active { background: #0f172a; color: white; border-color: #0f172a; }
+
+        /* STATION BUTTONS */
+        .station-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
+        .station-btn { padding: 12px 8px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; border: 1.5px solid var(--border-color); background: #f8fafc; color: var(--text-muted); text-align: center; transition: all 0.15s; margin: 0; width: 100%; }
+        .station-btn.active { background: #0f172a; color: white; border-color: #0f172a; }
+
+        /* ACTIONS */
+        .action-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .btn-primary { background: #0f172a; color: white; border: none; border-radius: 8px; padding: 14px 24px; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin: 0; width: auto; flex: 1; }
+        .btn-primary:hover { background: #1e293b; }
+        .btn-secondary { background: #f1f5f9; color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 20px; font-weight: 700; font-size: 0.95rem; cursor: pointer; margin: 0; width: auto; }
+
+        /* SUCCESS */
+        .success-box { background: #ecfdf5; border: 1.5px solid #10b981; border-radius: 14px; padding: 28px; text-align: center; margin-bottom: 20px; }
+        .success-icon { font-size: 3rem; margin-bottom: 12px; }
+        .success-title { font-size: 1.3rem; font-weight: 900; color: #065f46; margin-bottom: 8px; }
+        .success-sub { font-size: 0.88rem; color: #047857; line-height: 1.6; }
+
+        .instructions { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; }
+        .instructions h3 { font-size: 0.8rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin: 0 0 14px; }
+        .step-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+        .step-list li { display: flex; gap: 12px; align-items: flex-start; font-size: 0.88rem; color: var(--text-main); line-height: 1.5; }
+        .step-num { flex-shrink: 0; width: 24px; height: 24px; background: #0f172a; color: white; border-radius: 50%; font-weight: 900; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; }
+
+        /* SUN INPUT INLINE */
+        .inline-row { display: flex; gap: 12px; align-items: flex-end; }
+        .inline-row > div { flex: 1; }
+
+        /* Anzahl Badge */
+        .prod-count { display: inline-block; background: #f1f5f9; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-left: 8px; }
+    </style>
+</head>
+<body>
+<div class="wiz-wrap">
+
+    <div class="wiz-header">
+        <div class="wiz-logo">Bäckerei<span>OS</span></div>
+        <a href="admin_landing.html" class="wiz-back">← Admin</a>
+    </div>
+
+    <div class="prog-bar-wrap"><div class="prog-bar-fill" id="progBar" style="width:0%"></div></div>
+    <div class="prog-label" id="progLabel"> </div>
+
+    <div class="screen active" id="screen-intro">
+        <div class="intro-icon">🗂️</div>
+        <div class="intro-title">Stammdaten Verwaltung</div>
+        <div class="intro-sub">
+            Wähle deinen Weg, um die Produktions- und Planungsdaten des Systems zu pflegen.
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 30px;">
+            
+            <div class="wegweiser-card" style="border: 2px solid #3b82f6; background: #eff6ff;" onclick="window.location.href='stammdaten_autosync.html'">
+                <h2 style="color: #1e3a8a; margin-top: 0; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.5em;">📊</span> AutoSync (Empfohlen)
+                </h2>
+                <p style="font-size: 0.95rem; color: #1e40af; line-height: 1.5; margin-bottom: 0;">
+                    Werte die Kassen-Datenbank der letzten 3 Wochen automatisch aus und aktualisiere die Stammdaten basierend auf echten Verkaufszahlen.
+                </p>
+            </div>
+
+            <div class="wegweiser-card" style="border: 2px solid #e5e7eb; background: #ffffff;" onclick="goScreen('screen-list')">
+                <h2 style="color: #374151; margin-top: 0; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.5em;">✏️</span> Manueller Assistent
+                </h2>
+                <p style="font-size: 0.95rem; color: #6b7280; line-height: 1.5; margin-bottom: 0;">
+                    Lege völlig neue Produkte per Hand an, lösche alte Artikel oder passe Gebindegrößen und Stationen individuell an.
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="screen" id="screen-list">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 style="margin: 0; font-size: 1.2rem;">Alle Produkte <span class="prod-count" id="prod-count">0</span></h2>
+            <button class="btn-sm btn-edit" onclick="newProduct()" style="padding: 8px 14px; font-size: 0.85rem;">➕ Neu</button>
+        </div>
+
+        <div class="prod-list" id="prod-list"></div>
+
+        <div class="action-row">
+            <button class="btn-secondary" onclick="goScreen('screen-intro')">← Zurück</button>
+            <button class="btn-primary" onclick="goScreen('screen-export')">Weiter zur Ausgabe →</button>
+        </div>
+    </div>
+
+    <div class="screen" id="screen-edit">
+        <h2 id="edit-title" style="margin: 0 0 20px; font-size: 1.2rem;">Produkt bearbeiten</h2>
+
+        <div class="edit-card">
+
+            <div class="edit-section-title">Produktname</div>
+            <div class="hint">Der Name wie er im Schnellrechner und auf der Produktionsliste erscheint.</div>
+            <input type="text" id="edit-name" placeholder="z.B. Hasenpfoten" maxlength="40">
+
+            <div class="edit-section-title">Station</div>
+            <div class="hint">Auf welcher Station wird dieses Produkt hauptsächlich hergestellt?</div>
+            <div class="station-grid" id="station-grid">
+                <button class="station-btn" data-station="Brötchenstraße" onclick="selectStation(this)">🥖 Brötchenstraße</button>
+                <button class="station-btn" data-station="Frühschicht" onclick="selectStation(this)">🌅 Frühschicht</button>
+                <button class="station-btn" data-station="Nachtschicht" onclick="selectStation(this)">🌙 Nachtschicht</button>
+                <button class="station-btn" data-station="Rondo" onclick="selectStation(this)">🌀 Rondo</button>
+            </div>
+
+            <div class="edit-section-title">Einheit / Berechnungsart</div>
+            <div class="hint">
+                <b>Bleche</b> — Standard. Ergebnis wird in Blechen angezeigt.<br>
+                <b>Pressen (KornKnacker)</b> — Spezialumrechnung für KornKnacker (×25/30 ×1,06).<br>
+                <b>Pressen (HasenBerger)</b> — Spezialumrechnung für HasenBerger (×20/30).<br>
+                <b>Brühstücke</b> — Für Produkte wie Schlawiner (÷9).
+            </div>
+            <div class="unit-grid">
+                <button class="unit-btn active" data-unit="0" onclick="selectUnit(this)">📋 Bleche</button>
+                <button class="unit-btn" data-unit="1" onclick="selectUnit(this)">🔧 Pressen (KornKnacker)</button>
+                <button class="unit-btn" data-unit="2" onclick="selectUnit(this)">🔧 Pressen (HasenBerger)</button>
+                <button class="unit-btn" data-unit="3" onclick="selectUnit(this)">🫙 Brühstücke</button>
+            </div>
+
+            <div class="edit-section-title">Gebindegröße</div>
+            <div class="hint">
+                In welchen Schritten wird produziert? Das System rechnet immer in Vielfachen dieser Zahl.<br><br>
+                <b>Beispiel: Hasenpfoten = 12</b> → Es wird immer in 12er-Schritten produziert (12, 24, 36 ...), weil kleinere Teigmengen nicht sinnvoll sind.<br><br>
+                <b>Für die meisten Produkte: 1</b> (keine Einschränkung, jede Menge ist möglich).
+            </div>
+            <input type="number" id="edit-batch" min="1" value="1" style="max-width: 120px;">
+
+            <div class="edit-section-title">Tagesmengen (Mo – So)</div>
+            <div class="hint">
+                Wie viele Einheiten werden an jedem Wochentag <b>normal</b> benötigt?
+                0 = Produkt wird an diesem Tag nicht produziert.
+            </div>
+            <div class="days-grid">
+                <div class="day-col"><div class="day-lbl">Mo</div><input class="day-inp" type="number" id="d0" min="0" value="0"></div>
+                <div class="day-col"><div class="day-lbl">Di</div><input class="day-inp" type="number" id="d1" min="0" value="0"></div>
+                <div class="day-col"><div class="day-lbl">Mi</div><input class="day-inp" type="number" id="d2" min="0" value="0"></div>
+                <div class="day-col"><div class="day-lbl">Do</div><input class="day-inp" type="number" id="d3" min="0" value="0"></div>
+                <div class="day-col"><div class="day-lbl">Fr</div><input class="day-inp" type="number" id="d4" min="0" value="0"></div>
+                <div class="day-col"><div class="day-lbl">Sa</div><input class="day-inp" type="number" id="d5" min="0" value="0"></div>
+                <div class="day-col"><div class="day-lbl">So</div><input class="day-inp" type="number" id="d6" min="0" value="0"></div>
+            </div>
+
+            <div class="edit-section-title">Grillwetter-Bonus</div>
+            <div class="hint">
+                Wie viele Stück extra werden an Tagen mit schönem Wetter (☀️ Grill-Modus) zusätzlich benötigt?
+                <b>0 = kein Grillwetter-Effekt</b> für dieses Produkt.
+            </div>
+            <div class="inline-row">
+                <div>
+                    <input type="number" id="edit-sun" min="0" value="0" style="max-width: 120px;">
+                </div>
+                <div style="font-size: 0.82rem; color: var(--text-muted); padding-bottom: 12px;">
+                    Stück extra bei Grillwetter
+                </div>
+            </div>
+
+        </div>
+
+        <div class="action-row">
+            <button class="btn-secondary" onclick="cancelEdit()">Abbrechen</button>
+            <button class="btn-primary" onclick="saveEdit()">✓ Speichern</button>
+        </div>
+    </div>
+
+    <div class="screen" id="screen-export">
+
+        <div class="success-box">
+            <div class="success-icon">✅</div>
+            <div class="success-title">Stammdaten bereit!</div>
+            <div class="success-sub">
+                Alle <span id="export-count">0</span> Produkte sind konfiguriert.<br>
+                Lade jetzt die neue <b>stammdaten.js</b> herunter.
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>So geht es weiter</h3>
+            <ol class="step-list">
+                <li>
+                    <span class="step-num">1</span>
+                    <span>Klicke auf <b>„stammdaten.js herunterladen"</b> — die Datei wird in deinem Download-Ordner gespeichert.</span>
+                </li>
+                <li>
+                    <span class="step-num">2</span>
+                    <span>Öffne <b>GitHub</b> und navigiere zum BäckereiOS-Repository.</span>
+                </li>
+                <li>
+                    <span class="step-num">3</span>
+                    <span>Suche die alte <b>stammdaten.js</b> im Hauptordner und klicke auf <b>„Upload file"</b> — dann die neue Datei auswählen und bestätigen.</span>
+                </li>
+                <li>
+                    <span class="step-num">4</span>
+                    <span>Warte 1–2 Minuten, dann im Browser <b>Seite neu laden</b>. Fertig — alle Änderungen sind live!</span>
+                </li>
+            </ol>
+        </div>
+
+        <div class="action-row" style="margin-top: 20px;">
+            <button class="btn-secondary" onclick="goScreen('screen-list')">← Zurück zur Liste</button>
+            <button class="btn-primary" onclick="downloadJS()">⬇️ stammdaten.js herunterladen</button>
+        </div>
+
+    </div>
+
+</div><script>
+// ── STAMMDATEN (eingebettet — wird beim Download neu generiert) ──
+const INITIAL_DATA = [
+  { id: "p1",               name: "Hasenpfoten",                needs: [14,14,14,14,16,30,23], sun: 0,  unit: 0, station: "Brötchenstraße", batchSize: 12 },
+  { id: "p2",               name: "Laugenstangen",              needs: [23,23,23,23,24,35,28], sun: 10, unit: 0, station: "Brötchenstraße", batchSize: 1  },
+  { id: "p3",               name: "Rosinenbroetchen",           needs: [9,10,9,10,10,14,12],   sun: 0,  unit: 0, station: "Brötchenstraße", batchSize: 1  },
+  { id: "p4",               name: "Kaesebroetchen",             needs: [16,16,17,17,18,23,20], sun: 5,  unit: 0, station: "Brötchenstraße", batchSize: 1  },
+  { id: "p5",               name: "SchokoBatzen",               needs: [25,26,27,27,28,40,28], sun: 0,  unit: 0, station: "Frühschicht",    batchSize: 1  },
+  { id: "p6",               name: "RosinenBatzen",              needs: [23,23,23,23,24,35,24], sun: 0,  unit: 0, station: "Frühschicht",    batchSize: 1  },
+  { id: "p7",               name: "Zimtwolken",                 needs: [24,24,24,24,24,24,0],  sun: 0,  unit: 0, station: "Brötchenstraße", batchSize: 1  },
+  { id: "p14",              name: "Mohnschnecken",              needs: [10,12,10,12,10,12,0],  sun: 0,  unit: 0, station: "Rondo",          batchSize: 1  },
+  { id: "p8",               name: "Schlawiner",                 needs: [160,160,160,170,180,300,200], sun: 0, unit: 3, station: "Nachtschicht", batchSize: 1 },
+  { id: "p9",               name: "Kornknacker",                needs: [38,39,38,40,48,59,42], sun: 0,  unit: 1, station: "Nachtschicht",   batchSize: 1  },
+  { id: "p10",              name: "Hasenberger",                needs: [42,45,45,45,50,69,50], sun: 0,  unit: 2, station: "Nachtschicht",   batchSize: 1  },
+  { id: "p11",              name: "Plunderstreifen",            needs: [12,12,12,12,12,12,0],  sun: 0,  unit: 0, station: "Rondo",          batchSize: 1  },
+  { id: "p12",              name: "Eiszapfen",                  needs: [0,14,0,14,0,13,0],     sun: 0,  unit: 0, station: "Rondo",          batchSize: 1  },
+  { id: "p13",              name: "Puddingbrezeln",             needs: [11,0,11,0,11,0,0],     sun: 0,  unit: 0, station: "Rondo",          batchSize: 1  },
+  { id: "p1771487098374",   name: "Baguette (Bleche)",          needs: [11,10,10,11,12,25,11], sun: 0,  unit: 0, station: "Nachtschicht",   batchSize: 1  },
+  { id: "p1771567530004",   name: "Zwiebelbaguette (Bleche)",   needs: [1,1,2,1,2,5,1],        sun: 0,  unit: 0, station: "Nachtschicht",   batchSize: 1  },
+  { id: "p1771567585845",   name: "Baguette (rote Diele)",      needs: [22,22,21,22,22,25,7],  sun: 0,  unit: 0, station: "Nachtschicht",   batchSize: 1  },
+  { id: "p1771567637826",   name: "Zwiebelbaguette (rote Diele)", needs: [7,7,8,8,7,7,3],     sun: 0,  unit: 0, station: "Nachtschicht",   batchSize: 1  },
+  { id: "p1772626050481",   name: "Einhorn Beot",               needs: [16,12,18,16,13,21,7],  sun: 0,  unit: 0, station: "Brötchenstraße", batchSize: 11 }
+];
+
+// ── STATE ──
+let db = JSON.parse(JSON.stringify(INITIAL_DATA));
+let editIdx = -1; // -1 = neues Produkt
+const UNITS = ["Bleche", "Pressen (KornKnacker)", "Pressen (HasenBerger)", "Brühstücke"];
+const STATIONS = ["Brötchenstraße", "Frühschicht", "Nachtschicht", "Rondo"];
+const SCREENS = ["screen-intro", "screen-list", "screen-edit", "screen-export"];
+const PROG = { "screen-intro": 0, "screen-list": 40, "screen-edit": 70, "screen-export": 100 };
+const PROG_LABEL = { "screen-intro": "Start", "screen-list": "Produkte verwalten", "screen-edit": "Produkt bearbeiten", "screen-export": "Fertig" };
+
+// ── NAVIGATION ──
+function goScreen(id) {
+    SCREENS.forEach(s => document.getElementById(s).classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    const p = PROG[id] || 0;
+    document.getElementById('progBar').style.width = p + '%';
+    document.getElementById('progLabel').textContent = PROG_LABEL[id] || '';
+    if (id === 'screen-list') renderList();
+    if (id === 'screen-export') renderExport();
+    window.scrollTo(0, 0);
+}
+
+// ── PRODUKTLISTE ──
+function renderList() {
+    const el = document.getElementById('prod-list');
+    document.getElementById('prod-count').textContent = db.length;
+    el.innerHTML = db.map((p, i) => `
+        <div class="prod-row" id="prow-${i}">
+            <div class="prod-row-left">
+                <div class="prod-row-name">${p.name}</div>
+                <div class="prod-row-meta">${p.station} · ${UNITS[p.unit]} · Gebinde: ${p.batchSize}</div>
+            </div>
+            <div class="prod-row-actions">
+                <button class="btn-sm btn-edit" onclick="editProduct(${i})">✏️ Bearbeiten</button>
+                <button class="btn-sm btn-del" onclick="deleteProduct(${i})">🗑️</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function deleteProduct(i) {
+    if (!confirm(`„${db[i].name}" wirklich löschen?`)) return;
+    db.splice(i, 1);
+    renderList();
+}
+
+// ── EDIT ──
+function editProduct(i) {
+    editIdx = i;
+    const p = db[i];
+    document.getElementById('edit-title').textContent = '✏️ ' + p.name + ' bearbeiten';
+    document.getElementById('edit-name').value = p.name;
+    document.getElementById('edit-batch').value = p.batchSize || 1;
+    document.getElementById('edit-sun').value = p.sun || 0;
+    for (let d = 0; d < 7; d++) document.getElementById('d' + d).value = p.needs[d] || 0;
+    
+    document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.unit-btn[data-unit="${p.unit}"]`)?.classList.add('active');
+    
+    document.querySelectorAll('.station-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.station-btn[data-station="${p.station}"]`)?.classList.add('active');
+    goScreen('screen-edit');
+}
+
+function newProduct() {
+    editIdx = -1;
+    document.getElementById('edit-title').textContent = '➕ Neues Produkt anlegen';
+    document.getElementById('edit-name').value = '';
+    document.getElementById('edit-batch').value = 1;
+    document.getElementById('edit-sun').value = 0;
+    for (let d = 0; d < 7; d++) document.getElementById('d' + d).value = 0;
+    document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.unit-btn[data-unit="0"]').classList.add('active');
+    document.querySelectorAll('.station-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.station-btn[data-station="Brötchenstraße"]').classList.add('active');
+    goScreen('screen-edit');
+}
+
+function selectUnit(btn) {
+    document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+function selectStation(btn) {
+    document.querySelectorAll('.station-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+function cancelEdit() { goScreen('screen-list'); }
+
+function saveEdit() {
+    const name = document.getElementById('edit-name').value.trim();
+    if (!name) { alert('Bitte einen Produktnamen eingeben.'); return; }
+
+    const activeUnit = document.querySelector('.unit-btn.active');
+    const activeStation = document.querySelector('.station-btn.active');
+    if (!activeStation) { alert('Bitte eine Station auswählen.'); return; }
+
+    const needs = [];
+    for (let d = 0; d < 7; d++) needs.push(parseInt(document.getElementById('d' + d).value) || 0);
+
+    const product = {
+        id: editIdx >= 0 ? db[editIdx].id : 'p' + Date.now(),
+        name,
+        needs,
+        sun: parseInt(document.getElementById('edit-sun').value) || 0,
+        unit: parseInt(activeUnit?.dataset.unit || 0),
+        station: activeStation.dataset.station,
+        batchSize: parseInt(document.getElementById('edit-batch').value) || 1
+    };
+
+    if (editIdx >= 0) {
+        db[editIdx] = product;
+    } else {
+        db.push(product);
+    }
+    goScreen('screen-list');
+}
+
+// ── EXPORT ──
+function renderExport() {
+    document.getElementById('export-count').textContent = db.length;
+}
+
+function downloadJS() {
+    const entries = db.map(p => {
+        const needsStr = JSON.stringify(p.needs);
+        return `  "${p.id}": {\n    "name": "${p.name}",\n    "needs": ${needsStr},\n    "sun": ${p.sun},\n    "unit": ${p.unit},\n    "station": "${p.station}",\n    "batchSize": ${p.batchSize}\n  }`;
+    }).join(',\n');
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('de-DE') + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+
+    const output = `// stammdaten.js — BäckereiOS Produktstammdaten\n// Generiert: ${dateStr} via StammdatenAssistent\n// Produkte: ${db.length}\n//\n// ANLEITUNG: Diese Datei ersetzt die bestehende stammdaten.js im Hauptordner.\n// Auf GitHub hochladen → Änderungen sind nach 1-2 Minuten aktiv.\n\nwindow.BOS_STAMMDATEN = {\n${entries}\n};\n`;
+
+    const blob = new Blob([output], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'stammdaten.js';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ── INIT ──
+goScreen('screen-intro');
+</script>
+
+</body>
+</html>

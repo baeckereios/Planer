@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frosterliste – Einzelseite</title>
+    <link rel="stylesheet" href="../systemdesign.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── SCREEN LAYOUT ── */
+body {
+    background: var(--bg-main, #f0ebe2);
+    color: var(--text-main, #1e1a14);
+    padding-top: 40px;
+    padding-bottom: 80px;
+}
+
+.controls {
+    display: flex; gap: 8px; justify-content: center; padding: 10px;
+    flex-wrap: wrap; background: rgba(255,255,255,0.8);
+    position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #ddd;
+}
+
+.btn-tool {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.75rem;
+    padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; text-transform: uppercase;
+}
+.btn-save { background: #16a34a; color: #fff; }
+.btn-add  { background: #2563eb; color: #fff; }
+.btn-rem  { background: #dc2626; color: #fff; }
+.btn-prt  { background: #555; color: #fff; }
+
+.page {
+    background: #fff; width: 210mm; margin: 10px auto;
+    padding: 6mm 10mm; box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    position: relative; box-sizing: border-box;
+    page-break-after: avoid; /* Verhindert zusätzliche Seiten */
+}
+
+/* ── TABELLEN OPTIK ── */
+.page-header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 3px solid #000; margin-bottom: 4mm; padding-bottom: 1mm;
+}
+.header-title { font-size: 24pt; font-weight: 800; font-family: 'Barlow Condensed'; }
+.header-title span { color: var(--amber, #c07a10); }
+
+table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+th { background: #000; color: #fff; text-transform: uppercase; padding: 3px; border: 1px solid #000; }
+td { border: 1px solid #ccc; height: 22px; padding: 0 4px; }
+.col-mosa, .col-so { width: 25%; }
+.sep-r { border-right: 2px solid #000 !important; }
+
+select.product-select {
+    width: 100%; height: 100%; border: none; background: transparent;
+    font-family: inherit; font-size: 9pt; font-weight: 600; outline: none;
+}
+
+.no-sunday { background: #eee !important; }
+
+/* ── DRUCK-STEUERUNG (KOMPAKT) ── */
+@media print {
+    @page { size: A4 portrait; margin: 3mm; }
+    html, body { height: 99%; overflow: hidden; }
+    body { padding: 0 !important; margin: 0 !important; background: #fff !important; filter: grayscale(100%); }
+    .no-print, .controls, .bos-shell-header, .bos-shell-bottom { display: none !important; }
+    .page { width: 100%; margin: 0; padding: 4mm; box-shadow: none; border: none; }
+    th { background: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact; }
+    .no-sunday { background: #ddd !important; -webkit-print-color-adjust: exact; }
+    select.product-select { appearance: none; -webkit-appearance: none; font-weight: 700; }
+}
+</style>
+</head>
+<body>
+
+<div class="controls no-print">
+    <button class="btn-tool btn-save" onclick="saveConfig()">💾 Speichern</button>
+    <button class="btn-tool btn-add"  onclick="addRow()">➕ Zeile</button>
+    <button class="btn-tool btn-rem"  onclick="removeRow()">➖ Löschen</button>
+    <button class="btn-tool btn-prt"  onclick="window.print()">🖨 Drucken (S/W)</button>
+</div>
+
+<div class="page">
+    <div class="page-header">
+        <div class="header-title">Froster<span>liste</span></div>
+        <div style="text-align: right; font-family: 'Barlow Condensed';">
+            <div style="font-size: 8pt; font-weight: 700;">DATUM:</div>
+            <div contenteditable="true" style="font-size: 11pt; font-weight: 800; border-bottom: 1px solid #000; min-width: 100px; text-align: center;">
+                ___ . ___ . 20___
+            </div>
+        </div>
+    </div>
+
+    <table id="productTable">
+        <thead>
+            <tr>
+                <th colspan="2">Produkt</th>
+                <th rowspan="2" style="width:10%">Bestand</th>
+                <th rowspan="2" style="width:10%" class="sep-r">Zuviel</th>
+                <th rowspan="2" style="width:10%" class="sep-r">Soll</th>
+                <th rowspan="2" style="width:10%">Fehlt</th>
+                <th rowspan="2">Wohin</th>
+            </tr>
+            <tr>
+                <th style="background: #444; font-size: 7pt;">Mo-Sa</th>
+                <th style="background: #444; font-size: 7pt;">Sonntag</th>
+            </tr>
+        </thead>
+        <tbody id="tabellenBody"></tbody>
+    </table>
+
+    <div style="font-family: 'Barlow Condensed', sans-serif; font-size: 7pt; font-weight: 800; margin-top: 6px; text-transform: uppercase; border-bottom: 1px solid #000;">
+        Notizen / Sonderbestellungen
+    </div>
+    <div style="min-height: 30px; font-size: 8.5pt; padding: 4px;" contenteditable="true"></div>
+</div>
+
+<script src="../produktions_gehirn.js"></script>
+<script src="../frosterliste_produkte.js"></script>
+
+<script>
+let ALL_PRODUCTS = [];
+
+(async function init() {
+    const ok = await window.BOS_GEHIRN.init();
+    if (ok) {
+        ALL_PRODUCTS = Object.entries(window.BOS_STAMMDATEN)
+            .filter(([id, p]) => p.frosterliste !== false)
+            .map(([id, p]) => ({ id, name: p.name || id }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        const presets = window.FROSTER_PRESETS || Array(25).fill({ mosa: '', so: '' });
+        document.getElementById('tabellenBody').innerHTML = '';
+        presets.forEach(p => addRow(p.mosa, p.so));
+    }
+})();
+
+function addRow(selMosa = "", selSo = "") {
+    const body = document.getElementById('tabellenBody');
+    const tr = document.createElement('tr');
+    const isNoSun = (selSo === null);
+    tr.innerHTML = `
+        <td class="col-mosa">${createSelect(selMosa)}</td>
+        <td class="col-so ${isNoSun ? 'no-sunday' : ''}">${isNoSun ? '' : createSelect(selSo)}</td>
+        <td></td><td class="sep-r"></td><td class="sep-r"></td><td></td>
+        <td class="col-wohin" style="font-size: 6.5pt; font-weight: 700; text-align: center;"></td>
+    `;
+    body.appendChild(tr);
+    updateLagerort(tr.querySelector('select'));
+}
+
+function removeRow() {
+    const body = document.getElementById('tabellenBody');
+    if (body.rows.length > 0) body.deleteRow(-1);
+}
+
+function createSelect(selectedId) {
+    let h = `<select class="product-select" onchange="updateLagerort(this)"><option value=""></option>`;
+    ALL_PRODUCTS.forEach(p => {
+        h += `<option value="${p.id}" ${p.id === selectedId ? 'selected' : ''}>${p.name}</option>`;
+    });
+    return h + `</select>`;
+}
+
+function updateLagerort(el) {
+    if (!el) return;
+    const row = el.closest('tr');
+    const valMosa = row.cells[0].querySelector('select').value;
+    const valSo = row.cells[1].querySelector('select') ? row.cells[1].querySelector('select').value : '';
+    const activeId = valMosa || valSo;
+    const cell = row.querySelector('.col-wohin');
+    if (activeId && window.BOS_STAMMDATEN[activeId]) {
+        cell.textContent = window.BOS_STAMMDATEN[activeId].lagerort || '';
+    } else { cell.textContent = ''; }
+}
+
+function saveConfig() {
+    const config = Array.from(document.querySelectorAll('#tabellenBody tr')).map(row => {
+        const m = row.cells[0].querySelector('select');
+        const s = row.cells[1].querySelector('select');
+        return {
+            mosa: m ? m.value : '',
+            so: row.cells[1].classList.contains('no-sunday') ? null : (s ? s.value : '')
+        };
+    });
+    const blob = new Blob([`window.FROSTER_PRESETS = ${JSON.stringify(config, null, 2)};`], {type: 'text/javascript'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'frosterliste_produkte.js'; a.click();
+}
+</script>
+<script src="../shell.js" defer></script>
+</body>
+</html>

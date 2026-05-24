@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#c07a10">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="BäckereiOS">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BOS – Produktionsplaner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../systemdesign.css">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+  <style>
+    body { padding-bottom: 200px; margin: 0; }
+
+    .app-header { background: var(--surface); border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 200; box-shadow: 0 4px 20px var(--shadow); }
+    .brand-row { display: flex; flex-direction: column; align-items: center; padding: 18px 20px 0; }
+    .brand-logo { font-family: 'Fraunces', serif; font-weight: 900; font-size: 2.8rem; color: var(--text); line-height: 1; margin: 0; }
+    .brand-logo span { color: var(--amber); font-style: italic; }
+    .slogan-bar { background: #111; color: var(--amber); padding: 9px 20px; margin-top: 10px; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase; width: 100%; text-align: center; box-sizing: border-box; }
+    .sub-nav { display: flex; align-items: center; padding: 10px 18px; gap: 16px; border-top: 2px solid var(--border); }
+    .btn-back-nav { text-decoration: none; color: var(--dim); font-weight: 900; font-size: 0.85rem; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 1px; text-transform: uppercase; padding: 7px 12px; background: var(--surface2); border: 2px solid var(--border-s); border-radius: 10px; transition: 0.2s; white-space: nowrap; }
+    .btn-back-nav:hover { border-color: var(--amber); color: var(--amber); }
+    .sub-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 1.5rem; color: var(--amber); text-transform: uppercase; letter-spacing: 2px; }
+
+    .progress-section { padding: 10px 18px 14px; border-top: 1px solid var(--border); }
+    .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .progress-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 0.82rem; color: var(--dim); letter-spacing: 1.5px; text-transform: uppercase; }
+    .progress-count { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 0.95rem; color: var(--text); }
+    .progress-count.all-ok { color: var(--green); }
+    .progress-track { height: 12px; background: var(--surface2); border-radius: 99px; overflow: hidden; border: 2px solid var(--border-s); }
+    .progress-fill { height: 100%; border-radius: 99px; width: 0%; transition: width 0.5s cubic-bezier(0.4,0,0.2,1), background 0.4s; background: linear-gradient(90deg, var(--amber), #e8a030); }
+    .progress-fill.all-ok { background: linear-gradient(90deg, var(--green), #6dd49a); }
+
+    .container { max-width: 650px; margin: 0 auto; padding: 20px 16px; }
+
+    .station-card { background: var(--surface); border: 2.5px solid var(--border); border-radius: 22px; margin-bottom: 18px; box-shadow: 0 4px 16px var(--shadow); overflow: hidden; transition: border-color 0.3s, box-shadow 0.3s; animation: fadeUp 0.35s ease both; }
+    .station-card:nth-child(1){animation-delay:0.05s} .station-card:nth-child(2){animation-delay:0.12s} .station-card:nth-child(3){animation-delay:0.19s} .station-card:nth-child(4){animation-delay:0.26s}
+    .station-card::before { content: ''; display: block; height: 4px; background: var(--border-s); transition: background 0.3s; }
+    .station-card.is-done { border-color: rgba(77,184,122,0.35); }
+    .station-card.is-done::before { background: linear-gradient(90deg, var(--green), rgba(77,184,122,0.3)); }
+    .station-card.is-open { border-color: var(--amber); box-shadow: 0 4px 24px rgba(192,122,16,0.15); }
+    .station-card.is-open::before { background: linear-gradient(90deg, var(--amber), rgba(192,122,16,0.3)); }
+    .station-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+    .station-head-left { display: flex; align-items: center; gap: 12px; }
+    .station-emoji { font-size: 1.9rem; line-height: 1; }
+    .station-name { font-family: 'Fraunces', serif; font-size: 1.35rem; font-weight: 900; line-height: 1.1; }
+    .station-meta { font-size: 0.78rem; font-weight: 600; color: var(--dim); margin-top: 3px; }
+    .station-badge { padding: 6px 12px; border-radius: 12px; font-weight: 900; font-family: 'Barlow Condensed', sans-serif; border: 2px solid; font-size: 0.88rem; letter-spacing: 0.5px; white-space: nowrap; flex-shrink: 0; }
+    .badge-pending { background: rgba(192,122,16,0.1); color: var(--amber); border-color: rgba(192,122,16,0.35); }
+    .badge-done { background: rgba(77,184,122,0.1); color: var(--green); border-color: rgba(77,184,122,0.35); }
+    .station-body { display: none; padding: 0 14px 14px; border-top: 2px solid var(--border-s); }
+    .station-body.open { display: block; }
+    .nfc-hint { display: flex; align-items: center; gap: 8px; padding: 10px 12px; margin: 14px 0 10px; background: var(--surface2); border: 1.5px solid var(--border-s); border-radius: 10px; font-size: 0.78rem; color: var(--dim); }
+    .nfc-hint a { color: var(--amber); font-weight: 900; text-decoration: none; font-family: 'Barlow Condensed', sans-serif; }
+
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 14px; }
+    .prod-table { border-collapse: separate; border-spacing: 2px; min-width: 340px; }
+    .prod-table thead th { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 0.75rem; text-transform: uppercase; color: var(--dim); padding: 4px 1px; text-align: center; }
+    .prod-table thead th.th-prod { text-align: left; min-width: 100px; color: var(--text); padding-left: 4px; }
+    td.td-prod { font-size: 0.8rem; font-weight: 700; padding: 3px 4px; color: var(--text); vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
+    td.td-day { text-align: center; padding: 2px 1px; vertical-align: middle; }
+    .day-btn { width: 33px; height: 33px; border-radius: 8px; border: 1.5px solid var(--border-s); background: var(--surface2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; transition: all 0.12s; margin: 0 auto; -webkit-tap-highlight-color: transparent; user-select: none; padding: 0; }
+    .day-btn.lv1 { background: rgba(192,122,16,0.13); border-color: var(--amber); }
+    .day-btn:not(.lv1) { opacity: 0.3; }
+    .day-btn:active { transform: scale(0.86); }
+    .ziel-row td.td-ziel-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 1px; color: var(--amber); padding: 0 4px 5px; vertical-align: middle; }
+    .ziel-row td.td-day { padding: 0 1px 5px; }
+    .ziel-btn { width: 33px; height: 22px; border-radius: 6px; border: 1.5px solid var(--border-s); background: var(--surface2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 0.66rem; color: var(--dim); transition: all 0.12s; margin: 0 auto; -webkit-tap-highlight-color: transparent; padding: 0; }
+    .ziel-btn.ziel-on { background: var(--amber); border-color: var(--amber); color: white; }
+    .ziel-btn:active { transform: scale(0.88); }
+    tr.ziel-row + tr.prod-row td { border-top: 2.5px solid var(--border-s); padding-top: 6px; }
+
+    .station-actions { display: flex; gap: 10px; }
+    .btn-sa { flex: 1; padding: 13px; border-radius: 12px; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 0.92rem; text-transform: uppercase; letter-spacing: 1px; border: 2px solid; cursor: pointer; transition: 0.15s; }
+    .btn-confirm { background: var(--amber); color: white; border-color: var(--amber); box-shadow: 0 3px 0 rgba(0,0,0,0.2); }
+    .btn-confirm:active { transform: translateY(2px); box-shadow: none; }
+    .btn-clear { background: transparent; color: var(--dim); border-color: var(--border-s); }
+    .btn-clear:hover { border-color: var(--red); color: var(--red); }
+
+    /* BATCH */
+    .batch-card { background: var(--surface); border: 2.5px solid var(--amber); border-radius: 22px; margin-bottom: 18px; box-shadow: 0 4px 24px rgba(192,122,16,0.12); overflow: hidden; animation: fadeUp 0.35s 0.32s ease both; }
+    .batch-card::before { content: ''; display: block; height: 4px; background: linear-gradient(90deg, var(--amber), #e8a030); }
+    .batch-inner { padding: 18px 18px 20px; }
+    .batch-title { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 900; margin-bottom: 3px; }
+    .batch-sub { font-size: 0.78rem; color: var(--dim); margin-bottom: 18px; line-height: 1.45; }
+    .batch-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--dim); margin-bottom: 6px; }
+    .batch-select { width: 100%; padding: 12px 14px; border: 2px solid var(--border-s); border-radius: 12px; background: var(--surface2); color: var(--text); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.95rem; margin-bottom: 16px; }
+    .batch-select:focus { outline: none; border-color: var(--amber); }
+    .froster-group { display: flex; gap: 10px; margin-bottom: 18px; }
+    .f-btn { flex: 1; padding: 14px 10px; border: 2px solid var(--border-s); background: var(--surface2); border-radius: 14px; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 0.9rem; color: var(--dim); cursor: pointer; transition: 0.15s; -webkit-tap-highlight-color: transparent; }
+    .f-btn.yes.active { border-color: var(--green); background: rgba(77,184,122,0.1); color: var(--green); }
+    .f-btn.no.active { border-color: var(--red); background: rgba(201,74,74,0.08); color: var(--red); }
+    .batch-summary { background: var(--surface2); border: 1.5px solid var(--border-s); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.8rem; color: var(--dim); }
+    .batch-summary strong { color: var(--text); font-family: 'Fraunces', serif; font-size: 1.1rem; }
+    .btn-launch { width: 100%; padding: 18px; border-radius: 16px; border: none; background: #111; color: var(--amber); font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; box-shadow: 0 5px 0 rgba(0,0,0,0.3); transition: 0.1s; -webkit-tap-highlight-color: transparent; }
+    .btn-launch:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.3); }
+    .btn-launch:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 900; align-items: flex-end; justify-content: center; }
+    .overlay.open { display: flex; }
+    .overlay-card { background: var(--surface); border-radius: 24px 24px 0 0; padding: 24px 20px 36px; width: 100%; max-width: 650px; }
+    .overlay-title { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 900; margin-bottom: 5px; }
+    .overlay-sub { font-size: 0.82rem; color: var(--dim); margin-bottom: 16px; line-height: 1.5; }
+    .overlay-ta { width: 100%; height: 90px; border: 2px solid var(--border-s); border-radius: 12px; background: var(--surface2); color: var(--text); font-family: monospace; font-size: 0.72rem; padding: 10px; resize: none; box-sizing: border-box; margin-bottom: 12px; }
+    .overlay-ta:focus { outline: none; border-color: var(--amber); }
+    .overlay-btns { display: flex; gap: 10px; }
+
+    .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); padding: 12px 16px 16px; border-top: 2px solid var(--border); z-index: 100; display: flex; flex-direction: column; gap: 8px; }
+    .bar-row1 { display: flex; gap: 8px; }
+    .btn-save { flex: 1; padding: 15px; border-radius: 14px; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; background: var(--surface2); color: var(--text); border: 2px solid var(--border-s); cursor: pointer; }
+    .btn-save:active { transform: translateY(2px); }
+    .btn-import { padding: 15px 16px; border-radius: 14px; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 0.95rem; text-transform: uppercase; background: var(--amber); color: white; border: none; cursor: pointer; white-space: nowrap; box-shadow: 0 3px 0 rgba(0,0,0,0.2); }
+    .btn-import:active { transform: translateY(2px); box-shadow: none; }
+    .bar-row2 { display: flex; gap: 8px; }
+    .btn-print { flex: 1; padding: 11px; border-radius: 12px; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 0.85rem; text-transform: uppercase; background: var(--surface2); color: var(--text); border: 2px solid var(--border-s); cursor: pointer; transition: 0.15s; }
+    .btn-print:hover { border-color: var(--amber); color: var(--amber); }
+    .save-feedback { text-align: center; font-family: 'Barlow Condensed', sans-serif; font-size: 0.78rem; font-weight: 700; color: var(--dim); min-height: 16px; }
+    .save-feedback.ok { color: var(--green); }
+    .save-feedback.err { color: var(--red); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="brand-row">
+    <h1 class="brand-logo">Bäckerei<span>OS</span></h1>
+    <div class="slogan-bar">„Wir machen das Frühstück erst möglich."</div>
+  </div>
+  <div class="sub-nav">
+    <a href="../index.html" class="btn-back-nav">← Zurück</a>
+    <div class="sub-title">Produktionsplaner</div>
+  </div>
+  <div class="progress-section">
+    <div class="progress-header">
+      <span class="progress-label">Stationen bereit</span>
+      <span class="progress-count" id="prog-count">0 / 4</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+  </div>
+</div>
+
+<div class="container">
+  <div id="stations-list"></div>
+
+  <div class="batch-card">
+    <div class="batch-inner">
+      <div class="batch-title">🧮 Woche berechnen</div>
+      <div class="batch-sub">Startpunkt und Froster-Status wählen — das System berechnet für jedes Produkt die Blechzahlen und übergibt sie direkt an den Planer.</div>
+      <div class="batch-label">Startpunkt der Berechnung</div>
+      <select class="batch-select" id="start-day-select"></select>
+      <div class="batch-label">Froster-Status</div>
+      <div class="froster-group">
+        <button class="f-btn yes" id="froster-ja"   onclick="setFroster(true)">✓ Fertig / befüllt</button>
+        <button class="f-btn no"  id="froster-nein" onclick="setFroster(false)">✗ Noch nicht fertig</button>
+      </div>
+      <div class="batch-summary" id="batch-summary">Warte auf Konfiguration…</div>
+      <button class="btn-launch" id="btn-launch" disabled onclick="buildSession()">→ Zum Wochenplaner</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="import-overlay">
+  <div class="overlay-card">
+    <div class="overlay-title">WhatsApp-Import</div>
+    <div class="overlay-sub">Gesamten WhatsApp-Text einfügen — der Code wird automatisch erkannt.</div>
+    <textarea class="overlay-ta" id="import-ta" placeholder="eyJzdGF0aW9u..."></textarea>
+    <div class="overlay-btns">
+      <button class="btn-sa btn-confirm" onclick="doImport()">Importieren</button>
+      <button class="btn-sa btn-clear" onclick="closeImport()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <div class="bar-row1">
+    <button class="btn-save" onclick="saveAll()">💾 Speichern</button>
+    <button class="btn-import" onclick="openImport()">📥 WA-Import</button>
+  </div>
+  <div class="bar-row2">
+    <button class="btn-print" onclick="printAll()">🖨️ Gesamt</button>
+    <button class="btn-print" onclick="printByStation()">📋 Nach Station</button>
+  </div>
+  <div class="save-feedback" id="save-fb"></div>
+</div>
+
+<script>
+const DAYS = [
+  { idx: 1, short: 'Mo', label: 'Montag' },
+  { idx: 2, short: 'Di', label: 'Dienstag' },
+  { idx: 3, short: 'Mi', label: 'Mittwoch' },
+  { idx: 4, short: 'Do', label: 'Donnerstag' },
+  { idx: 5, short: 'Fr', label: 'Freitag' },
+  { idx: 6, short: 'Sa', label: 'Samstag' },
+  { idx: 0, short: 'So', label: 'Sonntag' },
+];
+
+const STATIONS = [
+  {
+    id: 'broetchenstrasse', name: 'Brötchenstraße', emoji: '🥐',
+    nfcFile: '../nfc_seiten/station_broetchenstrasse.html',
+    products: [
+      { key: 'kaesebroetchen_stueck',  name: 'Käsebrötchen',   defaultDays: [0,1,2,3,4,5,6] },
+      { key: 'laugenstangen_stueck',   name: 'Laugenstangen',  defaultDays: [0,1,2,3,4,5,6] },
+      { key: 'rosinen_hedwig_stueck',  name: 'Rosinen-Hedwig', defaultDays: [0,1,2,3,4,5,6] },
+      { key: 'hasenpfoetchen_stueck',  name: 'Hasenpfötchen',  defaultDays: [0,1,2,3,4,5,6] },
+      { key: 'zimt_woelkchen_stueck',  name: 'Zimt-Wölkchen',  defaultDays: [0,1,2,3,4,5,6] },
+    ]
+  },
+  {
+    id: 'fruehschicht', name: 'Frühschicht', emoji: '🌅',
+    nfcFile: '../nfc_seiten/station_fruehschicht.html',
+    products: [
+      { key: 'hasenberger_stueck',       name: 'Hasenberger',       defaultDays: [0,1,2,3,4,5,6] },
+      { key: 'kornknacker_stueck',       name: 'Kornknacker',       defaultDays: [0,1,2,3,4,5,6] },
+      { key: 'dinkel_zwerg_stueck',      name: 'Dinkel-Zwerg süß',  defaultDays: [0,1,2,3,4,5,6] },
+      { key: 'rosinen_batzen_stueck',    name: 'Rosinen-Batzen',    defaultDays: [0,1,2,3,4,5,6] },
+      { key: 'schoko_batzen_stueck',     name: 'Schoko-Batzen',     defaultDays: [0,1,2,3,4,5,6] },
+      { key: 'schlawiner_gesamt_stueck', name: 'Schlawiner GESAMT', defaultDays: [0,1,2,3,4,5,6] },
+    ]
+  },
+  {
+    id: 'nachtschicht', name: 'Nachtschicht', emoji: '🌙',
+    nfcFile: '../nfc_seiten/station_nachtschicht.html',
+    products: [
+      { key: 'stangen_gesamt_stueck',      name: 'Baguettestange',     defaultDays: [0,1,2,3,4,5,6] },
+      { key: 'baguettestange_teig_stueck', name: 'Baguette Teig',      defaultDays: [0,1,2,3,4,5,6] },
+      { key: 'zwiebelstange_stueck',       name: 'Zwiebelstange',      defaultDays: [0,1,2,3,4,5,6] },
+      { key: 'zwiebelstange_teig_stueck',  name: 'Zwiebelstange Teig', defaultDays: [0,1,2,3,4,5,6] },
+    ]
+  },
+  {
+    id: 'rondo', name: 'Rondo', emoji: '🌀',
+    nfcFile: '../nfc_seiten/station_rondo.html',
+    products: [
+      { key: 'schnecken_stueck',                           name: 'Schnecken',              defaultDays: [1,2,3,4,5,6] },
+      { key: 'plunderstreifen_stueck',                     name: 'Plunderstreifen',        defaultDays: [1,2,3,4,5,6] },
+      { key: 'puddingbrezel_stueck',                       name: 'Puddingbrezel',          defaultDays: [1,3,5] },
+      { key: 'plunderschiffe_vegan_stueck',                name: 'Vegane Plunderschiffe',  defaultDays: [1,2,3,4,5,6] },
+      { key: 'vegange_kirsch_schiffchen_nur_henri_stueck', name: 'Kirsch-Schiffchen veg.', defaultDays: [1,2,3,4,5,6] },
+      { key: 'spiegelei_plunder_stueck',                   name: 'Spiegelei Plunder',      defaultDays: [2,4,6] },
+    ]
+  },
+];
+
+const LS_KEY = 'bos_produktionsplan';
+let planData = {};
+let openStation = null;
+let frosterChoice = null;
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+function init() {
+  loadData();
+  buildStartDaySelect();
+  renderAll();
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) { const p = JSON.parse(raw); planData = p.stations || {}; }
+  } catch(e) { planData = {}; }
+  STATIONS.forEach(s => {
+    if (!planData[s.id]) planData[s.id] = { configured: false, configuredAt: null, products: {}, ziele: {} };
+    if (!planData[s.id].ziele) planData[s.id].ziele = {};
+  });
+}
+
+function saveAll() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({ version: 1, savedAt: new Date().toISOString(), stations: planData }));
+    showFb('✓ Gespeichert', 'ok');
+  } catch(e) { showFb('Fehler beim Speichern', 'err'); }
+}
+
+function showFb(msg, cls) {
+  const el = document.getElementById('save-fb');
+  el.textContent = msg; el.className = 'save-feedback ' + (cls || '');
+  clearTimeout(el._t); el._t = setTimeout(() => { el.textContent = ''; el.className = 'save-feedback'; }, 2800);
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+
+function renderAll() {
+  const list = document.getElementById('stations-list');
+  list.innerHTML = '';
+  STATIONS.forEach(s => list.appendChild(buildCard(s)));
+  updateProgress();
+  updateBatchSummary();
+}
+
+function buildCard(s) {
+  const sd = planData[s.id];
+  const isDone = sd.configured;
+  const isOpen = openStation === s.id;
+  const zCount = Object.keys(sd.ziele || {}).length;
+  const ts = isDone && sd.configuredAt ? new Date(sd.configuredAt).toLocaleString('de-DE', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : null;
+  const meta = isDone ? `✓ ${ts} · ${zCount} Zieldaten` : `${s.products.length} Produkte · Ausstehend`;
+  const card = document.createElement('div');
+  card.className = 'station-card' + (isDone ? ' is-done' : '') + (isOpen ? ' is-open' : '');
+  card.id = 'card-' + s.id;
+  card.innerHTML = `
+    <div class="station-head" onclick="toggleStation('${s.id}')">
+      <div class="station-head-left">
+        <div class="station-emoji">${s.emoji}</div>
+        <div><div class="station-name">${s.name}</div><div class="station-meta">${meta}</div></div>
+      </div>
+      <div class="station-badge ${isDone?'badge-done':'badge-pending'}">${isDone?'✓ Fertig':'Offen'}</div>
+    </div>
+    <div class="station-body ${isOpen?'open':''}" id="body-${s.id}">
+      <div class="nfc-hint">📱 NFC: <a href="${s.nfcFile}">${s.nfcFile.split('/').pop()}</a></div>
+      <div class="table-scroll">${buildTable(s)}</div>
+      <div class="station-actions">
+        <button class="btn-sa btn-confirm" onclick="confirmStation('${s.id}')">✓ Als fertig markieren</button>
+        <button class="btn-sa btn-clear" onclick="resetStation('${s.id}')">Zurücksetzen</button>
+      </div>
+    </div>`;
+  return card;
+}
+
+function buildTable(s) {
+  const sd = planData[s.id];
+  let h = '<table class="prod-table"><thead><tr><th class="th-prod">Produkt</th>';
+  DAYS.forEach(d => { h += `<th>${d.short}</th>`; });
+  h += '</tr></thead><tbody>';
+  s.products.forEach(p => {
+    const pd = sd.products[p.key] || {};
+    const zDay = sd.ziele[p.key];
+    // Backtage-Zeile
+    h += `<tr class="prod-row"><td class="td-prod" title="${p.name}">${p.name}</td>`;
+    DAYS.forEach(d => {
+      const on = !!pd[String(d.idx)];
+      h += `<td class="td-day"><button class="day-btn${on?' lv1':''}" onclick="toggleCell(this,'${s.id}','${p.key}',${d.idx})">${on?'🥐':''}</button></td>`;
+    });
+    h += '</tr>';
+    // Ziel-Zeile
+    h += `<tr class="ziel-row"><td class="td-ziel-label">Bis</td>`;
+    DAYS.forEach(d => {
+      const active = zDay === d.idx;
+      h += `<td class="td-day"><button class="ziel-btn${active?' ziel-on':''}" onclick="setZiel('${s.id}','${p.key}',${d.idx},this)">${d.short}</button></td>`;
+    });
+    h += '</tr>';
+  });
+  h += '</tbody></table>';
+  return h;
+}
+
+// ─── INTERACTIONS ─────────────────────────────────────────────────────────────
+
+function toggleStation(id) {
+  openStation = (openStation === id) ? null : id;
+  renderAll();
+  if (openStation) setTimeout(() => { const el = document.getElementById('card-'+id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }, 60);
+}
+
+function toggleCell(btn, sid, key, dayIdx) {
+  if (!planData[sid].products[key]) planData[sid].products[key] = {};
+  const k = String(dayIdx), prod = planData[sid].products[key];
+  if (prod[k]) { delete prod[k]; btn.classList.remove('lv1'); btn.textContent = ''; }
+  else         { prod[k] = 1;    btn.classList.add('lv1');    btn.textContent = '🥐'; }
+  updateBatchSummary();
+}
+
+function setZiel(sid, key, dayIdx, btn) {
+  if (!planData[sid].ziele) planData[sid].ziele = {};
+  if (planData[sid].ziele[key] === dayIdx) {
+    delete planData[sid].ziele[key];
+    btn.closest('.ziel-row').querySelectorAll('.ziel-btn').forEach(b => b.classList.remove('ziel-on'));
+  } else {
+    planData[sid].ziele[key] = dayIdx;
+    btn.closest('.ziel-row').querySelectorAll('.ziel-btn').forEach((b,i) => b.classList.toggle('ziel-on', DAYS[i].idx === dayIdx));
+  }
+  updateBatchSummary();
+}
+
+function confirmStation(id) {
+  planData[id].configured = true;
+  planData[id].configuredAt = new Date().toISOString();
+  openStation = null;
+  renderAll(); saveAll();
+}
+
+function resetStation(id) {
+  planData[id] = { configured: false, configuredAt: null, products: {}, ziele: {} };
+  renderAll(); updateBatchSummary();
+}
+
+function updateProgress() {
+  const done = STATIONS.filter(s => planData[s.id]?.configured).length;
+  const total = STATIONS.length;
+  const allOk = done === total;
+  document.getElementById('prog-count').textContent = done + ' / ' + total;
+  document.getElementById('prog-count').className = 'progress-count' + (allOk ? ' all-ok' : '');
+  const fill = document.getElementById('prog-fill');
+  fill.style.width = Math.round(done / total * 100) + '%';
+  fill.className = 'progress-fill' + (allOk ? ' all-ok' : '');
+}
+
+// ─── BATCH ────────────────────────────────────────────────────────────────────
+
+function updateBatchSummary() {
+  let total = 0, withZiel = 0;
+  STATIONS.forEach(s => {
+    const sd = planData[s.id];
+    s.products.forEach(p => {
+      total++;
+      const hasDays = Object.values(sd?.products?.[p.key] || {}).some(v => v);
+      if (hasDays && sd?.ziele?.[p.key] !== undefined) withZiel++;
+    });
+  });
+  const el = document.getElementById('batch-summary');
+  if (el) el.innerHTML = withZiel === 0
+    ? `<span style="color:var(--dim)">Noch keine Produkte mit Zieldatum.</span>`
+    : `<strong>${withZiel}</strong> von ${total} Produkten bereit zur Berechnung`;
+  const btn = document.getElementById('btn-launch');
+  if (btn) btn.disabled = (withZiel === 0);
+}
+
+function setFroster(val) {
+  frosterChoice = val;
+  document.getElementById('froster-ja').classList.toggle('active', val === true);
+  document.getElementById('froster-nein').classList.toggle('active', val === false);
+}
+
+function buildStartDaySelect() {
+  const sel = document.getElementById('start-day-select');
+  const JS_ZU_BOS = [6,0,1,2,3,4,5];
+  const dayNames = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+  const today = new Date(); today.setHours(0,0,0,0);
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today); d.setDate(today.getDate() + i);
+    const bosDay = JS_ZU_BOS[d.getDay()];
+    const dd = String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.';
+    const opt = document.createElement('option');
+    opt.value = bosDay;
+    opt.textContent = dayNames[bosDay] + ', ' + dd + (i === 0 ? ' (heute)' : '');
+    if (i === 0) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+function buildSession() {
+  if (!window.BOS_STAMMDATEN) { showFb('Produktdaten noch nicht geladen — kurz warten', 'err'); return; }
+  if (frosterChoice === null) { showFb('Bitte Froster-Status wählen', 'err'); return; }
+
+  const startBosDay = parseInt(document.getElementById('start-day-select').value);
+  const weekCfg = {};
+  for (let d = 0; d < 7; d++) weekCfg[d] = { status: 'auf', hamster: 0 };
+
+  const session = {
+    station: 'WOCHENPLANER', startDayIdx: startBosDay,
+    selectedIds: [], inventory: {}, frosterDone: frosterChoice,
+    targetDays: {}, productionDays: {}, shortages: {},
+    weekConfig: weekCfg, autoPlanning: true, prePlanned: {}
+  };
+
+  const findId = lk => Object.keys(window.BOS_STAMMDATEN).find(id => window.BOS_STAMMDATEN[id].legacyKey === lk);
+  const getBestand = lk => {
+    if (!window.BOS_INVENTUR?.products) return 0;
+    const inv = window.BOS_INVENTUR.products[lk];
+    return inv ? (inv.stueck ?? inv.bleche ?? 0) : 0;
+  };
+  const getFehlmenge = lk => window.BOS_INVENTUR?.products?.[lk]?.fehlmenge ?? 0;
+
+  let count = 0;
+  STATIONS.forEach(s => {
+    const sd = planData[s.id];
+    if (!sd) return;
+    s.products.forEach(p => {
+      const pd = sd.products[p.key] || {};
+      const backtage = Object.keys(pd).filter(k => pd[k]).map(Number);
+      if (!backtage.length) return;
+      const ziel = sd.ziele?.[p.key];
+      if (ziel === undefined || ziel === null) return;
+      const sid = findId(p.key);
+      if (!sid || session.selectedIds.includes(sid)) return;
+      session.selectedIds.push(sid);
+      session.inventory[sid]      = getBestand(p.key);
+      session.targetDays[sid]     = ziel;
+      session.productionDays[sid] = backtage;
+      session.shortages[sid]      = getFehlmenge(p.key);
+      count++;
+    });
+  });
+
+  if (count === 0) { showFb('Keine Produkte mit Zieldatum konfiguriert', 'err'); return; }
+
+  session.selectedIds.forEach(id => {
+    session.prePlanned[id] = window.BOS_BRAIN?.calculateAutoPlanning
+      ? window.BOS_BRAIN.calculateAutoPlanning(id, session)
+      : [];
+  });
+
+  localStorage.setItem('BOS_SESSION', JSON.stringify(session));
+  window.location.href = '../planer.html';
+}
+
+// ─── IMPORT ───────────────────────────────────────────────────────────────────
+
+function openImport() {
+  document.getElementById('import-overlay').classList.add('open');
+  document.getElementById('import-ta').value = '';
+  setTimeout(() => document.getElementById('import-ta').focus(), 100);
+}
+function closeImport() { document.getElementById('import-overlay').classList.remove('open'); }
+
+function doImport() {
+  const raw = document.getElementById('import-ta').value.trim();
+  if (!raw) return;
+  const matches = raw.match(/[A-Za-z0-9+/]{20,}={0,2}/g);
+  if (!matches) { showFb('Kein gültiger Code gefunden', 'err'); return; }
+  try {
+    const data = fromBase64(matches[matches.length - 1]);
+    if (!data.stationId || !data.products) throw new Error('Ungültiges Format');
+    const station = STATIONS.find(s => s.id === data.stationId);
+    if (!station) throw new Error('Unbekannte Station: ' + data.stationId);
+    planData[data.stationId] = {
+      configured: true,
+      configuredAt: data.exportedAt || new Date().toISOString(),
+      products: data.products,
+      ziele: data.ziele || {}
+    };
+    saveAll(); closeImport(); renderAll();
+    showFb('✓ ' + station.name + ' importiert', 'ok');
+  } catch(e) { showFb('Fehler: ' + e.message, 'err'); }
+}
+
+function fromBase64(b64) {
+  const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+// ─── PRINT ────────────────────────────────────────────────────────────────────
+
+function printAll() {
+  const dateStr = new Date().toLocaleDateString('de-DE', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const DS = {0:'So',1:'Mo',2:'Di',3:'Mi',4:'Do',5:'Fr',6:'Sa'};
+  let body = '<style>.day-block{margin-bottom:18px;break-inside:avoid}.day-name{font-family:"Barlow Condensed",sans-serif;font-weight:900;font-size:13pt;text-transform:uppercase;border-bottom:1.5px solid #1a1a1a;padding-bottom:4px;margin-bottom:8px}.day-item{display:flex;gap:8px;padding:3px 0;border-bottom:1px solid #f0f0f0;font-size:9pt;align-items:center}.item-st{color:#aaa;min-width:82px;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:7pt;text-transform:uppercase;flex-shrink:0}.item-name{font-weight:700;flex:1}.item-z{font-size:7.5pt;color:#bbb;font-family:"Barlow Condensed",sans-serif;white-space:nowrap}</style>';
+  DAYS.forEach(d => {
+    let items = [];
+    STATIONS.forEach(s => s.products.forEach(p => {
+      if ((planData[s.id]?.products?.[p.key]||{})[String(d.idx)]) {
+        const z = planData[s.id]?.ziele?.[p.key];
+        items.push(`<span class="item-st">${s.name}</span><span class="item-name">${p.name}</span><span class="item-z">${z!==undefined?'→ bis '+DS[z]:''}</span>`);
+      }
+    }));
+    if (!items.length) return;
+    body += `<div class="day-block"><div class="day-name">${d.label}</div>${items.map(i=>`<div class="day-item">${i}</div>`).join('')}</div>`;
+  });
+  openPrint('Produktionsplan Gesamt', dateStr, body);
+}
+
+function printByStation() {
+  const dateStr = new Date().toLocaleDateString('de-DE', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const DS = {0:'So',1:'Mo',2:'Di',3:'Mi',4:'Do',5:'Fr',6:'Sa'};
+  let body = '<style>.sb{margin-bottom:24px;break-inside:avoid}.sh{font-family:"Barlow Condensed",sans-serif;font-weight:900;font-size:14pt;text-transform:uppercase;border-bottom:2px solid #1a1a1a;padding-bottom:5px;margin-bottom:10px}.pt{width:100%;border-collapse:collapse;font-size:8.5pt}.pt th{font-family:"Barlow Condensed",sans-serif;font-weight:900;text-transform:uppercase;font-size:7.5pt;padding:4px 4px;border-bottom:1.5px solid #ccc;text-align:center}.pt th.tn{text-align:left}.pt th.tz{text-align:right;font-size:7pt}.pt td{padding:3px 4px;border-bottom:1px solid #f4f4f4}.pt td.tn{font-weight:700}.pt td.tz{text-align:right;font-size:7pt;color:#bbb}.pt td.td{text-align:center;color:#ccc}.pt td.on{color:#1a1a1a;font-size:10pt}</style>';
+  STATIONS.forEach(s => {
+    let rows = '';
+    s.products.forEach(p => {
+      const pd = planData[s.id]?.products?.[p.key] || {};
+      if (!DAYS.some(d => pd[String(d.idx)])) return;
+      const z = planData[s.id]?.ziele?.[p.key];
+      rows += `<tr><td class="tn">${p.name}</td><td class="tz">${z!==undefined?'bis '+DS[z]:''}</td>${DAYS.map(d=>`<td class="${pd[String(d.idx)]?'td on':'td'}">${pd[String(d.idx)]?'🥐':''}</td>`).join('')}</tr>`;
+    });
+    if (!rows) return;
+    body += `<div class="sb"><div class="sh">${s.emoji} ${s.name}</div><table class="pt"><thead><tr><th class="tn">Produkt</th><th class="tz">Ziel</th>${DAYS.map(d=>`<th>${d.short}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  });
+  openPrint('Produktionsplan nach Station', dateStr, body);
+}
+
+function openPrint(title, dateStr, content) {
+  const html = `<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>BäckereiOS – ${title}</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@900&family=Barlow+Condensed:wght@400;700;800;900&family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
+<style>*{margin:0;padding:0;box-sizing:border-box}@page{size:A4 portrait;margin:15mm 18mm 18mm}body{font-family:'Barlow',sans-serif;background:#fff;color:#1a1a1a;font-size:10pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}@media print{.np{display:none!important}}@media screen{body{padding:24px;max-width:560px;margin:0 auto}}.ph{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:8px;border-bottom:2px solid #1a1a1a;margin-bottom:14px}.brand{font-family:'Fraunces',serif;font-weight:900;font-size:18pt}.brand span{font-style:italic}.meta{text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:7pt;color:#888;text-transform:uppercase;letter-spacing:1px}.meta strong{display:block;color:#1a1a1a;font-size:8.5pt}</style>
+</head><body>
+<div class="np" style="position:fixed;top:12px;right:12px"><button onclick="window.print()" style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:.85rem;background:#1a1a1a;color:#fff;border:none;padding:8px 16px;border-radius:7px;cursor:pointer">Drucken</button></div>
+<div class="ph"><div class="brand">Bäckerei<span>OS</span></div><div class="meta">${title.toUpperCase()}<strong>${dateStr}</strong></div></div>
+${content}
+<script>setTimeout(function(){window.print();},400);<\/script>
+</body></html>`;
+  const w = window.open('', '_blank'); w.document.write(html); w.document.close();
+}
+
+init();
+</script>
+
+<!-- Brain-Scripts für Batch-Berechnung (nach init, damit UI sofort erscheint) -->
+<script src="../feiertage_nds.js"></script>
+<script src="../produktions_gehirn.js"></script>
+<script src="../inventurdaten.js"></script>
+<script>
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/Planer/service-worker.js');
+</script>
+<script src="../shell.js"></script>
+</body>
+</html>

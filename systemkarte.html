@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BäckereiOS — Systemkarte</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Playfair+Display:ital,wght@0,400;0,900;1,300&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg:       #f7f4ef;
+  --ink:      #1a1612;
+  --paper:    #ffffff;
+  --border:   #e0d9d0;
+  --muted:    #9a9088;
+
+  --kern:     #b45309;    /* Stammdaten / Kern — warmes Braun */
+  --kern-bg:  #fffbf3;
+  --daten:    #0f766e;    /* Datenpipeline — Teal */
+  --daten-bg: #f0fdf9;
+  --tool:     #1d4ed8;    /* Werkzeuge — Blau */
+  --tool-bg:  #eff6ff;
+  --klein:    #7c3aed;    /* Kleinrechner — Lila */
+  --klein-bg: #faf5ff;
+  --lager:    #0369a1;    /* Lagersystem — Dunkelblau */
+  --lager-bg: #f0f9ff;
+  --brot:     #166534;    /* Brotrechner — Grün */
+  --brot-bg:  #f0fdf4;
+  --gimmick:  #64748b;    /* Nice-to-have */
+  --gimmick-bg: #f8fafc;
+
+  --mono:  'DM Mono', monospace;
+  --serif: 'Playfair Display', serif;
+  --sans:  'DM Sans', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* ── GRAIN OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── HEADER ── */
+.header {
+  max-width: 780px; margin: 0 auto;
+  padding: 56px 28px 40px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.eyebrow {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 4px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 16px;
+}
+h1 {
+  font-family: var(--serif);
+  font-size: clamp(2.2rem, 7vw, 3.6rem);
+  font-weight: 900; line-height: 0.95;
+  letter-spacing: -2px;
+}
+h1 em {
+  font-style: italic; font-weight: 300;
+  color: var(--kern);
+}
+.header-sub {
+  margin-top: 16px; font-size: 15px;
+  color: var(--muted); font-weight: 300;
+  line-height: 1.7; max-width: 520px;
+}
+.header-sub strong { color: var(--ink); font-weight: 600; }
+
+/* ── NAVIGATION PILLS ── */
+.nav-pills {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 24px;
+}
+.pill {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.5px; padding: 5px 12px;
+  border-radius: 20px; text-decoration: none;
+  border: 1.5px solid; transition: all 0.15s;
+  white-space: nowrap;
+}
+.pill:hover { transform: translateY(-1px); }
+
+/* ── MAIN ── */
+.main { max-width: 780px; margin: 0 auto; padding: 0 28px; }
+
+/* ── SECTION ── */
+.section { margin-top: 52px; }
+.section-eyebrow {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 3px; text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 6px;
+}
+.section-eyebrow::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.section-title {
+  font-family: var(--serif); font-size: clamp(1.4rem, 4vw, 2rem);
+  font-weight: 900; letter-spacing: -0.5px; line-height: 1.1;
+  margin-bottom: 6px;
+}
+.section-title em { font-style: italic; font-weight: 300; }
+.section-desc {
+  font-size: 13px; color: var(--muted); font-weight: 300;
+  line-height: 1.7; margin-bottom: 20px; max-width: 560px;
+}
+.section-desc strong { color: var(--ink); font-weight: 600; }
+
+/* ── DATEI-KARTE (große Kern-Datei) ── */
+.kern-karte {
+  border-radius: 16px;
+  border: 2px solid;
+  padding: 22px 24px;
+  margin-bottom: 12px;
+  position: relative; overflow: hidden;
+}
+.kern-karte::after {
+  content: '';
+  position: absolute; top: -40px; right: -40px;
+  width: 120px; height: 120px; border-radius: 50%;
+  opacity: 0.06;
+  background: currentColor;
+}
+.kk-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.kk-icon { font-size: 28px; }
+.kk-badge {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 20px; border: 1.5px solid;
+  white-space: nowrap;
+}
+.kk-name {
+  font-family: var(--mono); font-size: 14px; font-weight: 500;
+  margin-bottom: 4px;
+}
+.kk-desc {
+  font-size: 13px; line-height: 1.65; font-weight: 300;
+  color: #5a5550;
+}
+.kk-desc strong { font-weight: 600; color: var(--ink); }
+.kk-struct {
+  margin-top: 12px; padding: 10px 14px;
+  background: rgba(0,0,0,0.03); border-radius: 8px;
+  font-family: var(--mono); font-size: 11px; line-height: 1.8;
+  color: #7a7068;
+}
+.kk-struct span { color: var(--ink); }
+
+/* ── TOOL-GRID ── */
+.tool-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-top: 12px;
+}
+.tool-karte {
+  background: var(--paper); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 14px 16px;
+  position: relative; overflow: hidden;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.tool-karte:hover { transform: translateY(-2px); }
+.tool-karte::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.tk-icon { font-size: 20px; margin-bottom: 8px; }
+.tk-name {
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  margin-bottom: 4px; color: var(--ink);
+}
+.tk-file {
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  margin-bottom: 8px;
+}
+.tk-desc {
+  font-size: 12px; color: #7a7068; line-height: 1.55; font-weight: 300;
+}
+.tk-desc strong { color: var(--ink); font-weight: 600; }
+
+/* ── FLOW ── */
+.flow-block {
+  display: flex; align-items: stretch; gap: 0;
+  margin: 16px 0; overflow-x: auto;
+}
+.flow-step {
+  flex: 1; min-width: 120px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px; padding: 0 8px; position: relative;
+  text-align: center;
+}
+.flow-step + .flow-step::before {
+  content: '→'; position: absolute; left: -6px; top: 22px;
+  color: var(--muted); font-size: 16px;
+}
+.fs-box {
+  width: 48px; height: 48px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; border: 2px solid;
+}
+.fs-name { font-family: var(--mono); font-size: 10px; line-height: 1.3; }
+.fs-sub  { font-size: 10px; color: var(--muted); line-height: 1.3; }
+
+/* ── PFEIL ZWISCHEN SEKTIONEN ── */
+.zwischen {
+  text-align: center; padding: 20px 0 0;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--muted);
+}
+
+/* ── EINZELZEILE ── */
+.einzel {
+  background: var(--paper); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 14px 18px;
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 8px;
+  position: relative; overflow: hidden;
+}
+.einzel::before {
+  content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
+}
+.einzel-icon { font-size: 20px; flex-shrink: 0; }
+.einzel-name { font-family: var(--mono); font-size: 12px; font-weight: 500; }
+.einzel-desc { font-size: 12px; color: var(--muted); margin-top: 2px; font-weight: 300; }
+
+/* ── HIGHLIGHT BOX ── */
+.highlight-box {
+  border-radius: 12px; border: 1.5px dashed;
+  padding: 16px 20px; margin: 20px 0;
+  font-size: 13px; line-height: 1.7; font-weight: 300;
+}
+.highlight-box strong { font-weight: 600; }
+
+/* ── LEGENDE ── */
+.legende {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-top: 40px; padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.leg-item { display: flex; align-items: center; gap: 6px; }
+.leg-dot { width: 10px; height: 10px; border-radius: 50%; }
+.leg-label { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+
+/* ANIMATIONEN */
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.section { animation: fadeUp 0.4s ease both; }
+.section:nth-child(1) { animation-delay: 0.0s; }
+.section:nth-child(2) { animation-delay: 0.08s; }
+.section:nth-child(3) { animation-delay: 0.16s; }
+.section:nth-child(4) { animation-delay: 0.24s; }
+.section:nth-child(5) { animation-delay: 0.32s; }
+.section:nth-child(6) { animation-delay: 0.40s; }
+
+@media (max-width: 560px) {
+  .header, .main { padding-left: 18px; padding-right: 18px; }
+  .header { padding-top: 36px; }
+  .tool-grid { grid-template-columns: 1fr; }
+  .flow-block { min-width: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="eyebrow">■ BäckereiOS — vollständige Systemkarte</div>
+  <h1>Wie alles<br><em>zusammenhängt</em></h1>
+  <p class="header-sub">
+    Von der <strong>rohen Backzettel-Zahl</strong> bis zum
+    <strong>fertig geplanten Produktionstag</strong> — alle Teile, ihre Aufgaben, und warum sie so gebaut sind wie sie sind.
+  </p>
+  <div class="nav-pills">
+    <a class="pill" href="#kern" style="color:var(--kern);border-color:var(--kern);background:var(--kern-bg)">① Kern</a>
+    <a class="pill" href="#pipeline" style="color:var(--daten);border-color:var(--daten);background:var(--daten-bg)">② Datenpipeline</a>
+    <a class="pill" href="#werkzeuge" style="color:var(--tool);border-color:var(--tool);background:var(--tool-bg)">③ Werkzeuge</a>
+    <a class="pill" href="#brot" style="color:var(--brot);border-color:var(--brot);background:var(--brot-bg)">④ Brotrechner</a>
+    <a class="pill" href="#lager" style="color:var(--lager);border-color:var(--lager);background:var(--lager-bg)">⑤ BÄKO-Lager</a>
+    <a class="pill" href="#klein" style="color:var(--klein);border-color:var(--klein);background:var(--klein-bg)">⑥ Kleinrechner</a>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ══════════════════════════════════
+  ① KERN
+══════════════════════════════════ -->
+<div class="section" id="kern">
+  <div class="section-eyebrow" style="color:var(--kern)">① Kern</div>
+  <div class="section-title">Das <em>Herzstück</em></div>
+  <p class="section-desc">
+    Zwei Dateien stehen im Zentrum von allem. Alles andere liest sie, schreibt sie, oder baut auf ihnen auf.
+    <strong>Ohne sie läuft nichts.</strong>
+  </p>
+
+  <!-- stammdaten.js -->
+  <div class="kern-karte" style="color:var(--kern);border-color:#fcd34d;background:var(--kern-bg)">
+    <div class="kk-header">
+      <div class="kk-icon">📋</div>
+      <div class="kk-badge" style="color:var(--kern);border-color:#fcd34d">Kern-Datei</div>
+    </div>
+    <div class="kk-name">stammdaten.js</div>
+    <div class="kk-desc">
+      Die <strong>Sollmengen-Bibel</strong> der Backstube. Für jedes der 19 Froster-Produkte steht hier drin:
+      wie viel davon an welchem Wochentag gebraucht wird (in Blechen), auf welcher Station es läuft,
+      wie groß eine Charge ist, und ob es einen Grillwetter-Bonus gibt.
+      <br><br>
+      <strong>Früher</strong> wurden diese Werte händisch eingetragen — reines Bauchgefühl und Erfahrung.
+      <strong>Heute</strong> berechnet der AutoSync aus echten Backmengen-Daten automatisch realistische Durchschnitte
+      und schreibt die Datei neu.
+    </div>
+    <div class="kk-struct">
+      window.BOS_STAMMDATEN = &#123;<br>
+      &nbsp;&nbsp;"p1": &#123; name: <span>"Hasenpfoten"</span>, needs: <span>[14,14,14,14,16,30,23]</span>,<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;batchSize: <span>12</span>, station: <span>"Brötchenstraße"</span>, sun: <span>0</span> &#125;<br>
+      &#125;
+    </div>
+  </div>
+
+  <!-- backmengen_db.json -->
+  <div class="kern-karte" style="color:var(--daten);border-color:#5eead4;background:var(--daten-bg)">
+    <div class="kk-header">
+      <div class="kk-icon">🗄️</div>
+      <div class="kk-badge" style="color:var(--daten);border-color:#5eead4">Kern-Datei</div>
+    </div>
+    <div class="kk-name">backmengen_db.json</div>
+    <div class="kk-desc">
+      Das <strong>Gedächtnis der Backstube</strong>. Jeden Tag kommt ein neuer Eintrag hinzu — was wurde produziert,
+      wie war das Wetter, waren Ferien, gab es Besonderheiten.
+      Aus dieser wachsenden Datenbank berechnet der AutoSync die Sollmengen für stammdaten.js.
+      <br><br>
+      Sie ist das Fundament der datengetriebenen Planung.
+      <strong>Je mehr Einträge, desto zuverlässiger werden alle Auswertungen.</strong>
+    </div>
+    <div class="kk-struct">
+      &#123; datum: <span>"2026-03-13"</span>, wochentag: <span>"Freitag"</span>,<br>
+      &nbsp;&nbsp;kontext: &#123; wetter: <span>"sonnig"</span>, temperatur: <span>17</span>, ferien: <span>false</span> &#125;,<br>
+      &nbsp;&nbsp;produkte: &#123; hasenberger_stueck: <span>969</span>, ... &#125; &#125;
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+  ② DATENPIPELINE
+══════════════════════════════════ -->
+<div class="section" id="pipeline">
+  <div class="section-eyebrow" style="color:var(--daten)">② Datenpipeline</div>
+  <div class="section-title">Vom <em>Backzettel</em><br>zur Planung</div>
+  <p class="section-desc">
+    So fließen rohe Produktionsdaten in kalibrierte Sollwerte um.
+    Der Weg dauert Monate — aber er läuft <strong>automatisch</strong> sobald er einmal aufgebaut ist.
+  </p>
+
+  <!-- FLOW -->
+  <div class="flow-block">
+    <div class="flow-step">
+      <div class="fs-box" style="color:var(--daten);border-color:var(--daten);background:var(--daten-bg)">📸</div>
+      <div class="fs-name">Foto +<br>Gemini</div>
+      <div class="fs-sub">5 Prompts<br>pro Tag</div>
+    </div>
+    <div class="flow-step">
+      <div class="fs-box" style="color:var(--daten);border-color:var(--daten);background:var(--daten-bg)">📊</div>
+      <div class="fs-name">Datenbank<br>Manager</div>
+      <div class="fs-sub">JSON prüfen<br>+ speichern</div>
+    </div>
+    <div class="flow-step">
+      <div class="fs-box" style="color:var(--daten);border-color:#5eead4;background:var(--daten-bg)">🗄️</div>
+      <div class="fs-name">backmengen<br>_db.json</div>
+      <div class="fs-sub">wächst<br>täglich</div>
+    </div>
+    <div class="flow-step">
+      <div class="fs-box" style="color:var(--kern);border-color:var(--kern);background:var(--kern-bg)">⚙️</div>
+      <div class="fs-name">AutoSync<br>(alle paar Wo.)</div>
+      <div class="fs-sub">Ø berechnen<br>+ filtern</div>
+    </div>
+    <div class="flow-step">
+      <div class="fs-box" style="color:var(--kern);border-color:#fcd34d;background:var(--kern-bg)">📋</div>
+      <div class="fs-name">stammdaten<br>.js</div>
+      <div class="fs-sub">neue<br>Sollwerte</div>
+    </div>
+  </div>
+
+  <div class="tool-grid">
+    <div class="tool-karte" style="border-color:#5eead4">
+      <div class="tool-karte::before" style="background:var(--daten)"></div>
+      <style>.tk-db::before{background:var(--daten)!important}</style>
+      <div class="tk-db tool-karte" style="border:none;padding:0;background:transparent">
+        <div class="tk-icon">📸</div>
+        <div class="tk-name">Datenbank Manager</div>
+        <div class="tk-file">datenbank_manager.html</div>
+        <div class="tk-desc">Backzettel-Fotos per Gemini einlesen. Wetter + Ferien kommen automatisch. <strong>Sondertag</strong> oder <strong>Anlagenausfall</strong> per Haken markieren.</div>
+      </div>
+    </div>
+    <div class="tool-karte">
+      <div class="tk-icon">⚙️</div>
+      <div class="tk-name">Stammdaten AutoSync</div>
+      <div class="tk-file">stammdaten_autosync.html</div>
+      <div class="tk-desc">Liest DB, filtert Ausreißer, berechnet Ø pro Wochentag. Charge korrigierbar. Erzeugt <strong>stammdaten.js</strong> zum Download.</div>
+    </div>
+    <div class="tool-karte">
+      <div class="tk-icon">📈</div>
+      <div class="tk-name">Verbrauchsschablone</div>
+      <div class="tk-file">schablone.html</div>
+      <div class="tk-desc">Zeigt Ø Backmengen nach Zeitraum und Wochentag. <strong>Für alle</strong> zugänglich — schneller Überblick ohne Admin.</div>
+    </div>
+    <div class="tool-karte">
+      <div class="tk-icon">🌤️</div>
+      <div class="tk-name">Wetteranalyse</div>
+      <div class="tk-file">wetter_analyse.html</div>
+      <div class="tk-desc">Regentag vs. Sonnentag — welche Produkte laufen bei welchem Wetter? Differenz pro Produkt. <strong>Wird wertvoller mit mehr Daten.</strong></div>
+    </div>
+    <div class="tool-karte">
+      <div class="tk-icon">📖</div>
+      <div class="tk-name">14-Tage Logbuch</div>
+      <div class="tk-file">14_tage_logbuch.html</div>
+      <div class="tk-desc">Tagesgenaue Rückschau auf die letzten 2 Wochen. Kleiner, schneller Überblick ohne Konfiguration.</div>
+    </div>
+    <div class="tool-karte">
+      <div class="tk-icon">🚩</div>
+      <div class="tk-name">Ausreißer-Protokoll</div>
+      <div class="tk-file">flag_statistik.html</div>
+      <div class="tk-desc">Welche Mengen wurden beim Einlesen als verdächtig markiert? Hilft <strong>Erfassungsfehler</strong> systematisch aufzudecken.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+  ③ WERKZEUGE (die Stammdaten nutzen)
+══════════════════════════════════ -->
+<div class="section" id="werkzeuge">
+  <div class="section-eyebrow" style="color:var(--tool)">③ Werkzeuge</div>
+  <div class="section-title">Die tägliche <em>Planung</em></div>
+  <p class="section-desc">
+    Diese Tools lesen <strong>stammdaten.js</strong> und machen daraus konkrete Arbeitsanweisungen.
+    Sie sind der eigentliche Nutzen der ganzen Pipeline.
+  </p>
+
+  <div class="highlight-box" style="color:var(--tool);border-color:#bfdbfe;background:#eff6ff">
+    <strong>Abhängigkeit:</strong> Planer, Froster und Schnellrechner lesen alle <code>window.BOS_STAMMDATEN</code>.
+    Wenn der AutoSync neue Sollwerte berechnet und stammdaten.js aktualisiert wird,
+    rechnen alle drei Tools automatisch mit den neuen Zahlen — ohne Anpassung.
+  </div>
+
+  <div class="tool-grid" style="margin-top:16px">
+    <div class="tool-karte" style="border-color:#bfdbfe;grid-column:span 2">
+      <div class="tk-icon">🎯</div>
+      <div class="tk-name">Planer (PlanungsAssistent)</div>
+      <div class="tk-file">planer.html + froster_gehirn.js</div>
+      <div class="tk-desc">
+        Das Herzstück der täglichen Vorbereitung. Gibt ein was noch im Froster liegt —
+        das <strong>froster_gehirn.js</strong> berechnet automatisch was produziert werden muss:
+        Tagesbedarf aus stammdaten.js minus Froster-Bestand = Produktion heute.
+        Berücksichtigt Wochentag, Station, Charge und Grillwetter-Bonus.
+      </div>
+    </div>
+    <div class="tool-karte" style="border-color:#bfdbfe">
+      <div class="tk-icon">🧮</div>
+      <div class="tk-name">Schnellrechner</div>
+      <div class="tk-file">schnellrechner.html</div>
+      <div class="tk-desc">Einzelprodukt schnell nachrechnen. Liest Produktliste aus stammdaten.js.</div>
+    </div>
+    <div class="tool-karte" style="border-color:#bfdbfe">
+      <div class="tk-icon">❄️</div>
+      <div class="tk-name">Frosterliste</div>
+      <div class="tk-file">frosterliste.html</div>
+      <div class="tk-desc">Druckvorlage A4 für die physische Lagerübersicht. Alle Froster-Produkte auf einem Blatt.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+  ④ BROTRECHNER (eigenständig)
+══════════════════════════════════ -->
+<div class="section" id="brot">
+  <div class="section-eyebrow" style="color:var(--brot)">④ Brotrechner</div>
+  <div class="section-title"><em>Eigenständig</em> —<br>kein Stammdaten-Bezug</div>
+  <p class="section-desc">
+    Das Brot-System läuft komplett unabhängig von stammdaten.js.
+    Es hat seine eigenen Datendateien und seine eigene Logik.
+    <strong>Früher war Sauerteig-Berechnung ein täglicher Krampf</strong> — das löst dieses Subsystem.
+  </p>
+
+  <div class="einzel" style="border-color:#bbf7d0">
+    <div class="einzel::before" style="background:var(--brot)"></div>
+    <div class="einzel-icon">🍞</div>
+    <div>
+      <div class="einzel-name">brot_rechner.html</div>
+      <div class="einzel-desc">Zwei Wege: "ich weiß was ich brauche" oder "ich habe fertige Eimer". Berechnet Sauerteig, Vorteig, Zutaten.</div>
+    </div>
+  </div>
+  <div class="einzel" style="border-color:#bbf7d0">
+    <div class="einzel-icon">🌾</div>
+    <div>
+      <div class="einzel-name">sauerteig_rechner.html</div>
+      <div class="einzel-desc">Gezielter Sauerteig- und Vorteig-Rechner für die Nachtschicht.</div>
+    </div>
+  </div>
+  <div class="einzel" style="border-color:#bbf7d0">
+    <div class="einzel-icon">🧠</div>
+    <div>
+      <div class="einzel-name">brot_daten.js + brot_gehirn.js</div>
+      <div class="einzel-desc">Rezepte, Mengenverhältnisse und Berechnungslogik — das Admin-Gegenstück zum Brotrechner.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+  ⑤ BÄKO-LAGERSYSTEM
+══════════════════════════════════ -->
+<div class="section" id="lager">
+  <div class="section-eyebrow" style="color:var(--lager)">⑤ BÄKO-Lagersystem</div>
+  <div class="section-title">Externe <em>Ware</em> im Griff</div>
+  <p class="section-desc">
+    Für alles was von BÄKO kommt — Teiglinge, Zutaten, Verpackung.
+    <strong>Mittwochs und freitags</strong> wird gezählt, der Rest läuft automatisch.
+    Eigenständiges System mit eigener Datenbasis.
+  </p>
+
+  <div class="highlight-box" style="color:var(--lager);border-color:#bae6fd;background:#f0f9ff">
+    <strong>Cleverer Trick:</strong> Die Bestellung geht per WhatsApp — im Text steckt ein unsichtbarer
+    BOS-SNAP Code mit allen Daten. Du fügst die Nachricht in den Import ein, und die Geschichte wächst automatisch.
+    Mitarbeiter brauchen keinen GitHub-Zugang.
+  </div>
+
+  <div class="tool-grid">
+    <div class="tool-karte" style="border-color:#bae6fd">
+      <div class="tk-icon">📱</div>
+      <div class="tk-name">Lager zählen</div>
+      <div class="tk-file">lager_inventur.html</div>
+      <div class="tk-desc"><strong>Mitarbeiter.</strong> Bestände eingeben, Lieferung dazu. Feiertag-Haken erhöht Soll automatisch.</div>
+    </div>
+    <div class="tool-karte" style="border-color:#bae6fd">
+      <div class="tk-icon">📋</div>
+      <div class="tk-name">Bestellvorschlag</div>
+      <div class="tk-file">lager_auswertung.html</div>
+      <div class="tk-desc">Was muss bestellt werden? Berechnung automatisch. <strong>WhatsApp</strong> mit verstecktem BOS-SNAP Code.</div>
+    </div>
+    <div class="tool-karte" style="border-color:#bae6fd">
+      <div class="tk-icon">📥</div>
+      <div class="tk-name">WhatsApp-Import</div>
+      <div class="tk-file">baeko_historie_import.html</div>
+      <div class="tk-desc"><strong>Chef.</strong> Nachricht reinkopieren → Code extrahiert → baeko_historie.js wächst.</div>
+    </div>
+    <div class="tool-karte" style="border-color:#bae6fd">
+      <div class="tk-icon">📈</div>
+      <div class="tk-name">Verbrauchsanalyse</div>
+      <div class="tk-file">baeko_lager_analyse.html</div>
+      <div class="tk-desc">Verbrauch vs. Soll über Zeit. <strong>Braucht min. 2 Zählungen.</strong> Wird mit jeder Woche wertvoller.</div>
+    </div>
+  </div>
+
+  <p class="section-desc" style="margin-top:14px">
+    Datenbasis: <code>baeko_bestand.js</code> (Stammdaten, Sollmengen) ·
+    <code>baeko_historie.js</code> (Verlauf) · <code>lager_gehirn.js</code> (Berechnungslogik)
+  </p>
+</div>
+
+<!-- ══════════════════════════════════
+  ⑥ KLEINRECHNER
+══════════════════════════════════ -->
+<div class="section" id="klein">
+  <div class="section-eyebrow" style="color:var(--klein)">⑥ Kleinrechner</div>
+  <div class="section-title">Spezial-<em>werkzeuge</em></div>
+  <p class="section-desc">
+    Eigenständige Helfer für spezifische Aufgaben. Klein, schnell, kein großer Datenfluss.
+  </p>
+
+  <div class="einzel" style="border-color:#ddd6fe">
+    <div class="einzel-icon">🥐</div>
+    <div>
+      <div class="einzel-name">blechrechner.html</div>
+      <div class="einzel-desc">HasenBerger & KornKnacker — Kreuzrechnung Pressen ↔ Bleche. Liest baeko_bestand.js + lager_gehirn.js.</div>
+    </div>
+  </div>
+  <div class="einzel" style="border-color:#ddd6fe">
+    <div class="einzel-icon">🥐</div>
+    <div>
+      <div class="einzel-name">croissant_rechner.html</div>
+      <div class="einzel-desc">Croissant-Absetzen mit Druckfunktion als Arbeitsauftrag. Liest baeko_bestand.js + lager_gehirn.js.</div>
+    </div>
+  </div>
+  <div class="einzel" style="border-color:#ddd6fe">
+    <div class="einzel-icon">🔥</div>
+    <div>
+      <div class="einzel-name">ofenangriff.html</div>
+      <div class="einzel-desc">Backprogramm-Planer. Liest ofenangriff.js (Backprogramme + Notizen).</div>
+    </div>
+  </div>
+
+  <!-- LEGENDE -->
+  <div class="legende">
+    <div class="leg-item"><div class="leg-dot" style="background:var(--kern)"></div><div class="leg-label">Kern-Dateien</div></div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--daten)"></div><div class="leg-label">Datenpipeline</div></div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--tool)"></div><div class="leg-label">Planungs-Werkzeuge</div></div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--brot)"></div><div class="leg-label">Brot-System</div></div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--lager)"></div><div class="leg-label">BÄKO-Lager</div></div>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--klein)"></div><div class="leg-label">Kleinrechner</div></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</body>
+</html>

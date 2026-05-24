@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wissen & Kurioses | BäckereiOS</title>
+    <link rel="stylesheet" href="../systemdesign.css">
+    <script src="../zitate.js"></script>
+    <script>
+        (function() {
+            try { document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light'); } catch(e) {}
+        })();
+    </script>
+    <style>
+        body { padding-bottom: 80px; }
+        .page-wrap { max-width: 600px; margin: 0 auto; padding: 20px 16px; }
+
+        .quote-card {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-left: 4px solid var(--amber);
+            border-radius: 16px;
+            padding: 20px 18px 16px;
+            margin-bottom: 28px;
+            box-shadow: 0 4px 18px var(--shadow);
+        }
+        .quote-text {
+            font-family: 'Fraunces', serif;
+            font-size: 1.05rem; font-weight: 300; font-style: italic;
+            color: var(--text); line-height: 1.6;
+            transition: opacity 0.4s ease;
+        }
+        .quote-text.fade { opacity: 0; }
+        .quote-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+        .quote-source {
+            font-family: 'Barlow Condensed'; font-weight: 800; font-size: 0.68rem;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--amber);
+        }
+        .quote-nav { display: flex; gap: 8px; align-items: center; }
+        .quote-btn {
+            background: var(--surface2); border: 1.5px solid var(--border);
+            color: var(--dim); width: 32px; height: 32px;
+            border-radius: 9px; font-size: 0.9rem; cursor: pointer;
+            transition: 0.2s; display: flex; align-items: center; justify-content: center;
+        }
+        .quote-btn:hover { border-color: var(--amber); color: var(--amber); }
+        .quote-auto {
+            background: transparent; border: none; color: var(--dim);
+            font-family: 'Barlow Condensed'; font-weight: 700; font-size: 0.68rem;
+            letter-spacing: 1px; padding: 5px 10px; border-radius: 8px; cursor: pointer; transition: 0.2s;
+        }
+        .quote-auto.active { color: var(--amber); background: rgba(192,122,16,0.08); }
+        .quote-dots { display: flex; gap: 5px; justify-content: center; margin-top: 12px; }
+        .q-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); transition: 0.3s; }
+        .q-dot.active { background: var(--amber); width: 16px; border-radius: 3px; }
+
+        .section-label {
+            font-family: 'Barlow Condensed'; font-weight: 900; font-size: 0.72rem;
+            letter-spacing: 1.5px; text-transform: uppercase; color: var(--amber); margin-bottom: 12px;
+        }
+        .topic-list { display: flex; flex-direction: column; gap: 10px; }
+        .topic-row {
+            display: flex; align-items: center; gap: 14px;
+            background: var(--surface); border: 1.5px solid var(--border);
+            border-radius: 14px; padding: 14px 16px;
+            text-decoration: none; color: var(--text);
+            transition: border-color 0.2s, transform 0.15s;
+        }
+        .topic-row:hover, .topic-row:active { border-color: var(--amber); transform: translateX(3px); }
+        .topic-row.featured { border-color: var(--amber); background: linear-gradient(135deg, var(--surface), rgba(192,122,16,0.04)); }
+        .topic-icon {
+            font-size: 1.6rem; width: 44px; height: 44px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--surface2); border-radius: 10px; flex-shrink: 0;
+        }
+        .topic-body { flex: 1; }
+        .topic-name {
+            font-family: 'Barlow Condensed'; font-weight: 900; font-size: 1.05rem;
+            text-transform: uppercase; letter-spacing: 0.5px; color: var(--text);
+        }
+        .topic-desc { font-size: 0.8rem; color: var(--dim); margin-top: 2px; line-height: 1.3; }
+        .topic-tag { font-family: 'Barlow Condensed'; font-size: 0.65rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--amber); margin-top: 4px; }
+        .topic-arrow { color: var(--amber); font-size: 1rem; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+    <div class="page-wrap">
+
+        <div class="quote-card" id="quote-card-el">
+            <div class="quote-text" id="quote-text">Lade Zitat...</div>
+            <div class="quote-meta">
+                <div>
+                    <div class="quote-source">Backstuben-Weisheiten</div>
+                    <button class="quote-auto" id="auto-btn" onclick="toggleAuto()">⏱ AUTO</button>
+                </div>
+                <div class="quote-nav">
+                    <button class="quote-btn" onclick="prevQuote()">&#8592;</button>
+                    <button class="quote-btn" onclick="nextQuote()">&#8594;</button>
+                </div>
+            </div>
+            <div class="quote-dots" id="quote-dots"></div>
+        </div>
+
+        <div class="section-label">Wissens-Bereiche</div>
+        <div class="topic-list">
+
+            <a href="azubi_meisterhaft.html" class="topic-row featured">
+                <div class="topic-icon">🧠</div>
+                <div class="topic-body">
+                    <div class="topic-name">MeisterWissen</div>
+                    <div class="topic-desc">Rohstoffe, Backtriebmittel, Chemie & typische Fehler — die Wissensdatenbank.</div>
+                    <div class="topic-tag">Datenbank</div>
+                </div>
+                <div class="topic-arrow">▶</div>
+            </a>
+
+            <a href="history.html" class="topic-row">
+                <div class="topic-icon">📜</div>
+                <div class="topic-body">
+                    <div class="topic-name">Chronik</div>
+                    <div class="topic-desc">Die Geschichte des Bäckerhandwerks auf einem Zeitstrahl.</div>
+                    <div class="topic-tag">Zeitstrahl</div>
+                </div>
+                <div class="topic-arrow">▶</div>
+            </a>
+
+            <a href="mythen.html" class="topic-row">
+                <div class="topic-icon">🎭</div>
+                <div class="topic-body">
+                    <div class="topic-name">Mythen & Fakten</div>
+                    <div class="topic-desc">Populäre Irrtümer rund ums Backen — aufgeklärt.</div>
+                    <div class="topic-tag">Richtig vs. Falsch</div>
+                </div>
+                <div class="topic-arrow">▶</div>
+            </a>
+
+            <a href="pausen_snacks.html" class="topic-row">
+                <div class="topic-icon">🥨</div>
+                <div class="topic-body">
+                    <div class="topic-name">Snacks & Kurioses</div>
+                    <div class="topic-desc">Skurrile Fakten und Trivia für die Pause.</div>
+                    <div class="topic-tag">Trivia</div>
+                </div>
+                <div class="topic-arrow">▶</div>
+            </a>
+
+        </div>
+    </div>
+
+    <script>
+    var quotes = (typeof QUOTES !== 'undefined') ? QUOTES : ['Ohne Brot ist alles nichts.'];
+    var currentIdx = 0, autoMode = false, autoTimer = null, DOT_COUNT = 7;
+
+    function buildDots() {
+        var wrap = document.getElementById('quote-dots'); wrap.innerHTML = '';
+        for (var i = 0; i < DOT_COUNT; i++) {
+            var d = document.createElement('div'); d.className = 'q-dot'; wrap.appendChild(d);
+        }
+    }
+    function updateDots() {
+        var dots = document.querySelectorAll('.q-dot');
+        var segment = Math.floor(currentIdx / quotes.length * DOT_COUNT);
+        dots.forEach(function(d, i) { d.classList.toggle('active', i === segment); });
+    }
+    function showQuote(idx) {
+        var el = document.getElementById('quote-text');
+        el.classList.add('fade');
+        setTimeout(function() { el.textContent = quotes[idx]; el.classList.remove('fade'); updateDots(); }, 350);
+    }
+    function nextQuote() { currentIdx = (currentIdx + 1) % quotes.length; showQuote(currentIdx); }
+    function prevQuote() { currentIdx = (currentIdx - 1 + quotes.length) % quotes.length; showQuote(currentIdx); }
+    function toggleAuto() {
+        autoMode = !autoMode;
+        var btn = document.getElementById('auto-btn');
+        btn.classList.toggle('active', autoMode);
+        btn.textContent = autoMode ? '⏸ AUTO' : '⏱ AUTO';
+        if (autoMode) { autoTimer = setInterval(nextQuote, 6000); } else { clearInterval(autoTimer); }
+    }
+    var touchStartX = 0;
+    document.getElementById('quote-card-el').addEventListener('touchstart', function(e) { touchStartX = e.touches[0].clientX; }, {passive:true});
+    document.getElementById('quote-card-el').addEventListener('touchend', function(e) {
+        var diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 40) { if (diff > 0) nextQuote(); else prevQuote(); }
+    }, {passive:true});
+    window.onload = function() {
+        currentIdx = Math.floor(Math.random() * quotes.length);
+        document.getElementById('quote-text').textContent = quotes[currentIdx];
+        buildDots(); updateDots();
+        setTimeout(toggleAuto, 3000);
+    };
+    </script>
+    <script src="../shell.js"></script>
+</body>
+</html>

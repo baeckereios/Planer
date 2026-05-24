@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Froster-Bestand – BäckereiOS</title>
+    <script>
+        (function() {
+            try { document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light'); }
+            catch(e) { document.documentElement.setAttribute('data-theme', 'light'); }
+        })();
+    </script>
+    <link rel="stylesheet" href="../systemdesign.css">
+    <script src="../produktions_gehirn.js"></script>
+    <script src="../inventurdaten.js" defer></script>
+
+    <style>
+        body {
+            background: var(--bg);
+            padding-bottom: 60px;
+            margin: 0;
+        }
+
+        /* ── ZEITSTEMPEL-BOX ── */
+        .ts-box {
+            max-width: 480px; margin: 18px auto 0;
+            padding: 0 16px;
+        }
+        .ts-card {
+            background: var(--surface);
+            border: 1.5px solid var(--border-s);
+            border-radius: 14px;
+            padding: 13px 16px;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+        .ts-label {
+            font-family: 'Barlow Condensed'; font-weight: 900;
+            font-size: 0.7rem; text-transform: uppercase;
+            letter-spacing: 1.5px; color: var(--dim); margin-bottom: 3px;
+        }
+        .ts-value {
+            font-family: 'Fraunces', serif; font-weight: 700;
+            font-size: 1.05rem; color: var(--text);
+        }
+        .ts-age {
+            font-family: 'Barlow Condensed'; font-size: 0.78rem;
+            font-weight: 700; color: var(--dim); margin-top: 2px;
+        }
+        .ts-age.warn { color: #c94a4a; }
+        .ts-kein {
+            font-family: 'Barlow Condensed'; font-weight: 800;
+            font-size: 0.9rem; color: #c94a4a;
+        }
+
+        /* ── LISTE ── */
+        .list-wrap {
+            max-width: 480px; margin: 16px auto 0;
+            padding: 0 16px;
+            display: flex; flex-direction: column; gap: 7px;
+        }
+
+        .zeile {
+            background: var(--surface);
+            border: 1.5px solid var(--border-s);
+            border-radius: 12px;
+            padding: 11px 14px;
+            display: flex; align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            box-shadow: 0 1px 4px var(--shadow);
+        }
+        .zeile.kein-data {
+            opacity: 0.45;
+            border-style: dashed;
+        }
+
+        .zeile-name {
+            font-family: 'Barlow Condensed'; font-weight: 800;
+            font-size: 0.95rem; text-transform: uppercase;
+            letter-spacing: 0.3px; color: var(--text);
+            flex: 1; min-width: 0;
+        }
+        .zeile-name.kein-data { color: var(--dim); }
+
+        .zeile-menge {
+            font-family: 'Fraunces', serif; font-weight: 900;
+            font-size: 1.15rem; white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .zeile-menge.positiv { color: var(--text); }
+        .zeile-menge.null    { color: var(--dim); }
+        .zeile-menge.negativ { color: #c94a4a; }
+        .zeile-menge.unbekannt {
+            font-family: 'Barlow Condensed'; font-size: 0.82rem;
+            font-weight: 700; color: var(--amber); letter-spacing: 0.3px;
+            font-style: italic; opacity: 0.7;
+        }
+
+        .einheit {
+            font-family: 'Barlow Condensed'; font-weight: 700;
+            font-size: 0.75rem; color: var(--dim); margin-left: 3px;
+        }
+
+        /* ── LADEANIMATION ── */
+        .lade-hint {
+            text-align: center; padding: 40px 20px;
+            font-family: 'Barlow Condensed'; font-size: 0.9rem;
+            font-weight: 700; color: var(--dim); letter-spacing: 1px;
+        }
+        .lade-hint .spin {
+            display: inline-block; animation: spin 1s linear infinite;
+            font-size: 1.4rem; margin-bottom: 10px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── VERALTET-BANNER ── */
+        .stale-banner {
+            display: none;
+            max-width: 480px; margin: 14px auto 0;
+            padding: 0 16px;
+        }
+        .stale-banner.aktiv { display: block; }
+        .stale-banner-inner {
+            background: #b91c1c;
+            border-radius: 14px;
+            padding: 16px 18px;
+            display: flex; gap: 14px; align-items: flex-start;
+        }
+        .stale-banner-icon { font-size: 1.8rem; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+        .stale-banner-text {}
+        .stale-banner-titel {
+            font-family: 'Barlow Condensed'; font-weight: 900;
+            font-size: 1rem; letter-spacing: 1px; text-transform: uppercase;
+            color: #fff; margin-bottom: 4px;
+        }
+        .stale-banner-sub {
+            font-family: 'Barlow Condensed'; font-weight: 700;
+            font-size: 0.82rem; color: rgba(255,255,255,0.82);
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+<div style="text-align:center; padding: 22px 16px 6px;">
+    <div style="font-size:2rem; line-height:1; margin-bottom:6px;">❄️</div>
+    <div style="font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.6rem; letter-spacing:2px; text-transform:uppercase; color:var(--text);">Froster<span style="color:var(--amber);">Bestand</span></div>
+</div>
+
+<div class="ts-box" id="ts-box">
+    <div class="ts-card">
+        <div class="ts-label">Letzte Zählung</div>
+        <div class="ts-kein" id="ts-value">Wird geladen…</div>
+    </div>
+</div>
+
+<div class="stale-banner" id="stale-banner">
+    <div class="stale-banner-inner">
+        <div class="stale-banner-icon">⚠️</div>
+        <div class="stale-banner-text">
+            <div class="stale-banner-titel">Zählung veraltet</div>
+            <div class="stale-banner-sub" id="stale-banner-sub">Diese Bestände spiegeln nicht den aktuellen Stand wider.</div>
+        </div>
+    </div>
+</div>
+
+<div class="list-wrap" id="list-wrap">
+    <div class="lade-hint">
+        <div class="spin">⏳</div><br>Lade Bestände…
+    </div>
+</div>
+
+<script>
+var retries = 0;
+
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+function formatTs(ts) {
+    var d = new Date(ts);
+    var TAGE = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    return TAGE[d.getDay()] + ', '
+        + pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.' + d.getFullYear()
+        + ' – ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' Uhr';
+}
+
+function formatAlter(ms) {
+    var h = ms / 3600000;
+    if (h < 1) return Math.round(h * 60) + ' Min. her';
+    if (h < 24) return Math.floor(h) + ' Std. her';
+    return Math.floor(h / 24) + ' Tage her';
+}
+
+async function render() {
+    // Warten bis BOS_GEHIRN verfügbar ist (wie in bestandsuebersicht.html)
+    if (!window.BOS_GEHIRN) {
+        retries++;
+        if (retries < 40) { setTimeout(render, 100); return; }
+        document.getElementById('list-wrap').innerHTML =
+            '<div class="lade-hint">⚠ Skripte nicht geladen.<br>Bitte Seite neu laden.</div>';
+        return;
+    }
+
+    const ok = await window.BOS_GEHIRN.init();
+    if (!ok || !window.BOS_STAMMDATEN) {
+        document.getElementById('list-wrap').innerHTML =
+            '<div class="lade-hint">⚠ Stammdaten nicht verfügbar.<br>Bitte Seite neu laden.</div>';
+        return;
+    }
+
+    if (!window.BOS_INVENTUR) {
+        document.getElementById('ts-box').querySelector('.ts-card').innerHTML =
+            '<div class="ts-label">Letzte Zählung</div>' +
+            '<div class="ts-kein">Keine Inventurdaten vorhanden</div>';
+        document.getElementById('list-wrap').innerHTML =
+            '<div class="lade-hint">Noch keine Inventur erfasst.<br>Bitte erst zählen.</div>';
+        return;
+    }
+
+    var stamm  = window.BOS_STAMMDATEN;
+    var inv    = window.BOS_INVENTUR;
+    var prods  = inv.products || {};
+    var stocks = inv.stocks   || {};
+
+    // ── Neuesten Gesamt-Timestamp ermitteln ──────────────────
+    var maxTs = 0;
+    for (var k in prods) {
+        if ((prods[k].ts || 0) > maxTs) maxTs = prods[k].ts;
+    }
+
+    // ── Zeitstempel-Box befüllen ─────────────────────────────
+    var tsEl  = document.getElementById('ts-value');
+    var tsBox = document.getElementById('ts-box').querySelector('.ts-card');
+    if (maxTs > 0) {
+        var alter = Date.now() - maxTs;
+        var warnCls = alter > 86400000 ? ' warn' : '';
+        tsBox.innerHTML =
+            '<div class="ts-label">Letzte Zählung</div>' +
+            '<div class="ts-value">' + formatTs(maxTs) + '</div>' +
+            '<div class="ts-age' + warnCls + '">' + formatAlter(alter) + '</div>';
+
+        // Banner einblenden wenn >24h
+        if (alter > 86400000) {
+            var h = Math.floor(alter / 3600000);
+            document.getElementById('stale-banner-sub').textContent =
+                'Die letzte Zählung liegt ' + h + ' Stunden zurück. ' +
+                'Diese Werte sind möglicherweise nicht mehr aktuell.';
+            document.getElementById('stale-banner').classList.add('aktiv');
+        }
+    } else {
+        tsBox.innerHTML =
+            '<div class="ts-label">Letzte Zählung</div>' +
+            '<div class="ts-kein">Keine Inventurdaten vorhanden</div>';
+    }
+
+    // ── Produkt-Liste aufbauen ────────────────────────────────
+    var zeilen = [];
+
+    var stammKeys = Object.keys(stamm);
+    for (var i = 0; i < stammKeys.length; i++) {
+        var sid = stammKeys[i];
+        var p   = stamm[sid];
+
+        // Nur inventurrelevante Produkte
+        if (!p.inventurRelevant) continue;
+
+        var lk   = p.legacyKey || sid;
+        var name = p.name || sid;
+
+        // Bestand ermitteln — nur ts > 0 gilt als gezählt
+        var menge = null;
+        if (prods[lk] && prods[lk].ts && prods[lk].ts > 0) {
+            var pd = prods[lk];
+            if (pd.stock !== undefined) {
+                menge = pd.stock;
+            } else if (pd.locs && pd.locs.length > 0) {
+                menge = pd.locs.reduce(function(a,b){return a+b;}, 0);
+            }
+            // ts > 0 aber weder stock noch locs → null bleibt
+        }
+        // KEIN stocks-Fallback: ts:0 = nicht gezählt, egal was stocks enthält
+
+        zeilen.push({ name: name, menge: menge });
+    }
+
+    // ── Sortierung: gezählt (hoch→niedrig→negativ), ungezählt ans Ende ──
+    zeilen.sort(function(a, b) {
+        if (a.menge === null && b.menge === null) return a.name.localeCompare(b.name);
+        if (a.menge === null) return 1;
+        if (b.menge === null) return -1;
+        return b.menge - a.menge;
+    });
+
+    // ── DOM rendern ──────────────────────────────────────────
+    var wrap = document.getElementById('list-wrap');
+    wrap.innerHTML = '';
+
+    if (zeilen.length === 0) {
+        wrap.innerHTML = '<div class="lade-hint">Keine Produkte gefunden.</div>';
+        return;
+    }
+
+    for (var j = 0; j < zeilen.length; j++) {
+        var z    = zeilen[j];
+        var div  = document.createElement('div');
+        var kein = z.menge === null;
+
+        div.className = 'zeile' + (kein ? ' kein-data' : '');
+
+        var mengeCls, mengeHtml;
+        if (kein) {
+            mengeCls  = 'unbekannt';
+            mengeHtml = '— nicht gezählt';
+        } else if (z.menge > 0) {
+            mengeCls  = 'positiv';
+            mengeHtml = z.menge + '<span class="einheit">Bl.</span>';
+        } else if (z.menge === 0) {
+            mengeCls  = 'null';
+            mengeHtml = '0<span class="einheit">Bl.</span>';
+        } else {
+            mengeCls  = 'negativ';
+            mengeHtml = z.menge + '<span class="einheit">Bl.</span>';
+        }
+
+        div.innerHTML =
+            '<div class="zeile-name' + (kein ? ' kein-data' : '') + '">' + z.name + '</div>' +
+            '<div class="zeile-menge ' + mengeCls + '">' + mengeHtml + '</div>';
+
+        wrap.appendChild(div);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', render);
+window.addEventListener('load', render);
+</script>
+<script src="../shell.js" defer></script>
+</body>
+</html>

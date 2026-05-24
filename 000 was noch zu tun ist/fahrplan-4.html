@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BäckereiOS · Fahrplan</title>
+<style>
+  :root { --bg:#0f172a; --surface:#1e293b; --border:#334155; --amber:#f59e0b; --gruen:#10b981; --rot:#ef4444; --blau:#3b82f6; --lila:#8b5cf6; --text:#e2e8f0; --muted:#64748b; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--text); padding:20px 16px 60px; }
+  h1 { font-size:1.3rem; font-weight:900; margin-bottom:4px; color:var(--amber); }
+  .subtitle { font-size:0.78rem; color:var(--muted); margin-bottom:24px; }
+  .block { background:var(--surface); border:1px solid var(--border); border-radius:12px; margin-bottom:14px; overflow:hidden; }
+  .block-header { padding:12px 16px; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--border); cursor:pointer; user-select:none; }
+  .block-header:hover { background:#263147; }
+  .block-icon { font-size:1.2rem; }
+  .block-titel { font-size:0.9rem; font-weight:800; flex:1; }
+  .block-status { font-size:0.7rem; font-weight:700; padding:3px 8px; border-radius:20px; }
+  .status-offen { background:#451a03; color:var(--amber); }
+  .status-laufend { background:#1e3a5f; color:var(--blau); }
+  .status-spaeter { background:#1e1b4b; color:var(--lila); }
+  .block-body { padding:14px 16px; }
+  .block-body.collapsed { display:none; }
+  .aufgabe { display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-bottom:1px dashed var(--border); font-size:0.82rem; line-height:1.5; }
+  .aufgabe:last-child { border-bottom:none; }
+  .aufgabe-check { width:18px; height:18px; border-radius:4px; border:2px solid var(--border); flex-shrink:0; cursor:pointer; margin-top:2px; display:flex; align-items:center; justify-content:center; font-size:11px; transition:all 0.15s; }
+  .aufgabe-check.done { background:var(--gruen); border-color:var(--gruen); color:#fff; }
+  .aufgabe-text { flex:1; }
+  .aufgabe-text.done { text-decoration:line-through; color:var(--muted); }
+  .aufgabe-erklaer { font-size:0.74rem; color:#94a3b8; margin-top:6px; line-height:1.6; background:#0f1f35; border-left:3px solid var(--blau); padding:8px 10px; border-radius:0 6px 6px 0; }
+  .hinweis { background:#1a1a2e; border-left:3px solid var(--lila); border-radius:0 6px 6px 0; padding:10px 12px; font-size:0.78rem; color:#a5b4fc; line-height:1.6; margin-bottom:10px; }
+  .hinweis.warn { border-color:var(--amber); background:#1f1500; color:#fcd34d; }
+  .hinweis.ok { border-color:var(--gruen); background:#052e16; color:#6ee7b7; }
+  .fortschritt-label { display:flex; justify-content:space-between; font-size:0.7rem; color:var(--muted); margin-bottom:6px; }
+  .fortschritt-bar { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+  .fortschritt-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--amber),var(--gruen)); transition:width 0.4s ease; }
+  .toggle-arrow { color:var(--muted); font-size:0.75rem; }
+</style>
+</head>
+<body>
+
+<h1>🗺 BäckereiOS · Fahrplan</h1>
+<p class="subtitle">Stand: März 2026 · Was noch zu tun ist — und warum</p>
+
+<div class="block" id="b1">
+  <div class="block-header" onclick="toggle('b1')">
+    <div class="block-icon">🧠</div>
+    <div class="block-titel">Das Produktions-Gehirn bauen</div>
+    <div class="block-status status-offen">Offen</div>
+    <div class="toggle-arrow" id="arr-b1">▼</div>
+  </div>
+  <div class="block-body collapsed" id="body-b1">
+    <div class="hinweis warn">Das ist das wichtigste offene Projekt. Alles andere baut darauf auf.</div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Neue Datei <strong>produktions_gehirn.js</strong> bauen<div class="aufgabe-erklaer">Heute hat BäckereiOS eine Datei namens stammdaten.js mit fest eingetragenen Zahlen wie "Montag: 44 Bleche Hasenberger". Diese Zahlen veralten — wenn sich Verkaufszahlen ändern, muss jemand manuell ran. Das Gehirn macht das automatisch: Es liest die echte Backmengen-Datenbank, berechnet aus den letzten Wochen einen aktuellen Durchschnitt und stellt diesen dem Schnellrechner und Planer zur Verfügung. Immer aktuell, ohne manuelle Arbeit.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Alle Produktinfos direkt aus der Config lesen — station, unit, batchSize, backTage, charge<div class="aufgabe-erklaer">Die produkt_config.json ist die einzige Wahrheitsquelle. Das Gehirn liest von dort: an welcher Station ein Produkt gemacht wird, in welcher Einheit gezählt wird, wie groß ein Produktionsschritt ist, und an welchen Tagen es überhaupt gebacken wird. Keine doppelte Datenpflege.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Laut Fehler zeigen wenn etwas fehlt — kein stilles Versagen<div class="aufgabe-erklaer">Das alte System benutzte bei Problemen still die alten Zahlen aus stammdaten.js. Das ist gefährlich — man plant mit falschen Mengen ohne es zu merken. Das neue Gehirn zeigt klar: "Datenbank nicht verfügbar — bitte nicht damit planen." Kein Zahlensalat, kein falsches Vertrauen.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">BackTage berücksichtigen: Produkt wird nur an bestimmten Tagen erwartet<div class="aufgabe-erklaer">Puddingbrezeln werden nur Mo/Mi/Fr gebacken. Heute zeigt das System an Di/Do eine "0" — was nach Fehler aussieht aber keiner ist. Mit BackTagen weiß das Gehirn: an diesem Tag wird dieses Produkt gar nicht erwartet. Klarer Strich statt irreführender Null.</div></div></div>
+    <div class="hinweis">Voraussetzung: Zuerst den nächsten Block abschließen — alle Produktinfos in der Config eintragen.</div>
+  </div>
+</div>
+
+<div class="block" id="b2">
+  <div class="block-header" onclick="toggle('b2')">
+    <div class="block-icon">⚙️</div>
+    <div class="block-titel">Produktinfos in der Config vervollständigen</div>
+    <div class="block-status status-laufend">Läuft</div>
+    <div class="toggle-arrow" id="arr-b2">▼</div>
+  </div>
+  <div class="block-body collapsed" id="body-b2">
+    <div class="hinweis ok">Der Config-Editor hat neue Felder bekommen. Jetzt für alle 71 Produkte befüllen. Einmalige Arbeit — danach läuft alles automatisch.</div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Station eintragen — wo wird es gemacht?<div class="aufgabe-erklaer">Brötchenstraße, Nachtschicht, Rondo, Frühschicht, Konditorei oder Versand. Der Planer sortiert nach Station damit jede Schicht nur ihre eigenen Aufgaben sieht.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Einheit prüfen — Stück oder Bleche?<div class="aufgabe-erklaer">Brötchen werden in Blechen geplant (nicht "800 Stück Hasenberger" sondern "40 Bleche"). Brot meist in Stück. Steuert wie der Schnellrechner und das Logbuch die Zahlen anzeigen.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Produktionsschritte (BatchSize) eintragen — in welchen Schritten wird gebacken?<div class="aufgabe-erklaer">Hasenpfötchen werden immer in 12er-Schritten gebacken weil ein Sticken 12 Bleche fasst. Das Gehirn rundet auf: Bedarf 14 Bleche → Ergebnis 24 (nächste 12er-Stufe). Ohne diesen Wert kommen krumme Zahlen.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">BackTage eintragen — an welchen Wochentagen wird dieses Produkt gebacken?<div class="aufgabe-erklaer">Manche täglich, andere nur Mo/Mi/Fr oder nur am Wochenende. Mit BackTagen wissen alle Auswertungen wann eine Null ein Fehler ist und wann einfach kein BackTag war.</div></div></div>
+  </div>
+</div>
+
+<div class="block" id="b3">
+  <div class="block-header" onclick="toggle('b3')">
+    <div class="block-icon">🔧</div>
+    <div class="block-titel">Schnellrechner, Planer und Bestandsübersicht auf das Gehirn umstellen</div>
+    <div class="block-status status-offen">Offen</div>
+    <div class="toggle-arrow" id="arr-b3">▼</div>
+  </div>
+  <div class="block-body collapsed" id="body-b3">
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Die alte stammdaten.js aus allen Tools entfernen<div class="aufgabe-erklaer">Schnellrechner, Planer, Setup-Assistent und Bestandsübersicht laden heute noch die alte stammdaten.js. Nach dem Umstieg lädt keines dieser Tools sie mehr. Die Datei bleibt als Archiv erhalten — aber außer Betrieb.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Das Gehirn einbinden — und warten bis es fertig geladen hat<div class="aufgabe-erklaer">Das Gehirn braucht einen Moment zum Laden (DB lesen + Durchschnitte berechnen). Die Tools müssen warten bis das fertig ist — sonst sehen sie leere Daten und zeigen Nullen.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Fehlermeldung einbauen wenn das Gehirn nicht starten kann<div class="aufgabe-erklaer">Wenn die Datenbank nicht erreichbar ist oder zu wenige Einträge hat, soll eine klare rote Meldung erscheinen: "Hier stimmt etwas nicht — bitte nicht damit planen." Kein stilles Fehlschlagen.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">✅ Mengenübersicht liest bereits taeglicher_verbrauch.json<div class="aufgabe-erklaer">Die Mengenübersicht ist das erste Tool das auf taeglicher_verbrauch.json hört — Zeitraum, Feiertag-Ausschlüsse und manuelle Ausschlüsse werden bereits berücksichtigt. Das ist der Testlauf bevor das Gehirn kommt. Zeigt unten "Basis: 12 Tage · 2 ausgeschlossen" wenn Tage gefiltert wurden.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">⚡ Offener Draht: taeglicher_verbrauch.json wird noch von Schnellrechner und Planer ignoriert<div class="aufgabe-erklaer">Schnellrechner und Planer lesen noch stammdaten.js — sie kennen taeglicher_verbrauch.json nicht. Dieser Draht hängt frei bis produktions_gehirn.js fertig ist. Vorher bitte nicht anfassen — sonst gibt es einen Kurzschluss in der Planung.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Den Grillwetter-Knopf im Schnellrechner anpassen<div class="aufgabe-erklaer">Der Knopf addiert heute einen fest hinterlegten Wert aus der alten stammdaten.js (das "sun"-Feld). Als Übergangslösung: fester Aufschlag von ca. 10%. Langfristig kommt der Wert automatisch aus dem Wettergehirn.</div></div></div>
+  </div>
+</div>
+
+<div class="block" id="b4">
+  <div class="block-header" onclick="toggle('b4')">
+    <div class="block-icon">🌤</div>
+    <div class="block-titel">Wetterbasierte Planungsempfehlungen freischalten</div>
+    <div class="block-status status-spaeter">Wartet auf Daten — mindestens 60 Erfassungstage</div>
+    <div class="toggle-arrow" id="arr-b4">▼</div>
+  </div>
+  <div class="block-body collapsed" id="body-b4">
+    <div class="hinweis">Das Grundgerüst steht — Wettervorschau zeigt einen Countdown. Empfehlungen schalten sich automatisch frei sobald genug Daten vorhanden sind.</div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Grillwetter-Analyse mit echten Daten füllen<div class="aufgabe-erklaer">Bei Grillwetter (April–September, über 22°C, sonnig) kaufen Kunden mehr Brötchen und Laugenstangen aber weniger Brot. Das System vergleicht solche Tage mit normalen Tagen und berechnet Faktoren. Dafür braucht es mindestens 10–15 Grillwetter-Tage in der Datenbank — daher die Wartezeit bis zum Sommer.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Regen-Segment analysieren<div class="aufgabe-erklaer">Bei Regen verlassen Kunden das Haus weniger oft — sie kaufen eher Brot das länger hält statt frische Brötchen. Das System lernt aus vergangenen Regentagen in der Datenbank was das konkret bedeutet.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Wochenempfehlung in der Wettervorschau einblenden<div class="aufgabe-erklaer">Bäcker backen abends für den nächsten Tag. Die Wettervorschau soll schon heute sagen: "Morgen wird es heiß — backe 8 Bleche mehr Kornknacker und 3 Bleche weniger Schwarzbrot." Informierter Hinweis, keine starre Regel.</div></div></div>
+  </div>
+</div>
+
+<div class="block" id="b5">
+  <div class="block-header" onclick="toggle('b5')">
+    <div class="block-icon">🧹</div>
+    <div class="block-titel">Alles Unnötige endgültig entfernen</div>
+    <div class="block-status status-offen">Offen</div>
+    <div class="toggle-arrow" id="arr-b5">▼</div>
+  </div>
+  <div class="block-body collapsed" id="body-b5">
+    <div class="hinweis ok">Markt &amp; News, Magazin, Leitartikel, BäckerSpiele und Azubi-Bereich wurden aus dem Menü entfernt. Die Dateien liegen noch auf GitHub — aber niemand kommt mehr ran.</div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Alte Seiten auf GitHub in einen Archiv-Ordner verschieben<div class="aufgabe-erklaer">Saubers Repository, weniger Verwirrung. Niemand stolpert über Seiten die nicht mehr genutzt werden.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">stammdaten.js nach dem Gehirn-Umstieg ins Archiv verschieben<div class="aufgabe-erklaer">Nicht löschen — als historische Referenz behalten. Aber kein Tool soll sie mehr laden.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">WetterAussicht-Seite (Backplan_Aktuell.html) löschen<div class="aufgabe-erklaer">Ersetzt durch Wettervorschau + Wetterrückblick. Aus dem Menü ist sie raus — aber die Datei liegt noch auf GitHub.</div></div></div>
+  </div>
+</div>
+
+<div class="block" id="b6">
+  <div class="block-header" onclick="toggle('b6')">
+    <div class="block-icon">🗑</div>
+    <div class="block-titel">Doppelte Produkteinträge bereinigen</div>
+    <div class="block-status status-offen">Offen</div>
+    <div class="toggle-arrow" id="arr-b6">▼</div>
+  </div>
+  <div class="block-body collapsed" id="body-b6">
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Saubere stammdaten.js mit dem Neustart-Modus im Autosync erzeugen<div class="aufgabe-erklaer">In der aktuellen stammdaten.js gibt es Duplikate — alte Einträge mit falschen Umlauten (z.B. "Kaesebroetchen" neben dem richtigen "Käsebrötchen") die durch den Autosync versehentlich angelegt wurden. Der Neustart-Modus erzeugt eine komplett saubere Datei direkt aus der Config — alle Duplikate verschwinden automatisch. Erst wichtig wenn das Gehirn fertig ist, dann wird stammdaten.js sowieso nicht mehr gebraucht.</div></div></div>
+  </div>
+</div>
+
+<div class="block" id="b7">
+  <div class="block-header" onclick="toggle('b7')">
+    <div class="block-icon">❓</div>
+    <div class="block-titel">Hilfe-Seite auf aktuellen Stand bringen</div>
+    <div class="block-status status-offen">Offen</div>
+    <div class="toggle-arrow" id="arr-b7">▼</div>
+  </div>
+  <div class="block-body collapsed" id="body-b7">
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Die bestehende hilfe.html komplett überarbeiten<div class="aufgabe-erklaer">Die Hilfe wurde zuletzt vor vielen Monaten bearbeitet. Seitdem kamen dazu: Config-Editor mit neuen Feldern, Autosync mit Neustart-Modus, 14-Tage-Logbuch mit Filtermenü, Wettervorschau, Wetterrückblick, Produktverlauf-Diagramm, Einfach-Modus, Mengenübersicht. All das fehlt noch.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Hilfe kontextsensitiv machen<div class="aufgabe-erklaer">Statt einer riesigen Hilfe-Seite die niemand liest: jedes Tool bekommt einen kleinen ❓-Button der direkt zur passenden Erklärung springt. Wer den Schnellrechner benutzt sieht sofort die Schnellrechner-Erklärung — nicht eine Seite mit 50 anderen Themen.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Eigene Hilfe-Seite nur für den Config-Editor schreiben<div class="aufgabe-erklaer">Die Config ist das Herzstück des Systems — und sie wird immer komplexer. Was bedeutet "BackTage"? Was ist "BatchSize"? Was passiert wenn ich "inventurRelevant" aktiviere? Was ist ein legacyKey? Diese Fragen brauchen eine eigene, ausführliche Dokumentation.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">FAQ aus echten Fragen der Kollegen aufbauen<div class="aufgabe-erklaer">Was wird am häufigsten gefragt? "Warum zeigt der Rechner so eine hohe Zahl?" — "Was ist der Froster-Status?" — "Warum sind manche Felder grau?" Echte Fragen sind besser als erfundene Beispiele.</div></div></div>
+  </div>
+</div>
+
+<div class="block" id="b8">
+  <div class="block-header" onclick="toggle('b8')">
+    <div class="block-icon">📋</div>
+    <div class="block-titel">Schritt-für-Schritt-Anleitungen für alle Tools</div>
+    <div class="block-status status-laufend">Läuft</div>
+    <div class="toggle-arrow" id="arr-b8">▼</div>
+  </div>
+  <div class="block-body collapsed" id="body-b8">
+    <div class="hinweis ok">Schnellrechner-Anleitung auf Deutsch und Arabisch (irakischer Dialekt) existiert bereits. Dieses Muster auf alle Kerntools ausweiten.</div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">✅ Schnellrechner — Deutsch + Arabisch vorhanden</div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Planer / Setup-Assistent — Deutsch + Arabisch<div class="aufgabe-erklaer">Das komplexeste Tool. Der Ablauf in mehreren Schritten (Station wählen → Produkte wählen → Inventar → Froster-Status → ...) muss klar erklärt sein. Hier ist eine gute Anleitung am wichtigsten.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">14-Tage Logbuch — Deutsch + Arabisch<div class="aufgabe-erklaer">Filterbereich, Wetter-Symbole und auffällige Tage müssen erklärt werden.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Datenbank-Manager — Deutsch + Arabisch<div class="aufgabe-erklaer">Admin-only, aber trotzdem braucht es eine Anleitung für den Zettel-Workflow: welche Prompts werden kopiert, wie werden Antworten eingefügt, was passiert bei unbekannten Produkten.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Anleitungen direkt aus den Tools erreichbar machen<div class="aufgabe-erklaer">Ein kleiner ❓-Button in jedem Tool öffnet die passende Anleitung in der aktuell eingestellten Sprache. Wer auf Arabisch arbeitet bekommt die arabische Anleitung.</div></div></div>
+  </div>
+</div>
+
+<div class="block" id="b9">
+  <div class="block-header" onclick="toggle('b9')">
+    <div class="block-icon">🌍</div>
+    <div class="block-titel">Die App in mehrere Sprachen übersetzen</div>
+    <div class="block-status status-offen">Offen</div>
+    <div class="toggle-arrow" id="arr-b9">▼</div>
+  </div>
+  <div class="block-body collapsed" id="body-b9">
+    <div class="hinweis">Der Grundstein war gelegt — translations.js existiert. Aber während die App wuchs blieben die Übersetzungen auf der Strecke. Priorität: Arabisch (irakischer Dialekt) und Vietnamesisch.</div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">translations.js auf den heutigen Stand bringen<div class="aufgabe-erklaer">Alle Texte der letzten Monate fehlen noch: Config-Editor, Autosync, Logbuch-Filter, Wetterplanung, Produktverlauf, Einfach-Modus, Mengenübersicht. Zuerst auf Deutsch erfassen, dann übersetzen.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Arabisch (irakischer Dialekt) vollständig übersetzen<div class="aufgabe-erklaer">Arabisch wird von rechts nach links geschrieben. Das bedeutet: Menüs, Buttons und Texte müssen gespiegelt werden (dir="rtl"). Die irakische Schnellrechner-Anleitung zeigt dass wir wissen wie das geht. Wichtig: nicht Hocharabisch aus dem Wörterbuch sondern den Dialekt den der Kollege wirklich spricht.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Vietnamesisch vollständig übersetzen<div class="aufgabe-erklaer">Technisch einfacher als Arabisch — kein gespiegeltes Layout. Lateinische Buchstaben mit Tonzeichen. Hauptarbeit ist die inhaltliche Übersetzung.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Sprachumschalter im Einfach-Modus sichtbar platzieren<div class="aufgabe-erklaer">Heute versteckt sich der Sprachumschalter tief im Mehr-Tab. Ein Kollege der nur den Einfach-Modus kennt findet ihn nie. Er gehört direkt in den Einfach-Modus — mit Flaggen-Symbolen.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Produktnamen für nicht-deutsche Kollegen verständlich machen<div class="aufgabe-erklaer">"Hasenberger", "Schlawiner", "Puddingbrezel" — das sind Phantasienamen die kein Wörterbuch kennt. Eine kurze Beschreibung oder phonetische Annäherung hilft neuen Kollegen sich zu orientieren.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Gewählte Sprache dauerhaft speichern<div class="aufgabe-erklaer">Wer einmal auf Arabisch umschaltet soll beim nächsten Öffnen wieder Arabisch sehen. Heute geht die Einstellung bei jedem Neuladen verloren.</div></div></div>
+  </div>
+</div>
+
+<div class="block" id="b10">
+  <div class="block-header" onclick="toggle('b10')">
+    <div class="block-icon">🗄</div>
+    <div class="block-titel">Datenbank-Archivierung vorbereiten</div>
+    <div class="block-status status-spaeter">Jahreswechsel 2026/2027</div>
+    <div class="toggle-arrow" id="arr-b10">▼</div>
+  </div>
+  <div class="block-body collapsed" id="body-b10">
+    <div class="hinweis">Kein akuter Handlungsbedarf — aber die Weichen jetzt stellen damit es später kein Problem gibt. Nach einem Jahr hat die DB ca. 1.3 MB, nach zwei Jahren ca. 2.6 MB. Harmlos für den Browser — aber sauberer ist es trotzdem mit Jahres-Archiven zu arbeiten.</div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Jahres-Archive einführen: backmengen_db_2026.json, backmengen_db_2027.json ...<div class="aufgabe-erklaer">Am Jahreswechsel wird die aktuelle backmengen_db.json in backmengen_db_2026.json umbenannt und eine frische leere backmengen_db.json fängt an. Die aktive Datei bleibt so immer schlank. Historische Daten aus vergangenen Jahren sind trotzdem vorhanden — sie liegen nur in separaten Dateien.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Alle Tools die die DB lesen auf mehrere Dateien vorbereiten<div class="aufgabe-erklaer">Wettergehirn, Schablone, 14-Tage-Logbuch, Produktverlauf und Wetterrückblick lesen heute nur eine einzige backmengen_db.json. Sie müssen lernen: "Wenn eine backmengen_db_2026.json existiert, lade sie auch." Für kurzfristige Auswertungen (14 Tage, 28 Tage) reicht die aktuelle Datei. Für langfristige Analysen (Wettergehirn, Jahresvergleiche) werden alle Archive zusammengeführt.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Eine Archiv-Konfiguration anlegen — welche Jahres-Dateien existieren<div class="aufgabe-erklaer">Eine kleine Datei db_archive.json mit einer einfachen Liste: ["backmengen_db_2026.json", "backmengen_db_2027.json"]. Wenn ein neues Jahr dazukommt, trägst du es dort ein — alle Tools wissen dann automatisch dass sie diese Datei auch laden sollen. Kein manuelles Anpassen des Codes.</div></div></div>
+    <div class="aufgabe"><div class="aufgabe-check" onclick="checkToggle(this)"></div><div class="aufgabe-text">Datenbank-Manager um eine "Archiv-Download"-Funktion erweitern<div class="aufgabe-erklaer">Am Jahresende soll der Manager eine Schaltfläche anbieten: "Aktuelles Jahr archivieren". Ein Klick benennt die Datei korrekt um und zeigt an was als nächstes zu tun ist. Kein manuelles Umbenennen auf GitHub das dabei Fehler machen kann.</div></div></div>
+  </div>
+</div>
+
+<div class="block" id="b11">
+  <div class="block-header" onclick="toggle('b11')">
+    <div class="block-icon">🧮</div>
+    <div class="block-titel">Neue Rechner & Erweiterungen</div>
+    <div class="block-status status-offen">Offen</div>
+    <div class="toggle-arrow" id="arr-b11">▼</div>
+  </div>
+  <div class="block-body collapsed" id="body-b11">
+    <div class="hinweis">Spezifische Berechnungs-Tools, die den Alltag in der Backstube und Logistik erleichtern.</div>
+    <div class="aufgabe">
+      <div class="aufgabe-check" onclick="checkToggle(this)"></div>
+      <div class="aufgabe-text">Schlawiner Teig berechnen
+        <div class="aufgabe-erklaer">Ein Modul, um den Teigbedarf für die Schlawiner exakt zu berechnen, basierend auf den zu produzierenden Stückzahlen. Hilft bei der direkten Vorbereitung in der Teigmacherei.</div>
+      </div>
+    </div>
+    <div class="aufgabe">
+      <div class="aufgabe-check" onclick="checkToggle(this)"></div>
+      <div class="aufgabe-text">Hasenberger & Kornknacker Rechner
+        <div class="aufgabe-erklaer">Ein eigenständiger Rechner im bewährten Design des Baguetterechners. Inklusive Tages-Slider, Wochentabelle und automatischem Bestandsabzug – maßgeschneidert auf das Verhalten von Hasenberger und Kornknacker.</div>
+      </div>
+    </div>
+    <div class="aufgabe">
+      <div class="aufgabe-check" onclick="checkToggle(this)"></div>
+      <div class="aufgabe-text">Bake-Bestand Rechner (Karton-Logistik)
+        <div class="aufgabe-erklaer">Ein Tool, das den abgesetzten Bake-Bestand berechnet, diesen in volle Kartons umwandelt und abgleicht, was die Fahrer auf ihre Touren mitnehmen. Verhindert Fehler beim Verladen und sorgt für exakte Bestandskontrolle.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:20px;padding:16px;background:var(--surface);border-radius:12px;border:1px solid var(--border);">
+  <div class="fortschritt-label"><span>Gesamtfortschritt</span><span id="pct-label">0%</span></div>
+  <div class="fortschritt-bar"><div class="fortschritt-fill" id="pct-fill" style="width:0%"></div></div>
+  <div style="font-size:0.72rem;color:var(--muted);margin-top:8px;text-align:center;">Haken setzen = Fortschritt zählt · wird im Browser gespeichert</div>
+</div>
+
+<script>
+function toggle(id){const b=document.getElementById("body-"+id);const a=document.getElementById("arr-"+id);b.classList.toggle("collapsed");a.textContent=b.classList.contains("collapsed")?"▼":"▲";}
+function checkToggle(el){el.classList.toggle("done");el.textContent=el.classList.contains("done")?"✓":"";el.nextElementSibling.classList.toggle("done");speichern();updateFortschritt();}
+function speichern(){const alle=document.querySelectorAll(".aufgabe-check");const status=[...alle].map(el=>el.classList.contains("done"));localStorage.setItem("BOS_FAHRPLAN",JSON.stringify(status));}
+function laden(){const s=localStorage.getItem("BOS_FAHRPLAN");if(!s)return;const status=JSON.parse(s);const alle=document.querySelectorAll(".aufgabe-check");alle.forEach((el,i)=>{if(status[i]){el.classList.add("done");el.nextElementSibling.classList.add("done");el.textContent="✓";}});}
+function updateFortschritt(){const alle=document.querySelectorAll(".aufgabe-check").length;const erledigt=document.querySelectorAll(".aufgabe-check.done").length;const pct=alle>0?Math.round(erledigt/alle*100):0;document.getElementById("pct-label").textContent=pct+"%";document.getElementById("pct-fill").style.width=pct+"%";}
+laden();updateFortschritt();
+</script>
+</body>
+</html>

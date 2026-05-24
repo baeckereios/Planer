@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BäckereiOS - 14-Tage Logbuch</title>
+    <link rel="stylesheet" href="../systemdesign.css">
+    <script src="durchschnittsverbrauch_gehirn.js"></script>
+    <style>
+        .container { max-width: 950px; margin: 20px auto; padding: 0 10px; }
+        .header-box { text-align: center; margin-bottom: 30px; }
+        .kategorie-titel { font-size: 1.2rem; color: #111827; margin: 30px 0 10px; padding-bottom: 5px; border-bottom: 3px solid #e5e7eb; text-transform: uppercase; }
+
+        .acc-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 10px; }
+        .acc-summary { padding: 15px 20px; font-weight: bold; cursor: pointer; list-style: none; display: flex; justify-content: space-between; background: #f8fafc; border-radius: 12px; }
+        .acc-summary::after { content: '▼'; font-size: 0.8rem; color: #9ca3af; }
+        .acc-card[open] .acc-summary { border-radius: 12px 12px 0 0; border-bottom: 1px solid #e5e7eb; }
+        .acc-card[open] .acc-summary::after { transform: rotate(180deg); }
+        .acc-body { padding: 15px; }
+
+        .wochentag-row { display: flex; border-bottom: 1px dashed #e5e7eb; padding: 10px 0; align-items: center; }
+        .wochentag-row:last-child { border-bottom: none; }
+        .wochentag-name { width: 40px; font-weight: 900; color: #6b7280; text-transform: uppercase; font-size: 0.85rem; }
+        .wochentag-werte { display: flex; flex: 1; gap: 8px; }
+        
+        .wert-box { 
+            flex: 1; background: #f3f4f6; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid #e5e7eb;
+            display: flex; flex-direction: column; justify-content: center; min-height: 55px;
+        }
+
+        /* Heute Markierung */
+        .wert-box.is-heute { border: 2px solid #3b82f6; background: #eff6ff; box-shadow: inset 0 0 8px rgba(59,130,246,0.1); }
+        .wert-box.is-heute::before { content: "HEUTE"; font-size: 0.6rem; font-weight: 900; color: #3b82f6; margin-bottom: 2px; }
+
+        /* Zukunft (Rechts leer) */
+        .wert-box.zukunft { background: #f9fafb; border: 1px dashed #d1d5db; opacity: 0.5; }
+        .wert-box.zukunft .wert-menge { color: #9ca3af; font-size: 0.9rem; font-weight: normal; }
+
+        /* Historisch (Links rot/ausgegraut) */
+        .wert-box.alt { background: #fef2f2; border: 1px dashed #fca5a5; opacity: 0.7; }
+        .wert-box.alt .wert-datum, .wert-box.alt .wert-menge { color: #ef4444; }
+
+        .wert-datum { font-size: 0.7rem; color: #6b7280; font-weight: bold; margin-bottom: 2px; }
+        .wert-menge { font-size: 1rem; font-weight: 900; color: #111827; }
+        .wert-sub { font-size: 0.7rem; color: #6b7280; }
+
+        @media (max-width: 600px) {
+            .wochentag-werte { gap: 4px; }
+            .wert-box { padding: 5px 2px; min-height: 50px; }
+            .wert-menge { font-size: 0.85rem; }
+            .wert-datum, .wert-sub { font-size: 0.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="ergebnis-container" style="display: none;"></div>
+    <div class="container">
+        <div class="header-box">
+            <h1>📖 14-Tage Logbuch</h1>
+            <p>Vergleich: Vorletzte Woche | Letzte Woche | Diese Woche</p>
+        </div>
+        <div id="lade-status" style="text-align:center; padding:50px; color:#6b7280;">Lade Backmengen...</div>
+        <div id="logbuch-inhalt"></div>
+    </div>
+
+    <script src="../shell.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', ladeHistorie);
+
+        async function ladeHistorie() {
+            const statusDiv = document.getElementById('lade-status');
+            const inhaltDiv = document.getElementById('logbuch-inhalt');
+
+            try {
+                const response = await fetch('../backmengen_db.json');
+                const db = await response.json();
+                const dbMap = {};
+                db.forEach(e => dbMap[e.datum] = e.produkte);
+
+                const heute = new Date();
+                heute.setHours(0,0,0,0);
+                const heuteStr = getLocalISO(heute);
+
+                // 14-Tage Grenze (für die "Alt"-Markierung)
+                const limit14 = new Date(heute);
+                limit14.setDate(heute.getDate() - 13);
+
+                const dayLabels = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+                const orderedDays = [1, 2, 3, 4, 5, 6, 0]; 
+
+                // Wir berechnen den Montag der aktuellen Woche als Startpunkt für die rechte Säule
+                const aktuellerWochentag = heute.getDay();
+                const diffZumMontag = aktuellerWochentag === 0 ? 6 : aktuellerWochentag - 1;
+                const montagDieserWoche = new Date(heute);
+                montagDieserWoche.setDate(heute.getDate() - diffZumMontag);
+
+                let finalesHTML = "";
+
+                kategorieReihenfolge.forEach(kat => {
+                    const produkteInKat = erlaubteProdukte.filter(p => (produktKategorien[p] || "sonstiges") === kat);
+                    if (produkteInKat.length === 0) return;
+
+                    finalesHTML += `<h2 class="kategorie-titel">${kat}</h2>`;
+
+                    produkteInKat.forEach(prodKey => {
+                        const anzeigeName = typeof bereinigeAnzeigeName === 'function' ? bereinigeAnzeigeName(prodKey) : prodKey;
+                        const config = produktEinstellungen[prodKey] || {};
+                        const teiler = config.stueckProBlech || 1;
+
+                        let akkordeonHTML = `<details class="acc-card"><summary class="acc-summary">${anzeigeName}</summary><div class="acc-body">`;
+
+                        orderedDays.forEach(dayIndex => {
+                            akkordeonHTML += `<div class="wochentag-row"><div class="wochentag-name">${dayLabels[dayIndex]}</div><div class="wochentag-werte">`;
+
+                            // Drei Spalten generieren
+                            for (let spalte = -2; spalte <= 0; spalte++) {
+                                let datumZelle = new Date(montagDieserWoche);
+                                // Montag dieser Woche + Versatz zum Wochentag + (Wochen-Spalte * 7)
+                                datumZelle.setDate(datumZelle.getDate() + (dayIndex === 0 ? 6 : dayIndex - 1) + (spalte * 7));
+                                
+                                const dStr = getLocalISO(datumZelle);
+                                const dLabel = `${datumZelle.getDate().toString().padStart(2,'0')}.${(datumZelle.getMonth()+1).toString().padStart(2,'0')}.`;
+                                
+                                let cssClass = "wert-box";
+                                let inhalt = "-";
+                                let sub = "";
+
+                                if (dStr === heuteStr) cssClass += " is-heute";
+                                
+                                if (datumZelle > heute) {
+                                    cssClass += " zukunft";
+                                    inhalt = "geplant";
+                                } else if (datumZelle < limit14) {
+                                    cssClass += " alt";
+                                    const val = dbMap[dStr] ? parseInt(dbMap[dStr][prodKey]) : 0;
+                                    inhalt = val || "0";
+                                } else {
+                                    const val = dbMap[dStr] ? parseInt(dbMap[dStr][prodKey]) : 0;
+                                    if (val > 0) {
+                                        if (config.einheit === 'blech') {
+                                            inhalt = (val / teiler).toFixed(1).replace('.0','') + " Bl.";
+                                            sub = `(${val} Stk)`;
+                                        } else {
+                                            inhalt = val + " Stk";
+                                        }
+                                    } else {
+                                        inhalt = "0";
+                                    }
+                                }
+
+                                akkordeonHTML += `
+                                    <div class="${cssClass}">
+                                        <span class="wert-datum">${dLabel}</span>
+                                        <span class="wert-menge">${inhalt}</span>
+                                        <span class="wert-sub">${sub}</span>
+                                    </div>`;
+                            }
+                            akkordeonHTML += `</div></div>`;
+                        });
+                        akkordeonHTML += `</div></details>`;
+                        finalesHTML += akkordeonHTML;
+                    });
+                });
+
+                statusDiv.style.display = 'none';
+                inhaltDiv.innerHTML = finalesHTML;
+            } catch (e) { statusDiv.innerHTML = "Fehler beim Laden."; }
+        }
+
+        function getLocalISO(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+    </script>
+</body>
+</html>
