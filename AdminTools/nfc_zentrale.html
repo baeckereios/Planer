@@ -11,16 +11,24 @@
   .container { max-width: 600px; margin: 0 auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 
   /* ── TABS ── */
-  .tab-wrap { display: flex; background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8); border-radius: 12px; padding: 4px; gap: 4px; }
-  .tab-btn { flex: 1; padding: 9px 4px; text-align: center; font-size: 0.72rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: all 0.25s; user-select: none; }
+  .tab-wrap { display: flex; background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e0d8); border-radius: 12px; padding: 5px; gap: 5px; }
+  .tab-nav-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .tab-btn { flex: 1; padding: 11px 4px; text-align: center; font-size: 0.76rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: all 0.25s; user-select: none; }
   .tab-btn.active          { background: #1e293b; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
   .tab-btn.inactive        { background: transparent; color: var(--text-secondary,#6b7280); }
   .tab-btn.active.back     { background: #e67e22; box-shadow: 0 2px 8px rgba(230,126,34,0.25); }
   .tab-btn.inactive.back   { background: rgba(230,126,34,0.08); color: #e67e22; }
   .tab-btn.active.seiten   { background: #0891b2; box-shadow: 0 2px 8px rgba(8,145,178,0.25); }
   .tab-btn.inactive.seiten { background: rgba(8,145,178,0.08); color: #0891b2; }
-  .tab-btn.active.kopieren   { background: #0d9488; box-shadow: 0 2px 8px rgba(13,148,136,0.25); }
-  .tab-btn.inactive.kopieren { background: rgba(13,148,136,0.08); color: #0d9488; }
+  .btn-kopieren-action {
+    width: 100%; padding: 11px 14px;
+    border-radius: 10px; border: 1.5px solid var(--border-color,#e5e0d8);
+    background: var(--card-bg,#fff); color: #0d9488;
+    font-size: 0.82rem; font-weight: 800;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s; text-align: center; letter-spacing: 0.01em;
+  }
+  .btn-kopieren-action.active { background: rgba(13,148,136,0.08); border-color: #0d9488; }
 
   /* ── SUPPORT-BANNER ── */
   .support-banner { border-radius: 12px; padding: 11px 14px; font-size: 0.8rem; font-weight: 700; line-height: 1.5; }
@@ -88,6 +96,52 @@
   
   .tab-btn.active.stationen   { background: #7c3aed; box-shadow: 0 2px 8px rgba(124,58,237,0.25); }
   .tab-btn.inactive.stationen { background: rgba(124,58,237,0.08); color: #7c3aed; }
+
+  /* ── STATION ROW (vertikal, volle Breite) ── */
+  .station-row {
+    background: var(--background,#f8f6f2);
+    border: 1px solid var(--border-color,#e5e0d8);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .station-row.typ-seite    { border-left: 3px solid #7c3aed; }
+  .station-row.typ-kuehl    { border-left: 3px solid #22c55e; }
+  .station-row.typ-backware { border-left: 3px solid #e67e22; }
+
+  .station-name { font-size: 0.95rem; font-weight: 900; }
+  .station-url  { font-size: 0.62rem; color: var(--text-secondary,#6b7280);
+                  font-family: monospace; overflow: hidden;
+                  text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
+
+  .station-btns { display: flex; flex-direction: column; gap: 6px; }
+
+  .btn-station-nfc {
+    width: 100%; padding: 11px 14px;
+    border-radius: 9px; border: none;
+    background: #1e293b; color: #fff;
+    font-size: 0.85rem; font-weight: 800;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s; text-align: center;
+  }
+  .btn-station-nfc.warten { background: #6366f1; animation: puls 1s ease-in-out infinite; }
+  .btn-station-nfc.ok     { background: #10b981; }
+  .btn-station-nfc.fehler { background: #ef4444; }
+  .btn-station-nfc:disabled { background: #e5e7eb; color: #9ca3af; cursor: default; }
+
+  .btn-station-copy {
+    width: 100%; padding: 7px 14px;
+    border-radius: 9px;
+    border: 1px solid var(--border-color,#e5e0d8);
+    background: var(--card-bg,#fff); color: var(--text-secondary,#6b7280);
+    font-size: 0.78rem; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    transition: all 0.2s; text-align: center;
+  }
+  .btn-station-copy:active { background: #f0fdf4; color: #10b981; border-color: #10b981; }
+
   @keyframes puls { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
   .kein-daten { text-align: center; padding: 20px; font-size: 0.8rem; color: var(--text-secondary,#6b7280); font-style: italic; }
 </style>
@@ -99,12 +153,14 @@
 
   <div id="support-banner"></div>
 
-  <div class="tab-wrap">
-    <div class="tab-btn active"            id="tab-lief"    onclick="switchTab('lief')">📦 Lieferanten</div>
-    <div class="tab-btn inactive back"     id="tab-back"    onclick="switchTab('back')">🥐 Backwaren</div>
-    <div class="tab-btn inactive seiten"   id="tab-seiten"  onclick="switchTab('seiten')">📄 Seiten</div>
-    <div class="tab-btn inactive kopieren" id="tab-kopieren" onclick="switchTab('kopieren')">🔁 Kopieren</div>
-    <div class="tab-btn inactive stationen" id="tab-stationen" onclick="switchTab('stationen')">🏭 Stationen</div>
+  <div class="tab-nav-wrap">
+    <div class="tab-wrap">
+      <div class="tab-btn active"           id="tab-lief"      onclick="switchTab('lief')">📦 Lieferanten</div>
+      <div class="tab-btn inactive back"    id="tab-back"      onclick="switchTab('back')">🥐 Backwaren</div>
+      <div class="tab-btn inactive seiten"  id="tab-seiten"    onclick="switchTab('seiten')">📄 Seiten</div>
+      <div class="tab-btn inactive stationen" id="tab-stationen" onclick="switchTab('stationen')">🏭 Stationen</div>
+    </div>
+    <button class="btn-kopieren-action" id="tab-kopieren" onclick="switchTab('kopieren')">🔁 Chip kopieren</button>
   </div>
 
   <!-- ── TAB 1: LIEFERANTEN ── -->
@@ -304,7 +360,8 @@ function switchTab(tab) {
   document.getElementById('tab-lief').className     = 'tab-btn '          + (tab==='lief'     ? 'active' : 'inactive');
   document.getElementById('tab-back').className     = 'tab-btn back '     + (tab==='back'     ? 'active' : 'inactive');
   document.getElementById('tab-seiten').className   = 'tab-btn seiten '   + (tab==='seiten'   ? 'active' : 'inactive');
-  document.getElementById('tab-kopieren').className = 'tab-btn kopieren ' + (tab==='kopieren' ? 'active' : 'inactive');
+  var bk = document.getElementById('tab-kopieren');
+  if (bk) bk.className = 'btn-kopieren-action' + (tab==='kopieren' ? ' active' : '');
   document.getElementById('tab-stationen').className = 'tab-btn stationen ' + (tab==='stationen' ? 'active' : 'inactive');
   document.getElementById('view-lief').style.display     = tab==='lief'     ? 'block' : 'none';
   document.getElementById('view-back').style.display     = tab==='back'     ? 'block' : 'none';
@@ -613,8 +670,66 @@ function renderStationen() {
   c.innerHTML = '';
   STATIONS_NFC.forEach(function(s) {
     var url = baseUrl + s.url;
-    c.appendChild(buildChipRow(s.typ, s.name, url, 'btn_st_' + s.url.replace(/[^a-z0-9]/gi,'_'), false));
+    c.appendChild(buildStationRow(s.typ, s.name, url, 'btn_st_' + s.url.replace(/[^a-z0-9]/gi,'_')));
   });
+}
+function buildStationRow(typClass, name, url, btnId) {
+  var row = document.createElement('div');
+  row.className = 'station-row ' + typClass;
+
+  // Info
+  var info = document.createElement('div');
+  info.innerHTML = '<div class="station-name">' + esc(name) + '</div>'
+                 + '<div class="station-url">' + esc(url) + '</div>';
+  row.appendChild(info);
+
+  // Button-Container
+  var btns = document.createElement('div');
+  btns.className = 'station-btns';
+
+  // NFC-Button
+  var btnNfc = document.createElement('button');
+  btnNfc.className = 'btn-station-nfc';
+  btnNfc.id = btnId;
+  btnNfc.textContent = '📡 Chip beschreiben';
+  if (!('NDEFReader' in window)) btnNfc.disabled = true;
+  btnNfc.addEventListener('click', function() { schreibeStationChip(url, btnNfc); });
+  btns.appendChild(btnNfc);
+
+  // Copy-Button
+  var btnCopy = document.createElement('button');
+  btnCopy.className = 'btn-station-copy';
+  btnCopy.textContent = '📋 URL kopieren';
+  btnCopy.addEventListener('click', function() { copyUrl(url, btnCopy); });
+  btns.appendChild(btnCopy);
+
+  row.appendChild(btns);
+  return row;
+}
+
+async function schreibeStationChip(url, btn) {
+  if (schreibtGerade) return;
+  if (!url) return;
+  if (!('NDEFReader' in window)) { btn.textContent = '✗ Kein NFC'; return; }
+  schreibtGerade = true;
+  alleDeaktiv(true);
+  btn.className = 'btn-station-nfc warten';
+  btn.textContent = '📡 Handy ans Chip halten…';
+  try {
+    var ndef = new NDEFReader();
+    await ndef.write({ records: [{ recordType:'url', data:url }] });
+    btn.className = 'btn-station-nfc ok';
+    btn.textContent = '✓ Chip beschrieben!';
+    setTimeout(function(){ btn.className='btn-station-nfc'; btn.textContent='📡 Chip beschreiben'; }, 3000);
+  } catch(e) {
+    var msg = e.name==='NotAllowedError' ? '✗ Berechtigung fehlt' : e.name==='AbortError' ? '✗ Abgebrochen' : '✗ Fehler';
+    btn.className = 'btn-station-nfc fehler';
+    btn.textContent = msg;
+    setTimeout(function(){ btn.className='btn-station-nfc'; btn.textContent='📡 Chip beschreiben'; }, 3000);
+  } finally {
+    schreibtGerade = false;
+    alleDeaktiv(false);
+  }
 }
 
 function renderSeiten() {
