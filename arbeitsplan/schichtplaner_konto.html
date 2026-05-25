@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fairness-Konto — BäckereiOS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;1,400&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+  <style>
+    :root {
+      --amber:      #b8790a;
+      --amber-dim:  #d49a36;
+      --amber-pale: #fdf6e8;
+      --bg:         #e8e4de;
+      --bg2:        #ffffff;
+      --bg3:        #d8d3cc;
+      --border:     #c8c2b8;
+      --text:       #1e1a16;
+      --text-dim:   #7a6e64;
+      --green:      #2e6b42;
+      --green-bg:   #e8f5ec;
+      --green-border:#b5d9c0;
+      --red:        #9b2c2c;
+      --red-bright: #c04040;
+      --red-bg:     #fdf0f0;
+      --blue:       #2a4e7a;
+      --blue-bg:    #eef4fb;
+      --blue-border:#bed4ef;
+      --radius:     8px;
+      --radius-lg:  12px;
+      --shadow:     0 2px 12px rgba(0,0,0,0.09);
+      --shadow-sm:  0 1px 4px rgba(0,0,0,0.06);
+      --surface:    #ffffff;
+      --surface2:   #f5f2ee;
+      --border-s:   #d8d2c8;
+      --dim:        #7a6e64;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* ── Plan-Card ───────────────────────────────── */
+    .plan-card {
+      max-width: 680px;
+      margin: 0 auto;
+      background: var(--bg2);
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    /* ── Toolbar ─────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .toolbar-right { margin-left: auto; display: flex; gap: 6px; }
+
+    /* ── Buttons ─────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 13px;
+      background: var(--amber);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+    .btn:hover { background: #a06a08; }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .btn-secondary:hover { background: var(--bg3); color: var(--text); }
+    .btn-green {
+      background: var(--green);
+    }
+    .btn-green:hover { background: #245435; }
+    .btn-sm { padding: 4px 9px; font-size: 12px; }
+
+    /* ── Zeitraum ────────────────────────────────── */
+    .zeitraum-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    .zeitraum-row input[type=number] {
+      width: 44px;
+      text-align: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--amber);
+      border: 1.5px solid #e8d090;
+      border-radius: 6px;
+      padding: 3px 6px;
+      background: var(--amber-pale);
+    }
+    .zeitraum-row input[type=number]:focus { outline: none; border-color: var(--amber); }
+
+    /* ── Status Banner ───────────────────────────── */
+    .status-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+    .status-banner.ok   { background: var(--green-bg); color: var(--green); }
+    .status-banner.warn { background: var(--amber-pale); color: #7a5200; }
+    .status-banner.err  { background: var(--red-bg); color: var(--red); }
+    .status-banner .dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      background: currentColor;
+    }
+
+    /* ── Person Grid ─────────────────────────────── */
+    .person-grid { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+
+    /* ── Person Card ─────────────────────────────── */
+    .person-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 13px 14px;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      box-shadow: var(--shadow-sm);
+    }
+    .person-card:hover { border-color: var(--amber-dim); box-shadow: var(--shadow); }
+    .person-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .person-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .person-badges { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+
+    /* ── Tag-Summary ─────────────────────────────── */
+    .tag-summary { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .tag-chip.samstag  { background: #fff3e0; color: #b8790a; border: 1px solid #f0d090; }
+    .tag-chip.montag   { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+    .tag-chip.default  { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
+    .tag-chip.einspring { background: var(--amber-pale); color: #7a5200; border: 1px solid #e8d090; }
+    .tag-chip.offen    { background: #fff3cd; color: #856404; border: 1px solid #ffc107; }
+    .tag-chip.leer     { color: var(--text-dim); font-size: 12px; font-style: italic; font-weight: 400; }
+
+    .person-empty { font-size: 12px; color: var(--text-dim); font-style: italic; }
+
+    /* ── Body scroll sperren wenn Modal offen ────── */
+    body.modal-open { overflow: hidden; position: fixed; width: 100%; }
+
+    /* ── Modals ──────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 200;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      overscroll-behavior: contain;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg2);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      width: 100%;
+      max-width: 680px;
+      height: 85vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 18px 16px 48px;
+      position: relative;
+    }
+    .modal-center .modal {
+      border-radius: var(--radius-lg);
+      margin: auto;
+      height: auto;
+      max-height: 92vh;
+    }
+    .modal-title {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .modal-sub {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+    .modal-close {
+      position: absolute;
+      top: 14px; right: 14px;
+      background: var(--bg3);
+      border: none;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: var(--text-dim);
+    }
+    .modal-close:hover { background: var(--border); color: var(--text); }
+
+    /* ── Form Elements ───────────────────────────── */
+    .form-group { margin-bottom: 13px; }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 5px;
+    }
+    .form-group select,
+    .form-group input[type=text],
+    .form-group input[type=date] {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg2);
+      color: var(--text);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+    }
+    .form-group select:focus,
+    .form-group input:focus { outline: none; border-color: var(--amber); }
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-group { flex: 1; }
+    .field-auto {
+      padding: 9px 11px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface2);
+      color: var(--text-dim);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px;
+      min-height: 40px;
+      width: 100%;
+    }
+
+    /* ── Ereignis-Liste ──────────────────────────── */
+    .ereignis-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+    .ereignis-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .ereignis-item.einspringen { border-color: #e8d090; background: var(--amber-pale); }
+    .ereignis-item.nachgereicht { border-color: var(--green-border); background: var(--green-bg); }
+    .ereignis-datum {
+      font-size: 11px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      min-width: 38px;
+      padding-top: 2px;
+    }
+    .ereignis-body { flex: 1; }
+    .ereignis-typ {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      margin-bottom: 2px;
+    }
+    .ereignis-typ.frei     { color: var(--text-dim); }
+    .ereignis-typ.spring   { color: #7a5200; }
+    .ereignis-typ.nach     { color: var(--green); }
+    .ereignis-meta { font-size: 12px; color: var(--text-dim); }
+    .ereignis-gutschein {
+      font-size: 11px;
+      font-family: monospace;
+      background: var(--amber-pale);
+      border: 1px solid #e8d090;
+      color: #7a5200;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+      display: inline-block;
+    }
+    .ereignis-offen {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #856404;
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+    }
+    .ereignis-abgeschlossen {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--green);
+      background: var(--green-bg);
+      border: 1px solid var(--green-border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+    }
+
+    /* ── Divider ─────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 14px 0;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    /* ── Download-Box ────────────────────────────── */
+    .download-box {
+      background: var(--green-bg);
+      border: 1.5px solid var(--green-border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-top: 10px;
+    }
+    .download-box-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--green);
+      margin-bottom: 6px;
+    }
+    .download-box-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+    }
+
+    /* ── Gutschein (Print) ───────────────────────── */
+    #gutscheinDruck {
+      display: none;
+      padding: 20px;
+    }
+    .gutschein-card {
+      border: 2px solid var(--text);
+      border-radius: 8px;
+      padding: 24px 28px;
+      max-width: 360px;
+      margin: 0 auto;
+      font-family: 'Barlow Condensed', sans-serif;
+    }
+    .gutschein-header {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+    .gutschein-title {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 6px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .gutschein-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .gutschein-label { color: var(--text-dim); min-width: 80px; }
+    .gutschein-value { font-weight: 700; }
+    .gutschein-code {
+      font-family: monospace;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .gutschein-footer {
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .gutschein-sign-line {
+      margin-top: 8px;
+      border-bottom: 1px solid var(--text);
+      width: 180px;
+    }
+
+    /* ── Empty State ─────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-dim);
+    }
+    .empty-state i { font-size: 40px; margin-bottom: 12px; display: block; }
+    .empty-state-title {
+      font-family: 'Fraunces', serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    /* ── Pending Badge ───────────────────────────── */
+    .pending-dot {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--amber);
+      color: white;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+    }
+
+    /* ── Floating Download Button ────────────────── */
+    #floatDownload {
+      position: fixed;
+      bottom: 24px;
+      right: 16px;
+      z-index: 100;
+      display: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      border-radius: 24px;
+    }
+
+    /* ── Print Styles ────────────────────────────── */
+    @media print {
+      body > *:not(#printLayer) { display: none !important; }
+      #printLayer { display: block !important; }
+      #printLayer .gutschein-card { border: 2px solid #000; }
+    }
+    #printLayer { display: none; }
+
+    /* ── Scrollbar ───────────────────────────────── */
+    .modal::-webkit-scrollbar { width: 4px; }
+    .modal::-webkit-scrollbar-track { background: transparent; }
+    .modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<script src="../shell.js" onerror="void 0"></script>
+
+<!-- Print Layer (nur beim Drucken sichtbar) -->
+<div id="printLayer"></div>
+
+<input type="file" id="importKontoInput" accept=".json" style="display:none" onchange="handleImportKonto(event)">
+
+<div class="plan-card">
+
+  <!-- ── Toolbar ───────────────────────────────── -->
+  <div class="toolbar">
+    <label class="btn btn-secondary" for="importKontoInput" style="cursor:pointer">
+      <i class="ph ph-file-arrow-up"></i> Laden
+    </label>
+    <button class="btn btn-secondary" onclick="neueKontoDatei()" title="Neue leere Konto-Datei anlegen">
+      <i class="ph ph-file-plus"></i> Neu
+    </button>
+    <div class="toolbar-right">
+      <button class="btn" onclick="openNeuerEintrag(null)">
+        <i class="ph ph-plus"></i> Eintrag
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Zeitraum ──────────────────────────────── -->
+  <div class="zeitraum-row">
+    <i class="ph ph-calendar-blank" style="font-size:15px"></i>
+    <span>Zeitraum: letzte</span>
+    <input type="number" id="anzeigeWochen" value="8" min="2" max="24"
+      onchange="renderUebersicht()" oninput="renderUebersicht()">
+    <span>Wochen</span>
+    <span id="zeitraumHinweis" style="margin-left:auto;font-size:11px;color:var(--text-dim)"></span>
+  </div>
+
+  <!-- ── Status Banner ─────────────────────────── -->
+  <div id="statusBanner"></div>
+
+  <!-- ── Person Overview ───────────────────────── -->
+  <div id="personGrid" class="person-grid">
+    <div class="empty-state">
+      <i class="ph ph-wallet"></i>
+      <div class="empty-state-title">Keine Daten geladen</div>
+      <p style="font-size:13px">Konto-Datei laden oder neue anlegen</p>
+    </div>
+  </div>
+
+</div><!-- /plan-card -->
+
+<!-- ── Floating Download Button ──────────────────── -->
+<button id="floatDownload" class="btn btn-green" onclick="openDownloadModal()">
+  <i class="ph ph-download-simple"></i>
+  <span id="floatLabel">Speichern</span>
+</button>
+
+<!-- ══════════════════════════════════════════════════
+     MODAL: Person Detail
+     ══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="detailModal" onclick="closeDetailModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeById('detailModal')"><i class="ph ph-x"></i></button>
+    <div class="modal-title" id="detailName"></div>
+    <div class="modal-sub" id="detailSub"></div>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     MODAL: Neuer Eintrag
+     ══════════════════════════════════════════════════ -->
+<div class="modal-overlay modal-center" id="eintragModal" onclick="closeEintragModal(event)">
+  <div class="modal" style="border-radius:var(--radius-lg);margin:auto;max-width:480px">
+    <button class="modal-close" onclick="closeById('eintragModal')"><i class="ph ph-x"></i></button>
+    <div class="modal-title">Neuer Eintrag</div>
+    <div class="modal-sub">Ereignis manuell erfassen</div>
+
+    <div class="form-group">
+      <label>Person</label>
+      <select id="eintragPerson" onchange="onPersonChange()">
+        <option value="">— auswählen —</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Typ</label>
+      <select id="eintragTyp" onchange="onTypChange()">
+        <option value="freierTag">Freier Tag</option>
+        <option value="einspringen">Eingesprungen</option>
+        <option value="freierTagNachgereicht">Tag nachgereicht</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Datum</label>
+      <input type="date" id="eintragDatum" onchange="onDatumChange()">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Wochentag</label>
+        <div class="field-auto" id="eintragWochentag">—</div>
+      </div>
+      <div class="form-group">
+        <label>Kalenderwoche</label>
+        <div class="field-auto" id="eintragKW">—</div>
+      </div>
+    </div>
+
+    <div class="form-group" id="notizGruppe">
+      <label>Notiz <span style="font-weight:400;text-transform:none">(optional)</span></label>
+      <input type="text" id="eintragNotiz" placeholder="z. B. Vertretung Heinzi">
+    </div>
+
+    <div class="form-group" id="bezugGruppe" style="display:none">
+      <label>Bezieht sich auf Einspringen</label>
+      <select id="eintragBezug">
+        <option value="">— auswählen —</option>
+      </select>
+    </div>
+
+    <div id="gutscheinVorschau" style="display:none;margin-bottom:14px">
+      <div style="background:var(--amber-pale);border:1.5px solid #e8d090;border-radius:var(--radius);padding:10px 12px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#7a5200;margin-bottom:4px">
+          Gutschein-Code wird generiert
+        </div>
+        <div id="gutscheinCodeVorschau" style="font-family:monospace;font-size:15px;font-weight:700;color:#7a5200"></div>
+      </div>
+    </div>
+
+    <div id="eintragFehler" style="display:none;color:var(--red-bright);font-size:13px;margin-bottom:10px"></div>
+
+    <button class="btn" style="width:100%" onclick="submitEintrag()">
+      <i class="ph ph-check"></i> Eintrag hinzufügen
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     MODAL: Download / Speichern
+     ══════════════════════════════════════════════════ -->
+<div class="modal-overlay modal-center" id="downloadModal" onclick="closeDownloadModal(event)">
+  <div class="modal" style="border-radius:var(--radius-lg);margin:auto;max-width:480px">
+    <button class="modal-close" onclick="closeById('downloadModal')"><i class="ph ph-x"></i></button>
+    <div class="modal-title">Speichern & Deployen</div>
+    <div class="modal-sub">Zwei Dateien herunterladen — dann in GitHub deployen</div>
+
+    <div class="download-box">
+      <div class="download-box-title"><i class="ph ph-file-arrow-down"></i> Zwei Dateien</div>
+      <div class="download-box-sub">
+        <strong>schichtplaner_konto.json</strong> — neue offizielle Version<br>
+        <strong>schichtplaner_konto_backup.json</strong> — eine Generation zurück
+      </div>
+      <button class="btn btn-green" style="width:100%" onclick="downloadKonto()">
+        <i class="ph ph-download-simple"></i> Jetzt herunterladen
+      </button>
+    </div>
+
+    <div id="downloadInfo" style="margin-top:12px;font-size:12px;color:var(--text-dim)"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     MODAL: Gutschein Drucken
+     ══════════════════════════════════════════════════ -->
+<div class="modal-overlay modal-center" id="gutscheinModal" onclick="closeGutscheinModal(event)">
+  <div class="modal" style="border-radius:var(--radius-lg);margin:auto;max-width:440px">
+    <button class="modal-close" onclick="closeById('gutscheinModal')"><i class="ph ph-x"></i></button>
+    <div class="modal-title">Gutschein</div>
+    <div class="modal-sub">Ausdrucken und aushändigen</div>
+
+    <div id="gutscheinContent"></div>
+
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn" style="flex:1" onclick="printGutschein()">
+        <i class="ph ph-printer"></i> Drucken
+      </button>
+      <button class="btn btn-secondary" style="flex:1" onclick="closeById('gutscheinModal')">
+        Schließen
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     JAVASCRIPT
+     ══════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+// ── State ──────────────────────────────────────────────
+let kontoData   = null;  // schichtplaner_konto.json
+let configData  = null;  // schichtplaner_config.json
+let neueEreignisse = []; // noch nicht gespeichert
+let aktuellerGutschein = null; // für Druck
+
+// ── Konstanten ──────────────────────────────────────────
+const TAG_KURZ = {
+  montag:'Mo', dienstag:'Di', mittwoch:'Mi',
+  donnerstag:'Do', freitag:'Fr', samstag:'Sa'
+};
+const TAG_SORT = ['samstag','montag','dienstag','mittwoch','donnerstag','freitag'];
+
+// ── Init ────────────────────────────────────────────────
+async function initKonto() {
+  await loadConfig();
+  await tryLoadKonto();
+  renderUebersicht();
+}
+
+// ── Config laden ────────────────────────────────────────
+async function loadConfig() {
+  const paths = [
+    '../schichtplaner_config.json',
+    './schichtplaner_config.json',
+    '../../schichtplaner_config.json',
+    '/schichtplaner_config.json'
+  ];
+  for (const p of paths) {
+    try {
+      const r = await fetch(p, { cache: 'no-store' });
+      if (!r.ok) continue;
+      const text = await r.text();
+      configData = JSON.parse(text.replace(/^\uFEFF/, ''));
+      console.log('Konto: Config geladen von', p);
+      return;
+    } catch(e) {}
+  }
+  console.warn('Konto: Config nicht gefunden — Demo-Personen werden genutzt');
+  configData = { personen: [], positionen: [] };
+}
+
+// ── Konto laden (fetch) ─────────────────────────────────
+async function tryLoadKonto() {
+  const paths = [
+    '../schichtplaner_konto.json',
+    './schichtplaner_konto.json',
+    '../../schichtplaner_konto.json',
+    '/schichtplaner_konto.json'
+  ];
+  for (const p of paths) {
+    try {
+      const r = await fetch(p, { cache: 'no-store' });
+      if (!r.ok) continue;
+      const text = await r.text();
+      kontoData = JSON.parse(text.replace(/^\uFEFF/, ''));
+      console.log('Konto: Datei geladen von', p);
+      setStatus('ok', `Konto geladen · Stand ${kontoData.stand || '—'} · ${kontoData.ereignisse?.length || 0} Ereignisse`);
+      return;
+    } catch(e) {}
+  }
+  setStatus('warn', 'Konto-Datei nicht gefunden · Datei laden oder Neu anlegen');
+}
+
+// ── Konto per Datei importieren ─────────────────────────
+function handleImportKonto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      kontoData = JSON.parse(e.target.result.replace(/^\uFEFF/, ''));
+      neueEreignisse = [];
+      setStatus('ok', `Geladen: ${file.name} · ${kontoData.ereignisse?.length || 0} Ereignisse`);
+      renderUebersicht();
+    } catch(err) {
+      setStatus('err', 'Fehler beim Lesen der Datei — gültiges JSON?');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ── Neue leere Datei anlegen ────────────────────────────
+function neueKontoDatei() {
+  kontoData = {
+    version: 1,
+    stand: getCurrentKW(),
+    einstellungen: { anzeigeZeitraumWochen: 8 },
+    ereignisse: []
+  };
+  neueEreignisse = [];
+  setStatus('warn', 'Neue Konto-Datei erstellt — noch nicht gespeichert');
+  renderUebersicht();
+}
+
+// ── Status Banner ───────────────────────────────────────
+function setStatus(type, text) {
+  const el = document.getElementById('statusBanner');
+  el.className = `status-banner ${type}`;
+  el.innerHTML = `<span class="dot"></span><span>${text}</span>`;
+  el.style.display = 'flex';
+}
+
+// ── Zeitraum lesen ──────────────────────────────────────
+function getAnzeigeWochen() {
+  const v = parseInt(document.getElementById('anzeigeWochen').value) || 8;
+  return Math.max(2, Math.min(24, v));
+}
+
+function getCutoffDate(wochen) {
+  const d = new Date();
+  d.setDate(d.getDate() - wochen * 7);
+  return d.toISOString().split('T')[0];
+}
+
+// ── Hauptübersicht rendern ──────────────────────────────
+function renderUebersicht() {
+  const grid = document.getElementById('personGrid');
+
+  if (!configData || !configData.personen || configData.personen.length === 0) {
+    grid.innerHTML = `<div class="empty-state">
+      <i class="ph ph-users"></i>
+      <div class="empty-state-title">Keine Personen konfiguriert</div>
+      <p style="font-size:13px">schichtplaner_config.json nicht geladen</p>
+    </div>`;
+    return;
+  }
+
+  const wochen  = getAnzeigeWochen();
+  const cutoff  = getCutoffDate(wochen);
+  const personen = (configData.personen || []).filter(p => !p.azubi);
+
+  const hinweis = document.getElementById('zeitraumHinweis');
+  if (hinweis) hinweis.textContent = `seit ${formatDatum(cutoff)}`;
+
+  if (!kontoData) {
+    grid.innerHTML = `<div class="empty-state">
+      <i class="ph ph-wallet"></i>
+      <div class="empty-state-title">Keine Konto-Datei geladen</div>
+      <p style="font-size:13px">Datei laden oder neu anlegen</p>
+    </div>`;
+    return;
+  }
+
+  // Zeige floating download button wenn neue Ereignisse vorhanden
+  const floatBtn = document.getElementById('floatDownload');
+  const floatLabel = document.getElementById('floatLabel');
+  if (neueEreignisse.length > 0) {
+    floatBtn.style.display = 'flex';
+    floatLabel.textContent = `${neueEreignisse.length} speichern`;
+  } else {
+    floatBtn.style.display = 'none';
+  }
+
+  grid.innerHTML = personen.map(p => buildPersonCard(p, wochen, cutoff)).join('');
+}
+
+// ── Person-Card HTML ────────────────────────────────────
+function buildPersonCard(person, wochen, cutoff) {
+  const ereignisse = getEreignisseForPerson(person.id, cutoff);
+  const summary    = buildSummary(person.id, ereignisse);
+  const offene     = getOffeneEinspringer(person.id);
+
+  // Tag-Chips (nur freierTag + nachgereicht, nicht einspringen)
+  const freiEvents = ereignisse.filter(e =>
+    e.typ === 'freierTag' || e.typ === 'freierTagNachgereicht'
+  );
+  const tagCounts = {};
+  freiEvents.forEach(e => {
+    if (e.wochentag) tagCounts[e.wochentag] = (tagCounts[e.wochentag] || 0) + 1;
+  });
+
+  const chipHtml = TAG_SORT
+    .filter(t => tagCounts[t])
+    .map(t => {
+      const cls = t === 'samstag' ? 'samstag' : t === 'montag' ? 'montag' : 'default';
+      return `<span class="tag-chip ${cls}">${TAG_KURZ[t]} ×${tagCounts[t]}</span>`;
+    }).join('');
+
+  const einsprungChip = summary.einspringen > 0
+    ? `<span class="tag-chip einspring"><i class="ph ph-arrow-up-right" style="font-size:11px"></i> ×${summary.einspringen}</span>`
+    : '';
+
+  const offenBadge = offene.length > 0
+    ? `<span class="pending-dot" title="${offene.length} Einspringen ohne Ausgleich">! ${offene.length}</span>`
+    : '';
+
+  const tagsContent = (chipHtml || einsprungChip)
+    ? `<div class="tag-summary">${chipHtml}${einsprungChip}</div>`
+    : `<span class="person-empty">Keine Einträge im Zeitraum</span>`;
+
+  return `
+    <div class="person-card" onclick="openPersonDetail('${person.id}')">
+      <div class="person-card-header">
+        <span class="person-name">${person.name}</span>
+        <div class="person-badges">
+          ${offenBadge}
+          <i class="ph ph-caret-right" style="color:var(--text-dim);font-size:14px"></i>
+        </div>
+      </div>
+      ${tagsContent}
+    </div>`;
+}
+
+// ── Ereignisse für Person ────────────────────────────────
+function getEreignisseForPerson(personId, cutoff) {
+  if (!kontoData?.ereignisse) return [];
+  return kontoData.ereignisse
+    .filter(e => e.personId === personId && (!cutoff || e.datum >= cutoff))
+    .sort((a, b) => b.datum.localeCompare(a.datum));
+}
+
+// ── Summary berechnen ───────────────────────────────────
+function buildSummary(personId, ereignisse) {
+  const einspringen = ereignisse.filter(e => e.typ === 'einspringen').length;
+  return { einspringen };
+}
+
+// ── Offene Einspringer ──────────────────────────────────
+function getOffeneEinspringer(personId) {
+  if (!kontoData?.ereignisse) return [];
+  const alleEinspringen = kontoData.ereignisse.filter(
+    e => e.personId === personId && e.typ === 'einspringen'
+  );
+  const nachgereichtIds = new Set(
+    kontoData.ereignisse
+      .filter(e => e.typ === 'freierTagNachgereicht' && e.beziehtSichAuf)
+      .map(e => e.beziehtSichAuf)
+  );
+  return alleEinspringen.filter(e => !nachgereichtIds.has(e.id));
+}
+
+// ── Person Detail öffnen ────────────────────────────────
+function openPersonDetail(personId) {
+  const person = configData?.personen?.find(p => p.id === personId);
+  if (!person) return;
+
+  document.getElementById('detailName').textContent = person.name;
+  renderPersonDetail(personId, person);
+  openModal('detailModal');
+}
+
+function renderPersonDetail(personId, person) {
+  const wochen  = getAnzeigeWochen();
+  const cutoff  = getCutoffDate(wochen);
+  const offene  = getOffeneEinspringer(personId);
+
+  // ALLE Ereignisse (kein Zeitlimit) für vollständige Historie
+  const alleEreignisse = (kontoData?.ereignisse || [])
+    .filter(e => e.personId === personId)
+    .sort((a, b) => b.datum.localeCompare(a.datum));
+
+  const imZeitraum = alleEreignisse.filter(e => e.datum >= cutoff);
+
+  // Sub-Zeile
+  const sub = document.getElementById('detailSub');
+  sub.textContent = `${imZeitraum.length} Ereignisse im Zeitraum · ${offene.length} Einspringen offen`;
+
+  // Inhalt
+  let html = '';
+
+  // Offene Einspringer prominent
+  if (offene.length > 0) {
+    html += `<div style="background:#fff3cd;border:1.5px solid #ffc107;border-radius:var(--radius);padding:10px 12px;margin-bottom:14px">
+      <div style="font-weight:700;font-size:13px;color:#856404;margin-bottom:6px">
+        <i class="ph ph-warning"></i> ${offene.length} Einspringen ohne Ausgleich
+      </div>`;
+    offene.forEach(e => {
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+        <span style="font-size:13px">${formatDatum(e.datum)} · ${TAG_KURZ[e.wochentag] || e.wochentag}${e.notiz ? ' · ' + e.notiz : ''}</span>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-sm" onclick="openNeuerEintrag('${personId}', '${e.id}')" style="font-size:11px">
+            <i class="ph ph-arrow-u-down-right"></i> Nachreichen
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="openGutscheinById('${e.id}')" style="font-size:11px">
+            <i class="ph ph-printer"></i>
+          </button>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Ereignis-Liste
+  html += `<div class="section-label">Alle Ereignisse</div>`;
+
+  if (alleEreignisse.length === 0) {
+    html += `<div class="person-empty" style="padding:16px 0">Noch keine Einträge</div>`;
+  } else {
+    // Nachgereicht-Referenzen vorberechnen
+    const nachgereichtMap = {};
+    alleEreignisse
+      .filter(e => e.typ === 'freierTagNachgereicht' && e.beziehtSichAuf)
+      .forEach(e => { nachgereichtMap[e.beziehtSichAuf] = e; });
+
+    html += `<div class="ereignis-list">`;
+    alleEreignisse.forEach(e => {
+      html += buildEreignisItem(e, nachgereichtMap, alleEreignisse);
+    });
+    html += `</div>`;
+  }
+
+  // Eintrag hinzufügen Button
+  html += `<div style="margin-top:16px;display:flex;gap:8px">
+    <button class="btn" style="flex:1" onclick="openNeuerEintrag('${personId}')">
+      <i class="ph ph-plus"></i> Eintrag hinzufügen
+    </button>
+  </div>`;
+
+  document.getElementById('detailContent').innerHTML = html;
+}
+
+// ── Ereignis-Item HTML ──────────────────────────────────
+function buildEreignisItem(e, nachgereichtMap, alleEreignisse) {
+  let cls = '', typLabel = '', typCls = '';
+
+  if (e.typ === 'freierTag') {
+    cls = ''; typLabel = 'Freier Tag'; typCls = 'frei';
+  } else if (e.typ === 'einspringen') {
+    cls = 'einspringen'; typLabel = 'Eingesprungen'; typCls = 'spring';
+  } else if (e.typ === 'freierTagNachgereicht') {
+    cls = 'nachgereicht'; typLabel = 'Tag nachgereicht'; typCls = 'nach';
+  }
+
+  const wochentagLabel = TAG_KURZ[e.wochentag] || e.wochentag || '—';
+  const kwLabel = e.kw ? e.kw.replace('-W', ' KW ') : '';
+
+  let extra = '';
+  if (e.typ === 'einspringen') {
+    const istAbgeschlossen = !!nachgereichtMap[e.id];
+    if (e.gutschein) {
+      extra += `<div class="ereignis-gutschein">${e.gutschein}</div>
+        <button onclick="openGutscheinById('${e.id}')" class="btn btn-sm btn-secondary" style="margin-top:5px;font-size:11px">
+          <i class="ph ph-printer"></i> Gutschein drucken
+        </button>`;
+    }
+    if (istAbgeschlossen) {
+      extra += `<div class="ereignis-abgeschlossen">✓ Ausgleich erfolgt</div>`;
+    } else {
+      extra += `<div class="ereignis-offen">⚠ Ausgleich ausstehend</div>`;
+    }
+  }
+  if (e.typ === 'freierTagNachgereicht' && e.beziehtSichAuf) {
+    const original = alleEreignisse.find(x => x.id === e.beziehtSichAuf);
+    if (original) {
+      extra += `<div style="font-size:11px;color:var(--text-dim);margin-top:3px">
+        Ausgleich für: ${formatDatum(original.datum)}
+      </div>`;
+    }
+  }
+
+  return `<div class="ereignis-item ${cls}">
+    <div class="ereignis-datum">${formatDatumKurz(e.datum)}</div>
+    <div class="ereignis-body">
+      <div class="ereignis-typ ${typCls}">${typLabel} · ${wochentagLabel}</div>
+      <div class="ereignis-meta">${kwLabel}${e.notiz ? ' · ' + e.notiz : ''}</div>
+      ${extra}
+    </div>
+  </div>`;
+}
+
+// ── Neuer Eintrag öffnen ────────────────────────────────
+function openNeuerEintrag(prefillPersonId = null, prefillBezugId = null) {
+  if (!kontoData) {
+    alert('Bitte zuerst eine Konto-Datei laden oder neu anlegen.');
+    return;
+  }
+
+  // Person-Dropdown befüllen
+  const personSelect = document.getElementById('eintragPerson');
+  const personen = (configData?.personen || []).filter(p => !p.azubi);
+  personSelect.innerHTML = '<option value="">— auswählen —</option>' +
+    personen.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+  if (prefillPersonId) {
+    personSelect.value = prefillPersonId;
+  }
+
+  // Datum: heute vorausfüllen
+  const heute = new Date().toISOString().split('T')[0];
+  document.getElementById('eintragDatum').value = heute;
+
+  // Felder zurücksetzen
+  document.getElementById('eintragTyp').value = prefillBezugId ? 'freierTagNachgereicht' : 'freierTag';
+  document.getElementById('eintragNotiz').value = '';
+  document.getElementById('eintragFehler').style.display = 'none';
+
+  onDatumChange();
+  onTypChange();
+
+  // Bezug vorausfüllen wenn übergeben
+  if (prefillBezugId) {
+    setTimeout(() => {
+      onPersonChange();
+      onTypChange();
+      const bezugSelect = document.getElementById('eintragBezug');
+      if (bezugSelect) bezugSelect.value = prefillBezugId;
+    }, 50);
+  }
+
+  openModal('eintragModal');
+  closeById('detailModal');
+}
+
+// ── Datum geändert ──────────────────────────────────────
+function onDatumChange() {
+  const datum = document.getElementById('eintragDatum').value;
+  if (!datum) {
+    document.getElementById('eintragWochentag').textContent = '—';
+    document.getElementById('eintragKW').textContent = '—';
+    document.getElementById('gutscheinCodeVorschau').textContent = '';
+    return;
+  }
+  const wt = wochentagFromDatum(datum);
+  const kw = kwFromDatum(datum);
+  document.getElementById('eintragWochentag').textContent = wt ? (TAG_KURZ[wt] + ' · ' + wt.charAt(0).toUpperCase() + wt.slice(1)) : '—';
+  document.getElementById('eintragKW').textContent = kw ? kw.replace('-W', ' / KW') : '—';
+
+  // Gutschein-Code aktualisieren wenn Einspringen
+  if (document.getElementById('eintragTyp').value === 'einspringen') {
+    updateGutscheinVorschau();
+  }
+}
+
+// ── Typ geändert ────────────────────────────────────────
+function onTypChange() {
+  const typ = document.getElementById('eintragTyp').value;
+  const notizGruppe = document.getElementById('notizGruppe');
+  const bezugGruppe = document.getElementById('bezugGruppe');
+  const gutscheinVorschau = document.getElementById('gutscheinVorschau');
+
+  notizGruppe.style.display = (typ === 'einspringen') ? 'block' : 'none';
+  bezugGruppe.style.display = (typ === 'freierTagNachgereicht') ? 'block' : 'none';
+  gutscheinVorschau.style.display = (typ === 'einspringen') ? 'block' : 'none';
+
+  if (typ === 'freierTagNachgereicht') {
+    onPersonChange();
+  }
+  if (typ === 'einspringen') {
+    updateGutscheinVorschau();
+  }
+}
+
+// ── Person geändert ──────────────────────────────────────
+function onPersonChange() {
+  const typ = document.getElementById('eintragTyp').value;
+  if (typ !== 'freierTagNachgereicht') return;
+
+  const personId = document.getElementById('eintragPerson').value;
+  const bezugSelect = document.getElementById('eintragBezug');
+  const offene = getOffeneEinspringer(personId);
+
+  bezugSelect.innerHTML = '<option value="">— auswählen —</option>' +
+    offene.map(e =>
+      `<option value="${e.id}">${formatDatum(e.datum)} · ${TAG_KURZ[e.wochentag] || '—'}${e.notiz ? ' (' + e.notiz + ')' : ''}</option>`
+    ).join('');
+}
+
+// ── Gutschein-Vorschau aktualisieren ────────────────────
+function updateGutscheinVorschau() {
+  const personId = document.getElementById('eintragPerson').value;
+  const datum    = document.getElementById('eintragDatum').value;
+  if (!personId || !datum) {
+    document.getElementById('gutscheinCodeVorschau').textContent = 'Person und Datum wählen';
+    return;
+  }
+  const code = generateGutscheinCode(personId, kwFromDatum(datum));
+  document.getElementById('gutscheinCodeVorschau').textContent = code;
+}
+
+// ── Eintrag absenden ────────────────────────────────────
+function submitEintrag() {
+  const fehlerEl = document.getElementById('eintragFehler');
+  fehlerEl.style.display = 'none';
+
+  const personId = document.getElementById('eintragPerson').value;
+  const typ      = document.getElementById('eintragTyp').value;
+  const datum    = document.getElementById('eintragDatum').value;
+  const notiz    = document.getElementById('eintragNotiz').value.trim();
+  const bezugId  = document.getElementById('eintragBezug').value;
+
+  // Validierung
+  if (!personId) { showFehler('Person auswählen'); return; }
+  if (!datum)    { showFehler('Datum eingeben'); return; }
+  if (typ === 'freierTagNachgereicht' && !bezugId) {
+    showFehler('Bitte das zugehörige Einspringen auswählen'); return;
+  }
+
+  const wochentag = wochentagFromDatum(datum);
+  const kw        = kwFromDatum(datum);
+  const id        = generateId();
+
+  const ereignis = {
+    id, personId, kw, datum, typ, wochentag
+  };
+
+  if (notiz) ereignis.notiz = notiz;
+  if (typ === 'einspringen') {
+    ereignis.gutschein = generateGutscheinCode(personId, kw);
+  }
+  if (typ === 'freierTagNachgereicht' && bezugId) {
+    ereignis.beziehtSichAuf = bezugId;
+  }
+
+  // Zu kontoData und neueEreignisse hinzufügen
+  kontoData.ereignisse.push(ereignis);
+  kontoData.stand = getCurrentKW();
+  neueEreignisse.push(ereignis);
+
+  closeById('eintragModal');
+  renderUebersicht();
+  setStatus('warn', `${neueEreignisse.length} neue Ereignisse · noch nicht gespeichert`);
+
+  // Bei Einspringen: Gutschein anzeigen
+  if (typ === 'einspringen') {
+    setTimeout(() => openGutscheinById(id), 200);
+  }
+}
+
+function showFehler(text) {
+  const el = document.getElementById('eintragFehler');
+  el.textContent = text;
+  el.style.display = 'block';
+}
+
+// ── Gutschein öffnen ────────────────────────────────────
+function openGutscheinById(ereignisId) {
+  const e = kontoData?.ereignisse?.find(x => x.id === ereignisId);
+  if (!e) return;
+  const person = configData?.personen?.find(p => p.id === e.personId);
+  aktuellerGutschein = { ereignis: e, person };
+  renderGutschein(e, person);
+  openModal('gutscheinModal');
+}
+
+function renderGutschein(e, person) {
+  const heute = new Date().toLocaleDateString('de-DE');
+  const html = `
+    <div class="gutschein-card" id="gutscheinKarte">
+      <div class="gutschein-header">BäckereiOS · Bäckerei Langrehr</div>
+      <div class="gutschein-title">G U T S C H E I N</div>
+      <div class="gutschein-row">
+        <span class="gutschein-label">Für:</span>
+        <span class="gutschein-value">${person?.name || '—'}</span>
+      </div>
+      <div class="gutschein-row">
+        <span class="gutschein-label">Anlass:</span>
+        <span class="gutschein-value">Einspringen · ${TAG_KURZ[e.wochentag] || ''} ${formatDatum(e.datum)}${e.notiz ? '<br><span style="font-weight:400;font-size:13px">' + e.notiz + '</span>' : ''}</span>
+      </div>
+      <div class="gutschein-row">
+        <span class="gutschein-label">Leistung:</span>
+        <span class="gutschein-value">Freier Tag nach Vereinbarung</span>
+      </div>
+      <div class="gutschein-row">
+        <span class="gutschein-label">Code:</span>
+        <span class="gutschein-value gutschein-code">${e.gutschein || '—'}</span>
+      </div>
+      <div class="gutschein-footer">
+        Ausgestellt: ${heute}
+        <div class="gutschein-sign-line"></div>
+        <div style="margin-top:3px;font-size:11px">Genehmigt (Unterschrift)</div>
+      </div>
+    </div>`;
+  document.getElementById('gutscheinContent').innerHTML = html;
+}
+
+// ── Gutschein drucken ───────────────────────────────────
+function printGutschein() {
+  if (!aktuellerGutschein) return;
+  const { ereignis: e, person } = aktuellerGutschein;
+  const heute = new Date().toLocaleDateString('de-DE');
+
+  const printLayer = document.getElementById('printLayer');
+  printLayer.innerHTML = `<div style="padding:30px;font-family:'Barlow Condensed',sans-serif">
+    <div style="border:2px solid #000;border-radius:8px;padding:24px 28px;max-width:360px;margin:0 auto">
+      <div style="font-size:12px;color:#888;margin-bottom:16px">BäckereiOS · Bäckerei Langrehr</div>
+      <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;letter-spacing:6px;text-align:center;margin-bottom:20px">G U T S C H E I N</div>
+      <table style="width:100%;border-collapse:collapse;font-size:14px">
+        <tr><td style="color:#888;width:80px;padding-bottom:8px">Für:</td><td style="font-weight:700;padding-bottom:8px">${person?.name || '—'}</td></tr>
+        <tr><td style="color:#888;padding-bottom:8px">Anlass:</td><td style="font-weight:700;padding-bottom:8px">Einspringen · ${TAG_KURZ[e.wochentag] || ''} ${formatDatum(e.datum)}${e.notiz ? '<br><span style="font-weight:400">' + e.notiz + '</span>' : ''}</td></tr>
+        <tr><td style="color:#888;padding-bottom:8px">Leistung:</td><td style="font-weight:700;padding-bottom:8px">Freier Tag nach Vereinbarung</td></tr>
+        <tr><td style="color:#888;padding-bottom:8px">Code:</td><td style="font-family:monospace;font-size:15px;font-weight:700;padding-bottom:8px">${e.gutschein || '—'}</td></tr>
+      </table>
+      <div style="margin-top:20px;padding-top:14px;border-top:1px solid #ccc;font-size:12px;color:#888">
+        Ausgestellt: ${heute}
+        <div style="margin-top:8px;border-bottom:1px solid #000;width:180px"></div>
+        <div style="margin-top:3px;font-size:11px">Genehmigt (Unterschrift)</div>
+      </div>
+    </div>
+  </div>`;
+
+  window.print();
+}
+
+// ── Download ────────────────────────────────────────────
+function openDownloadModal() {
+  const info = document.getElementById('downloadInfo');
+  info.textContent = neueEreignisse.length > 0
+    ? `${neueEreignisse.length} neue Ereignisse seit letztem Speichern`
+    : 'Aktuelle Datei ohne Änderungen herunterladen';
+  openModal('downloadModal');
+}
+
+function downloadKonto() {
+  if (!kontoData) return;
+
+  // 1. Neue offizielle Datei
+  const neueVersion = JSON.parse(JSON.stringify(kontoData));
+  neueVersion.stand = getCurrentKW();
+
+  triggerDownload('schichtplaner_konto.json', neueVersion);
+
+  // 2. Backup (= aktuelle Version vor Änderungen)
+  // Da wir append-only arbeiten, ist der Backup die Datei ohne die neuen Ereignisse
+  const backup = JSON.parse(JSON.stringify(neueVersion));
+  if (neueEreignisse.length > 0) {
+    const neueIds = new Set(neueEreignisse.map(e => e.id));
+    backup.ereignisse = backup.ereignisse.filter(e => !neueIds.has(e.id));
+  }
+  setTimeout(() => triggerDownload('schichtplaner_konto_backup.json', backup), 300);
+
+  neueEreignisse = [];
+  setStatus('ok', `Gespeichert · Stand ${neueVersion.stand} · ${neueVersion.ereignisse.length} Ereignisse`);
+  renderUebersicht();
+  closeById('downloadModal');
+}
+
+function triggerDownload(filename, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── Hilfsfunktionen ─────────────────────────────────────
+function generateId() {
+  if (!kontoData?.ereignisse) return 'evt-001';
+  const max = kontoData.ereignisse.reduce((m, e) => {
+    const n = parseInt(e.id?.replace('evt-', '') || '0');
+    return Math.max(m, isNaN(n) ? 0 : n);
+  }, 0);
+  return 'evt-' + String(max + 1).padStart(3, '0');
+}
+
+function generateGutscheinCode(personId, kw) {
+  const person = configData?.personen?.find(p => p.id === personId);
+  const kuerzel = (person?.name || personId).substring(0, 3).toUpperCase();
+  const kwShort = (kw || getCurrentKW()).replace('-W', 'W').replace('-', '');
+  const existing = (kontoData?.ereignisse || []).filter(
+    e => e.personId === personId && e.gutschein
+  ).length;
+  const nr = String(existing + 1).padStart(3, '0');
+  return `BOS-${kwShort}-${kuerzel}-${nr}`;
+}
+
+function getCurrentKW() {
+  return kwFromDatum(new Date().toISOString().split('T')[0]);
+}
+
+function wochentagFromDatum(datum) {
+  const d = new Date(datum + 'T12:00:00');
+  const map = {0:null,1:'montag',2:'dienstag',3:'mittwoch',4:'donnerstag',5:'freitag',6:'samstag'};
+  return map[d.getDay()] || null;
+}
+
+function kwFromDatum(datum) {
+  const d = new Date(datum + 'T12:00:00');
+  // ISO 8601 Woche
+  const jan4  = new Date(d.getFullYear(), 0, 4);
+  const dow   = (jan4.getDay() + 6) % 7;
+  const woche1Mo = new Date(jan4.getFullYear(), 0, 4 - dow);
+  const diff  = d - woche1Mo;
+  let woche   = Math.floor(diff / (7 * 86400000)) + 1;
+  let jahr    = d.getFullYear();
+  if (woche < 1) {
+    // Letztes Jahr
+    const jan4Prev = new Date(jahr - 1, 0, 4);
+    const dowPrev  = (jan4Prev.getDay() + 6) % 7;
+    const woche1MoPrev = new Date(jan4Prev.getFullYear(), 0, 4 - dowPrev);
+    const dec28    = new Date(jahr - 1, 11, 28);
+    const diffPrev = dec28 - woche1MoPrev;
+    woche = Math.floor(diffPrev / (7 * 86400000)) + 1;
+    jahr -= 1;
+  }
+  return `${jahr}-W${String(woche).padStart(2, '0')}`;
+}
+
+function formatDatum(datum) {
+  if (!datum) return '—';
+  const [y, m, d] = datum.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+function formatDatumKurz(datum) {
+  if (!datum) return '—';
+  const [, m, d] = datum.split('-');
+  return `${d}.${m}.`;
+}
+
+// ── Modal-Helper ────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id)?.classList.add('open');
+  document.body.classList.add('modal-open');
+}
+function closeById(id) {
+  document.getElementById(id)?.classList.remove('open');
+  // Body-Scroll nur freigeben wenn alle Modals zu sind
+  const anyOpen = document.querySelectorAll('.modal-overlay.open').length > 0;
+  if (!anyOpen) document.body.classList.remove('modal-open');
+}
+function closeDetailModal(e) {
+  if (e.target === document.getElementById('detailModal')) closeById('detailModal');
+}
+function closeEintragModal(e) {
+  if (e.target === document.getElementById('eintragModal')) closeById('eintragModal');
+}
+function closeDownloadModal(e) {
+  if (e.target === document.getElementById('downloadModal')) closeById('downloadModal');
+}
+function closeGutscheinModal(e) {
+  if (e.target === document.getElementById('gutscheinModal')) closeById('gutscheinModal');
+}
+
+// ── Start ───────────────────────────────────────────────
+initKonto();
+</script>
+
+</body>
+</html>

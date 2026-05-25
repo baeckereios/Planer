@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Froster-Konfiguration – BäckereiOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,400&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rot:    #c0392b;
+    --dunkel: #f4f2ee;
+    --grau1:  #ffffff;
+    --grau2:  #f0ede8;
+    --grau3:  #e8e4dd;
+    --hell:   #1c1a17;
+    --border: #d8d3ca;
+    --akzent: #d49a36;
+    --gruen:  #2d7a4f;
+    --blau:   #1a6b8a;
+    --lila:   #6a4c93;
+    --dim:    #888880;
+    --font:   'Barlow Condensed', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--dunkel); color: var(--hell); min-height: 100vh; }
+
+  header {
+    background: var(--blau); padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 3px solid #0f4a63;
+  }
+  header h1 { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; color: #fff; }
+  header .meta { font-size: 11px; color: rgba(255,255,255,0.7); text-align: right; }
+
+  .toolbar {
+    background: var(--grau1); border-bottom: 2px solid var(--border);
+    padding: 10px 20px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  }
+  .btn {
+    font-family: var(--font); font-size: 11px; font-weight: bold;
+    letter-spacing: 1px; text-transform: uppercase;
+    border: none; border-radius: 3px; padding: 7px 14px; cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-gruen  { background: var(--gruen);  color: #fff; }
+  .btn-grau   { background: var(--grau3);  color: var(--hell); }
+  .btn-akzent { background: var(--akzent); color: #fff; }
+  .btn-rot    { background: var(--rot);    color: #fff; }
+  .toolbar .sep { width: 1px; height: 28px; background: var(--border); }
+  #statusBar { font-size: 11px; color: var(--dim); margin-left: auto; }
+  #statusBar.ok  { color: var(--gruen); }
+  #statusBar.err { color: var(--rot); }
+
+  #uploadZone {
+    margin: 30px auto; max-width: 500px;
+    border: 2px dashed var(--grau3); border-radius: 8px;
+    padding: 40px; text-align: center; color: var(--dim); font-size: 13px;
+    cursor: pointer; transition: border-color 0.2s, color 0.2s;
+  }
+  #uploadZone:hover, #uploadZone.drag { border-color: var(--blau); color: var(--hell); }
+  #uploadZone .icon { font-size: 40px; margin-bottom: 12px; }
+  #uploadZone p { margin: 6px 0; }
+  #uploadZone small { font-size: 10px; color: var(--dim); }
+  #fileInput, #fileInputProd { display: none; }
+
+  #inhalt { padding: 0 0 60px; }
+  .sektion { margin-bottom: 2px; }
+  .sek-kopf {
+    background: var(--grau2); border-left: 4px solid var(--blau);
+    padding: 8px 16px; display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; user-select: none;
+    font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: bold; color: var(--dim);
+  }
+  .sek-kopf:hover { background: var(--grau3); }
+  .sek-kopf.akzent-border { border-left-color: var(--akzent); }
+  .sek-kopf.gruen-border  { border-left-color: var(--gruen); }
+  .sek-kopf.lila-border   { border-left-color: var(--lila); }
+  .sek-kopf .toggle-icon  { font-size: 14px; flex-shrink: 0; }
+  .badge {
+    display: inline-block; background: var(--gruen); color: #fff;
+    font-size: 10px; padding: 2px 7px; border-radius: 10px;
+    margin-left: 8px; font-weight: bold; vertical-align: middle;
+  }
+  .badge.warn { background: var(--akzent); }
+  .sek-body { display: none; }
+  .sek-body.open { display: block; }
+
+  /* ── Matrix ──────────────────────────────────────────── */
+  .matrix-wrap { padding: 16px 20px; overflow-x: auto; }
+  .matrix-table { border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+  .matrix-table th {
+    background: var(--grau2); color: var(--dim);
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    padding: 8px 14px; border: 1px solid var(--border); font-weight: normal; text-align: center;
+  }
+  .matrix-table th.col-stikken { text-align: left; min-width: 180px; }
+  .matrix-table td { padding: 6px 10px; border: 1px solid var(--border); text-align: center; vertical-align: middle; }
+  .matrix-table tbody tr:hover td { background: var(--grau2); }
+  .col-stikken-cell { text-align: left !important; }
+  .stikken-label { font-weight: 600; font-size: 13px; display: block; }
+  .stikken-key   { font-size: 10px; color: var(--dim); font-style: italic; display: block; margin-top: 1px; }
+  .col-einheit-cell { background: var(--grau2) !important; }
+  .matrix-input {
+    font-family: var(--font); font-size: 13px; font-weight: 600;
+    background: transparent; color: var(--hell); border: 1px solid transparent;
+    border-radius: 3px; padding: 3px 6px; width: 62px; text-align: center;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .matrix-input:focus { outline: none; border-color: var(--blau); background: var(--grau1); }
+  .einheit-input {
+    font-family: var(--font); font-size: 12px;
+    background: transparent; color: var(--dim); border: 1px solid transparent;
+    border-radius: 3px; padding: 3px 6px; width: 55px; text-align: center;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .einheit-input:focus { outline: none; border-color: var(--blau); background: var(--grau1); }
+  .matrix-null { color: var(--border); font-size: 14px; }
+
+  /* ── Froster-Räume ───────────────────────────────────── */
+  .raeume-wrap { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 680px) { .raeume-wrap { grid-template-columns: 1fr; } }
+  .raum-card {
+    background: var(--grau1); border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .raum-card-head {
+    padding: 10px 14px; font-size: 11px; font-weight: bold;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .head-a { background: var(--blau);  color: #fff; }
+  .head-b { background: var(--lila);  color: #fff; }
+  .head-sub { font-size: 10px; opacity: 0.8; font-weight: normal; letter-spacing: 0.5px; }
+  .raum-card-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+  .raum-feld { display: flex; flex-direction: column; gap: 5px; }
+  .raum-feld label { font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--dim); font-weight: 800; }
+  .raum-feld input[type=text] {
+    font-family: var(--font); font-size: 13px;
+    background: var(--grau2); border: 1px solid var(--border); border-radius: 4px;
+    color: var(--hell); padding: 7px 10px; width: 100%;
+  }
+  .raum-feld input[type=text]:focus { outline: none; border-color: var(--akzent); }
+
+  .kap-zeilen { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kap-zeile  { display: flex; flex-direction: column; gap: 5px; }
+  .kap-zeile label { font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--dim); font-weight: 800; }
+  .kap-input-lg {
+    font-family: var(--font); font-size: 26px; font-weight: 800;
+    background: var(--dunkel); border: 2px solid var(--border); border-radius: 6px;
+    color: var(--hell); padding: 8px 10px; width: 100%; text-align: center;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .kap-input-lg:focus { outline: none; border-color: var(--akzent); background: var(--grau1); }
+  .kap-unit { font-size: 10px; color: var(--dim); text-align: center; margin-top: 3px; letter-spacing: 0.8px; text-transform: uppercase; }
+
+  /* ── Sperrflächen ────────────────────────────────────── */
+  .sperr-wrap { padding: 16px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 680px) { .sperr-wrap { grid-template-columns: 1fr; } }
+  .sperr-raum { display: flex; flex-direction: column; gap: 8px; }
+  .sperr-raum-label {
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    font-weight: 800; color: var(--dim); padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sperr-raum-label.a { color: var(--blau); }
+  .sperr-raum-label.b { color: var(--lila); }
+
+  .sperr-eintrag {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--grau1); border: 1px solid var(--border);
+    border-radius: 5px; padding: 8px 10px;
+  }
+  .sperr-stikken-input {
+    font-family: var(--font); font-size: 20px; font-weight: 800;
+    background: var(--dunkel); border: 1px solid var(--border); border-radius: 4px;
+    color: var(--hell); padding: 4px 6px; width: 60px; text-align: center;
+    flex-shrink: 0;
+  }
+  .sperr-stikken-input:focus { outline: none; border-color: var(--blau); }
+  .sperr-label-input {
+    font-family: var(--font); font-size: 13px;
+    background: transparent; border: 1px solid transparent; border-radius: 4px;
+    color: var(--hell); padding: 4px 6px; flex: 1; min-width: 0;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .sperr-label-input:focus { outline: none; border-color: var(--blau); background: var(--grau2); }
+  .btn-del-sm {
+    background: none; border: 1px solid var(--border); color: var(--dim);
+    font-size: 13px; width: 26px; height: 26px; border-radius: 3px; cursor: pointer; line-height: 1;
+    flex-shrink: 0; transition: all 0.15s;
+  }
+  .btn-del-sm:hover { background: var(--rot); border-color: var(--rot); color: #fff; }
+  .sperr-add {
+    display: flex; gap: 8px; padding: 8px 0 0;
+  }
+  .sperr-add input[type=number] {
+    font-family: var(--font); font-size: 15px; font-weight: 700;
+    background: var(--grau2); border: 1px solid var(--border); border-radius: 4px;
+    color: var(--hell); padding: 6px 8px; width: 70px; text-align: center;
+  }
+  .sperr-add input[type=text] {
+    font-family: var(--font); font-size: 13px;
+    background: var(--grau2); border: 1px solid var(--border); border-radius: 4px;
+    color: var(--hell); padding: 6px 8px; flex: 1;
+  }
+  .sperr-add input:focus { outline: none; border-color: var(--blau); }
+
+  /* ── Produkt-Zuweisung ───────────────────────────────── */
+  .prod-toolbar {
+    padding: 10px 20px; background: var(--grau1); border-bottom: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  }
+  .prod-toolbar .prod-status { font-size: 11px; color: var(--dim); margin-left: auto; }
+  .prod-zuw-table { width: 100%; border-collapse: collapse; }
+  .prod-zuw-table thead th {
+    background: var(--grau2); color: var(--dim);
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border); font-weight: normal;
+  }
+  .prod-zuw-table thead th.center { text-align: center; }
+  .prod-zuw-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  .prod-zuw-table tbody tr:hover { background: var(--grau2); }
+  .prod-zuw-table tbody tr.manuell-row { background: #fdf6e3; }
+  .prod-zuw-table td { padding: 5px 10px; vertical-align: middle; font-size: 13px; }
+  .prod-zuw-table td.center { text-align: center; }
+  .pz-name { font-weight: 600; }
+  .pz-key  { display: block; font-size: 10px; color: var(--dim); font-style: italic; }
+  .pz-badge {
+    font-size: 9px; font-weight: bold; letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 3px; margin-left: 6px;
+  }
+  .pz-badge.auto   { background: #e8f5ec; color: var(--gruen); }
+  .pz-badge.manuel { background: #fdf6e3; color: var(--akzent); }
+  .pz-select {
+    font-family: var(--font); font-size: 12px;
+    background: transparent; color: var(--hell); border: 1px solid transparent;
+    border-radius: 3px; padding: 4px 22px 4px 6px; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23888'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 6px center;
+    min-width: 140px;
+  }
+  .pz-select:focus { outline: none; border-color: var(--blau); background: var(--grau2); }
+  .pz-select.leer  { color: var(--rot); border-color: #f5c6c2; background: #fdf0ef; }
+  .add-panel {
+    padding: 12px 20px; background: var(--dunkel); border-top: 1px solid var(--border);
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  }
+  .add-panel label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); font-weight: 800; }
+  #addProdSelect {
+    font-family: var(--font); font-size: 13px;
+    background: var(--grau2); border: 1px solid var(--border); border-radius: 4px;
+    color: var(--hell); padding: 6px 28px 6px 10px; cursor: pointer; min-width: 240px;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+  .no-prod-hint { font-size: 12px; color: var(--dim); font-style: italic; padding: 14px 20px; }
+
+  #downloadBanner {
+    display: none; position: fixed; bottom: 20px; right: 20px;
+    background: var(--gruen); color: #fff; padding: 12px 20px; border-radius: 6px;
+    font-size: 12px; font-weight: bold; letter-spacing: 1px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4); animation: slideIn 0.3s ease; cursor: pointer;
+  }
+  @keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>❄ Froster-Konfiguration</h1>
+  <div class="meta">
+    <div>BäckereiOS Admin</div>
+    <div id="dateiName">keine Datei geladen</div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button class="btn btn-grau" onclick="document.getElementById('fileInput').click()">📂 Laden</button>
+  <button class="btn btn-grau" onclick="ladeVonServer()">↻ Auto-Laden</button>
+  <input type="file" id="fileInput" accept=".json">
+  <div class="sep"></div>
+  <button class="btn btn-grau" onclick="ladeDefault()">⬆ Defaults</button>
+  <div class="sep"></div>
+  <button class="btn btn-gruen" onclick="downloadJSON()">⬇ JSON speichern</button>
+  <span id="statusBar">—</span>
+</div>
+
+<div id="uploadZone" onclick="document.getElementById('fileInput').click()">
+  <div class="icon">❄</div>
+  <p><strong>froster_config.json laden</strong></p>
+  <p>Klicken oder Datei hierher ziehen</p>
+  <small>Auto-Laden · Defaults für neue Konfiguration</small>
+</div>
+
+<div id="inhalt"></div>
+<div id="downloadBanner" onclick="downloadJSON()">⬇ JSON jetzt speichern</div>
+<input type="file" id="fileInputProd" accept=".json">
+
+<script>
+const DEFAULT_CONFIG = {
+  blechgroessen: {
+    kuchenblech:     { label: "Kuchenblech" },
+    schlawinerblech: { label: "Schlawinerblech / Rote Diele" },
+    lochblech:       { label: "Lochblech" }
+  },
+  stikken_typen: {
+    stikken_24: {
+      label: "24er Stikken", einheiten: 1.0,
+      kapazitaet: { kuchenblech: 96, schlawinerblech: 48, lochblech: 24 }
+    },
+    stikken_20: {
+      label: "20er Stikken", einheiten: 1.0,
+      kapazitaet: { kuchenblech: 80, schlawinerblech: 40, lochblech: 20 }
+    },
+    schlawinerstikken: {
+      label: "Schlawinerstikken", einheiten: 0.5,
+      kapazitaet: { kuchenblech: 32, schlawinerblech: 16, lochblech: null }
+    }
+  },
+  froster_raeume: {
+    froster_a: {
+      label: "Froster A",
+      kapazitaet_normal:  70,
+      kapazitaet_maximal: 110
+    },
+    froster_b: {
+      label: "Froster B",
+      kapazitaet: 50
+    }
+  },
+  sperrflaechen: {
+    froster_a: [],
+    froster_b: []
+  },
+  produkt_zuweisung: []
+};
+
+let config     = null;
+let prodConfig = null;
+let geaendert  = false;
+let collapsed  = { matrix: true, raeume: false, sperr: false, produkte: false };
+
+function prodId(p) { return p.legacyKey || p.artNr || p.name || '?'; }
+
+// ── LADEN ─────────────────────────────────────────────────
+document.getElementById('fileInput').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  readJSON(file, data => {
+    config = migriere(data);
+    document.getElementById('dateiName').textContent = file.name;
+    geaendert = false; render();
+    status('✓ Froster-Config geladen', 'ok');
+  });
+});
+
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) { document.getElementById('fileInput').files = e.dataTransfer.files; document.getElementById('fileInput').dispatchEvent(new Event('change')); }
+});
+
+async function ladeVonServer() {
+  try {
+    status('Lade…', '');
+    const res = await fetch('../froster_config.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    config = migriere(await res.json());
+    document.getElementById('dateiName').textContent = 'froster_config.json (Server)';
+    geaendert = false; render();
+    status('✓ Froster-Config geladen', 'ok');
+    ladeProduktConfigVonServer();
+  } catch(err) { status('⚠ ' + err.message, 'err'); }
+}
+
+function ladeDefault() {
+  config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+  document.getElementById('dateiName').textContent = 'Defaults';
+  geaendert = true; render();
+  status('⚠ Defaults – bitte anpassen und speichern', 'err');
+  document.getElementById('downloadBanner').style.display = 'block';
+}
+
+// Migrierung alter froster_zustaende → froster_raeume
+function migriere(data) {
+  if (!data.froster_raeume && data.froster_zustaende) {
+    const z = data.froster_zustaende;
+    data.froster_raeume = {
+      froster_a: {
+        label: 'Froster A',
+        kapazitaet_normal:  z.normal?.kapazitaet_24er  || 70,
+        kapazitaet_maximal: z.maximal?.kapazitaet_24er || 110
+      },
+      froster_b: { label: 'Froster B', kapazitaet: 50 }
+    };
+    delete data.froster_zustaende;
+  }
+  if (!data.froster_raeume) data.froster_raeume = JSON.parse(JSON.stringify(DEFAULT_CONFIG.froster_raeume));
+  if (!data.sperrflaechen)  data.sperrflaechen  = { froster_a: [], froster_b: [] };
+  if (!data.sperrflaechen.froster_a) data.sperrflaechen.froster_a = [];
+  if (!data.sperrflaechen.froster_b) data.sperrflaechen.froster_b = [];
+  if (!data.produkt_zuweisung) data.produkt_zuweisung = [];
+  return data;
+}
+
+// ── PRODUKT-CONFIG ────────────────────────────────────────
+document.getElementById('fileInputProd').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  readJSON(file, data => {
+    prodConfig = data; syncProdukte(); render();
+    status('✓ Produkt-Config · ' + frosterProdukte().length + ' Froster-Produkte', 'ok');
+  });
+});
+
+async function ladeProduktConfigVonServer() {
+  try {
+    const res = await fetch('../produkt_config.json', { cache: 'no-store' });
+    if (!res.ok) return;
+    prodConfig = await res.json(); syncProdukte(); render();
+    status('✓ Alles geladen · ' + frosterProdukte().length + ' Froster-Produkte', 'ok');
+  } catch(e) {}
+}
+
+function frosterProdukte()     { return prodConfig ? prodConfig.filter(p => p.inventurRelevant === true) : []; }
+function nichtFrosterProdukte() {
+  if (!prodConfig) return [];
+  const ids = new Set((config.produkt_zuweisung||[]).map(z => z.id));
+  return prodConfig.filter(p => !p.inventurRelevant && !ids.has(prodId(p)));
+}
+
+function syncProdukte() {
+  if (!config || !prodConfig) return;
+  const vorhandenIDs = new Set(config.produkt_zuweisung.map(z => z.id));
+  frosterProdukte().forEach(p => {
+    const id = prodId(p);
+    if (!vorhandenIDs.has(id)) {
+      config.produkt_zuweisung.push({ id, name: p.name||id, kategorie: p.kategorie||'', manuell: false, blechgroesse: null, stikken_typ: null, froster_raum: null });
+      markGeaendert();
+    } else {
+      const e = config.produkt_zuweisung.find(z => z.id === id);
+      if (e && !e.manuell) { e.name = p.name||id; e.kategorie = p.kategorie||''; }
+    }
+  });
+}
+
+// ── STATUS ────────────────────────────────────────────────
+function status(msg, typ) { const el = document.getElementById('statusBar'); el.textContent = msg; el.className = typ; }
+function markGeaendert() { geaendert = true; status('⚠ Ungespeicherte Änderungen', 'err'); document.getElementById('downloadBanner').style.display = 'block'; }
+
+// ── RENDER ────────────────────────────────────────────────
+function render() {
+  if (!config) { document.getElementById('uploadZone').style.display='block'; document.getElementById('inhalt').innerHTML=''; return; }
+  document.getElementById('uploadZone').style.display = 'none';
+  const inhalt = document.getElementById('inhalt');
+  inhalt.innerHTML = '';
+  inhalt.appendChild(renderMatrix());
+  inhalt.appendChild(renderRaeume());
+  inhalt.appendChild(renderSperrflaechen());
+  inhalt.appendChild(renderProdukte());
+}
+
+// ── MATRIX ────────────────────────────────────────────────
+function renderMatrix() {
+  const sek = mkeSektion('matrix', 'Kapazitäts-Matrix', '· Bleche pro Stikken', '');
+  const st = config.stikken_typen; const bl = config.blechgroessen;
+  const stKeys = Object.keys(st); const blKeys = Object.keys(bl);
+  const wrap = document.createElement('div'); wrap.className = 'matrix-wrap';
+  const tbl = document.createElement('table'); tbl.className = 'matrix-table';
+  let thead = '<thead><tr><th class="col-stikken">Stikken-Typ</th><th>Einheiten<br><span style="font-size:9px;font-weight:normal">(24er-Basis)</span></th>';
+  blKeys.forEach(bk => { thead += `<th>${esc(bl[bk].label)}</th>`; });
+  thead += '</tr></thead>'; tbl.innerHTML = thead;
+  const tbody = document.createElement('tbody');
+  stKeys.forEach(sk => {
+    const s = st[sk]; const tr = document.createElement('tr');
+    let html = `<td class="col-stikken-cell"><span class="stikken-label">${esc(s.label)}</span><span class="stikken-key">${sk}</span></td>
+      <td class="col-einheit-cell"><input class="einheit-input" type="number" min="0.1" max="5" step="0.1" value="${s.einheiten}" onchange="aendereEinheit('${sk}',parseFloat(this.value)||1)"></td>`;
+    blKeys.forEach(bk => {
+      const kap = s.kapazitaet[bk];
+      html += (kap===null||kap===undefined)
+        ? `<td><span class="matrix-null">—</span></td>`
+        : `<td><input class="matrix-input" type="number" min="1" max="999" value="${kap}" onchange="aendereKapazitaet('${sk}','${bk}',parseInt(this.value)||1)"></td>`;
+    });
+    tr.innerHTML = html; tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody); wrap.appendChild(tbl); sek.body.appendChild(wrap);
+  return sek.sektion;
+}
+
+// ── FROSTER-RÄUME ─────────────────────────────────────────
+function renderRaeume() {
+  const sek = mkeSektion('raeume', 'Froster-Räume', '· Kapazitäten', 'akzent-border');
+  const wrap = document.createElement('div'); wrap.className = 'raeume-wrap';
+  const r = config.froster_raeume;
+
+  // Froster A
+  const cardA = document.createElement('div'); cardA.className = 'raum-card';
+  cardA.innerHTML = `
+    <div class="raum-card-head head-a"><span>❄ ${esc(r.froster_a.label)}</span><span class="head-sub">Normal + Maximal</span></div>
+    <div class="raum-card-body">
+      <div class="raum-feld"><label>Bezeichnung</label>
+        <input type="text" value="${esc(r.froster_a.label)}" onchange="aendereRaum('froster_a','label',this.value)"></div>
+      <div class="kap-zeilen">
+        <div class="kap-zeile">
+          <label>Normal (Stikken)</label>
+          <input class="kap-input-lg" type="number" min="1" max="999" value="${r.froster_a.kapazitaet_normal||''}"
+            onchange="aendereRaum('froster_a','kapazitaet_normal',parseFloat(this.value)||0)">
+          <div class="kap-unit">24er-Äq.</div>
+        </div>
+        <div class="kap-zeile">
+          <label>Maximal (Stikken)</label>
+          <input class="kap-input-lg" type="number" min="1" max="999" value="${r.froster_a.kapazitaet_maximal||''}"
+            onchange="aendereRaum('froster_a','kapazitaet_maximal',parseFloat(this.value)||0)">
+          <div class="kap-unit">24er-Äq.</div>
+        </div>
+      </div>
+    </div>`;
+
+  // Froster B
+  const cardB = document.createElement('div'); cardB.className = 'raum-card';
+  cardB.innerHTML = `
+    <div class="raum-card-head head-b"><span>❄ ${esc(r.froster_b.label)}</span><span class="head-sub">Ein Zustand</span></div>
+    <div class="raum-card-body">
+      <div class="raum-feld"><label>Bezeichnung</label>
+        <input type="text" value="${esc(r.froster_b.label)}" onchange="aendereRaum('froster_b','label',this.value)"></div>
+      <div class="kap-zeile">
+        <label>Kapazität (Stikken)</label>
+        <input class="kap-input-lg" type="number" min="1" max="999" value="${r.froster_b.kapazitaet||''}"
+          onchange="aendereRaum('froster_b','kapazitaet',parseFloat(this.value)||0)">
+        <div class="kap-unit">24er-Äq.</div>
+      </div>
+    </div>`;
+
+  wrap.appendChild(cardA); wrap.appendChild(cardB);
+  sek.body.appendChild(wrap);
+  return sek.sektion;
+}
+
+// ── SPERRFLÄCHEN ──────────────────────────────────────────
+function renderSperrflaechen() {
+  const sp = config.sperrflaechen || {};
+  const anzahl = (sp.froster_a||[]).length + (sp.froster_b||[]).length;
+  const sek = mkeSektion('sperr', 'Sperrflächen', '· Reservierte / belegte Flächen', 'lila-border');
+
+  const wrap = document.createElement('div'); wrap.className = 'sperr-wrap';
+
+  ['froster_a','froster_b'].forEach(rk => {
+    const raum = config.froster_raeume[rk];
+    const liste = sp[rk] || [];
+    const div = document.createElement('div'); div.className = 'sperr-raum';
+    const cls = rk === 'froster_a' ? 'a' : 'b';
+
+    let html = `<div class="sperr-raum-label ${cls}">❄ ${esc(raum?.label||rk)}</div>`;
+
+    liste.forEach((eintrag, idx) => {
+      html += `
+        <div class="sperr-eintrag">
+          <input class="sperr-stikken-input" type="number" min="0.5" max="99" step="0.5"
+            value="${eintrag.stikken}"
+            onchange="aendereSperr('${rk}',${idx},'stikken',parseFloat(this.value)||0)">
+          <input class="sperr-label-input" type="text" placeholder="Bezeichnung (z. B. Mischmasch KW20)"
+            value="${esc(eintrag.label||'')}"
+            onchange="aendereSperr('${rk}',${idx},'label',this.value)">
+          <button class="btn-del-sm" onclick="loescheSperr('${rk}',${idx})" title="Entfernen">✕</button>
+        </div>`;
+    });
+
+    html += `
+      <div class="sperr-add">
+        <input type="number" id="sperr-neu-stikken-${rk}" min="0.5" max="99" step="0.5" placeholder="Stikken" value="1">
+        <input type="text"   id="sperr-neu-label-${rk}"   placeholder="Bezeichnung">
+        <button class="btn btn-akzent" onclick="fuegeSpserrHinzu('${rk}')">+ Hinzufügen</button>
+      </div>`;
+
+    div.innerHTML = html; wrap.appendChild(div);
+  });
+
+  sek.body.appendChild(wrap);
+  return sek.sektion;
+}
+
+// ── PRODUKT-ZUWEISUNG ─────────────────────────────────────
+function renderProdukte() {
+  const zuw   = config.produkt_zuweisung || [];
+  const offen = zuw.filter(z => !z.blechgroesse || !z.stikken_typ || !z.froster_raum).length;
+  const sek   = mkeSektion('produkte', 'Produkt-Zuweisung', '· Blechgröße, Stikken-Typ &amp; Raum', 'gruen-border');
+
+  // Badge
+  const kopfSpan = sek.sektion.querySelector('.sek-kopf span');
+  kopfSpan.innerHTML += `<span class="badge">${zuw.length}</span>` +
+    (offen > 0 ? `<span class="badge warn">${offen} offen</span>` : '');
+
+  // Sub-Toolbar
+  const subBar = document.createElement('div'); subBar.className = 'prod-toolbar';
+  subBar.innerHTML = `
+    <button class="btn btn-grau" onclick="document.getElementById('fileInputProd').click()">📂 Produkt-Config laden</button>
+    <button class="btn btn-grau" onclick="ladeProduktConfigVonServer()">↻ Auto-Laden</button>
+    <span class="prod-status">${prodConfig ? prodConfig.length+' Produkte geladen' : 'Produkt-Config nicht geladen'}</span>`;
+  sek.body.appendChild(subBar);
+
+  if (zuw.length === 0) {
+    const hint = document.createElement('div'); hint.className = 'no-prod-hint';
+    hint.textContent = 'Noch keine Produkte. Produkt-Config laden.';
+    sek.body.appendChild(hint);
+  } else {
+    const st = config.stikken_typen; const bl = config.blechgroessen;
+    const r  = config.froster_raeume;
+
+    const tbl = document.createElement('table'); tbl.className = 'prod-zuw-table';
+    tbl.innerHTML = `<thead><tr>
+      <th>Produkt</th><th>Blechgröße</th><th>Stikken-Typ</th><th>Froster-Raum</th>
+      <th class="center">✕</th></tr></thead>`;
+
+    const tbody = document.createElement('tbody');
+    const sorted = [...zuw].sort((a,b) => {
+      if (a.manuell !== b.manuell) return a.manuell ? 1 : -1;
+      return (a.name||'').localeCompare(b.name||'','de');
+    });
+
+    sorted.forEach(z => {
+      const idx = config.produkt_zuweisung.indexOf(z);
+      const tr  = document.createElement('tr');
+      if (z.manuell) tr.className = 'manuell-row';
+
+      const mkSel = (feld, optsHTML, val) => `
+        <select class="pz-select${!val?' leer':''}"
+          onchange="aendereZuweisung(${idx},'${feld}',this.value||null);this.classList.toggle('leer',!this.value)">
+          <option value="">— wählen —</option>${optsHTML.replace(`value="${val}"`,`value="${val}" selected`)}</select>`;
+
+      const blOpts = Object.keys(bl).map(k=>`<option value="${k}">${esc(bl[k].label)}</option>`).join('');
+      const stOpts = Object.keys(st).map(k=>`<option value="${k}">${esc(st[k].label)}</option>`).join('');
+      const rOpts  = Object.keys(r).map(k=>`<option value="${k}">${esc(r[k].label)}</option>`).join('');
+
+      const delBtn = z.manuell
+        ? `<button class="btn-del-sm" onclick="loescheZuweisung(${idx})">✕</button>`
+        : `<span style="color:var(--border);display:block;text-align:center">—</span>`;
+
+      tr.innerHTML = `
+        <td><span class="pz-name">${esc(z.name)}</span>
+            <span class="pz-key">${z.id}<span class="pz-badge ${z.manuell?'manuel':'auto'}">${z.manuell?'manuell':'auto'}</span></span></td>
+        <td>${mkSel('blechgroesse',blOpts,z.blechgroesse)}</td>
+        <td>${mkSel('stikken_typ',stOpts,z.stikken_typ)}</td>
+        <td>${mkSel('froster_raum',rOpts,z.froster_raum)}</td>
+        <td class="center">${delBtn}</td>`;
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody); sek.body.appendChild(tbl);
+  }
+
+  // Add-Panel
+  const addPanel = document.createElement('div'); addPanel.className = 'add-panel';
+  const nfp = nichtFrosterProdukte();
+  if (nfp.length > 0) {
+    let opts = '<option value="">— Produkt wählen —</option>';
+    nfp.forEach(p => {
+      const id = prodId(p);
+      opts += `<option value="${esc(id)}" data-name="${esc(p.name||id)}" data-kat="${esc(p.kategorie||'')}">
+        ${esc(p.name||id)}${p.kategorie?' ('+p.kategorie+')':''}</option>`;
+    });
+    addPanel.innerHTML = `<label>+ Weiteres Produkt</label>
+      <select id="addProdSelect">${opts}</select>
+      <button class="btn btn-akzent" onclick="fuegeProduktHinzu()">Hinzufügen</button>`;
+  } else {
+    addPanel.innerHTML = `<span style="font-size:11px;color:var(--dim)">${prodConfig?'Alle Produkte bereits zugewiesen.':'Produkt-Config laden.'}</span>`;
+  }
+  sek.body.appendChild(addPanel);
+  return sek.sektion;
+}
+
+// ── MUTATIONS ─────────────────────────────────────────────
+function aendereKapazitaet(sk,bk,val) { config.stikken_typen[sk].kapazitaet[bk]=val; markGeaendert(); }
+function aendereEinheit(sk,val)       { config.stikken_typen[sk].einheiten=val; markGeaendert(); }
+function aendereRaum(rk,feld,val)     { config.froster_raeume[rk][feld]=val; markGeaendert(); }
+function aendereZuweisung(idx,feld,val){ config.produkt_zuweisung[idx][feld]=val; markGeaendert(); }
+function loescheZuweisung(idx)        { config.produkt_zuweisung.splice(idx,1); markGeaendert(); render(); }
+function fuegeProduktHinzu() {
+  const sel = document.getElementById('addProdSelect'); if(!sel||!sel.value) return;
+  const id = sel.value; const opt = sel.options[sel.selectedIndex];
+  if (config.produkt_zuweisung.find(z=>z.id===id)) return;
+  config.produkt_zuweisung.push({ id, name:opt.dataset.name||id, kategorie:opt.dataset.kat||'', manuell:true, blechgroesse:null, stikken_typ:null, froster_raum:null });
+  markGeaendert(); render();
+}
+function aendereSperr(rk,idx,feld,val) {
+  config.sperrflaechen[rk][idx][feld]=val; markGeaendert();
+}
+function loescheSperr(rk,idx) {
+  config.sperrflaechen[rk].splice(idx,1); markGeaendert(); render();
+}
+function fuegeSpserrHinzu(rk) {
+  const st = parseFloat(document.getElementById('sperr-neu-stikken-'+rk)?.value)||1;
+  const lb = document.getElementById('sperr-neu-label-'+rk)?.value||'';
+  if (!config.sperrflaechen[rk]) config.sperrflaechen[rk]=[];
+  config.sperrflaechen[rk].push({ id: Date.now().toString(36), stikken: st, label: lb });
+  markGeaendert(); render();
+}
+
+// ── DOWNLOAD ──────────────────────────────────────────────
+function downloadJSON() {
+  const json = JSON.stringify(config,null,2);
+  const url  = URL.createObjectURL(new Blob([json],{type:'application/json'}));
+  const a    = document.createElement('a'); a.href=url; a.download='froster_config.json'; a.click();
+  URL.revokeObjectURL(url); geaendert=false;
+  document.getElementById('downloadBanner').style.display='none';
+  status('✓ froster_config.json gespeichert','ok');
+}
+
+// ── UTILS ─────────────────────────────────────────────────
+function toggleSektion(key) { collapsed[key]=!collapsed[key]; render(); }
+
+function mkeSektion(key, titel, sub, borderCls) {
+  const sektion = document.createElement('div'); sektion.className='sektion';
+  const isOpen  = !collapsed[key];
+  const kopf    = document.createElement('div');
+  kopf.className = 'sek-kopf' + (borderCls?' '+borderCls:'');
+  kopf.innerHTML = `<span>${titel} <span style="font-weight:normal;letter-spacing:0">${sub}</span></span><span class="toggle-icon">${isOpen?'▼':'▶'}</span>`;
+  kopf.onclick   = () => toggleSektion(key);
+  const body     = document.createElement('div');
+  body.className = 'sek-body'+(isOpen?' open':'');
+  sektion.appendChild(kopf); sektion.appendChild(body);
+  return { sektion, body };
+}
+
+function readJSON(file,cb) {
+  const r=new FileReader();
+  r.onload=ev=>{ try{cb(JSON.parse(ev.target.result));}catch(e){status('⚠ JSON-Fehler: '+e.message,'err');} };
+  r.readAsText(file);
+}
+
+function esc(s) {
+  if(s==null)return'';
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+window.addEventListener('beforeunload',e=>{ if(geaendert){e.preventDefault();e.returnValue='';} });
+ladeVonServer().catch(()=>{});
+</script>
+</body>
+</html>

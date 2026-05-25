@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lieferanten-Config Editor – BäckereiOS</title>
+<style>
+  :root {
+    --dunkel:  #0f1117;
+    --grau1:   #1a1d27;
+    --grau2:   #252836;
+    --grau3:   #343748;
+    --grau4:   #4a4e66;
+    --border:  #2e3248;
+    --akzent:  #4f8ef7;
+    --akzent2: #3b7de8;
+    --gruen:   #22c55e;
+    --rot:     #ef4444;
+    --amber:   #f59e0b;
+    --text:    #e2e6f0;
+    --dim:     #8b8fa8;
+    --font:    'Courier New', 'Lucida Console', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--dunkel); color: var(--text); min-height: 100vh; font-size: 13px; }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--akzent);
+    padding: 12px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 3px solid #2a5bc7;
+  }
+  header h1 { font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: #fff; font-weight: bold; }
+  header .meta { font-size: 10px; color: rgba(255,255,255,0.7); text-align: right; line-height: 1.6; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    background: var(--grau1); border-bottom: 2px solid var(--border);
+    padding: 8px 20px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  }
+  .btn {
+    font-family: var(--font); font-size: 11px; font-weight: bold;
+    letter-spacing: 1px; text-transform: uppercase;
+    border: none; border-radius: 3px; padding: 6px 12px;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-blau   { background: var(--akzent); color: #fff; }
+  .btn-gruen  { background: var(--gruen); color: #fff; }
+  .btn-amber  { background: var(--amber); color: #fff; }
+  .btn-grau   { background: var(--grau4); color: #fff; }
+  .btn-rot    { background: var(--rot); color: #fff; }
+  .toolbar .sep { width: 1px; height: 24px; background: var(--border); }
+  .toolbar label { font-size: 11px; color: var(--dim); }
+  .toolbar select, .toolbar input[type=text] {
+    font-family: var(--font); font-size: 11px;
+    background: var(--grau2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 3px; padding: 5px 8px;
+  }
+  #statusBar { font-size: 11px; color: var(--dim); margin-left: auto; }
+  #statusBar.ok  { color: var(--gruen); }
+  #statusBar.err { color: var(--rot); }
+
+  /* ── UPLOAD ── */
+  #uploadZone {
+    margin: 24px auto; max-width: 900px; padding: 0 20px;
+    display: flex; gap: 16px; flex-wrap: wrap;
+  }
+  .upload-card {
+    flex: 1; min-width: 280px;
+    background: var(--grau1); border: 1px dashed var(--border);
+    border-radius: 6px; padding: 14px 18px;
+  }
+  .upload-card .uc-label {
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--akzent); font-weight: bold; margin-bottom: 8px;
+  }
+  .upload-card input[type=file] { font-family: var(--font); font-size: 11px; color: var(--dim); width: 100%; }
+  .upload-card .hint { font-size: 10px; color: var(--dim); margin-top: 5px; }
+
+  /* ── MAIN TABLE WRAP ── */
+  #main { max-width: 1100px; margin: 0 auto; padding: 0 20px 40px; }
+
+  /* ── GRUPPEN-HEADER ── */
+  .gruppe-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 0; margin-top: 20px; margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .gruppe-label {
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    font-weight: bold; padding: 2px 8px; border-radius: 3px;
+  }
+  .gl-tk       { background: #1e3a5f; color: #60a5fa; border: 1px solid #2d4f78; }
+  .gl-kuehl    { background: #1e3a2a; color: #4ade80; border: 1px solid #2d5a3d; }
+  .gl-trocken  { background: #3a2e1e; color: #fbbf24; border: 1px solid #5a4a2d; }
+  .gl-sonstiges { background: #2a2a3a; color: #a78bfa; border: 1px solid #3d3a5a; }
+  .gruppe-count { font-size: 10px; color: var(--dim); }
+
+  /* ── PRODUKT-TABELLE ── */
+  .prod-tabelle { width: 100%; border-collapse: collapse; }
+  .prod-tabelle thead tr {
+    background: var(--grau2); border-bottom: 2px solid var(--border);
+  }
+  .prod-tabelle thead th {
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--dim); font-weight: bold; padding: 6px 10px; text-align: left;
+  }
+  .prod-tabelle thead th:first-child { padding-left: 14px; }
+  .prod-tabelle tbody tr.prod-row {
+    border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background 0.1s;
+  }
+  .prod-tabelle tbody tr.prod-row:hover { background: var(--grau2); }
+  .prod-tabelle tbody tr.prod-row.offen { background: var(--grau2); }
+  .prod-tabelle tbody td {
+    padding: 9px 10px; font-size: 12px; vertical-align: middle;
+  }
+  .prod-tabelle tbody td:first-child { padding-left: 14px; }
+  .prod-name-cell { font-weight: bold; color: var(--text); }
+  .prod-name-cell.leer { color: var(--dim); font-style: italic; }
+
+  /* Lagertyp-Dot */
+  .lager-dot {
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 50%; margin-right: 6px; vertical-align: middle;
+  }
+  .dot-tk       { background: #60a5fa; }
+  .dot-kuehl    { background: #4ade80; }
+  .dot-trocken  { background: #fbbf24; }
+  .dot-sonstiges { background: #a78bfa; }
+
+  /* Bestelltage-Chips */
+  .bt-chips { display: flex; gap: 3px; flex-wrap: wrap; }
+  .bt-chip {
+    font-size: 9px; font-weight: bold; padding: 1px 5px;
+    border-radius: 2px; background: var(--akzent); color: #fff;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── DETAIL-ROW ── */
+  .detail-row td {
+    padding: 0 !important; background: var(--grau1);
+    border-bottom: 2px solid var(--akzent);
+  }
+  .detail-inner {
+    padding: 16px 20px 20px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px 20px;
+  }
+  .detail-section {
+    grid-column: 1 / -1;
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--akzent); font-weight: bold;
+    padding-top: 10px; border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+  .detail-section:first-child { padding-top: 0; border-top: none; margin-top: 0; }
+  .detail-feld { display: flex; flex-direction: column; gap: 4px; }
+  .detail-feld label {
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--dim); font-weight: bold;
+  }
+  .detail-feld input, .detail-feld select {
+    font-family: var(--font); font-size: 12px;
+    background: var(--grau2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 3px;
+    padding: 6px 8px; width: 100%;
+  }
+  .detail-feld input:focus, .detail-feld select:focus {
+    outline: none; border-color: var(--akzent); background: var(--grau3);
+  }
+  .detail-full { grid-column: 1 / -1; }
+  .detail-half { grid-column: span 1; }
+
+  /* Bestelltage im Detail */
+  .bt-wrap { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 2px; }
+  .bt-btn {
+    font-family: var(--font); font-size: 11px; font-weight: bold;
+    padding: 5px 10px; border-radius: 3px; cursor: pointer; letter-spacing: 0.5px;
+    border: 1px solid var(--border); background: var(--grau2); color: var(--dim);
+    transition: all 0.12s;
+  }
+  .bt-btn.aktiv { background: var(--akzent); border-color: var(--akzent); color: #fff; }
+
+  /* Produktion Toggle */
+  .prod-toggle { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .prod-toggle input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--akzent); cursor: pointer; }
+  .prod-toggle label { font-size: 12px; cursor: pointer; color: var(--text); }
+
+  /* Crosslink */
+  .crosslink-ok  { font-size: 11px; color: var(--gruen); margin-top: 4px; }
+  .crosslink-err { font-size: 11px; color: var(--rot); margin-top: 4px; }
+
+  /* Detail Actions */
+  .detail-actions {
+    grid-column: 1 / -1;
+    display: flex; gap: 8px; justify-content: flex-end;
+    padding-top: 10px; border-top: 1px solid var(--border); margin-top: 4px;
+  }
+
+  /* ── EXPAND ARROW ── */
+  .expand-btn {
+    background: none; border: none; color: var(--dim);
+    font-size: 10px; cursor: pointer; padding: 2px 6px;
+    font-family: var(--font);
+  }
+  .prod-row.offen .expand-btn { color: var(--akzent); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📦 BäckereiOS · Lieferanten-Config Editor</h1>
+  <div class="meta">
+    <div id="statusBar">BEREIT</div>
+    <div id="meta-count" style="margin-top:2px;"></div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button class="btn btn-blau" onclick="neuesProdukt()">+ NEU</button>
+  <button class="btn btn-gruen" onclick="speichern()">↓ SPEICHERN</button>
+  <div class="sep"></div>
+  <label>Lagertyp:</label>
+  <select id="filterTyp" onchange="renderAll()">
+    <option value="">Alle</option>
+    <option value="tk">Tiefkühl</option>
+    <option value="kuehl">Kühl</option>
+    <option value="trocken">Trocken</option>
+    <option value="sonstiges">Sonstiges</option>
+  </select>
+  <div class="sep"></div>
+  <input type="text" id="suchfeld" placeholder="Suche..." oninput="renderAll()" style="width:160px;">
+  <div class="sep"></div>
+  <button class="btn btn-grau" onclick="alleAufklappen()">ALLE AUF</button>
+  <button class="btn btn-grau" onclick="alleZuklappen()">ALLE ZU</button>
+</div>
+
+<div id="uploadZone">
+  <div class="upload-card">
+    <div class="uc-label">1. lieferanten_config.json laden</div>
+    <input type="file" id="fileInput" accept=".json" onchange="ladeConfig(this)">
+    <div class="hint">Oder neu beginnen — Beispieldaten bereits geladen.</div>
+  </div>
+  <div class="upload-card">
+    <div class="uc-label">2. produkt_config.json laden (für Crosslinks)</div>
+    <input type="file" id="fileInputProd" accept=".json" onchange="ladeProduktConfig(this)">
+    <div class="hint">Nur nötig wenn Crosslink-Dropdowns leer bleiben.</div>
+  </div>
+</div>
+
+<div id="main"></div>
+
+<script>
+const WT = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+const LAGERTYPEN = ['tk','kuehl','trocken','sonstiges'];
+const LAGERTYP_LABEL = { tk:'Tiefkühl', kuehl:'Kühl', trocken:'Trocken', sonstiges:'Sonstiges' };
+const GEBINDE_FORMEN   = ['karton','sack','eimer','paket','palette','beutel','flasche','dose','sonstiges'];
+const INHALT_EINHEITEN = ['Stück','kg','g','l','ml'];
+const SOLL_EINHEITEN   = ['karton','sack','eimer','palette','paket','beutel','flasche','dose','stück'];
+
+let config = [];
+let produktConfig = [];
+let offeneZeilen = new Set();
+
+// ── LADEN ──────────────────────────────────────────────────
+async function ladeProdukteConfig() {
+  for (const pfad of ['../produkt_config.json','produkt_config.json']) {
+    try {
+      const r = await fetch(pfad, { cache:'no-store' });
+      if (r.ok) { produktConfig = await r.json(); return; }
+    } catch(e) {}
+  }
+}
+
+ladeProdukteConfig().then(() => {
+  for (const pfad of ['../lieferanten_config.json','lieferanten_config.json']) {
+    fetch(pfad, { cache:'no-store' })
+      .then(r => r.json())
+      .then(d => { config = d; renderAll(); return; })
+      .catch(() => {});
+  }
+  if (!config.length) renderAll();
+});
+
+function ladeProduktConfig(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try { produktConfig = JSON.parse(e.target.result); renderAll(); status('produkt_config.json geladen', 'ok'); }
+    catch(err) { status('Fehler: ' + err.message, 'err'); }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function ladeConfig(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try { config = JSON.parse(e.target.result); offeneZeilen.clear(); renderAll(); status(config.length + ' Produkte geladen', 'ok'); }
+    catch(err) { status('Fehler: ' + err.message, 'err'); }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ── RENDER ─────────────────────────────────────────────────
+function renderAll() {
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+  const filter = document.getElementById('filterTyp').value;
+  const such = document.getElementById('suchfeld').value.toLowerCase();
+
+  const gruppen = { tk:[], kuehl:[], trocken:[], sonstiges:[] };
+  config.forEach((p, idx) => {
+    if (filter && p.lagertyp !== filter) return;
+    if (such && !(p.name||'').toLowerCase().includes(such) && !(p.lieferant||'').toLowerCase().includes(such)) return;
+    (gruppen[p.lagertyp] || gruppen.sonstiges).push({ p, idx });
+  });
+
+  let total = 0;
+  LAGERTYPEN.forEach(typ => {
+    const gruppe = gruppen[typ];
+    if (!gruppe.length) return;
+    total += gruppe.length;
+
+    const gruppeDiv = document.createElement('div');
+    gruppeDiv.innerHTML = `
+      <div class="gruppe-header">
+        <span class="gruppe-label gl-${typ}">${LAGERTYP_LABEL[typ]}</span>
+        <span class="gruppe-count">${gruppe.length} Produkt${gruppe.length !== 1 ? 'e' : ''}</span>
+      </div>`;
+    main.appendChild(gruppeDiv);
+
+    const table = document.createElement('table');
+    table.className = 'prod-tabelle';
+    table.innerHTML = `<thead><tr>
+      <th style="width:28%">Name</th>
+      <th style="width:14%">Lieferant</th>
+      <th style="width:10%">Gebinde</th>
+      <th style="width:10%">Soll</th>
+      <th style="width:8%">Feiertag</th>
+      <th>Bestelltage</th>
+      <th style="width:10%">Prod.</th>
+      <th style="width:32px"></th>
+    </tr></thead><tbody id="tbody-${typ}"></tbody>`;
+    main.appendChild(table);
+
+    const tbody = table.querySelector('tbody');
+    gruppe.forEach(({ p, idx }) => {
+      tbody.appendChild(buildProdRow(p, idx));
+      tbody.appendChild(buildDetailRow(p, idx));
+    });
+  });
+
+  document.getElementById('meta-count').textContent = total + ' PRODUKTE';
+}
+
+function buildProdRow(p, idx) {
+  const tr = document.createElement('tr');
+  tr.className = 'prod-row' + (offeneZeilen.has(idx) ? ' offen' : '');
+  tr.id = 'row-' + idx;
+  tr.onclick = () => toggleZeile(idx);
+
+  const btChips = (p.bestelltage||[]).map(i => `<span class="bt-chip">${WT[i]}</span>`).join('');
+  const soll = p.soll_bestand != null ? p.soll_bestand + ' ' + (p.soll_einheit||'') : '—';
+  const ft = p.soll_bestand_ft != null ? p.soll_bestand_ft : '—';
+  const prodMark = p.wird_produziert ? '<span style="color:var(--gruen);">●</span>' : '<span style="color:var(--dim);">○</span>';
+  const namenCls = p.name ? 'prod-name-cell' : 'prod-name-cell leer';
+
+  tr.innerHTML = `
+    <td><span class="lager-dot dot-${p.lagertyp||'sonstiges'}"></span><span class="${namenCls}">${esc(p.name||'Neues Produkt')}</span></td>
+    <td style="color:var(--dim);">${esc(p.lieferant||'—')}</td>
+    <td style="color:var(--dim);">${esc(p.gebinde?.form||'—')}</td>
+    <td style="color:var(--dim);">${esc(soll)}</td>
+    <td style="color:var(--dim);text-align:center;">${ft}</td>
+    <td><div class="bt-chips">${btChips||'<span style="color:var(--dim);font-size:11px;">keine</span>'}</div></td>
+    <td style="text-align:center;">${prodMark}</td>
+    <td><button class="expand-btn">${offeneZeilen.has(idx) ? '▲' : '▼'}</button></td>`;
+  return tr;
+}
+
+function buildDetailRow(p, idx) {
+  const tr = document.createElement('tr');
+  tr.className = 'detail-row';
+  tr.id = 'detail-' + idx;
+  tr.style.display = offeneZeilen.has(idx) ? '' : 'none';
+
+  const btBtns = WT.map((w, i) =>
+    `<button class="bt-btn ${(p.bestelltage||[]).includes(i)?'aktiv':''}"
+      onclick="event.stopPropagation();toggleBT(${idx},${i},this)">${w}</button>`
+  ).join('');
+
+  const lagerOpts = LAGERTYPEN.map(t =>
+    `<option value="${t}" ${p.lagertyp===t?'selected':''}>${LAGERTYP_LABEL[t]}</option>`).join('');
+  const gebindeOpts = GEBINDE_FORMEN.map(f =>
+    `<option value="${f}" ${(p.gebinde?.form||'')=== f?'selected':''}>${f.charAt(0).toUpperCase()+f.slice(1)}</option>`).join('');
+  const einheitOpts = INHALT_EINHEITEN.map(e =>
+    `<option value="${e}" ${(p.gebinde?.inhalt_einheit||'Stück')===e?'selected':''}>${e}</option>`).join('');
+  const sollEinheitOpts = SOLL_EINHEITEN.map(e =>
+    `<option value="${e}" ${(p.soll_einheit||'karton')===e?'selected':''}>${e.charAt(0).toUpperCase()+e.slice(1)}</option>`).join('');
+
+  let crosslinkHtml = '';
+  if (p.wird_produziert) {
+    const pkOpts = produktConfig.map(pk =>
+      `<option value="${pk.legacyKey||''}" ${p.produkt_config_key===pk.legacyKey?'selected':''}>${pk.name}</option>`).join('');
+    const pk = produktConfig.find(x => x.legacyKey === p.produkt_config_key);
+    const crossInfo = pk
+      ? `<div class="crosslink-ok">● Verbunden: ${pk.name} · ${pk.charge} Stk/Blech</div>`
+      : (p.produkt_config_key ? `<div class="crosslink-err">⚠ Key nicht gefunden</div>` : '');
+    crosslinkHtml = `
+      <div class="detail-feld detail-full">
+        <label>Verbindung zu produkt_config</label>
+        <select onclick="event.stopPropagation()" onchange="upd(${idx},'produkt_config_key',this.value);zeigeCrosslink(${idx},this.value)">
+          <option value="">— kein Produkt —</option>${pkOpts}
+        </select>
+        <div id="crosslink-${idx}">${crossInfo}</div>
+      </div>`;
+  }
+
+  tr.innerHTML = `<td colspan="8"><div class="detail-inner">
+    <div class="detail-section">Basisdaten</div>
+    <div class="detail-feld detail-full">
+      <label>Name</label>
+      <input type="text" value="${esc(p.name||'')}" onclick="event.stopPropagation()"
+        oninput="updName(${idx},this.value)">
+    </div>
+    <div class="detail-feld">
+      <label>Lagertyp</label>
+      <select onclick="event.stopPropagation()" onchange="upd(${idx},'lagertyp',this.value);renderAll()">
+        ${lagerOpts}
+      </select>
+    </div>
+    <div class="detail-feld">
+      <label>Lieferant</label>
+      <input type="text" value="${esc(p.lieferant||'')}" placeholder="z.B. BÄKO" onclick="event.stopPropagation()"
+        oninput="upd(${idx},'lieferant',this.value)">
+    </div>
+    <div class="detail-feld">
+      <label>Hinweis</label>
+      <input type="text" value="${esc(p.hinweis||'')}" placeholder="Optional" onclick="event.stopPropagation()"
+        oninput="upd(${idx},'hinweis',this.value)">
+    </div>
+
+    <div class="detail-section">Gebinde & Soll-Bestand</div>
+    <div class="detail-feld">
+      <label>Gebindeform</label>
+      <select onclick="event.stopPropagation()" onchange="updGebinde(${idx},'form',this.value)">${gebindeOpts}</select>
+    </div>
+    <div class="detail-feld">
+      <label>Inhalt pro Gebinde</label>
+      <input type="number" min="1" value="${p.gebinde?.inhalt_stueck||1}" onclick="event.stopPropagation()"
+        oninput="updGebinde(${idx},'inhalt_stueck',parseFloat(this.value)||1)">
+    </div>
+    <div class="detail-feld">
+      <label>Inhalt-Einheit</label>
+      <select onclick="event.stopPropagation()" onchange="updGebinde(${idx},'inhalt_einheit',this.value)">${einheitOpts}</select>
+    </div>
+    <div class="detail-feld">
+      <label>Soll-Bestand</label>
+      <input type="number" min="0" value="${p.soll_bestand||0}" onclick="event.stopPropagation()"
+        oninput="upd(${idx},'soll_bestand',parseFloat(this.value)||0)">
+    </div>
+    <div class="detail-feld">
+      <label>Soll-Einheit</label>
+      <select onclick="event.stopPropagation()" onchange="upd(${idx},'soll_einheit',this.value)">${sollEinheitOpts}</select>
+    </div>
+    <div class="detail-feld">
+      <label>Soll Feiertag</label>
+      <input type="number" min="0" value="${p.soll_bestand_ft??''}" placeholder="= normal" onclick="event.stopPropagation()"
+        oninput="upd(${idx},'soll_bestand_ft',this.value!==''?parseFloat(this.value):null)">
+    </div>
+
+    <div class="detail-section">Bestelltage</div>
+    <div class="detail-full">
+      <div class="bt-wrap">${btBtns}</div>
+    </div>
+
+    <div class="detail-section">Produktion</div>
+    <div class="detail-full">
+      <div class="prod-toggle">
+        <input type="checkbox" id="prod-${idx}" ${p.wird_produziert?'checked':''} onclick="event.stopPropagation()"
+          onchange="upd(${idx},'wird_produziert',this.checked);renderAll();">
+        <label for="prod-${idx}" onclick="event.stopPropagation()">Wird in der Backstube verarbeitet / produziert</label>
+      </div>
+    </div>
+    ${crosslinkHtml}
+
+    <div class="detail-actions">
+      <button class="btn btn-rot" onclick="event.stopPropagation();loeschen(${idx})">✕ LÖSCHEN</button>
+      <button class="btn btn-grau" onclick="event.stopPropagation();toggleZeile(${idx})">EINKLAPPEN</button>
+    </div>
+  </div></td>`;
+  return tr;
+}
+
+// ── TOGGLE ─────────────────────────────────────────────────
+function toggleZeile(idx) {
+  const detail = document.getElementById('detail-' + idx);
+  const row = document.getElementById('row-' + idx);
+  if (!detail || !row) return;
+  if (offeneZeilen.has(idx)) {
+    offeneZeilen.delete(idx);
+    detail.style.display = 'none';
+    row.classList.remove('offen');
+    row.querySelector('.expand-btn').textContent = '▼';
+  } else {
+    offeneZeilen.add(idx);
+    detail.style.display = '';
+    row.classList.add('offen');
+    row.querySelector('.expand-btn').textContent = '▲';
+  }
+}
+
+function alleAufklappen() {
+  config.forEach((_, idx) => { offeneZeilen.add(idx); });
+  renderAll();
+}
+function alleZuklappen() { offeneZeilen.clear(); renderAll(); }
+
+// ── UPDATE ─────────────────────────────────────────────────
+function upd(idx, feld, wert) {
+  config[idx][feld] = wert;
+  // Tabellenzeile live aktualisieren
+  const row = document.getElementById('row-' + idx);
+  if (!row) return;
+  const nameSpan = row.querySelector('.prod-name-cell, .prod-name-cell.leer');
+  if (nameSpan && feld === 'name') {
+    nameSpan.textContent = wert || 'Neues Produkt';
+    nameSpan.className = wert ? 'prod-name-cell' : 'prod-name-cell leer';
+  }
+}
+
+function updName(idx, wert) {
+  config[idx].name = wert;
+  const span = document.querySelector('#row-' + idx + ' .prod-name-cell');
+  if (span) { span.textContent = wert || 'Neues Produkt'; span.className = wert ? 'prod-name-cell' : 'prod-name-cell leer'; }
+}
+
+function updGebinde(idx, feld, wert) {
+  if (!config[idx].gebinde) config[idx].gebinde = {};
+  config[idx].gebinde[feld] = wert;
+}
+
+function toggleBT(idx, tag, btn) {
+  if (!config[idx].bestelltage) config[idx].bestelltage = [];
+  const i = config[idx].bestelltage.indexOf(tag);
+  if (i === -1) { config[idx].bestelltage.push(tag); btn.classList.add('aktiv'); }
+  else { config[idx].bestelltage.splice(i,1); btn.classList.remove('aktiv'); }
+  config[idx].bestelltage.sort();
+  // Chips in der Hauptzeile aktualisieren
+  const row = document.getElementById('row-' + idx);
+  if (row) {
+    const chipsDiv = row.querySelector('.bt-chips');
+    if (chipsDiv) chipsDiv.innerHTML = config[idx].bestelltage.length
+      ? config[idx].bestelltage.map(i => `<span class="bt-chip">${WT[i]}</span>`).join('')
+      : '<span style="color:var(--dim);font-size:11px;">keine</span>';
+  }
+}
+
+function zeigeCrosslink(idx, key) {
+  const div = document.getElementById('crosslink-' + idx);
+  if (!div) return;
+  const pk = produktConfig.find(x => x.legacyKey === key);
+  div.innerHTML = pk
+    ? `<div class="crosslink-ok">● Verbunden: ${pk.name} · ${pk.charge} Stk/Blech</div>`
+    : (key ? '<div class="crosslink-err">⚠ Key nicht in produkt_config gefunden</div>' : '');
+}
+
+function loeschen(idx) {
+  if (!confirm('Produkt "' + (config[idx].name||'Neues Produkt') + '" löschen?')) return;
+  config.splice(idx, 1);
+  offeneZeilen.clear();
+  renderAll();
+}
+
+function neuesProdukt() {
+  config.push({
+    id: 'neu_' + Date.now(), name: '', lagertyp: 'trocken', lieferant: '',
+    bestelltage: [], gebinde: { form:'karton', inhalt_stueck:1, inhalt_einheit:'Stück' },
+    soll_bestand: 0, soll_einheit: 'karton', soll_bestand_ft: null,
+    wird_produziert: false, produkt_config_key: '', hinweis: ''
+  });
+  const neu = config.length - 1;
+  offeneZeilen.add(neu);
+  renderAll();
+  setTimeout(() => document.getElementById('row-' + neu)?.scrollIntoView({ behavior:'smooth' }), 50);
+}
+
+// ── SPEICHERN ──────────────────────────────────────────────
+function speichern() {
+  config.forEach(p => {
+    if (!p.id || p.id.startsWith('neu_')) {
+      p.id = (p.name||'produkt').toLowerCase()
+        .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+        .replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'') + '_' + p.lagertyp;
+    }
+  });
+  const blob = new Blob([JSON.stringify(config, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'lieferanten_config.json';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(a.href);
+  status('Gespeichert — ' + config.length + ' Produkte', 'ok');
+}
+
+function status(msg, cls) {
+  const el = document.getElementById('statusBar');
+  el.textContent = msg.toUpperCase();
+  el.className = cls || '';
+  setTimeout(() => { el.textContent = 'BEREIT'; el.className = ''; }, 3000);
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+</script>
+</body>
+</html>

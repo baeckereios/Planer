@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Stangenrechner · bis Dienstag</title>
+<script>
+  (function() {
+    try { document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light'); }
+    catch(e) { document.documentElement.setAttribute('data-theme', 'light'); }
+  })();
+</script>
+<script>window.BOS_BASEPATH = '../';</script>
+<script src="../produktions_gehirn.js"></script>
+<script src="../inventurdaten.js" defer></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #f4f1ec;
+  --surface:   #ffffff;
+  --border:    #e0dbd2;
+  --text:      #1a1a1a;
+  --muted:     #888;
+  --gold:      #c8a96e;
+  --amber:     #e67e22;
+  --warn-bg:   #fff8ed;
+  --warn-bdr:  #e8a020;
+  --err-bg:    #fdf0f0;
+  --err-bdr:   #d04040;
+  --ok-bg:     #f0f8f4;
+  --ok-bdr:    #3a9a68;
+  --baguette:  #b45309;
+  --zwiebel:   #6d28d9;
+}
+[data-theme="dark"] {
+  --bg:        #181818;
+  --surface:   #242424;
+  --border:    #333;
+  --text:      #e0d8cc;
+  --muted:     #666;
+  --warn-bg:   #2a2010;
+  --warn-bdr:  #c8820a;
+  --err-bg:    #2a1010;
+  --err-bdr:   #b03030;
+  --ok-bg:     #0f2018;
+  --ok-bdr:    #2a7a50;
+}
+
+body {
+  font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.header-brand { font-family: Georgia, serif; font-size: 18px; font-weight: 900; color: var(--text); line-height: 1; }
+.header-brand span { font-style: italic; font-weight: 400; color: var(--muted); }
+.header-sep { color: var(--border); font-size: 16px; }
+.header-sub { font-size: 12px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* ── Main ── */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 20px 48px;
+  gap: 16px;
+}
+
+/* ── Blocker ── */
+.blocker {
+  background: var(--err-bg);
+  border: 1.5px solid var(--err-bdr);
+  border-radius: 12px;
+  padding: 24px 20px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  display: none;
+}
+.blocker-icon { font-size: 32px; margin-bottom: 10px; }
+.blocker-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.blocker-text { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+.loading-text { font-size: 14px; color: var(--muted); text-align: center; margin-top: 40px; }
+
+/* ── Rechner-Container ── */
+.rechner {
+  width: 100%;
+  max-width: 380px;
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Ziel-Badge ── */
+.ziel-badge {
+  align-self: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 14px;
+}
+
+/* ── Froster-Toggle ── */
+.froster-toggle {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.froster-toggle-label {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 14px 8px;
+  display: block;
+}
+.froster-toggle-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--border);
+}
+.ftbtn {
+  padding: 13px 8px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+  line-height: 1.3;
+}
+.ftbtn:first-child { border-right: 1px solid var(--border); }
+.ftbtn.active-ja  { background: var(--ok-bg);   color: var(--ok-bdr);   font-weight: 700; }
+.ftbtn.active-nei { background: var(--warn-bg);  color: var(--warn-bdr); font-weight: 700; }
+
+/* ── Produkt-Tabs ── */
+.tab-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.tab-btn {
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
+  padding: 11px 8px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+.tab-btn.aktiv-bag { background: #1e293b; border-color: #1e293b; color: #fff; }
+.tab-btn.aktiv-zwie { background: #4c1d95; border-color: #4c1d95; color: #fff; }
+
+/* ── Manuelle Bestandseingabe ── */
+.inv-warn-box {
+  background: var(--warn-bg);
+  border: 1.5px solid var(--warn-bdr);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: none;
+}
+.inv-warn-header {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--warn-bdr);
+  margin-bottom: 10px;
+}
+.inv-warn-text {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+.manual-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.manual-inp-wrap { display: flex; flex-direction: column; gap: 4px; }
+.manual-inp-label { font-size: 11px; font-weight: 700; color: var(--warn-bdr); text-transform: uppercase; letter-spacing: 0.5px; }
+.manual-inp {
+  font-family: inherit;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 10px 8px;
+  border: 1.5px solid var(--warn-bdr);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  width: 100%;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.manual-inp::-webkit-outer-spin-button,
+.manual-inp::-webkit-inner-spin-button { -webkit-appearance: none; }
+.manual-inp:focus { border-color: var(--gold); }
+
+/* ── Ergebnis-Card ── */
+.ergebnis-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* Platzhalter-Text */
+.ergebnis-placeholder {
+  padding: 28px 20px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* Produktions-Box (oben in der Card) */
+.prod-header {
+  display: none;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.prod-header.ok  { background: var(--ok-bg); }
+.prod-header.nok { background: #1e293b; }
+.prod-teiglinge-zahl {
+  font-size: 3.2rem;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  color: #fff;
+  letter-spacing: -1px;
+  margin-bottom: 4px;
+}
+.prod-teiglinge-zahl.ok { color: var(--ok-bdr); font-size: 2rem; }
+.prod-main-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.prod-main-label.ok-lbl { color: var(--ok-bdr); }
+.prod-boxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.prod-box {
+  text-align: center;
+  padding: 12px 8px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+}
+.prod-box-zahl {
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+  color: #fff;
+}
+.prod-box-zahl.ok { color: var(--ok-bdr); }
+.prod-box-label { font-size: 0.7rem; color: #94a3b8; margin-top: 3px; font-weight: 600; }
+.prod-box-label.ok { color: var(--ok-bdr); }
+.prod-box-sub { font-size: 0.62rem; color: #64748b; }
+
+/* Tages-Tabelle */
+.abr-wrap { padding: 4px 0 8px; }
+.abr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.abr-table th {
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 14px 8px;
+  border-bottom: 2px solid var(--border);
+  text-align: right;
+}
+.abr-table th:first-child { text-align: left; }
+.abr-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.abr-table td:not(:first-child) { text-align: right; }
+.abr-table .abr-total td {
+  border-top: 2px solid var(--border);
+  border-bottom: none;
+  font-weight: 900;
+}
+.abr-table .abr-stock td { color: var(--ok-bdr); border-bottom: none; }
+.abr-table .abr-result td { font-weight: 900; font-size: 1rem; border-bottom: none; }
+.abr-x  { color: #ef4444; }
+.abr-ok { color: var(--ok-bdr); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">Bäckerei<span>OS</span></div>
+  <span class="header-sep">·</span>
+  <span class="header-sub">Stangenrechner</span>
+</div>
+
+<main>
+
+  <!-- Inventur-Fehler (harter Block) -->
+  <div class="blocker" id="inv-block">
+    <div class="blocker-icon">⚠️</div>
+    <div class="blocker-title">Keine Inventurdaten</div>
+    <div class="blocker-text">Es wurden keine gültigen Inventurdaten gefunden. Bitte zuerst eine Inventur erfassen.</div>
+  </div>
+
+  <!-- Lade -->
+  <div class="loading-text" id="loading">Daten werden geladen…</div>
+
+  <!-- Rechner -->
+  <div class="rechner" id="rechner">
+
+    <div class="ziel-badge" id="ziel-badge">bis Dienstag, __.__.  </div>
+
+    <!-- Froster-Toggle -->
+    <div class="froster-toggle">
+      <span class="froster-toggle-label">Wurde der Froster schon gemacht?</span>
+      <div class="froster-toggle-btns">
+        <button class="ftbtn" id="ftbtn-ja"  onclick="setFroster(true)">✓ Ja, gemacht</button>
+        <button class="ftbtn" id="ftbtn-nei" onclick="setFroster(false)">✗ Noch nicht</button>
+      </div>
+    </div>
+
+    <!-- Produkt-Tabs -->
+    <div class="tab-row">
+      <button class="tab-btn aktiv-bag" id="tab-bag"   onclick="setTab('baguette')">🥖 Baguette</button>
+      <button class="tab-btn"           id="tab-zwie"  onclick="setTab('zwiebel')">🧅 Zwiebel</button>
+    </div>
+
+    <!-- Manuelle Bestandseingabe (Inventur > 24 h) -->
+    <div class="inv-warn-box" id="inv-warn-box">
+      <div class="inv-warn-header">⚠️ Inventur älter als 24 Std.</div>
+      <div class="inv-warn-text" id="inv-warn-text">Bitte die aktuellen Bestände manuell eintragen.</div>
+      <div class="manual-grid">
+        <div class="manual-inp-wrap">
+          <div class="manual-inp-label" id="man-label-a">Bleche</div>
+          <input class="manual-inp" type="number" inputmode="numeric" id="man-inp-a" placeholder="0" oninput="berechne()">
+        </div>
+        <div class="manual-inp-wrap">
+          <div class="manual-inp-label" id="man-label-b">Dielen</div>
+          <input class="manual-inp" type="number" inputmode="numeric" id="man-inp-b" placeholder="0" oninput="berechne()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Ergebnis -->
+    <div class="ergebnis-card" id="ergebnis-card">
+
+      <!-- Produktions-Header -->
+      <div class="prod-header" id="prod-header">
+        <div class="prod-teiglinge-zahl" id="prod-teiglinge-zahl">—</div>
+        <div class="prod-main-label" id="prod-main-label">TEIGLINGE ZU PRODUZIEREN</div>
+        <div class="prod-boxes">
+          <div class="prod-box" id="prod-box-a">
+            <div class="prod-box-zahl" id="prod-zahl-a">—</div>
+            <div class="prod-box-label" id="prod-name-a">Stangen</div>
+            <div class="prod-box-sub"  id="prod-sub-a">Bleche</div>
+          </div>
+          <div class="prod-box" id="prod-box-b">
+            <div class="prod-box-zahl" id="prod-zahl-b">—</div>
+            <div class="prod-box-label" id="prod-name-b">Baguette Teig</div>
+            <div class="prod-box-sub"  id="prod-sub-b">Dielen</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tages-Tabelle -->
+      <div class="abr-wrap" id="abr-wrap" style="display:none;">
+        <table class="abr-table" id="abr-table"></table>
+      </div>
+
+      <!-- Platzhalter -->
+      <div class="ergebnis-placeholder" id="ergebnis-placeholder">
+        ↑ Zuerst Froster-Status wählen
+      </div>
+
+    </div>
+
+  </div><!-- /rechner -->
+
+</main>
+
+<script>
+// ── Konfiguration ─────────────────────────────────────────────────────
+var ZIEL_WOCHENTAG = 2;      // 1 = Montag (JS: 0=So,1=Mo,...,6=Sa)
+var ZIEL_TAG_NAME  = 'Dienstag';
+var INV_STALE_H    = 24;
+
+// ── Produkt-Definitionen ──────────────────────────────────────────────
+var TABS = {
+  baguette: {
+    a: { key: 'stangen_gesamt_stueck',      label: 'Stangen',       einheit: 'Bl.' },
+    b: { key: 'baguettestange_teig_stueck', label: 'Baguette Teig', einheit: 'Dl.' }
+  },
+  zwiebel: {
+    a: { key: 'zwiebelstange_stueck',       label: 'Zwiebel',       einheit: 'Bl.' },
+    b: { key: 'zwiebelstange_teig_stueck',  label: 'Zwiebel Teig',  einheit: 'Dl.' }
+  }
+};
+
+// ── State ─────────────────────────────────────────────────────────────
+var _frosterGemacht = null;
+var _invStale       = false;
+var _aktTab         = 'baguette';
+var _stammdaten     = null;
+var _retries        = 0;
+
+// ── Wochentag-Mapping (BOS: Mo=0 … So=6) ─────────────────────────────
+var JS_ZU_BOS = [6, 0, 1, 2, 3, 4, 5];
+var WT_LANG   = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+
+// ── Hilfsfunktionen ───────────────────────────────────────────────────
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+function fmtDate(d) { return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.'; }
+
+function naechsterWochentag(wd) {
+  var d = new Date(); d.setHours(0,0,0,0);
+  var diff = (wd - d.getDay() + 7) % 7;
+  if (diff === 0) diff = 7;
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
+function getNeedsArray(legacyKey) {
+  var bosId = window.BOS_GEHIRN && window.BOS_GEHIRN.bosIdFuerKey(legacyKey);
+  return (bosId && _stammdaten && _stammdaten[bosId] && _stammdaten[bosId].needs)
+    ? _stammdaten[bosId].needs
+    : [0,0,0,0,0,0,0];
+}
+
+function getCharge(legacyKey) {
+  var bosId = window.BOS_GEHIRN && window.BOS_GEHIRN.bosIdFuerKey(legacyKey);
+  if (!bosId || !_stammdaten || !_stammdaten[bosId]) return 1;
+  return _stammdaten[bosId].charge || 1;
+}
+
+function getBestandAuto(legacyKey) {
+  if (!window.BOS_INVENTUR || !window.BOS_INVENTUR.products) return 0;
+  var p = window.BOS_INVENTUR.products[legacyKey];
+  if (!p) return 0;
+  return p.stock !== undefined ? p.stock : ((p.locs || []).reduce(function(a,b){return a+b;}, 0));
+}
+
+// Von-Offset: 0 = Froster noch nicht (Produktion ab morgen), 1 = Froster fertig (ab übermorgen)
+function getVonOffset() { return _frosterGemacht ? 1 : 0; }
+
+function getBisOffset() {
+  var heute = new Date(); heute.setHours(0,0,0,0);
+  var ziel  = naechsterWochentag(ZIEL_WOCHENTAG);
+  return Math.round((ziel - heute) / 86400000);
+}
+
+function getTageAnzahl() {
+  return Math.max(1, getBisOffset() - getVonOffset());
+}
+
+// ── Froster-Toggle ────────────────────────────────────────────────────
+function setFroster(gemacht) {
+  _frosterGemacht = gemacht;
+  document.getElementById('ftbtn-ja').className  = 'ftbtn' + (gemacht  ? ' active-ja'  : '');
+  document.getElementById('ftbtn-nei').className = 'ftbtn' + (!gemacht ? ' active-nei' : '');
+  berechne();
+}
+
+// ── Produkt-Tab ───────────────────────────────────────────────────────
+function setTab(tab) {
+  _aktTab = tab;
+  document.getElementById('tab-bag').className  = 'tab-btn' + (tab === 'baguette' ? ' aktiv-bag'  : '');
+  document.getElementById('tab-zwie').className = 'tab-btn' + (tab === 'zwiebel'  ? ' aktiv-zwie' : '');
+  // Manuelle Labels aktualisieren
+  _updateManualLabels();
+  // Bei Tab-Wechsel manuelle Felder leeren
+  document.getElementById('man-inp-a').value = '';
+  document.getElementById('man-inp-b').value = '';
+  berechne();
+}
+
+function _updateManualLabels() {
+  var t = TABS[_aktTab];
+  document.getElementById('man-label-a').textContent = t.a.label + ' (' + t.a.einheit + ')';
+  document.getElementById('man-label-b').textContent = t.b.label + ' (' + t.b.einheit + ')';
+}
+
+// ── Berechnung & Anzeige ──────────────────────────────────────────────
+function berechne() {
+  var placeholder = document.getElementById('ergebnis-placeholder');
+  var prodHeader  = document.getElementById('prod-header');
+  var abrWrap     = document.getElementById('abr-wrap');
+
+  // Froster noch nicht gewählt
+  if (_frosterGemacht === null) {
+    placeholder.style.display = 'block';
+    placeholder.textContent   = '↑ Zuerst Froster-Status wählen';
+    prodHeader.style.display  = 'none';
+    abrWrap.style.display     = 'none';
+    return;
+  }
+
+  var t      = TABS[_aktTab];
+  var needsA = getNeedsArray(t.a.key);
+  var needsB = getNeedsArray(t.b.key);
+  var chargeA = getCharge(t.a.key);
+  var chargeB = getCharge(t.b.key);
+
+  // Bestand ermitteln
+  var bestandA, bestandB;
+  if (_invStale) {
+    var manA = document.getElementById('man-inp-a').value;
+    var manB = document.getElementById('man-inp-b').value;
+    if (manA === '' || manB === '') {
+      placeholder.style.display = 'block';
+      placeholder.textContent   = '↑ Bitte Bestände eintragen';
+      prodHeader.style.display  = 'none';
+      abrWrap.style.display     = 'none';
+      return;
+    }
+    bestandA = parseFloat(manA) || 0;
+    bestandB = parseFloat(manB) || 0;
+  } else {
+    bestandA = getBestandAuto(t.a.key);
+    bestandB = getBestandAuto(t.b.key);
+  }
+
+  // Zeitraum berechnen
+  var vonOffset = getVonOffset();
+  var tage      = getTageAnzahl();
+  var heute     = new Date(); heute.setHours(0,0,0,0);
+
+  var sumA = 0, sumB = 0;
+  var tagesHtml = '';
+
+  for (var i = 0; i < tage; i++) {
+    var dayOffset = vonOffset + 1 + i;
+    var d = new Date(heute); d.setDate(heute.getDate() + dayOffset);
+    var bos  = JS_ZU_BOS[d.getDay()];
+    var valA = needsA[bos] || 0;
+    var valB = needsB[bos] || 0;
+    sumA += valA;
+    sumB += valB;
+    tagesHtml += '<tr>' +
+      '<td>' + WT_LANG[bos] + '</td>' +
+      '<td>' + (valA > 0 ? valA : '—') + '</td>' +
+      '<td>' + (valB > 0 ? valB : '—') + '</td>' +
+      '</tr>';
+  }
+
+  var prodA = Math.max(0, Math.ceil(sumA - bestandA));
+  var prodB = Math.max(0, Math.ceil(sumB - bestandB));
+  var istOk  = (prodA === 0 && prodB === 0);
+
+  // Tages-Tabelle zusammenbauen
+  var fmtB = function(n) { return n % 1 !== 0 ? String(n).replace('.', ',') : n; };
+  var tableHtml =
+    '<tr>' +
+      '<th></th>' +
+      '<th>' + t.a.einheit + '</th>' +
+      '<th>' + t.b.einheit + '</th>' +
+    '</tr>' +
+    tagesHtml +
+    '<tr class="abr-total">' +
+      '<td>Gesamtbedarf</td>' +
+      '<td>' + fmtB(sumA) + '</td>' +
+      '<td>' + fmtB(sumB) + '</td>' +
+    '</tr>' +
+    '<tr class="abr-stock">' +
+      '<td>− Bestand</td>' +
+      '<td>−' + fmtB(bestandA) + '</td>' +
+      '<td>−' + fmtB(bestandB) + '</td>' +
+    '</tr>' +
+    '<tr class="abr-result">' +
+      '<td>Produktion</td>' +
+      '<td>' + (prodA > 0 ? '<span class="abr-x">✗ ' + fmtB(prodA) + '</span>' : '<span class="abr-ok">✓</span>') + '</td>' +
+      '<td>' + (prodB > 0 ? '<span class="abr-x">✗ ' + fmtB(prodB) + '</span>' : '<span class="abr-ok">✓</span>') + '</td>' +
+    '</tr>';
+
+  document.getElementById('abr-table').innerHTML = tableHtml;
+
+  // Produktions-Header
+  var teiglZahl = document.getElementById('prod-teiglinge-zahl');
+  if (istOk) {
+    prodHeader.className = 'prod-header ok';
+    document.getElementById('prod-main-label').className = 'prod-main-label ok-lbl';
+    document.getElementById('prod-main-label').textContent = 'GENÜGEND PRODUZIERT';
+    teiglZahl.className = 'prod-teiglinge-zahl ok';
+    teiglZahl.textContent = '✓';
+    document.getElementById('prod-box-a').style.background = 'transparent';
+    document.getElementById('prod-box-b').style.background = 'transparent';
+    document.getElementById('prod-zahl-a').className = 'prod-box-zahl ok';
+    document.getElementById('prod-zahl-b').className = 'prod-box-zahl ok';
+    document.getElementById('prod-zahl-a').textContent = '✓';
+    document.getElementById('prod-zahl-b').textContent = '✓';
+    document.getElementById('prod-name-a').className = 'prod-box-label ok';
+    document.getElementById('prod-name-b').className = 'prod-box-label ok';
+    document.getElementById('prod-sub-a').textContent = t.a.label;
+    document.getElementById('prod-sub-b').textContent = t.b.label;
+  } else {
+    var teiglinge = prodA * chargeA + prodB * chargeB;
+    prodHeader.className = 'prod-header nok';
+    document.getElementById('prod-main-label').className = 'prod-main-label';
+    document.getElementById('prod-main-label').textContent = 'TEIGLINGE ZU PRODUZIEREN';
+    teiglZahl.className = 'prod-teiglinge-zahl';
+    teiglZahl.textContent = teiglinge;
+    document.getElementById('prod-box-a').style.background = 'rgba(255,255,255,0.06)';
+    document.getElementById('prod-box-b').style.background = 'rgba(255,255,255,0.06)';
+    document.getElementById('prod-zahl-a').className = 'prod-box-zahl';
+    document.getElementById('prod-zahl-b').className = 'prod-box-zahl';
+    document.getElementById('prod-zahl-a').textContent = prodA > 0 ? ('× ' + prodA) : '✓';
+    document.getElementById('prod-zahl-b').textContent = prodB > 0 ? ('× ' + prodB) : '✓';
+    document.getElementById('prod-name-a').className = 'prod-box-label';
+    document.getElementById('prod-name-b').className = 'prod-box-label';
+    document.getElementById('prod-sub-a').textContent = t.a.label + ' (' + t.a.einheit + ')';
+    document.getElementById('prod-sub-b').textContent = t.b.label + ' (' + t.b.einheit + ')';
+  }
+
+  document.getElementById('prod-name-a').textContent = t.a.label;
+  document.getElementById('prod-name-b').textContent = t.b.label;
+
+  placeholder.style.display = 'none';
+  prodHeader.style.display  = 'block';
+  abrWrap.style.display     = 'block';
+}
+
+// ── Inventur-Alter ─────────────────────────────────────────────────────
+function invAlterH() {
+  if (!window.BOS_INVENTUR || !window.BOS_INVENTUR.products) return 9999;
+  var max = 0;
+  for (var k in window.BOS_INVENTUR.products) {
+    var ts = window.BOS_INVENTUR.products[k].ts || 0;
+    if (ts > max) max = ts;
+  }
+  return max > 0 ? (Date.now() - max) / 3600000 : 9999;
+}
+
+// ── Inventur-Relevanz prüfen (nur Baguette/Zwiebel-Keys) ──────────────
+function hatRelevanteBestände() {
+  if (!window.BOS_INVENTUR || !window.BOS_INVENTUR.products) return false;
+  var keys = [
+    'stangen_gesamt_stueck',
+    'baguettestange_teig_stueck',
+    'zwiebelstange_stueck',
+    'zwiebelstange_teig_stueck'
+  ];
+  for (var i = 0; i < keys.length; i++) {
+    if (window.BOS_INVENTUR.products[keys[i]]) return true;
+  }
+  return false;
+}
+
+// ── Initialisierung ───────────────────────────────────────────────────
+function init() {
+  if (!window.BOS_GEHIRN) {
+    if (++_retries < 80) { setTimeout(init, 100); return; }
+    _showBlock();
+    return;
+  }
+
+  if (!window.BOS_STAMMDATEN) {
+    window.BOS_GEHIRN.init().then(function() { _start(); }).catch(function() { _start(); });
+    return;
+  }
+  _start();
+}
+
+function _start() {
+  if (!window.BOS_INVENTUR) {
+    if (++_retries < 80) { setTimeout(_start, 100); return; }
+  }
+
+  document.getElementById('loading').style.display = 'none';
+  _stammdaten = window.BOS_STAMMDATEN;
+
+  // Keine Inventur-Einträge für Stangen → harter Block
+  if (!hatRelevanteBestände()) {
+    _showBlock();
+    return;
+  }
+
+  var alterH = invAlterH();
+
+  // Inventur veraltet → manuelle Eingabe, kein Block
+  if (alterH > INV_STALE_H) {
+    _invStale = true;
+    document.getElementById('inv-warn-box').style.display = 'block';
+    _updateManualLabels();
+    document.getElementById('inv-warn-text').textContent =
+      'Inventur ist älter als 24 Stunden. Bitte die aktuellen Bestände manuell eingeben.';
+  }
+
+  // Ziel-Badge
+  var zielDate = naechsterWochentag(ZIEL_WOCHENTAG);
+  document.getElementById('ziel-badge').textContent =
+    'bis ' + ZIEL_TAG_NAME + ', ' + fmtDate(zielDate);
+
+  // Rechner anzeigen
+  document.getElementById('rechner').style.display = 'flex';
+}
+
+function _showBlock() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('inv-block').style.display = 'block';
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(init, 50);
+});
+</script>
+<script src="../shell.js"></script>
+</body>
+</html>

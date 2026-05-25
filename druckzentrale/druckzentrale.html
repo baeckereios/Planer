@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Druckzentrale – BäckereiOS</title>
+    <script>
+        (function() {
+            try { document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light'); }
+            catch(e) { document.documentElement.setAttribute('data-theme', 'light'); }
+        })();
+    </script>
+    <link rel="stylesheet" href="../systemdesign.css">
+    <script>window.BOS_BASEPATH = '../';</script>
+    <script src="../feiertage_nds.js"></script>
+    <script src="../produktions_gehirn.js"></script>
+    <script src="../inventurdaten.js" defer></script>
+    <link rel="stylesheet" href="druckzentrale.css">
+</head>
+<body>
+
+<div class="screen-only">
+    <div class="brand-header">
+        <div class="top-nav">
+            <a href="../index.html" class="btn-back">← Cockpit</a>
+            <span class="page-sub">DRUCKZENTRALE</span>
+        </div>
+        <img src="baeckereios_logo_light.svg" alt="BäckereiOS" style="height:44px;width:auto;display:block;margin:6px 0;">
+    </div>
+
+    <!-- Tab-Navigation außerhalb brand-header (shell würde brand-header verstecken) -->
+    <div class="dz-tabs">
+        <button class="dz-tab" onclick="DZ_switchTab('tab-dokumente')" id="dz-tab-btn-dokumente">Dokumente</button>
+        <button class="dz-tab" onclick="DZ_switchTab('tab-formular')" id="dz-tab-btn-formular">Bestand & Verbrauch</button>
+        <button class="dz-tab" onclick="DZ_switchTab('tab-schilder')" id="dz-tab-btn-schilder">Schilder</button>
+        <button class="dz-tab" onclick="DZ_switchTab('tab-panel')" id="dz-tab-btn-panel">Panel</button>
+        <button class="dz-tab" onclick="DZ_switchTab('tab-guten-morgen')" id="dz-tab-btn-guten-morgen">Guten Morgen</button>
+    </div>
+
+    <!-- TAB 1: Dokumente -->
+    <div class="dz-tab-content active" id="tab-dokumente">
+        <div class="container">
+
+            <div class="inv-bar" id="inv-bar">
+                <div class="inv-dot" id="inv-dot"></div>
+                <span id="inv-text">Inventur wird geprüft…</span>
+            </div>
+
+            <!-- Modul A -->
+            <div class="ctrl-card" id="ctrl-A">
+                <div class="ctrl-head" onclick="toggleCtrl('A')">
+                    <div class="ctrl-check" id="cc-A"></div>
+                    <div>
+                        <div class="ctrl-name">Frühschicht-Formular</div>
+                        <div class="ctrl-desc">Absetzen, Belegen, Koma &amp; Froster-Aufgaben</div>
+                    </div>
+                </div>
+                <div class="ctrl-cfg" id="cfg-A">
+                    <label>Datum (automatisch)</label>
+                    <div class="auto-val" id="cfg-A-date">—</div>
+                </div>
+            </div>
+
+            <!-- Modul B -->
+            <div class="ctrl-card" id="ctrl-B">
+                <div class="ctrl-head" onclick="toggleCtrl('B')">
+                    <div class="ctrl-check" id="cc-B"></div>
+                    <div>
+                        <div class="ctrl-name">Froster-Bestand</div>
+                        <div class="ctrl-desc">Aktueller Bestand nach Station</div>
+                    </div>
+                    <div class="ctrl-badge lock" id="badge-B" style="display:none">🔒 GESPERRT</div>
+                </div>
+            </div>
+
+            <!-- Modul C -->
+            <div class="ctrl-card" id="ctrl-C">
+                <div class="ctrl-head" onclick="toggleCtrl('C')">
+                    <div class="ctrl-check" id="cc-C"></div>
+                    <div>
+                        <div class="ctrl-name">Wochenziele + Körner</div>
+                        <div class="ctrl-desc">Bedarfsvergleich für zwei Zieltage + Einweichplan</div>
+                    </div>
+                </div>
+                <div class="ctrl-cfg" id="cfg-C">
+                    <label>Ziel 1 berechnen bis</label>
+                    <select id="zeit-C1" onchange="onZeitChange('C')"></select>
+                    <label style="margin-top: 8px;">Ziel 2 berechnen bis</label>
+                    <select id="zeit-C2" onchange="onZeitChange('C')"></select>
+                </div>
+            </div>
+
+            <!-- Modul D -->
+            <div class="ctrl-card" id="ctrl-D">
+                <div class="ctrl-head" onclick="toggleCtrl('D')">
+                    <div class="ctrl-check" id="cc-D"></div>
+                    <div>
+                        <div class="ctrl-name">Verbrauchs-Matrix</div>
+                        <div class="ctrl-desc">Standard-Tagesbedarf (Mo-So + Mo) pro Station</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modul E -->
+            <div class="ctrl-card" id="ctrl-E">
+                <div class="ctrl-head" onclick="toggleCtrl('E')">
+                    <div class="ctrl-check" id="cc-E"></div>
+                    <div>
+                        <div class="ctrl-name">Frosterliste (Kopiervorlage)</div>
+                        <div class="ctrl-desc">Manuelle Eingabe &amp; Druckvorlage für den Froster</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modul F -->
+            <div class="ctrl-card" id="ctrl-F">
+                <div class="ctrl-head" onclick="toggleCtrl('F')">
+                    <div class="ctrl-check" id="cc-F"></div>
+                    <div>
+                        <div class="ctrl-name">BÄKO-Übersicht</div>
+                        <div class="ctrl-desc">Bestand · Bestellempfehlung · Rechengrundlage</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modul H -->
+            <div class="ctrl-card" id="ctrl-H">
+                <div class="ctrl-head" onclick="toggleCtrl('H')">
+                    <div class="ctrl-check" id="cc-H"></div>
+                    <div>
+                        <div class="ctrl-name">Nachbestellung</div>
+                        <div class="ctrl-desc">Formular für kurzfristige Nachbestellungen mit Status &amp; Übergabe</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modul I -->
+            <div class="ctrl-card" id="ctrl-I">
+                <div class="ctrl-head" onclick="toggleCtrl('I')">
+                    <div class="ctrl-check" id="cc-I"></div>
+                    <div>
+                        <div class="ctrl-name">Absetz-Formular</div>
+                        <div class="ctrl-desc">Croissants &amp; Käsebrötchen absetzen · Mohn &amp; Sesam</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-print-main" onclick="doPrint()">🖨 &nbsp;Auswahl drucken</button>
+            <button class="btn-print-main" onclick="DZ_J_saveDigital()"
+                style="background:var(--surface2,#f5f2ee);color:var(--text,#1e1a16);
+                border:1.5px solid var(--border-s,#d8d2c8);margin-top:8px;">
+                💾 &nbsp;Digitale Version speichern
+            </button>
+            <div id="dz-j-hint" style="display:none;margin-top:10px;padding:10px 14px;
+                background:#fdf6e8;border:1px solid #e8c97a;border-radius:8px;
+                font-size:12px;line-height:1.6;color:#7a5200;">
+                ✓ <strong>Snapshot gespeichert.</strong><br>
+                Nächster Schritt: Tab <em>Guten Morgen</em> öffnen →
+                Notiz eingeben → <em>guten_morgen_data.js herunterladen</em> →
+                Datei ins Root-Verzeichnis des Repos laden.
+            </div>
+
+            <div style="height: 30px;"></div>
+
+            <!-- Vorschau-Container -->
+            <div id="preview-container">
+                <div class="print-module" id="module-A">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Frühschicht-Formular</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body" id="module-A-body"></div>
+                </div>
+
+                <div class="print-module" id="module-B">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Froster-Bestand</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body">
+                        <div id="froster-content"><div class="dz-loading">Wird geladen…</div></div>
+                    </div>
+                </div>
+
+                <div class="print-module" id="module-C">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Wochenziele + Körner</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body" id="module-C-body"></div>
+                </div>
+
+                <div class="print-module" id="module-D">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Verbrauchs-Matrix</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body">
+                        <div id="matrix-content"><div class="dz-loading">Wird geladen…</div></div>
+                    </div>
+                </div>
+
+                <div class="print-module" id="module-E">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Frosterliste</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body" id="module-E-body"></div>
+                </div>
+
+                <div class="print-module" id="module-F">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: BÄKO-Übersicht</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body">
+                        <div id="baeko-content"><div class="dz-loading">Wird geladen…</div></div>
+                    </div>
+                </div>
+
+                <div class="print-module" id="module-H">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Nachbestellung</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body" id="module-H-body"></div>
+                </div>
+
+                <div class="print-module" id="module-I">
+                    <div class="pm-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span>👁️ Vorschau: Absetz-Formular</span>
+                        <span class="pm-arrow">▼</span>
+                    </div>
+                    <div class="pm-body" id="module-I-body"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TAB 2: Bestand & Verbrauch (Scaffold) -->
+    <div class="dz-tab-content" id="tab-formular">
+        <div class="container" id="tab2-container">
+            <!-- wird von druckzentrale_modul_g.js befüllt -->
+        </div>
+    </div>
+
+    <!-- TAB 3: Schilder -->
+    <div class="dz-tab-content" id="tab-schilder">
+        <!-- wird von druckzentrale_modul_schild.js befüllt -->
+    </div>
+
+    <!-- TAB 4: Panel -->
+    <div class="dz-tab-content" id="tab-panel">
+        <!-- wird von druckzentrale_modul_panel.js befüllt -->
+    </div>
+
+    <!-- TAB 5: Guten Morgen -->
+    <div class="dz-tab-content" id="tab-guten-morgen">
+        <!-- wird von druckzentrale_modul_j.js befüllt -->
+    </div>
+
+</div>
+
+<!-- Logik -->
+<script src="druckzentrale_logic.js"></script>
+<script src="druckzentrale_modul_a.js"></script>
+<script src="druckzentrale_modul_b.js"></script>
+<script src="druckzentrale_modul_c.js"></script>
+<script src="druckzentrale_modul_d.js"></script>
+<script src="../frosterliste_produkte.js"></script>
+<script src="druckzentrale_modul_e.js"></script>
+<script src="druckzentrale_modul_f.js"></script>
+<script src="druckzentrale_modul_g.js"></script>
+<script src="druckzentrale_modul_h.js"></script>
+<script src="druckzentrale_modul_i.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="druckzentrale_modul_schild.js"></script>
+<script src="druckzentrale_modul_panel.js"></script>
+<script src="druckzentrale_modul_j.js"></script>
+<script src="druckzentrale_ui.js"></script>
+<script src="../shell.js"></script>
+
+</body>
+</html>

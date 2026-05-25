@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Froster-Auslastung – BäckereiOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,400&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rot:    #c0392b;
+    --dunkel: #f4f2ee;
+    --grau1:  #ffffff;
+    --grau2:  #f0ede8;
+    --grau3:  #e8e4dd;
+    --hell:   #1c1a17;
+    --border: #d8d3ca;
+    --akzent: #d49a36;
+    --gruen:  #2d7a4f;
+    --blau:   #1a6b8a;
+    --lila:   #6a4c93;
+    --dim:    #888880;
+    --font:   'Barlow Condensed', sans-serif;
+    /* Shell-Variablen */
+    --surface:  #ffffff;
+    --surface2: #f0ede8;
+    --border-s: #d8d3ca;
+    --shadow:   rgba(0,0,0,0.08);
+    --text:     #1c1a17;
+    --bg:       #f4f2ee;
+    --amber:    #d49a36;
+    --green:    #2d7a4f;
+    --red:      #c0392b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--dunkel); color: var(--hell); min-height: 100vh; padding-bottom: 60px; }
+
+  header {
+    background: var(--blau); padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 3px solid #0f4a63;
+  }
+  header h1 { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; color: #fff; }
+  header .meta { font-size: 11px; color: rgba(255,255,255,0.7); text-align: right; line-height: 1.6; }
+
+  .toolbar {
+    background: var(--grau1); border-bottom: 2px solid var(--border);
+    padding: 10px 20px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  }
+  .btn {
+    font-family: var(--font); font-size: 11px; font-weight: bold;
+    letter-spacing: 1px; text-transform: uppercase;
+    border: none; border-radius: 3px; padding: 7px 14px; cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-grau  { background: var(--grau3); color: var(--hell); }
+  .btn-blau  { background: var(--blau);  color: #fff; }
+  .btn-lila  { background: var(--lila);  color: #fff; }
+  .toolbar .sep { width: 1px; height: 28px; background: var(--border); }
+  #statusBar { font-size: 11px; color: var(--dim); margin-left: auto; }
+  #statusBar.ok  { color: var(--gruen); }
+  #statusBar.err { color: var(--rot); }
+
+  /* ── Zwei-Spalten-Layout ─────────────────────────────── */
+  .raeume-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border-top: 2px solid var(--border);
+  }
+  @media (max-width: 700px) { .raeume-grid { grid-template-columns: 1fr; } }
+
+  .raum-panel { border-right: 1px solid var(--border); }
+  .raum-panel:last-child { border-right: none; }
+
+  /* ── Raum-Header ─────────────────────────────────────── */
+  .raum-header {
+    padding: 10px 16px; font-size: 11px; font-weight: bold;
+    letter-spacing: 2px; text-transform: uppercase;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .raum-header.a { background: var(--blau); color: #fff; }
+  .raum-header.b { background: var(--lila); color: #fff; }
+  .raum-header select {
+    font-family: var(--font); font-size: 11px; font-weight: bold;
+    background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 3px; padding: 3px 20px 3px 8px; cursor: pointer;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='white'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 6px center;
+    background-color: rgba(255,255,255,0.2);
+  }
+
+  /* ── Grosszahl ───────────────────────────────────────── */
+  .raum-body { padding: 16px; }
+  .gross-zahl { font-size: 52px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .gross-unit { font-size: 14px; color: var(--dim); margin-left: 4px; }
+  .gross-sub  { font-size: 12px; color: var(--dim); margin-top: 4px; }
+  .gross-zahl.ok   { color: var(--gruen); }
+  .gross-zahl.warn { color: var(--akzent); }
+  .gross-zahl.crit { color: var(--rot); }
+
+  /* ── Balken ──────────────────────────────────────────── */
+  .balken-outer { margin: 14px 0 6px; position: relative; }
+  .balken-markers { height: 22px; position: relative; margin-bottom: 2px; }
+  .balken-marker {
+    position: absolute; top: 0; bottom: 0; width: 2px;
+    background: var(--dim); opacity: 0.4;
+  }
+  .balken-marker-label {
+    position: absolute; top: 0;
+    font-size: 9px; letter-spacing: 0.8px; text-transform: uppercase;
+    color: var(--dim); white-space: nowrap; transform: translateX(-50%);
+  }
+  .balken-marker.normal  { background: var(--gruen); opacity: 0.9; }
+  .balken-marker.maximal { background: var(--rot);   opacity: 0.9; }
+  .balken-marker-label.normal  { color: var(--gruen); }
+  .balken-marker-label.maximal { color: var(--rot); }
+  .balken-bg {
+    height: 22px; background: var(--grau2); border-radius: 3px; border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .balken-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+  .balken-fill.ok   { background: var(--gruen); }
+  .balken-fill.warn { background: var(--akzent); }
+  .balken-fill.crit { background: var(--rot); }
+  .balken-skala { display: flex; justify-content: space-between; font-size: 10px; color: var(--dim); margin-top: 3px; }
+
+  /* ── Kapazitäts-Zeilen ───────────────────────────────── */
+  .kap-zeile-row { margin-top: 10px; padding: 8px 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--grau2); display: flex; justify-content: space-between; align-items: baseline; }
+  .kap-zeile-row.gruen { border-color: #b8dfc9; background: #f0f8f4; }
+  .kap-zeile-row.gelb  { border-color: #f0d8a0; background: #fdf7e8; }
+  .kap-zeile-row.rot   { border-color: #f0b8b0; background: #fdf0ef; }
+  .kap-zeile-label { font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--dim); }
+  .kap-zeile-wert  { font-size: 18px; font-weight: 800; }
+  .kap-zeile-sub   { font-size: 11px; color: var(--dim); margin-left: 4px; }
+
+  /* ── Sperrflächen-Badges ─────────────────────────────── */
+  .sperr-liste { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .sperr-badge {
+    background: #fdf6e3; border: 1px solid #e8c86a; border-radius: 6px;
+    padding: 6px 10px; display: flex; align-items: center; gap: 10px;
+    border-left: 4px solid var(--akzent);
+  }
+  .sperr-badge-inner { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+  .sperr-badge-zahl  { font-size: 22px; font-weight: 800; color: var(--akzent); line-height: 1; }
+  .sperr-badge-unit  { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--akzent); opacity: 0.8; }
+  .sperr-badge-lbl   { font-size: 13px; font-weight: 600; color: var(--hell); }
+
+  /* ── Produkt-Sektion ─────────────────────────────────── */
+  .sek-kopf-panel {
+    background: var(--grau2); border-top: 1px solid var(--border);
+    padding: 7px 16px; display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; user-select: none;
+    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: bold; color: var(--dim);
+  }
+  .sek-kopf-panel:hover { background: var(--grau3); }
+  .sek-body-panel { display: none; }
+  .sek-body-panel.open { display: block; }
+
+  .prod-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .prod-table thead th {
+    background: var(--grau2); color: var(--dim);
+    font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+    padding: 5px 10px; text-align: left; border-bottom: 1px solid var(--border); font-weight: normal;
+  }
+  .prod-table thead th.r { text-align: right; }
+  .prod-table tbody tr { border-bottom: 1px solid var(--border); }
+  .prod-table tbody tr:hover { background: var(--grau2); }
+  .prod-table td { padding: 5px 10px; vertical-align: middle; }
+  .prod-table td.r { text-align: right; font-variant-numeric: tabular-nums; }
+  .prod-name { font-weight: 600; font-size: 13px; }
+  .prod-key  { display: block; font-size: 10px; color: var(--dim); }
+  .mini-bar  { display: inline-block; height: 6px; border-radius: 2px; vertical-align: middle; margin-left: 6px; }
+
+  .leer-hint { padding: 12px 16px; font-size: 12px; color: var(--dim); font-style: italic; }
+
+  .print-kopf { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>❄ Froster-Auslastung</h1>
+  <div class="meta">
+    <div>BäckereiOS</div>
+    <div id="tsLabel">—</div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button class="btn btn-grau" onclick="laden()">↻ Neu laden</button>
+  <div class="sep"></div>
+  <button class="btn btn-blau" onclick="druckeRaum('froster_a')">🖨 Froster A drucken</button>
+  <button class="btn btn-lila" onclick="druckeRaum('froster_b')">🖨 Froster B drucken</button>
+  <div class="sep"></div>
+  <button class="btn btn-gruen" id="btnSnapshot" onclick="speichereSnapshot()" title="Aktuellen Stand an Verlauf anhängen">📸 Snapshot</button>
+  <button class="btn btn-grau"  id="btnDeploy"   onclick="deployVerlauf()"    title="froster_verlauf.js herunterladen und deployen" style="display:none">⬇ Deploy Verlauf <span id="snapshotCount"></span></button>
+  <span id="statusBar">Lade…</span>
+</div>
+
+<div id="inventur-warn" style="display:none;
+  background:rgba(192,57,43,0.08); border-top:3px solid var(--rot); border-bottom:3px solid var(--rot);
+  padding:12px 20px; text-align:center;
+  font-size:13px; font-weight:800; color:var(--rot); letter-spacing:0.5px;">
+  ⚠ Inventur älter als 24 Stunden — Bestände möglicherweise veraltet · Zahlen mit Vorsicht verwenden
+</div>
+
+<div class="raeume-grid" id="raeume-grid">
+  <div class="raum-panel" id="panel-froster_a"></div>
+  <div class="raum-panel" id="panel-froster_b"></div>
+</div>
+
+<script src="../inventurdaten.js"></script>
+<script src="../froster_verlauf.js"></script>
+<script>
+let frosterCfg = null;
+let produktCfg = null;
+let verlauf    = [];   // aktuelle Verlaufsdaten (aus froster_verlauf.js + neue Snapshots)
+let collapsed  = { froster_a: false, froster_b: false };
+
+async function laden() {
+  status('Lade…', '');
+  try {
+    const [r1, r2] = await Promise.all([
+      fetch('../froster_config.json', { cache: 'no-store' }),
+      fetch('../produkt_config.json', { cache: 'no-store' })
+    ]);
+    if (!r1.ok) throw new Error('froster_config.json nicht erreichbar');
+    frosterCfg = migriere(await r1.json());
+    produktCfg = r2.ok ? await r2.json() : null;
+    // Verlauf aus geladenem Script übernehmen
+    verlauf = Array.isArray(window.BOS_FROSTER_VERLAUF) ? [...window.BOS_FROSTER_VERLAUF] : [];
+    aktualisiereDeployBtn();
+    const ts = getInventurTs();
+    if (ts) document.getElementById('tsLabel').textContent =
+      'Inventur: ' + new Date(ts).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    renderBeideRaeume();
+    pruefInventurAlter();
+    status('✓ Daten geladen', 'ok');
+  } catch(e) {
+    status('⚠ ' + e.message, 'err');
+  }
+}
+
+function migriere(data) {
+  if (!data.froster_raeume && data.froster_zustaende) {
+    const z = data.froster_zustaende;
+    data.froster_raeume = {
+      froster_a: { label:'Froster A', kapazitaet_normal: z.normal?.kapazitaet_24er||70, kapazitaet_maximal: z.maximal?.kapazitaet_24er||110 },
+      froster_b: { label:'Froster B', kapazitaet: 50 }
+    };
+  }
+  if (!data.froster_raeume) data.froster_raeume = { froster_a:{label:'Froster A',kapazitaet_normal:70,kapazitaet_maximal:110}, froster_b:{label:'Froster B',kapazitaet:50} };
+  if (!data.sperrflaechen)  data.sperrflaechen  = { froster_a:[], froster_b:[] };
+  if (!data.sperrflaechen.froster_a) data.sperrflaechen.froster_a = [];
+  if (!data.sperrflaechen.froster_b) data.sperrflaechen.froster_b = [];
+  // Produkte ohne froster_raum → froster_a
+  (data.produkt_zuweisung||[]).forEach(z => { if (!z.froster_raum) z.froster_raum = 'froster_a'; });
+  return data;
+}
+
+function getProdName(id) {
+  if (!produktCfg) return id;
+  const p = produktCfg.find(p => (p.legacyKey||p.artNr||p.name) === id);
+  return p?.name || id;
+}
+
+function getBleche(id) {
+  if (!window.BOS_INVENTUR) return null;
+  const p = window.BOS_INVENTUR.products?.[id];
+  if (p !== undefined) return p.stock ?? 0;
+  const s = window.BOS_INVENTUR.stocks?.[id];
+  return s !== undefined ? s : null;
+}
+
+function getInventurTs() {
+  if (!window.BOS_INVENTUR?.products) return null;
+  let max = 0;
+  Object.values(window.BOS_INVENTUR.products).forEach(p => { if(p.ts&&p.ts>max) max=p.ts; });
+  return max || null;
+}
+
+function berechneProdStikken(z) {
+  const { id, blechgroesse, stikken_typ } = z;
+  if (!blechgroesse || !stikken_typ) return null;
+  const bleche = getBleche(id);
+  if (bleche === null) return null;
+  const stDef = frosterCfg.stikken_typen?.[stikken_typ];
+  if (!stDef) return null;
+  const kap = stDef.kapazitaet?.[blechgroesse];
+  if (!kap) return null;
+  return { bleche, stikken_phys: bleche/kap, stikken_24: (bleche/kap)*(stDef.einheiten||1) };
+}
+
+function berechneRaum(raumKey) {
+  const zuw   = (frosterCfg.produkt_zuweisung||[]).filter(z => z.froster_raum === raumKey);
+  const sperr = (frosterCfg.sperrflaechen?.[raumKey]||[]).reduce((acc,s) => acc+(s.stikken||0), 0);
+  let produkte = 0;
+  const details = [];
+  zuw.forEach(z => {
+    const r = berechneProdStikken(z);
+    if (r) { produkte += r.stikken_24; details.push({ z, r, name: getProdName(z.id) }); }
+  });
+  details.sort((a,b) => b.r.stikken_24 - a.r.stikken_24);
+  return { produkte, sperr, gesamt: produkte + sperr, details };
+}
+
+function renderBeideRaeume() {
+  renderRaum('froster_a');
+  renderRaum('froster_b');
+}
+
+function renderRaum(rk) {
+  const panel  = document.getElementById('panel-' + rk);
+  const raum   = frosterCfg.froster_raeume[rk];
+  const isA    = rk === 'froster_a';
+  const cls    = isA ? 'a' : 'b';
+  const { produkte, sperr, gesamt, details } = berechneRaum(rk);
+  const sperrl = frosterCfg.sperrflaechen?.[rk] || [];
+
+  // Kapazitäten
+  const kapNormal  = isA ? (raum.kapazitaet_normal||0)  : (raum.kapazitaet||0);
+  const kapMaximal = isA ? (raum.kapazitaet_maximal||0) : null;
+  const hauptKap   = kapNormal;
+  const maxKap     = (kapMaximal || kapNormal) * 1.15;
+
+  const pctN = kapNormal  > 0 ? gesamt/kapNormal*100  : 0;
+  const pctM = kapMaximal > 0 ? gesamt/kapMaximal*100 : null;
+  const farbe = pctN < 70 ? 'ok' : pctN < 90 ? 'warn' : 'crit';
+
+  const fillPct = Math.min(gesamt/maxKap*100, 100).toFixed(1);
+
+  // Marker
+  let markersHTML = '';
+  const mkMarker = (kap, lbl, mcls) => {
+    const pos = (kap/maxKap*100).toFixed(1);
+    return `<div class="balken-marker ${mcls}" style="left:${pos}%"><div class="balken-marker-label ${mcls}">${lbl}</div></div>`;
+  };
+  markersHTML += mkMarker(kapNormal, raum.label ? 'Normal' : 'Kapazität', 'normal');
+  if (kapMaximal) markersHTML += mkMarker(kapMaximal, 'Maximal', 'maximal');
+
+  // Kapazitäts-Zeilen
+  let kapZeilenHTML = '';
+  const addKapZeile = (lbl, kap) => {
+    if (!kap) return;
+    const p = kap > 0 ? gesamt/kap*100 : 0;
+    const c = p < 70 ? 'gruen' : p < 90 ? 'gelb' : 'rot';
+    kapZeilenHTML += `<div class="kap-zeile-row ${c}">
+      <span class="kap-zeile-label">${esc(lbl)}</span>
+      <span><span class="kap-zeile-wert">${p.toFixed(0)} %</span>
+      <span class="kap-zeile-sub">${gesamt.toFixed(1)} / ${kap} Stikken</span></span></div>`;
+  };
+  addKapZeile('Normal', kapNormal);
+  if (kapMaximal) addKapZeile('Maximal', kapMaximal);
+
+  // Sperrflächen-Badges
+  let sperrHTML = '';
+  if (sperrl.length > 0) {
+    sperrHTML = '<div class="sperr-liste">';
+    sperrl.forEach(s => {
+      const lbl = s.label || 'Sperrfläche';
+      sperrHTML += `
+        <div class="sperr-badge">
+          <div class="sperr-badge-inner">
+            <span class="sperr-badge-zahl">${s.stikken}</span>
+            <span class="sperr-badge-unit">Stikken</span>
+          </div>
+          <span class="sperr-badge-lbl">${esc(lbl)}</span>
+        </div>`;
+    });
+    sperrHTML += '</div>';
+  }
+
+  // Produkt-Tabelle
+  const isOpen = !collapsed[rk];
+  let tblHTML = '';
+  if (details.length > 0) {
+    let rows = '';
+    details.forEach(({ z, r, name }) => {
+      if (r.bleche === 0) return;
+      const barW = Math.max(2, Math.round(r.stikken_24/gesamt*80));
+      const blechLabel = frosterCfg.blechgroessen?.[z.blechgroesse]?.label || '—';
+      rows += `<tr>
+        <td><span class="prod-name">${esc(name)}</span><span class="prod-key">${z.id}</span></td>
+        <td style="color:var(--dim);font-size:11px">${esc(blechLabel)}</td>
+        <td class="r"><strong>${r.bleche}</strong></td>
+        <td class="r">${r.stikken_24.toFixed(2)}
+          <span class="mini-bar" style="width:${barW}px;background:${isA?'var(--blau)':'var(--lila)'};opacity:0.6"></span>
+        </td></tr>`;
+    });
+    tblHTML = `<table class="prod-table">
+      <thead><tr><th>Produkt</th><th>Blech</th><th class="r">Bleche</th><th class="r">Stikken</th></tr></thead>
+      <tbody>${rows}</tbody></table>`;
+  } else {
+    tblHTML = '<div class="leer-hint">Keine Produkte mit Bestand in diesem Raum.</div>';
+  }
+
+  // Timestamp für Druck
+  const ts = getInventurTs();
+  const tsStr = ts ? new Date(ts).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+
+  // Panel komplett neu aufbauen
+  document.getElementById('panel-' + rk).innerHTML = `
+    <div class="print-kopf">
+      <div class="print-kopf-logo">Bäckerei<span style="color:var(--akzent);font-style:italic">OS</span></div>
+      <div class="print-kopf-meta"><strong>${esc(raum.label)}</strong><br>Inventur: ${tsStr}<br>Auslastung: ${gesamt.toFixed(1)} Stikken</div>
+    </div>
+    <div class="raum-header ${cls}">
+      <span>❄ ${esc(raum.label)}</span>
+    </div>
+    <div class="raum-body">
+      <div>
+        <span class="gross-zahl ${farbe}">${gesamt.toFixed(1)}</span>
+        <span class="gross-unit">Stikken</span>
+      </div>
+      <div class="gross-sub">${pctN.toFixed(0)} % der Kapazität Normal${sperr > 0 ? ` · inkl. ${sperr} Stikken gesperrt` : ''}</div>
+
+      <div class="balken-outer">
+        <div class="balken-markers" style="position:relative;height:20px">${markersHTML}</div>
+        <div class="balken-bg">
+          <div class="balken-fill ${farbe}" style="width:${fillPct}%"></div>
+        </div>
+        <div class="balken-skala">
+          <span>0</span><span>${(maxKap/2).toFixed(0)}</span><span>${maxKap.toFixed(0)}</span>
+        </div>
+      </div>
+
+      ${kapZeilenHTML}
+      ${sperrHTML}
+    </div>
+
+    <div class="sek-kopf-panel" onclick="toggleProd('${rk}')">
+      <span>Im Froster · ${details.filter(d=>d.r.bleche>0).length} Produkte</span>
+      <span>${isOpen?'▼':'▶'}</span>
+    </div>
+    <div class="sek-body-panel${isOpen?' open':''}">
+      ${tblHTML}
+      <div class="ts-footer">${esc(raum.label)} · ${(frosterCfg.produkt_zuweisung||[]).filter(z=>z.froster_raum===rk).length} konfigurierte Produkte</div>
+    </div>`;
+}
+
+function pruefInventurAlter() {
+  const warn = document.getElementById('inventur-warn');
+  if (!warn) return;
+  const ts = getInventurTs();
+  if (ts && (Date.now() - ts) / 3600000 > 24) {
+    const stunden = Math.floor((Date.now() - ts) / 3600000);
+    warn.innerHTML = `⚠ Inventur vor ${stunden} Stunden — Bestände möglicherweise veraltet · Zahlen mit Vorsicht verwenden`;
+    warn.style.display = 'block';
+    // Alle Großzahlen dimmen
+    document.querySelectorAll('.gross-zahl').forEach(el => {
+      el.style.opacity = '0.35';
+      el.style.filter  = 'grayscale(1)';
+    });
+    // Fragezeichen hinter alle Stikken-Zahlen
+    document.querySelectorAll('.gross-zahl').forEach(el => {
+      if (!el.dataset.dimmed) {
+        el.dataset.dimmed = '1';
+        el.innerHTML = el.textContent + '<span style="font-size:0.5em;vertical-align:super;margin-left:4px;opacity:0.7">?</span>';
+      }
+    });
+  } else {
+    warn.style.display = 'none';
+    document.querySelectorAll('.gross-zahl').forEach(el => {
+      el.style.opacity = '';
+      el.style.filter  = '';
+      delete el.dataset.dimmed;
+    });
+  }
+}
+
+// ── VERLAUF ───────────────────────────────────────────────
+function speichereSnapshot() {
+  if (!frosterCfg || !window.BOS_INVENTUR) {
+    status('⚠ Daten nicht geladen', 'err'); return;
+  }
+
+  const ts = Date.now();
+
+  // Produkt-Bestandsdaten sammeln
+  const produkte = {};
+  (frosterCfg.produkt_zuweisung || []).forEach(z => {
+    const r = berechneProdStikken(z);
+    if (r) {
+      produkte[z.id] = {
+        name:        z.name,
+        froster_raum: z.froster_raum,
+        bleche:      r.bleche,
+        stikken:     parseFloat(r.stikken_24.toFixed(4))
+      };
+    }
+  });
+
+  // Raum-Summen
+  const raumA = berechneRaum('froster_a');
+  const raumB = berechneRaum('froster_b');
+
+  const snapshot = {
+    ts,
+    inventur_ts: getInventurTs() || ts,
+    froster_a: {
+      gesamt:   parseFloat(raumA.gesamt.toFixed(4)),
+      produkte: parseFloat(raumA.produkte.toFixed(4)),
+      sperr:    parseFloat(raumA.sperr.toFixed(4))
+    },
+    froster_b: {
+      gesamt:   parseFloat(raumB.gesamt.toFixed(4)),
+      produkte: parseFloat(raumB.produkte.toFixed(4)),
+      sperr:    parseFloat(raumB.sperr.toFixed(4))
+    },
+    produkte
+  };
+
+  // Doppelten Snapshot am gleichen Tag verhindern (gleiche inventur_ts)
+  const bereitsVorhanden = verlauf.find(v => v.inventur_ts === snapshot.inventur_ts);
+  if (bereitsVorhanden) {
+    if (!confirm('Es gibt bereits einen Snapshot mit dieser Inventur (' +
+      new Date(snapshot.inventur_ts).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) +
+      ').\nTrotzdem hinzufügen?')) return;
+  }
+
+  verlauf.push(snapshot);
+  aktualisiereDeployBtn();
+  status('✓ Snapshot gespeichert · ' + verlauf.length + ' Einträge · Deploy nicht vergessen!', 'ok');
+  document.getElementById('btnDeploy').style.background = 'var(--akzent)';
+}
+
+function deployVerlauf() {
+  const eintraege = verlauf.map(v => '  ' + JSON.stringify(v)).join(',\n');
+  const js = `// BäckereiOS · Froster-Verlauf\n// Automatisch generiert von froster_auslastung.html\n// Nicht manuell bearbeiten — wird per Deploy-Button aktualisiert\n// Letzte Aktualisierung: ${new Date().toLocaleString('de-DE')}\n// Einträge: ${verlauf.length}\n\nwindow.BOS_FROSTER_VERLAUF = [\n${eintraege}\n];\n`;
+  const blob = new Blob([js], { type: 'application/javascript' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'froster_verlauf.js'; a.click();
+  URL.revokeObjectURL(url);
+  document.getElementById('btnDeploy').style.background = '';
+  status('✓ froster_verlauf.js heruntergeladen · Bitte deployen', 'ok');
+}
+
+function aktualisiereDeployBtn() {
+  const btn   = document.getElementById('btnDeploy');
+  const count = document.getElementById('snapshotCount');
+  if (!btn) return;
+  if (verlauf.length > 0) {
+    btn.style.display = 'inline-block';
+    count.textContent  = '(' + verlauf.length + ')';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function toggleProd(rk) { collapsed[rk] = !collapsed[rk]; renderRaum(rk); pruefInventurAlter(); }
+
+function druckeRaum(rk) {
+  const raum   = frosterCfg.froster_raeume[rk];
+  const isA    = rk === 'froster_a';
+  const { produkte, sperr, gesamt, details } = berechneRaum(rk);
+  const sperrl = frosterCfg.sperrflaechen?.[rk] || [];
+  const ts     = getInventurTs();
+  const tsStr  = ts ? new Date(ts).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+  const heute  = new Date().toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
+
+  const kapNormal  = isA ? (raum.kapazitaet_normal||0)  : (raum.kapazitaet||0);
+  const kapMaximal = isA ? (raum.kapazitaet_maximal||0) : null;
+  const pctN = kapNormal  > 0 ? gesamt/kapNormal*100  : 0;
+  const pctM = kapMaximal > 0 ? gesamt/kapMaximal*100 : null;
+  const farbe = pctN < 70 ? '#2d7a4f' : pctN < 90 ? '#d49a36' : '#c0392b';
+
+  // Produkt-Zeilen
+  let prodRows = '';
+  details.filter(d => d.r.bleche > 0).forEach(({ z, r, name }) => {
+    const blechLabel = frosterCfg.blechgroessen?.[z.blechgroesse]?.label || '—';
+    const stTypLabel = frosterCfg.stikken_typen?.[z.stikken_typ]?.label || '—';
+    const barW = Math.max(4, Math.round(r.stikken_24/gesamt*120));
+    prodRows += `<tr>
+      <td style="padding:3px 7px;border-bottom:1px solid #e0dcd6">
+        <strong style="font-size:12px">${esc(name)}</strong>
+        <span style="display:block;font-size:9px;color:#aaa">${z.id}</span>
+      </td>
+      <td style="padding:3px 7px;border-bottom:1px solid #e0dcd6;color:#888;font-size:11px">${esc(blechLabel)}</td>
+      <td style="padding:3px 7px;border-bottom:1px solid #e0dcd6;text-align:right;font-weight:700">${r.bleche}</td>
+      <td style="padding:3px 7px;border-bottom:1px solid #e0dcd6;text-align:right">
+        <span style="font-weight:700">${r.stikken_24.toFixed(2)}</span>
+        <span style="display:inline-block;width:${barW}px;height:5px;background:#1a6b8a;opacity:0.5;vertical-align:middle;margin-left:5px;border-radius:2px"></span>
+      </td>
+    </tr>`;
+  });
+
+  // Sperrflächen
+  let sperrRows = '';
+  sperrl.forEach(s => {
+    sperrRows += `<tr>
+      <td colspan="2" style="padding:5px 8px;border-bottom:1px solid #e0dcd6;color:#d49a36">
+        ⚠ ${esc(s.label||'Sperrfläche')}
+      </td>
+      <td style="padding:5px 8px;border-bottom:1px solid #e0dcd6;text-align:right;color:#d49a36;font-weight:700">${s.stikken}</td>
+      <td style="padding:5px 8px;border-bottom:1px solid #e0dcd6;text-align:right;color:#888;font-size:11px">Stikken</td>
+    </tr>`;
+  });
+
+  // Kapazitäts-Blöcke
+  const mkKapBlock = (lbl, kap) => {
+    if (!kap) return '';
+    const p = kap > 0 ? gesamt/kap*100 : 0;
+    const c = p < 70 ? '#2d7a4f' : p < 90 ? '#d49a36' : '#c0392b';
+    const fillW = Math.min(p, 100).toFixed(1);
+    return `<div style="margin-bottom:10px;padding:10px 12px;border:1px solid #e0dcd6;border-radius:5px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+        <span style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#888">${lbl}</span>
+        <span><span style="font-size:20px;font-weight:800;color:${c}">${p.toFixed(0)} %</span>
+        <span style="font-size:11px;color:#888;margin-left:6px">${gesamt.toFixed(1)} / ${kap} Stikken</span></span>
+      </div>
+      <div style="height:12px;background:#f0ede8;border-radius:3px;overflow:hidden">
+        <div style="width:${fillW}%;height:100%;background:${c};border-radius:3px"></div>
+      </div>
+    </div>`;
+  };
+
+  const html = `<!DOCTYPE html><html lang="de"><head>
+<meta charset="UTF-8">
+<title>Froster-Auslastung · ${esc(raum.label)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@900&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Barlow Condensed',Arial,sans-serif; color:#1c1a17; background:#fff;
+    padding:10mm 12mm; font-size:12px; }
+  @page { size: A4 portrait; margin: 0; }
+  @media print { body { padding:10mm 12mm; } }
+</style>
+</head><body>
+
+<!-- KOPF -->
+<div style="display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:7px;border-bottom:3px solid #1c1a17;margin-bottom:10px">
+  <div style="font-family:'Fraunces',serif;font-size:26px;font-weight:900;line-height:1">
+    Bäckerei<span style="color:#d49a36;font-style:italic">OS</span>
+  </div>
+  <div style="text-align:right;font-size:10px;color:#888;line-height:1.6">
+    <strong style="color:#1c1a17;font-size:12px">Froster-Auslastung · ${esc(raum.label)}</strong><br>
+    ${heute} · Inventur: ${tsStr}
+  </div>
+</div>
+
+<!-- GROSSZAHL -->
+<div style="margin-bottom:10px;display:flex;align-items:baseline;gap:10px">
+  <span style="font-size:48px;font-weight:800;color:${farbe};line-height:1">${gesamt.toFixed(1)}</span>
+  <div>
+    <div style="font-size:15px;color:#888">Stikken (24er-Äq.)</div>
+    <div style="font-size:11px;color:#888">${pctN.toFixed(0)} % der Normalkapazität${sperr > 0 ? ` · inkl. ${sperr} Stikken Sperrfläche` : ''}</div>
+  </div>
+</div>
+
+<!-- KAPAZITÄTEN -->
+${mkKapBlock('Normal', kapNormal)}
+${kapMaximal ? mkKapBlock('Maximal', kapMaximal) : ''}
+
+<!-- PRODUKTTABELLE -->
+<table style="width:100%;border-collapse:collapse;margin-top:10px">
+  <thead>
+    <tr style="background:#f0ede8">
+      <th style="padding:4px 7px;text-align:left;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#888;border-bottom:2px solid #d8d3ca;font-weight:normal">Produkt</th>
+      <th style="padding:4px 7px;text-align:left;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#888;border-bottom:2px solid #d8d3ca;font-weight:normal">Blech</th>
+      <th style="padding:4px 7px;text-align:right;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#888;border-bottom:2px solid #d8d3ca;font-weight:normal">Bleche</th>
+      <th style="padding:4px 7px;text-align:right;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#888;border-bottom:2px solid #d8d3ca;font-weight:normal">Stikken</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${prodRows}
+    ${sperrRows}
+    <tr style="background:#f0ede8">
+      <td colspan="3" style="padding:5px 7px;font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:800;color:#888">Gesamt</td>
+      <td style="padding:5px 7px;text-align:right;font-weight:800;font-size:14px">${gesamt.toFixed(2)}</td>
+    </tr>
+  </tbody>
+</table>
+
+<div style="margin-top:8px;padding-top:6px;border-top:1px solid #e0dcd6;font-size:9px;color:#bbb;text-align:center">
+  BäckereiOS · Froster-Auslastung · ${esc(raum.label)} · Gedruckt ${new Date().toLocaleString('de-DE')}
+</div>
+
+<script>window.onload = function() { window.print(); }<\/script>
+</body></html>`;
+
+  const w = window.open('', '_blank');
+  if (w) { w.document.write(html); w.document.close(); }
+  else status('⚠ Popup blockiert – bitte Popups erlauben', 'err');
+}
+
+function status(msg, typ) { const el=document.getElementById('statusBar'); el.textContent=msg; el.className=typ; }
+function esc(s) { if(s==null)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+laden();
+</script>
+<script src="../shell.js"></script>
+</body>
+</html>

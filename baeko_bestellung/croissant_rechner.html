@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BOS - Croissant Rechner</title>
+    <link rel="stylesheet" href="../systemdesign.css">
+    <style>
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        input { width: 100%; padding: 15px; border: 2px solid var(--border); border-radius: 12px; font-family: 'Barlow'; font-weight: 800; font-size: 1.2rem; text-align: center; background: var(--surface); color: var(--text); }
+        input:focus { border-color: var(--amber); outline: none; }
+        .info-bar { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--dim); margin-top: 10px; font-family: 'Barlow Condensed'; text-transform: uppercase; }
+        .calc-section { border-left: 6px solid var(--amber); }
+        .today-highlight { color: var(--amber); font-weight: 900; }
+
+        .print-btn {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: var(--amber); color: #1a1a1a;
+            border: none; border-radius: 12px;
+            padding: 14px 20px; font-family: 'Barlow Condensed'; font-weight: 800;
+            font-size: 1rem; letter-spacing: 1px; text-transform: uppercase;
+            cursor: pointer; width: 100%; margin-bottom: 24px;
+        }
+        .print-btn:active { opacity: 0.85; }
+
+        /* ── PRINT ───────────────────────────────── */
+        @media print {
+            .brand-header, .slogan-bar, .desc-text, .print-btn,
+            #standardList,
+            .bos-shell-topbar, .bos-tab-bar, .bos-status-strip { display: none !important; }
+
+            * { color: black !important; background: white !important;
+                box-shadow: none !important; }
+
+            #printPage { display: block !important; }
+        }
+
+        #printPage {
+            display: none;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+            color: black;
+        }
+        #printPage h1 {
+            font-size: 18px;
+            font-weight: 900;
+            margin: 0 0 4px;
+            letter-spacing: 0;
+        }
+        #printPage .print-meta {
+            font-size: 11px;
+            color: #555;
+            margin-bottom: 14px;
+        }
+        #printPage hr {
+            border: none;
+            border-top: 2px solid black;
+            margin: 0 0 16px;
+        }
+        #printPage .print-intro {
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+        #printPage ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #printPage ul li {
+            padding: 7px 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+        }
+        #printPage ul li:last-child { border-bottom: none; }
+        #printPage .li-name { font-weight: 700; }
+        #printPage .li-detail { color: #333; }
+        #printPage .print-empty {
+            color: #999;
+            font-style: italic;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <header class="brand-header">
+        <div class="brand-logo" onclick="location.href='../index.html'">BäckereiOS</div>
+        <div class="slogan-bar">FROSTERWARE &amp; KARTON-UMRECHNUNG</div>
+    </header>
+
+    <main class="container">
+        <p class="desc-text" style="font-size:0.85rem; color:var(--dim); line-height:1.6; margin-bottom:20px;">
+            Bleche eingeben → Kartons ausrechnen. Wie viele Kartons müssen aus dem Froster geholt werden, damit die geplante Blechzahl abgesetzt werden kann? Soll-Menge für heute ist bereits eingeblendet.
+        </p>
+
+        <button class="print-btn" onclick="doPrint()">🖨️ Arbeitsauftrag drucken</button>
+
+        <div id="standardList"></div>
+
+        <!-- Nur beim Drucken sichtbar -->
+        <div id="printPage">
+            <h1>Arbeitsauftrag — Absetzen</h1>
+            <div class="print-meta" id="printMeta"></div>
+            <hr>
+            <div class="print-intro">Bitte folgende Produkte aus dem Froster holen und absetzen:</div>
+            <ul id="printList"></ul>
+            <div class="print-empty" id="printEmpty" style="display:none;">Keine Werte eingegeben.</div>
+        </div>
+    </main>
+
+    <script src="../baeko_bestand.js"></script>
+    <script src="lager_gehirn.js"></script>
+    <script>
+        var dayIdx = (new Date().getDay() + 6) % 7;
+        var DAYS_DE = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+        var productData = {};
+
+        function render() {
+            var stdList = document.getElementById('standardList');
+            var products = window.BOS_BAEKO_CONFIG.products;
+            stdList.innerHTML = '';
+            for (var id in products) {
+                var p = products[id];
+                if (!p.show_in_calc || p.type === 'cross') continue;
+                productData[id] = p;
+                var todayNeed = p.needs_blech ? p.needs_blech[dayIdx] : '0';
+                var card = document.createElement('div');
+                card.className = 'card calc-section';
+                var cid = id;
+                card.innerHTML =
+                    '<h2 class="fraunces" style="margin:0;">' + p.name + '</h2>' +
+                    '<div class="info-bar">' +
+                        '<span>Soll Heute: <span class="today-highlight">' + todayNeed + ' Bleche</span></span>' +
+                        '<span>' + p.stueck_pro_blech + ' Stk/Bl. | ' + p.stueck_pro_karton + ' Stk/Kt.</span>' +
+                    '</div>' +
+                    '<div class="input-row">' +
+                        '<div><div class="label" style="text-align:center;">Absetzen (Bl.)</div>' +
+                        '<input type="number" id="' + cid + '_bl" oninput="runStandard(\'' + cid + '\',this.value)" placeholder="0"></div>' +
+                        '<div><div class="label" style="text-align:center;">Aus Froster</div>' +
+                        '<input type="text" id="' + cid + '_res" readonly style="background:var(--surface2); border-color:transparent;"></div>' +
+                    '</div>';
+                stdList.appendChild(card);
+            }
+        }
+
+        function runStandard(id, val) {
+            var bleche = parseFloat(val || 0);
+            var target = document.getElementById(id + '_res');
+            if (bleche === 0) { target.value = ''; return; }
+            var res = window.BOS_LAGER_BRAIN.convertStandard(id, bleche);
+            target.value = Math.round(res * 10) / 10 + ' Kartons';
+        }
+
+        function doPrint() {
+            var now = new Date();
+            var tag = DAYS_DE[now.getDay()];
+            var datum = now.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'});
+            var uhrzeit = now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr';
+            document.getElementById('printMeta').textContent = tag + ', ' + datum + '  —  ' + uhrzeit;
+
+            var list = document.getElementById('printList');
+            list.innerHTML = '';
+            var hasAny = false;
+
+            for (var id in productData) {
+                var blInput = document.getElementById(id + '_bl');
+                var resInput = document.getElementById(id + '_res');
+                if (!blInput || !blInput.value || parseFloat(blInput.value) === 0) continue;
+                hasAny = true;
+                var li = document.createElement('li');
+                li.innerHTML =
+                    '<span class="li-name">' + productData[id].name + '</span>' +
+                    '<span class="li-detail">' + blInput.value + ' Bleche &nbsp;(' + resInput.value + ')</span>';
+                list.appendChild(li);
+            }
+
+            document.getElementById('printEmpty').style.display = hasAny ? 'none' : 'block';
+            window.print();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', render);
+        } else {
+            render();
+        }
+    </script>
+    <script src="../shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,585 @@
+/*
+ * ═══════════════════════════════════════════════════════════════
+ *  BäckereiOS — admin_design.css
+ *  Helles Design-System für alle AdminTools-Seiten
+ *
+ *  Einbinden:
+ *    <link rel="stylesheet" href="admin_design.css">
+ *    (oder ../AdminTools/admin_design.css von Unterordnern)
+ *
+ *  Fonts (im <head> vor diesem Link):
+ *    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+ *
+ *  Icons:
+ *    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+ * ═══════════════════════════════════════════════════════════════
+ */
+
+/* ── CUSTOM PROPERTIES ─────────────────────────────────────── */
+:root {
+  /* Farben */
+  --amber:       #d49a36;
+  --amber-light: rgba(212, 154, 54, 0.12);
+  --amber-mid:   rgba(212, 154, 54, 0.25);
+  --amber-dark:  #a07020;
+
+  --bg:          #f4f2ee;      /* warmes Off-White, kein steriles Weiß */
+  --surface:     #ffffff;
+  --surface2:    #f0ede8;
+  --surface3:    #e8e4dd;
+
+  --border:      #d8d3ca;
+  --border-dark: #bbb5aa;
+
+  --text:        #1c1a17;
+  --text-mid:    #4a4640;
+  --dim:         #888077;
+
+  --red:         #c0392b;
+  --red-light:   rgba(192, 57, 43, 0.1);
+  --green:       #2d7a4f;
+  --green-light: rgba(45, 122, 79, 0.1);
+  --blue:        #2563a8;
+  --blue-light:  rgba(37, 99, 168, 0.1);
+  --orange:      #c46e1a;
+  --orange-light:rgba(196, 110, 26, 0.1);
+  --purple:      #6d3db5;
+  --purple-light:rgba(109, 61, 181, 0.1);
+
+  /* Kategorie-Farben (für linke Borderkanten, Dots) */
+  --cat-daten:   #2563a8;
+  --cat-system:  #6d3db5;
+  --cat-inhalt:  #2d7a4f;
+  --cat-spezial: #d49a36;
+
+  /* Typografie */
+  --font-ui:     'Barlow Condensed', sans-serif;
+  --font-serif:  'Fraunces', serif;
+
+  /* Abstände */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+
+  /* Schatten */
+  --shadow-sm:   0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:   0 4px 12px rgba(0,0,0,.10), 0 2px 4px rgba(0,0,0,.06);
+}
+
+/* ── BASE RESET ────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.4;
+  min-height: 100vh;
+  padding-bottom: 32px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── SEITENRAHMEN ──────────────────────────────────────────── */
+.adm-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ── PAGE HEADER ───────────────────────────────────────────── */
+/*
+  Verwendung:
+  <header class="adm-header">
+    <a class="adm-back" href="admin_landing.html">
+      <i class="ph ph-caret-left"></i> Admin
+    </a>
+    <div class="adm-header-body">
+      <h1 class="adm-title">Seitenname</h1>
+      <span class="adm-subtitle">Kurzbeschreibung</span>
+    </div>
+  </header>
+*/
+.adm-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0 14px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.adm-back {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--dim);
+  text-decoration: none;
+  letter-spacing: .05em;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  transition: background .12s, color .12s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.adm-back:hover,
+.adm-back:active { background: var(--surface2); color: var(--text); }
+.adm-back i { font-size: 1rem; }
+
+.adm-header-body { flex: 1; min-width: 0; }
+
+.adm-title {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--amber-dark);
+  line-height: 1;
+}
+
+.adm-subtitle {
+  display: block;
+  font-size: .72rem;
+  color: var(--dim);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+/* Optionale rechte Seite im Header (z.B. Badge, Button) */
+.adm-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── KATEGORIE-SEKTION ─────────────────────────────────────── */
+/*
+  <section class="adm-section">
+    <div class="adm-section-label">
+      <span class="adm-section-dot" style="background:var(--cat-daten)"></span>
+      <span>Datenpflege</span>
+      <span class="adm-section-count">4</span>
+    </div>
+    ...Inhalt...
+  </section>
+*/
+.adm-section {
+  margin-bottom: 28px;
+}
+
+.adm-section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 7px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.adm-section-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.adm-section-count {
+  margin-left: auto;
+  font-size: .65rem;
+  color: var(--border-dark);
+}
+
+/* ── TOOL-KARTEN (Linkliste) ───────────────────────────────── */
+/*
+  <div class="adm-tool-list">
+    <a class="adm-tool-card" href="..." style="--card-accent: var(--cat-daten)">
+      <div class="adm-tool-icon"><i class="ph-fill ph-database"></i></div>
+      <div class="adm-tool-body">
+        <div class="adm-tool-name">Datenbank Manager</div>
+        <div class="adm-tool-desc">Import & Export</div>
+      </div>
+      <i class="ph ph-caret-right adm-tool-arrow"></i>
+    </a>
+  </div>
+*/
+.adm-tool-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.adm-tool-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--card-accent, var(--border));
+  border-radius: var(--radius-md);
+  padding: 11px 13px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: var(--shadow-sm);
+  transition: background .12s, box-shadow .12s, transform .08s;
+}
+.adm-tool-card:hover   { background: var(--surface2); box-shadow: var(--shadow-md); }
+.adm-tool-card:active  { transform: scale(.984); background: var(--surface2); }
+.adm-tool-card.adm-wip { opacity: .6; }
+
+.adm-tool-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.adm-tool-body  { flex: 1; min-width: 0; }
+.adm-tool-name  { font-size: .96rem; font-weight: 600; color: var(--text); line-height: 1.1; }
+.adm-tool-desc  {
+  font-size: .74rem;
+  color: var(--dim);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.adm-tool-arrow { color: var(--border-dark); font-size: .95rem; flex-shrink: 0; }
+
+/* ── BADGES ────────────────────────────────────────────────── */
+/*
+  <span class="adm-badge adm-badge-cheat">Cheat</span>
+  <span class="adm-badge adm-badge-wip">In Entwicklung</span>
+  <span class="adm-badge adm-badge-rework">Überarbeitung</span>
+  <span class="adm-badge adm-badge-live">Live</span>
+  <span class="adm-badge adm-badge-amber">Amber</span>
+*/
+.adm-badge {
+  display: inline-block;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.adm-badge-wip    { background: rgba(136,128,119,.1); color: #777; border: 1px solid var(--border); }
+.adm-badge-rework { background: var(--orange-light);  color: var(--orange); border: 1px solid rgba(196,110,26,.25); }
+.adm-badge-cheat  { background: var(--amber-light);   color: var(--amber-dark); border: 1px solid var(--amber-mid); }
+.adm-badge-live   { background: var(--green-light);   color: var(--green); border: 1px solid rgba(45,122,79,.25); }
+.adm-badge-blue   { background: var(--blue-light);    color: var(--blue); border: 1px solid rgba(37,99,168,.25); }
+
+/* ── BUTTONS ───────────────────────────────────────────────── */
+/*
+  <button class="adm-btn adm-btn-primary">Speichern</button>
+  <button class="adm-btn adm-btn-secondary">Abbrechen</button>
+  <button class="adm-btn adm-btn-danger">Löschen</button>
+  <button class="adm-btn adm-btn-ghost">Zurück</button>
+*/
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-ui);
+  font-size: .88rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .12s, opacity .12s, transform .08s;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.adm-btn:active { transform: scale(.96); }
+
+.adm-btn-primary {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: #fff;
+}
+.adm-btn-primary:hover { background: var(--amber-dark); border-color: var(--amber-dark); }
+
+.adm-btn-secondary {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text-mid);
+  box-shadow: var(--shadow-sm);
+}
+.adm-btn-secondary:hover { background: var(--surface2); }
+
+.adm-btn-danger {
+  background: var(--red-light);
+  border-color: rgba(192,57,43,.3);
+  color: var(--red);
+}
+.adm-btn-danger:hover { background: rgba(192,57,43,.18); }
+
+.adm-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--dim);
+}
+.adm-btn-ghost:hover { background: var(--surface2); }
+
+.adm-btn i { font-size: 1rem; }
+
+/* ── INPUTS & FORMULARE ────────────────────────────────────── */
+/*
+  <div class="adm-field">
+    <label class="adm-label">Bezeichnung</label>
+    <input class="adm-input" type="text" placeholder="...">
+  </div>
+*/
+.adm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.adm-label {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.adm-input,
+.adm-select,
+.adm-textarea {
+  font-family: var(--font-ui);
+  font-size: .95rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 9px 12px;
+  width: 100%;
+  transition: border-color .12s, box-shadow .12s;
+  outline: none;
+}
+.adm-input:focus,
+.adm-select:focus,
+.adm-textarea:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px var(--amber-light);
+}
+.adm-textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+/* ── TABELLEN ──────────────────────────────────────────────── */
+/*
+  <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead><tr><th>Spalte</th>...</tr></thead>
+      <tbody><tr><td>Wert</td>...</tr></tbody>
+    </table>
+  </div>
+*/
+.adm-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .88rem;
+  background: var(--surface);
+}
+
+.adm-table thead tr {
+  background: var(--surface2);
+  border-bottom: 2px solid var(--border);
+}
+
+.adm-table th {
+  padding: 9px 12px;
+  text-align: left;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+.adm-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--surface2);
+  color: var(--text);
+  vertical-align: middle;
+}
+
+.adm-table tbody tr:last-child td { border-bottom: none; }
+.adm-table tbody tr:hover { background: var(--surface2); }
+
+/* ── KARTEN (allgemein) ────────────────────────────────────── */
+/*
+  <div class="adm-card">
+    <div class="adm-card-header">Überschrift</div>
+    <div class="adm-card-body">Inhalt</div>
+  </div>
+*/
+.adm-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.adm-card-header {
+  padding: 12px 16px;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+
+.adm-card-body { padding: 16px; }
+
+/* ── TRENNLINIE ────────────────────────────────────────────── */
+.adm-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 20px 0;
+}
+
+/* ── STATUSZEILE / INFO-BANNER ─────────────────────────────── */
+/*
+  <div class="adm-info adm-info-amber">ℹ Hinweis</div>
+  <div class="adm-info adm-info-red">⚠ Fehler</div>
+  <div class="adm-info adm-info-green">✓ Erfolg</div>
+*/
+.adm-info {
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: .84rem;
+  border-left: 3px solid transparent;
+  margin-bottom: 14px;
+}
+.adm-info-amber { background: var(--amber-light);  border-color: var(--amber);   color: var(--amber-dark); }
+.adm-info-red   { background: var(--red-light);    border-color: var(--red);     color: var(--red); }
+.adm-info-green { background: var(--green-light);  border-color: var(--green);   color: var(--green); }
+.adm-info-blue  { background: var(--blue-light);   border-color: var(--blue);    color: var(--blue); }
+
+/* ── SESSION-PILL (für admin_landing) ──────────────────────── */
+.adm-session-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .72rem;
+  color: var(--green);
+  background: var(--green-light);
+  border: 1px solid rgba(45,122,79,.25);
+  border-radius: 20px;
+  padding: 5px 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.adm-session-pill i { font-size: .95rem; }
+
+/* ── AKTIONS-LEISTE ────────────────────────────────────────── */
+/*
+  <div class="adm-action-bar">
+    <button class="adm-btn adm-btn-secondary">Sperren</button>
+    <button class="adm-btn adm-btn-danger">Zurücksetzen</button>
+  </div>
+*/
+.adm-action-bar {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── PIN GATE ──────────────────────────────────────────────── */
+/*
+  Wird von admin_landing.html inline genutzt.
+  Hier nur die Basis-Variablen für das Gate.
+*/
+.adm-pin-gate {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  transition: opacity .35s ease, transform .35s ease;
+}
+.adm-pin-gate.fade-out {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1.04);
+}
+
+/* ── UTILITY-KLASSEN ───────────────────────────────────────── */
+.adm-text-dim     { color: var(--dim); }
+.adm-text-amber   { color: var(--amber-dark); }
+.adm-text-red     { color: var(--red); }
+.adm-text-green   { color: var(--green); }
+.adm-text-small   { font-size: .78rem; }
+.adm-text-mono    { font-family: 'Courier New', monospace; font-size: .85rem; }
+.adm-mt-sm        { margin-top: 8px; }
+.adm-mt-md        { margin-top: 16px; }
+.adm-mt-lg        { margin-top: 28px; }
+.adm-flex         { display: flex; align-items: center; gap: 10px; }
+.adm-flex-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.adm-w-full       { width: 100%; }
+
+/* ── ANIMATIONEN ───────────────────────────────────────────── */
+@keyframes adm-shake {
+  0%,100% { transform: translateX(0); }
+  20%      { transform: translateX(-8px); }
+  40%      { transform: translateX(8px); }
+  60%      { transform: translateX(-5px); }
+  80%      { transform: translateX(5px); }
+}
+.adm-shake { animation: adm-shake .36s ease; }
+
+@keyframes adm-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.adm-fade-in { animation: adm-fade-in .3s ease forwards; }

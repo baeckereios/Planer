@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BäckereiOS - Situations-Prompt</title>
+    <link rel="stylesheet" href="admin_design.css">
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="card">
+        <h2 class="hide-in-assistant">🧠 Master-Prompt: Situations-Analyse</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+            Kopiere diesen Text und füge ihn zusammen mit den hochgeladenen Backzetteln für den morgigen Tag in unseren Chat ein, um die Live-Daten-Analyse (Wetter, Ferien, Wochentag) zu starten.
+        </p>
+
+        <textarea id="promptText" readonly style="min-height: 380px;">Hier sind die Backzettel für morgen, den [DATUM EINTRAGEN].
+
+Bitte führe eine komplette Situations-Analyse durch:
+
+1. Web-Suche (Kontext checken):
+- Suche den Wetterbericht für morgen für Seelze/Hannover (Temperatur, Sonnenstunden, Regenrisiko).
+- Prüfe, ob morgen in Niedersachsen Schulferien oder Feiertage sind.
+- Berücksichtige den Wochentag (z.B. ob der starke Freitag vor der Tür steht).
+
+2. Datenabgleich (Die Zettel):
+- Erfasse die Mengen der Hauptartikel (Schlawiner, Hasenberger, Batzen, Kornknacker) sowie wetterfühlige Artikel (Baguette/Grill-Sortiment, Kuchen).
+
+3. Die Situations-Auswertung:
+- Der Wetter-Faktor: Passen die Mengen zum Wetter? (z.B. Fehlt der "Grillwetter-Zuschlag" bei Baguettes, wenn es sonnig wird? Ist zu wenig Kuchen für einen Regentag eingeplant?)
+- Der Ferien-/Wochentag-Faktor: Berücksichtigen die Zahlen das typische Wochenend-Hoch oder ein eventuelles Ferien-Tief?
+- Das Fazit für den Froster: Vergleiche die Zahlen grob mit unserer Master-Datenbank (inklusive der neuen Filiale). 
+
+Gib mir am Ende eine klare, datenbasierte Einschätzung: Sollte ich bei bestimmten Artikeln für den Froster noch einen "Bauchgefühl-Puffer" aufschlagen oder eher bremsen?</textarea>
+
+        <button id="copyBtn" onclick="copyPrompt()">📋 Prompt kopieren</button>
+    </div>
+
+</div>
+
+<script>
+    function copyPrompt() {
+        var copyText = document.getElementById("promptText");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        
+        navigator.clipboard.writeText(copyText.value).then(function() {
+            var btn = document.getElementById("copyBtn");
+            btn.innerHTML = "✅ Kopiert!";
+            btn.style.backgroundColor = "var(--success-color)";
+            
+            setTimeout(function() {
+                btn.innerHTML = "📋 Prompt kopieren";
+                btn.style.backgroundColor = "var(--btn-primary)";
+            }, 2000);
+        }).catch(function(err) {
+            alert("Fehler beim Kopieren: " + err);
+        });
+    }
+
+    // --- MAGIC SCRIPT FÜR EDGE-TO-EDGE IM ASSISTENTEN ---
+    if (window.location.search.includes('embedded=1')) {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            body { padding: 0 !important; background-color: #ffffff !important; }
+            .container { padding: 20px 15px !important; max-width: 100% !important; margin: 0 !important; }
+            .hide-in-assistant { display: none !important; }
+            /* Zieht die Karte komplett glatt, wenn sie im iFrame ist */
+            .card { box-shadow: none !important; border: none !important; padding: 0 !important; border-radius: 0 !important; }
+        `;
+        document.head.appendChild(style);
+    }
+</script>
+
+</body>
+</html>

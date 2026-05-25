@@ -1,0 +1,10 @@
+{
+  "zeitraum_tage": 14,
+  "wurm_aktiv": true,
+  "wurm_modus": "stichproben",
+  "feiertage_ausschliessen": true,
+  "sondertage_ausschliessen": true,
+  "ausgeschlossene_tage": [],
+  "stichproben_anzahl": 5,
+  "suchfenster_wochen": 12
+}

@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Frosterliste Editor – BäckereiOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;1,400&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+    --amber:   #d49a36;
+    --amber-l: #f0c96a;
+    --bg:      #f5f0e8;
+    --card:    #fffdf8;
+    --border:  #e0d8cc;
+    --text:    #1a1714;
+    --muted:   #8a7f72;
+    --red:     #c0392b;
+    --green:   #27ae60;
+    --blue:    #2980b9;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+}
+
+/* ── Header ── */
+.brand-header {
+    background: var(--card);
+    border-bottom: 2px solid var(--amber);
+    padding: 14px 18px 10px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+.btn-back {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-decoration: none;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    background: var(--bg);
+}
+.page-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--amber);
+}
+.brand-logo {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+}
+.brand-logo span { color: var(--amber); }
+
+/* ── Container ── */
+.container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 16px 14px 100px;
+}
+
+/* ── Info-Banner ── */
+.info-banner {
+    background: #fff8e6;
+    border: 1.5px solid var(--amber);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #7a5c1a;
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+.info-banner strong { font-weight: 600; }
+
+/* ── Section Label ── */
+.section-lbl {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin: 20px 0 8px;
+}
+
+/* ── Produkt-Zeilen ── */
+.produkt-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.produkt-row {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr auto auto;
+    gap: 8px;
+    align-items: center;
+    transition: border-color 0.15s;
+}
+.produkt-row:focus-within {
+    border-color: var(--amber);
+}
+.produkt-row.mosa-only {
+    background: #f8f4ec;
+}
+
+.row-num {
+    grid-column: 1 / -1;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: -2px;
+}
+
+.field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.field-lbl {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-transform: uppercase;
+}
+.field-input {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 13px;
+    background: #fff;
+    color: var(--text);
+    width: 100%;
+    transition: border-color 0.15s;
+}
+.field-input:focus {
+    outline: none;
+    border-color: var(--amber);
+}
+.field-input.disabled-field {
+    background: #f0ece4;
+    color: var(--muted);
+    font-style: italic;
+}
+
+.field-sel {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 6px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 12px;
+    background: #fff;
+    color: var(--text);
+    width: 100%;
+    min-width: 90px;
+}
+.field-sel:focus {
+    outline: none;
+    border-color: var(--amber);
+}
+
+.col-type {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.type-btns {
+    display: flex;
+    gap: 4px;
+}
+.type-btn {
+    flex: 1;
+    padding: 5px 4px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    background: var(--bg);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+}
+.type-btn.active {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: #fff;
+}
+
+.btn-del-row {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1.5px solid #e8c5c0;
+    background: #fdf4f2;
+    color: var(--red);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 12px;
+    transition: all 0.15s;
+}
+.btn-del-row:hover {
+    background: var(--red);
+    color: #fff;
+    border-color: var(--red);
+}
+
+.row-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 12px;
+    flex-shrink: 0;
+}
+.btn-move {
+    width: 32px;
+    height: 28px;
+    border-radius: 7px;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    line-height: 1;
+}
+.btn-move:hover {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: #fff;
+}
+.btn-move:disabled {
+    opacity: 0.25;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* ── Add Button ── */
+.btn-add-row {
+    width: 100%;
+    padding: 12px;
+    border: 2px dashed var(--amber);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--amber);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.15s;
+}
+.btn-add-row:hover {
+    background: #fff8e6;
+}
+
+/* ── Import-Bereich ── */
+.import-area {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+}
+.import-drop {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+.import-drop:hover, .import-drop.drag-over {
+    border-color: var(--amber);
+    background: #fff8e6;
+    color: var(--amber);
+}
+.import-drop input[type=file] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+.import-drop-icon { font-size: 28px; margin-bottom: 6px; }
+.import-drop-text { font-family: 'Barlow Condensed', sans-serif; font-weight: 600; letter-spacing: 0.06em; }
+.import-drop-sub  { font-size: 11px; margin-top: 3px; }
+
+/* ── Action Buttons ── */
+.action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    background: var(--card);
+    border-top: 2px solid var(--amber);
+    padding: 12px 14px;
+    display: flex;
+    gap: 10px;
+    z-index: 200;
+    max-width: 680px;
+    margin: 0 auto;
+}
+.btn-download {
+    flex: 1;
+    padding: 13px 16px;
+    border-radius: 10px;
+    border: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.btn-download.primary {
+    background: var(--amber);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(212,154,54,0.35);
+}
+.btn-download.primary:hover { background: #c08820; }
+.btn-download.secondary {
+    background: var(--bg);
+    color: var(--text);
+    border: 1.5px solid var(--border);
+}
+
+/* ── Toast ── */
+.toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: #1a1714;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 999;
+    white-space: nowrap;
+}
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* ── Zähler ── */
+.row-counter {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 6px;
+}
+</style>
+</head>
+<body>
+
+<div class="brand-header">
+    <div class="top-nav">
+        <a href="../druckzentrale/druckzentrale.html" class="btn-back">← Druckzentrale</a>
+        <span class="page-sub">PRODUKT-EDITOR</span>
+    </div>
+    <div class="brand-logo">Bäckerei<span>OS</span></div>
+</div>
+
+<div class="container">
+
+    <div class="info-banner">
+        <strong>So funktioniert's:</strong> Produkte hier bearbeiten, hinzufügen oder löschen. 
+        Danach <strong>„JS herunterladen"</strong> → Datei heißt <code>frosterliste_produkte.js</code> → 
+        diese die alte Datei im <strong>Hauptordner</strong> ersetzen. Fertig.
+    </div>
+
+    <!-- Import -->
+    <div class="section-lbl">Bestehende Datei laden</div>
+    <div class="import-area">
+        <div class="import-drop" id="drop-zone">
+            <input type="file" accept=".js" id="file-input" onchange="importFile(this)">
+            <div class="import-drop-icon">📂</div>
+            <div class="import-drop-text">frosterliste_produkte.js hier ablegen</div>
+            <div class="import-drop-sub">oder antippen zum Auswählen</div>
+        </div>
+    </div>
+
+    <!-- Produktliste -->
+    <div class="section-lbl">Produkte</div>
+    <div class="produkt-list" id="produkt-list"></div>
+    <div class="row-counter" id="row-counter"></div>
+
+    <button class="btn-add-row" onclick="addRow()">+ Zeile hinzufügen</button>
+
+</div>
+
+<!-- Action Bar -->
+<div class="action-bar">
+    <button class="btn-download secondary" onclick="resetToDefault()">↺ Standard</button>
+    <button class="btn-download primary" onclick="downloadJS()">⬇ JS herunterladen</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════
+   DEFAULT-PRODUKTE (Fallback / Reset)
+══════════════════════════════════════════ */
+var DEFAULT_PRODUKTE = [
+    { mosa: "",                so: "Schrippen (gelbe Dielen)",                 wohin: "schrippen_koma" },
+    { mosa: "",                so: "Mohn / Sesam",                             wohin: "" },
+    { mosa: "",                so: "Hasenberger",                              wohin: "" },
+    { mosa: "",                so: "Kornknacker",                              wohin: "" },
+    { mosa: "",                so: "Käsebrötchen",                             wohin: "" },
+    { mosa: "",                so: "Laugenstangen",                            wohin: "" },
+    { mosa: "",                so: "Hasenpfoten",                              wohin: "" },
+    { mosa: "",                so: "Rosinenbrötchen",                          wohin: "" },
+    { mosa: "",                so: "Brioche Rosinen",                          wohin: "" },
+    { mosa: "",                so: "Brioche Schoko",                           wohin: "" },
+    { mosa: "",                so: "Laugenecken",                              wohin: "" },
+    { mosa: "",                so: "Buttercroissant",                          wohin: "" },
+    { mosa: "",                so: "Schokocroissant",                          wohin: "" },
+    { mosa: "",                so: "Mini-Croissant",                           wohin: "" },
+    { mosa: "",                so: "Mini-Schokocroissant",                     wohin: "" },
+    { mosa: "Plunderstreifen", so: null,                                       wohin: "" },
+    { mosa: "Puddingbrezeln",  so: null,                                       wohin: "" },
+    { mosa: "Schnecken",       so: null,                                       wohin: "" },
+    { mosa: "Zimtwolken",      so: null,                                       wohin: "" },
+    { mosa: "",                so: "Streuselkuchen",                           wohin: "" },
+    { mosa: "",                so: "Baguettestangen (Lochbleche)",             wohin: "" },
+    { mosa: "",                so: "Zwiebelbaguette (Lochbleche)",             wohin: "" },
+    { mosa: "Weißbrote",       so: null,                                       wohin: "" },
+    { mosa: "",                so: "Baguettestangen für Fahrer (rote Dielen)", wohin: "" },
+    { mosa: "",                so: "Zwiebelbaguette für Fahrer (rote Dielen)", wohin: "" },
+    { mosa: "",                so: "Schlawiner",                               wohin: "" },
+    { mosa: "",                so: "",                                         wohin: "" },
+    { mosa: "",                so: "",                                         wohin: "" },
+    { mosa: "",                so: "",                                         wohin: "" }
+];
+
+var WOHIN_OPTIONS = [
+    { value: "",               label: "— (kein)" },
+    { value: "koma7",          label: "Koma 7" },
+    { value: "schrippen_koma", label: "Schrippen Koma" },
+    { value: "froster",        label: "Froster" },
+    { value: "kuehlung",       label: "Kühlung" }
+];
+
+var produkte = JSON.parse(JSON.stringify(DEFAULT_PRODUKTE));
+
+/* ══════════════════════════════════════════
+   RENDER
+══════════════════════════════════════════ */
+function render() {
+    var list = document.getElementById('produkt-list');
+    list.innerHTML = '';
+    produkte.forEach(function(p, i) {
+        list.appendChild(buildRow(p, i));
+    });
+    // Move-Buttons an Grenzen deaktivieren
+    var rows = list.querySelectorAll('.produkt-row');
+    rows.forEach(function(row, i) {
+        row.querySelector('.btn-move-up').disabled   = (i === 0);
+        row.querySelector('.btn-move-down').disabled = (i === rows.length - 1);
+    });
+    document.getElementById('row-counter').textContent = produkte.length + ' Produkte';
+}
+
+function buildRow(p, i) {
+    var isMosaOnly = (p.so === null);
+    var div = document.createElement('div');
+    div.className = 'produkt-row' + (isMosaOnly ? ' mosa-only' : '');
+    div.dataset.idx = i;
+
+    /* Zeilen-Nummer */
+    var num = document.createElement('div');
+    num.className = 'row-num';
+    num.textContent = '#' + (i + 1);
+    div.appendChild(num);
+
+    /* Typ-Umschalter */
+    var colType = document.createElement('div');
+    colType.className = 'col-type';
+    var typeLbl = document.createElement('div');
+    typeLbl.className = 'field-lbl';
+    typeLbl.textContent = 'Typ';
+    var typeBtns = document.createElement('div');
+    typeBtns.className = 'type-btns';
+
+    ['Mo–Sa', 'Beide'].forEach(function(lbl) {
+        var btn = document.createElement('button');
+        btn.className = 'type-btn';
+        btn.textContent = lbl;
+        var isActive = (lbl === 'Mo–Sa' && isMosaOnly) || (lbl === 'Beide' && !isMosaOnly);
+        if (isActive) btn.classList.add('active');
+        btn.onclick = function() {
+            if (lbl === 'Mo–Sa') { produkte[i].so = null; }
+            else                 { produkte[i].so = produkte[i].so === null ? '' : produkte[i].so; }
+            render();
+        };
+        typeBtns.appendChild(btn);
+    });
+    colType.appendChild(typeLbl);
+    colType.appendChild(typeBtns);
+    div.appendChild(colType);
+
+    /* MoSa-Feld */
+    var gMosa = document.createElement('div');
+    gMosa.className = 'field-group';
+    var lMosa = document.createElement('div');
+    lMosa.className = 'field-lbl';
+    lMosa.textContent = 'Mo–Sa Name';
+    var iMosa = document.createElement('input');
+    iMosa.type = 'text';
+    iMosa.className = 'field-input';
+    iMosa.value = p.mosa || '';
+    iMosa.placeholder = isMosaOnly ? 'Produktname…' : 'Leer lassen wenn nur So';
+    iMosa.oninput = function() { produkte[i].mosa = this.value; };
+    gMosa.appendChild(lMosa);
+    gMosa.appendChild(iMosa);
+    div.appendChild(gMosa);
+
+    /* So-Feld */
+    var gSo = document.createElement('div');
+    gSo.className = 'field-group';
+    var lSo = document.createElement('div');
+    lSo.className = 'field-lbl';
+    lSo.textContent = 'Sonntag Name';
+    var iSo = document.createElement('input');
+    iSo.type = 'text';
+    iSo.className = 'field-input' + (isMosaOnly ? ' disabled-field' : '');
+    iSo.value = isMosaOnly ? '' : (p.so || '');
+    iSo.placeholder = isMosaOnly ? 'kein Sonntag' : 'Sonntag-Name (oder gleich wie Mo–Sa)';
+    iSo.disabled = isMosaOnly;
+    iSo.oninput = function() { produkte[i].so = this.value; };
+    gSo.appendChild(lSo);
+    gSo.appendChild(iSo);
+    div.appendChild(gSo);
+
+    /* Wohin-Feld */
+    var gWohin = document.createElement('div');
+    gWohin.className = 'field-group';
+    var lWohin = document.createElement('div');
+    lWohin.className = 'field-lbl';
+    lWohin.textContent = 'Wohin (Standard)';
+    var sel = document.createElement('select');
+    sel.className = 'field-sel';
+    WOHIN_OPTIONS.forEach(function(opt) {
+        var o = document.createElement('option');
+        o.value = opt.value;
+        o.textContent = opt.label;
+        if (opt.value === (p.wohin || '')) o.selected = true;
+        sel.appendChild(o);
+    });
+    sel.onchange = function() { produkte[i].wohin = this.value; };
+    gWohin.appendChild(lWohin);
+    gWohin.appendChild(sel);
+    div.appendChild(gWohin);
+
+    /* Rechte Steuerelemente: Move + Delete */
+    var controls = document.createElement('div');
+    controls.className = 'row-controls';
+
+    var btnUp = document.createElement('button');
+    btnUp.className = 'btn-move btn-move-up';
+    btnUp.innerHTML = '▲';
+    btnUp.title = 'Nach oben';
+    btnUp.onclick = function() { moveRow(i, -1); };
+    controls.appendChild(btnUp);
+
+    var btnDown = document.createElement('button');
+    btnDown.className = 'btn-move btn-move-down';
+    btnDown.innerHTML = '▼';
+    btnDown.title = 'Nach unten';
+    btnDown.onclick = function() { moveRow(i, +1); };
+    controls.appendChild(btnDown);
+
+    var btnDel = document.createElement('button');
+    btnDel.className = 'btn-del-row';
+    btnDel.innerHTML = '✕';
+    btnDel.title = 'Zeile löschen';
+    btnDel.onclick = function() {
+        if (produkte.length <= 1) return;
+        produkte.splice(i, 1);
+        render();
+        toast('Zeile ' + (i + 1) + ' gelöscht');
+    };
+    controls.appendChild(btnDel);
+
+    div.appendChild(controls);
+    return div;
+}
+
+/* ══════════════════════════════════════════
+   ADD / RESET
+══════════════════════════════════════════ */
+function addRow() {
+    produkte.push({ mosa: '', so: '', wohin: '' });
+    render();
+    setTimeout(function() {
+        var list = document.getElementById('produkt-list');
+        list.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+}
+
+function moveRow(i, dir) {
+    var j = i + dir;
+    if (j < 0 || j >= produkte.length) return;
+    var tmp = produkte[i];
+    produkte[i] = produkte[j];
+    produkte[j] = tmp;
+    render();
+    // Fokus auf verschobene Zeile setzen
+    setTimeout(function() {
+        var rows = document.querySelectorAll('.produkt-row');
+        if (rows[j]) rows[j].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 50);
+}
+
+function resetToDefault() {
+    if (!confirm('Alle Änderungen verwerfen und Standard-Produkte laden?')) return;
+    produkte = JSON.parse(JSON.stringify(DEFAULT_PRODUKTE));
+    render();
+    toast('Standard-Produkte geladen');
+}
+
+/* ══════════════════════════════════════════
+   IMPORT (bestehende JS-Datei lesen)
+══════════════════════════════════════════ */
+function importFile(input) {
+    var file = input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var txt = e.target.result;
+        // FL_PRODUKTE Array aus dem JS-Text extrahieren
+        try {
+            // Alles nach "var FL_PRODUKTE = " nehmen
+            var match = txt.match(/var\s+FL_PRODUKTE\s*=\s*(\[[\s\S]*?\]);/);
+            if (!match) throw new Error('FL_PRODUKTE nicht gefunden');
+            var parsed = JSON.parse(match[1]);
+            if (!Array.isArray(parsed)) throw new Error('Kein Array');
+            produkte = parsed;
+            render();
+            toast('✓ ' + parsed.length + ' Produkte geladen');
+        } catch(err) {
+            alert('Fehler beim Einlesen: ' + err.message + '\n\nBitte prüfen ob es eine gültige frosterliste_produkte.js ist.');
+        }
+    };
+    reader.readAsText(file);
+}
+
+/* Drag & Drop */
+var dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', function()  { dz.classList.remove('drag-over'); });
+dz.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dz.classList.remove('drag-over');
+    var f = e.dataTransfer.files[0];
+    if (f) { var fi = document.getElementById('file-input'); fi.files = e.dataTransfer.files; importFile(fi); }
+});
+
+/* ══════════════════════════════════════════
+   EXPORT – JS generieren & herunterladen
+══════════════════════════════════════════ */
+function downloadJS() {
+    var lines = produkte.map(function(p) {
+        var mosa  = JSON.stringify(p.mosa  || '');
+        var so    = p.so === null ? 'null' : JSON.stringify(p.so || '');
+        var wohin = JSON.stringify(p.wohin || '');
+        return '    { mosa: ' + mosa + ', so: ' + so + ', wohin: ' + wohin + ' }';
+    });
+
+    var js = [
+'// frosterliste_produkte.js',
+'// Produktliste für die Frosterliste (Druckzentrale Modul E)',
+'// Generiert von frosterliste_editor.html – ' + new Date().toLocaleString('de-DE'),
+'//',
+'// Felder pro Eintrag:',
+'//   mosa   {string}  Text für die MoSa-Spalte (leer wenn nur So-Produkt)',
+'//   so     {string|null}  Text für die So-Spalte (null = kein Sonntag)',
+'//   wohin  {string}  Voreinstellung: "koma7"|"schrippen_koma"|"froster"|"kuehlung"|""',
+'',
+'var FL_PRODUKTE = [',
+lines.join(',\n'),
+'];'
+    ].join('\n');
+
+    var blob = new Blob([js], { type: 'text/javascript' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'frosterliste_produkte.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('✓ frosterliste_produkte.js heruntergeladen');
+}
+
+function pad(str, len) {
+    while (str.length < len) str += ' ';
+    return str;
+}
+
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+function toast(msg) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(function() { el.classList.remove('show'); }, 2500);
+}
+
+/* ── Init ── */
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{
+  "butter_croissant_stueck": {
+    "produktname": "Butter-Croissant",
+    "abschnitte": {
+      "teig": {
+        "sichtbar": false,
+        "text": ""
+      },
+      "aufbau": {
+        "sichtbar": true,
+        "schritte": [
+          "Blech leicht einölen",
+          "Teiglinge auslegen, genug Abstand lassen",
+          "Teiglinge bei Raumtemperatur antauen lassen"
+        ]
+      },
+      "gare": {
+        "sichtbar": true,
+        "text": "Ca. 60 Min bei 28°C und 80% Luftfeuchtigkeit.\nAlternativ: über Nacht im Kühlhaus bei 4°C."
+      },
+      "backen": {
+        "sichtbar": true,
+        "programm": "",
+        "temperatur_ober": 185,
+        "temperatur_unter": 170,
+        "minuten": 18,
+        "hinweis": "Gut im Auge behalten — Croissants nehmen schnell Farbe."
+      },
+      "versand": {
+        "sichtbar": true,
+        "pro_korb": 10,
+        "hinweis": "Immer stehend in den Korb, nie aufeinander stapeln."
+      }
+    }
+  }
+}

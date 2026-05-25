@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BäckereiOS — Systemdokumentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,900;1,900&family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --amber: #c07a10; --amber-l: rgba(192,122,16,0.1);
+  --green: #3da86b; --red: #c94a4a;
+  --surface: #ffffff; --surface2: #f5f0e8;
+  --border: #e2d9c8; --border-s: #d0c5b0;
+  --text: #1a1510; --dim: #7a6f60;
+  --shadow: rgba(0,0,0,0.08); --bg: #f0ebe0;
+  --code-bg: #1e1a14; --code-text: #f0ebe0;
+}
+[data-theme="dark"] {
+  --surface: #1e1a14; --surface2: #2a2418;
+  --border: #3a3020; --border-s: #4a4030;
+  --text: #f0ebe0; --dim: #9a8f7a;
+  --shadow: rgba(0,0,0,0.3); --bg: #141008;
+  --code-bg: #0e0c08; --code-text: #e8d9b8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+a { color: var(--amber); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── HEADER ── */
+.site-header {
+  background: var(--surface);
+  border-bottom: 3px solid var(--amber);
+  padding: 24px 20px 0;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 4px 20px var(--shadow);
+}
+.header-top {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  max-width: 960px; margin: 0 auto;
+  padding-bottom: 16px;
+}
+.logo { font-family: 'Fraunces', serif; font-size: 1.8rem; font-weight: 900; }
+.logo span { color: var(--amber); font-style: italic; }
+.doc-badge {
+  background: var(--amber); color: white;
+  padding: 4px 14px; border-radius: 20px;
+  font-family: 'Barlow Condensed'; font-weight: 900;
+  font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase;
+}
+.theme-btn {
+  background: var(--surface2); border: 2px solid var(--border-s);
+  padding: 7px 14px; border-radius: 10px;
+  font-family: 'Barlow Condensed'; font-weight: 800;
+  font-size: 0.85rem; cursor: pointer; color: var(--text);
+  transition: 0.2s;
+}
+.theme-btn:hover { border-color: var(--amber); }
+
+/* ── NAV TABS ── */
+.nav-tabs {
+  display: flex; gap: 0;
+  max-width: 960px; margin: 0 auto;
+  overflow-x: auto; padding-bottom: 0;
+}
+.nav-tab {
+  padding: 10px 18px;
+  font-family: 'Barlow Condensed'; font-weight: 800;
+  font-size: 0.9rem; letter-spacing: 0.5px;
+  cursor: pointer; color: var(--dim);
+  border-bottom: 3px solid transparent;
+  white-space: nowrap; transition: 0.2s;
+  background: none; border-top: none; border-left: none; border-right: none;
+}
+.nav-tab:hover { color: var(--amber); }
+.nav-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+/* ── LAYOUT ── */
+.page { max-width: 960px; margin: 0 auto; padding: 30px 20px 80px; }
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px var(--shadow);
+}
+.card-title {
+  font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 900;
+  color: var(--text); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.card-title .icon {
+  width: 36px; height: 36px; background: var(--amber-l);
+  border-radius: 10px; display: flex; align-items: center;
+  justify-content: center; font-size: 1.1rem; flex-shrink: 0;
+}
+
+/* ── FILE GRID ── */
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.file-card {
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  border-radius: 12px; padding: 16px;
+  transition: border-color 0.2s;
+}
+.file-card:hover { border-color: var(--amber); }
+.file-name {
+  font-family: 'Barlow Condensed'; font-weight: 900;
+  font-size: 1rem; color: var(--amber); margin-bottom: 4px;
+}
+.file-type {
+  font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--dim); margin-bottom: 6px;
+}
+.file-desc { font-size: 0.85rem; color: var(--text); line-height: 1.4; }
+
+/* ── CODE BLOCKS ── */
+pre {
+  background: var(--code-bg); color: var(--code-text);
+  border-radius: 12px; padding: 16px 20px;
+  font-size: 0.82rem; overflow-x: auto;
+  line-height: 1.5; margin: 12px 0;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+code { font-family: 'Courier New', monospace; }
+.inline-code {
+  background: var(--surface2); color: var(--amber);
+  padding: 2px 7px; border-radius: 6px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85em; border: 1px solid var(--border-s);
+}
+
+/* ── TABLES ── */
+.table-wrap { overflow-x: auto; margin: 12px 0; }
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.88rem;
+}
+th {
+  background: var(--surface2); color: var(--dim);
+  font-family: 'Barlow Condensed'; font-weight: 900;
+  text-transform: uppercase; letter-spacing: 1px;
+  padding: 10px 12px; text-align: left;
+  border-bottom: 2px solid var(--border-s); font-size: 0.75rem;
+}
+td {
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+td.center { text-align: center; }
+.check-yes { color: var(--green); font-weight: 900; }
+.check-no  { color: var(--dim); opacity: 0.4; }
+
+/* ── FLOW DIAGRAM ── */
+.flow {
+  background: var(--code-bg);
+  border-radius: 12px; padding: 20px;
+  margin: 12px 0;
+}
+.flow-step {
+  display: flex; align-items: flex-start; gap: 12px;
+  margin-bottom: 4px;
+}
+.flow-num {
+  background: var(--amber); color: white;
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Barlow Condensed'; font-weight: 900;
+  font-size: 0.8rem; flex-shrink: 0; margin-top: 2px;
+}
+.flow-text { color: var(--code-text); font-size: 0.88rem; }
+.flow-text strong { color: var(--amber); }
+.flow-text .dim { color: #5a5040; font-size: 0.8rem; }
+.flow-connector {
+  margin-left: 12px; color: #5a5040;
+  font-size: 0.85rem; margin-bottom: 4px;
+}
+
+/* ── DEPENDENCY MATRIX ── */
+.dep-yes { color: var(--green); font-weight: 900; font-size: 1rem; }
+.dep-write { color: var(--amber); font-weight: 900; font-size: 0.85rem; }
+.dep-read { color: #4a9ade; font-weight: 900; font-size: 0.85rem; }
+.dep-no { color: var(--border-s); }
+
+/* ── VARIABLE CARDS ── */
+.var-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.var-card {
+  background: var(--surface2); border: 2px solid var(--border);
+  border-radius: 12px; padding: 16px; transition: border-color 0.2s;
+}
+.var-card:hover { border-color: var(--amber); }
+.var-name {
+  font-family: 'Courier New', monospace;
+  font-weight: 700; color: var(--amber);
+  font-size: 0.9rem; margin-bottom: 4px;
+}
+.var-source {
+  font-size: 0.72rem; color: var(--dim);
+  font-family: 'Barlow Condensed'; font-weight: 800;
+  letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;
+}
+.var-desc { font-size: 0.85rem; color: var(--text); }
+
+/* ── EXPERT CONCEPT ── */
+.expert-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 600px) { .expert-grid { grid-template-columns: 1fr; } }
+.expert-card {
+  border: 2.5px solid var(--border);
+  border-radius: 16px; padding: 20px;
+  background: var(--surface);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.expert-card:hover {
+  border-color: var(--amber);
+  box-shadow: 0 6px 24px rgba(192,122,16,0.15);
+}
+.expert-card-title {
+  font-family: 'Fraunces', serif; font-weight: 900;
+  font-size: 1.2rem; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.expert-tag {
+  font-size: 0.7rem; font-family: 'Barlow Condensed'; font-weight: 900;
+  padding: 2px 8px; border-radius: 8px; letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.tag-new { background: rgba(77,184,122,0.15); color: var(--green); }
+.tag-ext { background: var(--amber-l); color: var(--amber); }
+.feature-list { list-style: none; margin-top: 10px; }
+.feature-list li {
+  padding: 5px 0; border-bottom: 1px solid var(--border);
+  font-size: 0.87rem; display: flex; gap: 8px; align-items: flex-start;
+}
+.feature-list li:last-child { border-bottom: none; }
+.feature-list li::before { content: '→'; color: var(--amber); font-weight: 900; flex-shrink: 0; }
+
+/* ── ARCH LIMITS ── */
+.limit-list { list-style: none; }
+.limit-list li {
+  padding: 10px 12px; margin-bottom: 8px;
+  background: var(--surface2); border-radius: 10px;
+  border-left: 4px solid var(--border-s);
+  font-size: 0.88rem; display: flex; gap: 10px; align-items: flex-start;
+}
+.limit-list li.warn { border-left-color: #e0a020; }
+.limit-list li.info { border-left-color: #4a9ade; }
+
+/* ── SECTION HEADERS ── */
+.section-intro {
+  font-size: 1rem; color: var(--dim); margin-bottom: 24px;
+  padding: 14px 18px; background: var(--amber-l);
+  border-radius: 12px; border-left: 4px solid var(--amber);
+}
+h3 {
+  font-family: 'Barlow Condensed'; font-weight: 900;
+  font-size: 1rem; color: var(--dim);
+  text-transform: uppercase; letter-spacing: 2px;
+  margin: 20px 0 10px;
+}
+</style>
+</head>
+<body>
+
+<div class="site-header">
+  <div class="header-top">
+    <div style="display:flex; align-items:center; gap:14px;">
+      <div class="logo">Bäckerei<span>OS</span></div>
+      <div class="doc-badge">Systemdokumentation</div>
+    </div>
+    <button class="theme-btn" onclick="toggleTheme()">🌙 Dark</button>
+  </div>
+  <nav class="nav-tabs" id="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('dateien')">📁 Dateien</button>
+    <button class="nav-tab" onclick="showSection('globals')">🧠 Globale Objekte</button>
+    <button class="nav-tab" onclick="showSection('fluss')">🔄 Datenfluss</button>
+    <button class="nav-tab" onclick="showSection('matrix')">📊 Abhängigkeiten</button>
+    <button class="nav-tab" onclick="showSection('grenzen')">⚠️ Grenzen</button>
+    <button class="nav-tab" onclick="showSection('expert')">🚀 Experten-Modus</button>
+  </nav>
+</div>
+
+<div class="page">
+
+  <!-- ══ DATEIEN ══ -->
+  <div id="s-dateien" class="section active">
+    <div class="section-intro">Alle Dateien des Systems auf einen Blick — Typ, Aufgabe und wer wen braucht.</div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">🖥️</div>UI-Dateien (HTML)</div>
+      <div class="file-grid">
+        <div class="file-card">
+          <div class="file-name">index.html</div>
+          <div class="file-type">UI · Einstieg</div>
+          <div class="file-desc">Cockpit/Startseite. Navigation zu allen Modulen. Theme-Toggle, Sprachwechsel.</div>
+        </div>
+        <div class="file-card">
+          <div class="file-name">setup.html</div>
+          <div class="file-type">UI · 7-Schritt-Assistent</div>
+          <div class="file-desc">Sitzung aufbauen: Station → Produkte → Inventar (24h-Check) → Froster → Woche → Fehlmengen → Ziel. Schreibt BOS_SESSION in localStorage.</div>
+        </div>
+        <div class="file-card">
+          <div class="file-name">planer.html</div>
+          <div class="file-type">UI · Kernmodul</div>
+          <div class="file-desc">Produktionsplanung. Liest BOS_SESSION. Zeigt Bedarfs-Ketten mit Bubbles (Bestand/Bedarf), Badges, Fortschrittsbalken. Nutzt BOS_BRAIN.</div>
+        </div>
+        <div class="file-card">
+          <div class="file-name">schnellrechner.html</div>
+          <div class="file-type">UI · Sandbox</div>
+          <div class="file-desc">Einzelprodukt schnell durchrechnen ohne Setup-Flow. Liest BOS_INVENTUR direkt.</div>
+        </div>
+        <div class="file-card">
+          <div class="file-name">verbrauchsuebersicht.html</div>
+          <div class="file-type">UI · Referenz</div>
+          <div class="file-desc">Tagesbedarfe aller Produkte als Tabelle. Reine Lese-Ansicht der Stammdaten.</div>
+        </div>
+        <div class="file-card">
+          <div class="file-name">frosterliste.html</div>
+          <div class="file-type">UI · Druckvorlage</div>
+          <div class="file-desc">A4-Vorlage zur manuellen Papierzählung im Froster. Vollständig entkoppelt — kein Datenaustausch mit dem Rest.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">📦</div>Daten- & Logik-Dateien (JS)</div>
+      <div class="file-grid">
+        <div class="file-card">
+          <div class="file-name">stammdaten.js</div>
+          <div class="file-type">Daten · Statisch</div>
+          <div class="file-desc">Produktstammdaten: Name, Tagesbedarfe (7 Werte), Grill-Zuschlag, Einheit, Station. Unveränderlich zur Laufzeit. Setzt <span class="inline-code">window.BOS_STAMMDATEN</span>.</div>
+        </div>
+        <div class="file-card">
+          <div class="file-name">inventurdaten.js</div>
+          <div class="file-type">Daten · Semi-Dynamisch</div>
+          <div class="file-desc">Ist-Bestand je Produkt mit Timestamp (ts). Wird von der Frosterzählung beschrieben. Setzt <span class="inline-code">window.BOS_INVENTUR</span>. 24h-Prüfung in setup.html.</div>
+        </div>
+        <div class="file-card">
+          <div class="file-name">froster_gehirn.js</div>
+          <div class="file-type">Logik · Kernberechnung</div>
+          <div class="file-desc">Die einzige Berechnungsinstanz. <span class="inline-code">BOS_BRAIN.calculateChain()</span> berechnet die gesamte Bestandskette über den Planungszeitraum. Kennt Hamster, Grill, Froster-Status.</div>
+        </div>
+        <div class="file-card">
+          <div class="file-name">export.js</div>
+          <div class="file-type">Logik · Output</div>
+          <div class="file-desc">Druckfenster (A4/80mm) und WhatsApp-Sharing. Setzt <span class="inline-code">window.BOSExport</span>. Wird nur von planer.html genutzt.</div>
+        </div>
+        <div class="file-card">
+          <div class="file-name">translations.js</div>
+          <div class="file-type">Daten · i18n</div>
+          <div class="file-desc">Texte auf Deutsch, Englisch, Vietnamesisch. Nur in index.html und schnellrechner.html aktiv. Setup/Planer sind hart deutsch.</div>
+        </div>
+        <div class="file-card">
+          <div class="file-name">systemdesign.css</div>
+          <div class="file-type">Design · Global</div>
+          <div class="file-desc">CSS-Variablen, Typografie, Dark/Light-Theme via <span class="inline-code">data-theme</span>. Gemeinsame Basis für alle HTML-Dateien.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ GLOBALS ══ -->
+  <div id="s-globals" class="section">
+    <div class="section-intro">Alle JavaScript-Objekte die global über <code class="inline-code">window.*</code> erreichbar sind.</div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">🗃️</div>window.BOS_STAMMDATEN</div>
+      <p style="margin-bottom:12px; color:var(--dim);">Quelle: <span class="inline-code">stammdaten.js</span> · Schreibzugriff: niemand zur Laufzeit</p>
+      <pre><code>window.BOS_STAMMDATEN = {
+  "p1": {
+    name:    "Hasenpfoten",
+    needs:   [14, 14, 14, 14, 16, 30, 23],  // [Mo,Di,Mi,Do,Fr,Sa,So]
+    sun:     0,     // Grill-Zusatz-Bleche wenn cfg.grill=true
+    unit:    0,     // 0=Bleche 1=Kartons 2=Paletten 3=Stück
+    station: "Brötchenstraße"
+  }, ...
+}
+
+// needs-Index ≠ JS-Wochentag!
+// bosIdx = (jsDay === 0) ? 6 : jsDay - 1
+// JS-Sonntag(0) → bosIdx 6 · JS-Montag(1) → bosIdx 0</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">❄️</div>window.BOS_INVENTUR</div>
+      <p style="margin-bottom:12px; color:var(--dim);">Quelle: <span class="inline-code">inventurdaten.js</span> · 24h-Prüfung in setup.html Schritt 3</p>
+      <pre><code>window.BOS_INVENTUR = {
+  globalDayIdx: 5,  // Letzter Zähltag (5 = Samstag)
+  products: {
+    "p1": {
+      stock: 0,              // Gezählter Bestand
+      rest:  0,              // Rest vom Vortag
+      new:   0,              // Neu eingelagert
+      ts:    1772150400000   // Unix-Timestamp ms der letzten Zählung
+    }, ...
+  }
+}
+
+// 24h-Regel:
+const isFresh = ts > 0 && (Date.now() - ts) < 86_400_000;
+// → true: Bestand auto-übernehmen · false: manuelle Eingabe</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">🧠</div>window.BOS_BRAIN</div>
+      <p style="margin-bottom:12px; color:var(--dim);">Quelle: <span class="inline-code">froster_gehirn.js</span> V119 · Die einzige Berechnung im System</p>
+      <pre><code>BOS_BRAIN.calculateChain(prodId, session, plannedProd)
+// prodId:      "p1" (Key aus BOS_STAMMDATEN)
+// session:     BOS_SESSION-Objekt
+// plannedProd: Array mit geplanten Blechen pro Schritt [0,5,3,...]
+
+// Rückgabe:
+{
+  productId, productName,
+  isOk:       true/false,   // Kein negativer Bestand?
+  maxDeficit: -7,           // Schlimmste Lücke (negativ)
+  chain: [
+    {
+      stepIdx:           0,
+      dayIdx:            6,       // JS-Wochentag (0=So..6=Sa)
+      dayName:           "Samstag",
+      need:              30,      // Angepasster Bedarf (nach Hamster/Grill)
+      actualConsumption: 0,       // 0 wenn frosterDone && i < startStep
+      planned:           5,       // Aus plannedProd[i]
+      stockAfterNeed:    -7,      // Bestand nach Verbrauch (neg = Lücke)
+      restAfter:         -2,      // Übergabe an nächsten Tag
+      isWarning:         true
+    }, ...
+  ]
+}
+
+// Hamster-Multiplikatoren (session.weekConfig[dayIdx].hamster):
+//   0 → ×1.0  (Normal)
+//   1 → ×1.5  (🐹 Math.ceil)
+//   2 → ×2.0  (🐹🐹 Ultra, Math.ceil)
+// Grill: cfg.grill && p.sun > 0 → need += p.sun
+// startStep: frosterDone ? 2 : 1</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">💾</div>localStorage: BOS_SESSION</div>
+      <p style="margin-bottom:12px; color:var(--dim);">Schreibt: <span class="inline-code">setup.html</span> · Liest: <span class="inline-code">planer.html</span></p>
+      <pre><code>{
+  station:     "Brötchenstraße",
+  selectedIds: ["p1", "p14"],
+  inventory:   { "p1": 10, "p14": 3 },   // Bestand in Blechen
+  frosterDone: true,
+  weekConfig: {
+    0: { status: "auf", hamster: 0, grill: false },
+    // Key = JS-Wochentag (0=So ... 6=Sa)
+    // status: "auf"|"zu"
+    // hamster: 0|1|2
+  },
+  shortages:  { "p1": 2 },              // Fehlmengen Bleche
+  targetDays: { "p1": 1, "p14": 2 }     // 1=Mo, 2=Di der Folgewoche
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">📤</div>window.BOSExport</div>
+      <p style="margin-bottom:12px; color:var(--dim);">Quelle: <span class="inline-code">export.js</span> · Genutzt nur von planer.html</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Methode</th><th>Funktion</th></tr></thead>
+          <tbody>
+            <tr><td><span class="inline-code">printProductionPlan(data)</span></td><td>Druckfenster A4 / 80mm Thermodrucker</td></tr>
+            <tr><td><span class="inline-code">printFrosterReport(data)</span></td><td>Froster-Statusbericht drucken</td></tr>
+            <tr><td><span class="inline-code">shareProductionPlan(data)</span></td><td>WhatsApp-Text generieren + öffnen</td></tr>
+            <tr><td><span class="inline-code">shareFrosterStatus(data)</span></td><td>Froster-Status per WhatsApp</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FLUSS ══ -->
+  <div id="s-fluss" class="section">
+    <div class="section-intro">Wie Daten durch das System fließen — von der Eingabe bis zur Berechnung.</div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">🔄</div>Haupt-Datenfluss: Setup → Planer</div>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-num">0</div>
+          <div class="flow-text"><strong>Station wählen</strong> <span class="dim">→ sess.station = "Brötchenstraße"</span></div>
+        </div>
+        <div class="flow-connector">↓</div>
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div class="flow-text"><strong>Produkte auswählen</strong> <span class="dim">→ sess.selectedIds = ["p1","p2",...]</span></div>
+        </div>
+        <div class="flow-connector">↓</div>
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div class="flow-text">
+            <strong>Froster-Inventar</strong>
+            <span class="dim"> → prüft BOS_INVENTUR[id].ts</span><br>
+            <span style="color:#4a9ade; font-size:0.82rem;">✅ &lt;24h: auto → sess.inventory[id] = inventur.stock</span><br>
+            <span style="color:#c94a4a; font-size:0.82rem;">❌ &gt;24h / fehlt: manuelle Eingabe</span>
+          </div>
+        </div>
+        <div class="flow-connector">↓</div>
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div class="flow-text"><strong>Froster-Status</strong> <span class="dim">→ sess.frosterDone = true|false</span></div>
+        </div>
+        <div class="flow-connector">↓</div>
+        <div class="flow-step">
+          <div class="flow-num">4</div>
+          <div class="flow-text"><strong>Wochen-Planung</strong> <span class="dim">→ sess.weekConfig{} (auf/zu, 🐹, ☀️ Grill)</span></div>
+        </div>
+        <div class="flow-connector">↓</div>
+        <div class="flow-step">
+          <div class="flow-num">5</div>
+          <div class="flow-text"><strong>Fehlmengen</strong> <span class="dim">→ sess.shortages{}</span></div>
+        </div>
+        <div class="flow-connector">↓</div>
+        <div class="flow-step">
+          <div class="flow-num">6</div>
+          <div class="flow-text"><strong>Planungs-Ziel</strong> <span class="dim">→ sess.targetDays{} (1=Mo, 2=Di Folgewoche)</span></div>
+        </div>
+        <div class="flow-connector">↓ localStorage.setItem('BOS_SESSION', ...)</div>
+        <div class="flow-connector">↓ window.location.href = 'planer.html'</div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:var(--green);">P</div>
+          <div class="flow-text">
+            <strong>planer.html lädt</strong><br>
+            <span class="dim">1. BOS_SESSION aus localStorage lesen</span><br>
+            <span class="dim">2. buildDOM() → plan-cards für jedes Produkt</span><br>
+            <span class="dim">3. calculateMath() → BOS_BRAIN.calculateChain() pro Produkt</span><br>
+            <span class="dim">4. Bubbles (restAfter/nextNeed), Badges, Fortschrittsbalken</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">🔢</div>Datumsindex-Mapping (kritisch!)</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tag</th><th>JS getDay()</th><th>BOS-Array-Index</th><th>Formel</th></tr></thead>
+          <tbody>
+            <tr><td>Sonntag</td><td class="center">0</td><td class="center">6</td><td><span class="inline-code">bosIdx = 6</span></td></tr>
+            <tr><td>Montag</td><td class="center">1</td><td class="center">0</td><td><span class="inline-code">bosIdx = 0</span></td></tr>
+            <tr><td>Dienstag</td><td class="center">2</td><td class="center">1</td><td><span class="inline-code">bosIdx = 1</span></td></tr>
+            <tr><td>Mittwoch</td><td class="center">3</td><td class="center">2</td><td><span class="inline-code">bosIdx = 2</span></td></tr>
+            <tr><td>Donnerstag</td><td class="center">4</td><td class="center">3</td><td><span class="inline-code">bosIdx = 3</span></td></tr>
+            <tr><td>Freitag</td><td class="center">5</td><td class="center">4</td><td><span class="inline-code">bosIdx = 4</span></td></tr>
+            <tr><td>Samstag</td><td class="center">6</td><td class="center">5</td><td><span class="inline-code">bosIdx = 5</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:12px; color:var(--dim); font-size:0.85rem;">Formel in froster_gehirn.js: <span class="inline-code">bosIdx = (dIdx === 0) ? 6 : dIdx - 1</span></p>
+    </div>
+  </div>
+
+  <!-- ══ MATRIX ══ -->
+  <div id="s-matrix" class="section">
+    <div class="section-intro">Welche Datei braucht welches globale Objekt? Und in welcher Richtung?</div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">📊</div>Abhängigkeits-Matrix</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Datei</th>
+              <th>BOS_STAMMDATEN</th>
+              <th>BOS_INVENTUR</th>
+              <th>BOS_BRAIN</th>
+              <th>BOS_SESSION</th>
+              <th>BOSExport</th>
+              <th>BOS_LANG</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>setup.html</strong></td>
+              <td class="center dep-yes">liest</td>
+              <td class="center dep-yes">liest</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-write">schreibt</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+            </tr>
+            <tr>
+              <td><strong>planer.html</strong></td>
+              <td class="center dep-yes">liest</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-yes">liest</td>
+              <td class="center dep-read">liest</td>
+              <td class="center dep-yes">liest</td>
+              <td class="center dep-no">—</td>
+            </tr>
+            <tr>
+              <td><strong>schnellrechner.html</strong></td>
+              <td class="center dep-yes">liest</td>
+              <td class="center dep-yes">liest</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-yes">liest</td>
+            </tr>
+            <tr>
+              <td><strong>verbrauchsuebersicht.html</strong></td>
+              <td class="center dep-yes">liest</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+            </tr>
+            <tr>
+              <td><strong>frosterliste.html</strong></td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+            </tr>
+            <tr>
+              <td><strong>index.html</strong></td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-no">—</td>
+              <td class="center dep-yes">liest</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px; display:flex; gap:16px; flex-wrap:wrap; font-size:0.8rem;">
+        <span><span class="dep-yes">liest</span> = liest das Objekt</span>
+        <span><span class="dep-write">schreibt</span> = schreibt in localStorage</span>
+        <span><span class="dep-read">liest</span> = liest aus localStorage</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">🔗</div>Script-Lade-Abhängigkeiten</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Datei</th><th>Lädt</th><th>Reihenfolge wichtig?</th></tr></thead>
+          <tbody>
+            <tr><td>setup.html</td><td><span class="inline-code">stammdaten.js</span>, <span class="inline-code">inventurdaten.js</span></td><td>Nein (beide defer)</td></tr>
+            <tr><td>planer.html</td><td><span class="inline-code">stammdaten.js</span>, <span class="inline-code">froster_gehirn.js</span>, <span class="inline-code">export.js</span></td><td>stammdaten vor gehirn</td></tr>
+            <tr><td>schnellrechner.html</td><td><span class="inline-code">stammdaten.js</span>, <span class="inline-code">inventurdaten.js</span>, <span class="inline-code">translations.js</span></td><td>Nein</td></tr>
+            <tr><td>index.html</td><td><span class="inline-code">translations.js</span></td><td>Nein</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ GRENZEN ══ -->
+  <div id="s-grenzen" class="section">
+    <div class="section-intro">Bekannte Architektur-Grenzen — nicht als Kritik, sondern als ehrliche Bestandsaufnahme für Weiterentwicklungen.</div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">⚠️</div>Architektur-Grenzen</div>
+      <ul class="limit-list">
+        <li class="warn">
+          <span>🗄️</span>
+          <div><strong>Kein Server, keine echte Datenbank.</strong> Alle Daten leben in statischen JS-Dateien oder localStorage. Inventurdaten müssen manuell in <span class="inline-code">inventurdaten.js</span> gepflegt werden — kein automatischer Rückschrieb aus dem Browser.</div>
+        </li>
+        <li class="warn">
+          <span>🔄</span>
+          <div><strong>localStorage als einzige Übergabe.</strong> BOS_SESSION enthält nur die aktuelle Sitzung. Kein Verlauf, kein Rückblick, kein Vergleich mit gestern.</div>
+        </li>
+        <li class="info">
+          <span>🌐</span>
+          <div><strong>Mehrsprachigkeit nur teilweise.</strong> index.html und schnellrechner.html sind i18n-fähig (DE/EN/VI). Setup und Planer sind hard-coded Deutsch.</div>
+        </li>
+        <li class="info">
+          <span>🏭</span>
+          <div><strong>Nur Brötchenstraße & Nachtschicht produktiv.</strong> Frühschicht, Rondo, Konditorei, Versand haben keine Produkte in stammdaten.js hinterlegt.</div>
+        </li>
+        <li class="warn">
+          <span>🖨️</span>
+          <div><strong>frosterliste.html ist vollständig entkoppelt.</strong> Keine Verbindung zum Rest — kein automatisches Befüllen aus BOS_INVENTUR, kein Zurückschreiben.</div>
+        </li>
+        <li class="info">
+          <span>📱</span>
+          <div><strong>Kein Offline-Caching (Service Worker).</strong> Funktioniert offline wenn alle Dateien gecacht sind, aber kein explizites PWA-Manifest.</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══ EXPERTEN-MODUS ══ -->
+  <div id="s-expert" class="section">
+    <div class="section-intro">Konzept für einen Experten-Modus — für erfahrene Mitarbeiter die den 7-Schritt-Assistenten nicht brauchen.</div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">👤</div>Wer ist der Experte?</div>
+      <p>Jemand der die Produkte, Bedarfe und Bestände auswendig kennt. Er weiß was er tut, braucht keine Erklärungen und will <strong>direkt einsteigen</strong>. Der Assistent-Flow ist für ihn Overhead. Aber: er will dieselbe Berechnungsqualität.</p>
+    </div>
+
+    <h3>Zwei Einstiegspunkte</h3>
+    <div class="expert-grid">
+      <div class="expert-card">
+        <div class="expert-card-title">
+          📋 Direkt-Inventur
+          <span class="expert-tag tag-new">Neue Datei</span>
+        </div>
+        <p style="color:var(--dim); font-size:0.85rem; margin-bottom:8px;"><code class="inline-code">inventur_expert.html</code></p>
+        <ul class="feature-list">
+          <li>Alle Produkte sofort sichtbar, gruppiert nach Station</li>
+          <li>Bestand direkt eingeben — ein Tap, eine Zahl, fertig</li>
+          <li>Timestamp automatisch gesetzt beim Speichern</li>
+          <li>Speichert in localStorage → setup.html 24h-Check greift sofort</li>
+          <li>Kein Assistent, kein Weiter-Button, keine Erklärungen</li>
+          <li>Optionaler Export als aktualisierte inventurdaten.js (Download)</li>
+        </ul>
+      </div>
+      <div class="expert-card">
+        <div class="expert-card-title">
+          ⚡ Direkt-Planer
+          <span class="expert-tag tag-ext">Erweiterung</span>
+        </div>
+        <p style="color:var(--dim); font-size:0.85rem; margin-bottom:8px;"><code class="inline-code">planer.html?expert=1</code></p>
+        <ul class="feature-list">
+          <li>Kompakte Inline-Editoren oben: Bestand, Froster-Status, Wochenkonfig</li>
+          <li>Kein Setup-Durchlauf nötig — alles in einer Ansicht</li>
+          <li>Erfahrener Nutzer ändert Bestand direkt im Planer</li>
+          <li>Gleiche BOS_BRAIN-Berechnung, nur andere Oberfläche</li>
+          <li>Gelöst über URL-Parameter, kein separates Login</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <div class="card-title"><div class="icon">🚫</div>Was der Experten-Modus nicht ist</div>
+      <ul class="feature-list" style="list-style:none;">
+        <li>Kein verstecktes Power-User-Menü mit Schaltern</li>
+        <li>Kein separates Login oder Passwort</li>
+        <li>Kein "Profi-Theme" mit anderen Farben</li>
+        <li>Keine anderen Berechnungen — BOS_BRAIN bleibt die einzige Wahrheit</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">🗺️</div>Empfohlene Umsetzungsreihenfolge</div>
+      <ol style="padding-left:20px; line-height:2;">
+        <li><strong>inventur_expert.html</strong> bauen — direktes Inventur-Eingabeformular mit localStorage-Persistenz</li>
+        <li>In <span class="inline-code">index.html</span> als zweiten Einstieg unter "Arbeitsgeräte" aufnehmen</li>
+        <li>URL-Parameter <span class="inline-code">?expert=1</span> in planer.html einbauen — zeigt Inline-Editoren oben</li>
+        <li>Setup-Assistent bleibt unverändert für neue/wechselnde Mitarbeiter</li>
+      </ol>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('s-' + name).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo(0, 0);
+}
+function toggleTheme() {
+  const h = document.documentElement;
+  const next = h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  h.setAttribute('data-theme', next);
+  document.querySelector('.theme-btn').textContent = next === 'dark' ? '☀️ Hell' : '🌙 Dark';
+}
+window.onload = () => {
+  const theme = localStorage.getItem('BOS_THEME') || 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  document.querySelector('.theme-btn').textContent = theme === 'dark' ? '☀️ Hell' : '🌙 Dark';
+};
+</script>
+</body>
+</html>

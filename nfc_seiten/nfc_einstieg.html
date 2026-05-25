@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guten Morgen – BäckereiOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;1,400&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Tages-Daten: von Druckzentrale exportiert und im Root abgelegt -->
+<script src="../guten_morgen_data.js" onerror="window.BOS_MORGEN_DATA=null;"></script>
+<style>
+:root {
+  --amber:      #b8790a;
+  --amber-pale: #fdf6e8;
+  --bg:         #e8e4de;
+  --bg2:        #ffffff;
+  --bg3:        #d8d3cc;
+  --bg-tools:   #ddd8d1;
+  --border:     #c8c2b8;
+  --text:       #1e1a16;
+  --text-dim:   #7a6e64;
+  --green:      #2e6b42;
+  --green-bg:   #e8f5ec;
+  --red:        #9b2c2c;
+  --red-bg:     #fdf0f0;
+  --blue:       #2a4e7a;
+  --blue-bg:    #eef4fb;
+  --radius:     8px;
+  --radius-lg:  12px;
+  --shadow:     0 2px 12px rgba(0,0,0,0.09);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+/* ── HEADER ─────────────────────────────────── */
+.header {
+  background: var(--bg2);
+  border-bottom: 2px solid var(--amber);
+  padding: 14px 16px 12px;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+.header-logo { font-size: 26px; line-height: 1; }
+.header-text .suptitle {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 1px;
+}
+.header-text .title {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  color: var(--text);
+  line-height: 1;
+}
+.header-text .title span { color: var(--amber); }
+.header-date {
+  margin-left: auto;
+  text-align: right;
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+.header-date strong { font-size: 17px; color: var(--text); display: block; }
+
+/* ── SEKTIONEN ──────────────────────────────── */
+.section {
+  margin: 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.section-head {
+  background: var(--bg-tools);
+  padding: 8px 14px;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.section-head .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  flex-shrink: 0;
+}
+
+/* ── LOGIN-OVERLAY ──────────────────────────── */
+#loginOverlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  gap: 0;
+}
+.login-logo { font-size: 48px; margin-bottom: 16px; }
+.login-title {
+  font-family: 'Fraunces', serif;
+  font-size: 28px;
+  color: var(--text);
+  margin-bottom: 4px;
+  text-align: center;
+}
+.login-title span { color: var(--amber); }
+.login-sub {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-bottom: 28px;
+  text-align: center;
+}
+.login-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  width: 100%;
+  max-width: 320px;
+}
+#nameSelect {
+  width: 100%;
+  max-width: 320px;
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  -webkit-appearance: none;
+  margin-bottom: 16px;
+  transition: border-color .15s;
+}
+#nameSelect:focus { outline: none; border-color: var(--amber); }
+.login-btn {
+  width: 100%;
+  max-width: 320px;
+  background: var(--amber);
+  color: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: var(--radius);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  cursor: pointer;
+  transition: background .15s;
+}
+.login-btn:hover { background: #cc8c12; }
+.login-btn:disabled { background: var(--border); cursor: not-allowed; }
+.login-error {
+  font-size: 13px;
+  color: var(--red);
+  margin-top: 10px;
+  max-width: 320px;
+  text-align: center;
+}
+
+/* ── BEGRÜSSUNG ─────────────────────────────── */
+.greeting-box {
+  padding: 16px;
+}
+.greeting-name {
+  font-family: 'Fraunces', serif;
+  font-size: 24px;
+  color: var(--amber);
+  margin-bottom: 2px;
+}
+.greeting-info {
+  font-size: 14px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.greeting-badge {
+  background: var(--bg-tools);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 8px;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 600;
+}
+.not-you {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.not-you a {
+  color: var(--amber);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* ── NOTIZ ──────────────────────────────────── */
+.notiz-box { padding: 14px; }
+.notiz-text {
+  font-size: 15px;
+  line-height: 1.55;
+  border-left: 3px solid var(--amber);
+  padding-left: 12px;
+  color: var(--text);
+}
+.notiz-leer {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-style: italic;
+  padding: 12px 14px;
+}
+.notiz-meta {
+  margin-top: 8px;
+  padding-left: 15px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* ── ERINNERUNG ─────────────────────────────── */
+.reminder-box {
+  margin: 12px;
+  background: #fff8e8;
+  border: 1.5px solid var(--amber);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.reminder-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+.reminder-text strong {
+  font-size: 14px;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 3px;
+  color: #7a5200;
+}
+.reminder-text span { font-size: 13px; color: #8a6210; }
+.reminder-text a {
+  color: var(--amber);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* ── SCHNELLZUGRIFF ─────────────────────────── */
+.links-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+}
+.link-btn {
+  background: var(--bg2);
+  padding: 14px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text);
+  cursor: pointer;
+  transition: background .12s;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+.link-btn:active { background: var(--bg); }
+.link-icon { font-size: 20px; flex-shrink: 0; }
+.link-label { font-size: 14px; font-weight: 600; line-height: 1.25; }
+.link-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+/* ── KOLLEGEN ───────────────────────────────── */
+.kollegen-box {
+  padding: 12px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.kollege-chip {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.k-avatar {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--amber);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.k-pos { font-size: 11px; color: var(--text-dim); font-style: italic; }
+.kollegen-leer { padding: 12px 14px; font-size: 13px; color: var(--text-dim); font-style: italic; }
+
+/* ── AKKORDEON FORMULARE ────────────────────── */
+.akkordeon-item {
+  border-bottom: 1px solid var(--border);
+}
+.akkordeon-item:last-child { border-bottom: none; }
+.akkordeon-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 14px;
+  cursor: pointer;
+  background: var(--bg2);
+  transition: background .12s;
+  gap: 10px;
+  border: none;
+  width: 100%;
+  font-family: 'Barlow Condensed', sans-serif;
+  text-align: left;
+}
+.akkordeon-head:hover { background: var(--bg); }
+.akkordeon-head-info { flex: 1; }
+.akkordeon-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.akkordeon-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.akkordeon-chevron {
+  font-size: 18px;
+  color: var(--text-dim);
+  transition: transform .2s;
+  flex-shrink: 0;
+}
+.akkordeon-chevron.open { transform: rotate(180deg); }
+.akkordeon-body {
+  display: none;
+  padding: 0;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.akkordeon-body.open { display: block; }
+.akkordeon-inner { padding: 14px; }
+
+/* Formular-Vorschau innerhalb Akkordeon */
+.form-row-preview {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.form-row-preview:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.fp-label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-dim); margin-bottom: 3px; }
+.fp-value { font-size: 14px; font-weight: 500; }
+.fp-cell { flex: 1; }
+.form-leer { font-size: 13px; color: var(--text-dim); font-style: italic; padding: 14px; }
+
+/* ── PRODUKTION ─────────────────────────────── */
+.prod-table { width: 100%; border-collapse: collapse; }
+.prod-table th {
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 8px 14px;
+  text-align: left;
+  background: var(--bg-tools);
+  border-bottom: 1px solid var(--border);
+}
+.prod-table th:not(:first-child) { text-align: right; }
+.prod-table td {
+  padding: 10px 14px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.prod-table td:not(:first-child) { text-align: right; }
+.prod-table tr:last-child td { border-bottom: none; }
+.prod-table .prod-name { font-weight: 600; }
+.prod-table .prod-unit { font-size: 11px; color: var(--text-dim); }
+.badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.badge-froster { background: var(--blue-bg); color: var(--blue); }
+.badge-ofen    { background: var(--amber-pale); color: var(--amber); border: 1px solid #e8c97a; }
+.badge-direkt  { background: var(--green-bg); color: var(--green); }
+.prod-leer { padding: 16px 14px; font-size: 13px; color: var(--text-dim); font-style: italic; text-align: center; }
+
+/* ── FOOTER ─────────────────────────────────── */
+.footer {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-dim);
+  padding: 24px 16px 12px;
+  letter-spacing: .04em;
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LOGIN OVERLAY
+══════════════════════════════════════════ -->
+<div id="loginOverlay">
+  <div class="login-logo">🥐</div>
+  <div class="login-title">Guten <span>Morgen</span></div>
+  <div class="login-sub">Bitte wähle deinen Namen, um fortzufahren.</div>
+  <div class="login-label">Wer bist du?</div>
+  <select id="nameSelect">
+    <option value="">— Name auswählen —</option>
+  </select>
+  <button class="login-btn" id="loginBtn" onclick="doLogin()" disabled>Weiter →</button>
+  <div class="login-error" id="loginError" style="display:none">Bitte wähle deinen Namen aus.</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     HAUPTSEITE (wird nach Login sichtbar)
+══════════════════════════════════════════ -->
+<div id="mainPage" style="display:none">
+
+  <!-- Header -->
+  <div class="header brand-header">
+    <div class="header-logo">🥐</div>
+    <div class="header-text">
+      <div class="suptitle">Bäckerei Langrehr</div>
+      <div class="title">Guten <span>Morgen</span></div>
+    </div>
+    <div class="header-date" id="headerDate"></div>
+  </div>
+
+  <!-- Begrüßung -->
+  <div class="section">
+    <div class="section-head"><span class="dot"></span> Willkommen</div>
+    <div class="greeting-box">
+      <div class="greeting-name" id="greetingName"></div>
+      <div class="greeting-info" id="greetingInfo"></div>
+      <div class="not-you">Nicht du? <a onclick="resetLogin()">Name ändern</a></div>
+    </div>
+  </div>
+
+  <!-- Planungs-Erinnerung (nur für Planungsverantwortliche) -->
+  <div id="planungsReminder" style="display:none">
+    <div class="reminder-box">
+      <div class="reminder-icon">📋</div>
+      <div class="reminder-text">
+        <strong>Produktionsplanung fehlt noch</strong>
+        <span>Für heute wurde noch keine Planung hinterlegt. <a href="../produktions_gehirn.html">Jetzt ausfüllen →</a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notiz -->
+  <div class="section">
+    <div class="section-head"><span class="dot"></span> Denkt bitte dran</div>
+    <div id="notizContent"></div>
+  </div>
+
+  <!-- Kollegen heute -->
+  <div class="section">
+    <div class="section-head"><span class="dot"></span> Ihr seid heute</div>
+    <div id="kollegenContent"></div>
+  </div>
+
+  <!-- Schnellzugriff -->
+  <div class="section">
+    <div class="section-head"><span class="dot"></span> Schnellzugriff</div>
+    <div class="links-grid" id="linksGrid">
+      <!-- wird von renderSchnellzugriffe() befüllt -->
+    </div>
+  </div>
+
+  <!-- Formulare (Akkordeon aus Druckzentrale) -->
+  <div class="section">
+    <div class="section-head"><span class="dot"></span> Formulare</div>
+    <div id="formularAkkordeon">
+      <!-- Frühschicht -->
+      <div class="akkordeon-item">
+        <button class="akkordeon-head" onclick="toggleAkk(this)">
+          <div class="akkordeon-head-info">
+            <div class="akkordeon-title">Frühschichtformular</div>
+            <div class="akkordeon-sub" id="fruehFormSub">Lade...</div>
+          </div>
+          <span class="akkordeon-chevron">▾</span>
+        </button>
+        <div class="akkordeon-body">
+          <div class="akkordeon-inner" id="fruehFormContent">
+            <div class="form-leer">Wird geladen...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Produktion heute -->
+  <div class="section">
+    <div class="section-head"><span class="dot"></span> Produktion heute</div>
+    <div id="produktionContent"></div>
+  </div>
+
+  <div class="footer">BäckereiOS · Bäckerei Langrehr</div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// KONSTANTEN & STORAGE-KEYS
+// ══════════════════════════════════════════════════════
+const SK_USER      = 'bos_guten_morgen_user';
+const SK_NOTIZ     = 'bos_morgen_notiz';
+
+function todayKey() {
+  const d = new Date();
+  const pad = n => n < 10 ? '0'+n : ''+n;
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+}
+function todayLabel() {
+  const d = new Date();
+  const wt = ['So','Mo','Di','Mi','Do','Fr','Sa'][d.getDay()];
+  return `${wt} ${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()}`;
+}
+
+// ══════════════════════════════════════════════════════
+// KOLLEGEN AUS schichtplaner_config.json
+// ══════════════════════════════════════════════════════
+async function ladeKollegen() {
+  try {
+    const resp = await fetch('../schichtplaner_config.json', { cache: 'no-store' });
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    const positionen = data.positionen || [];
+    return (data.personen || [])
+      .filter(p => !p.azubi)
+      .map(p => {
+        const pos = positionen.find(pp => pp.id === p.stammkraft_von);
+        return {
+          name: p.name,
+          position: pos ? pos.label : null,
+          planungsverantwortlich: p.planungsverantwortlich || false
+        };
+      });
+  } catch(e) { return []; }
+}
+
+let _kollegen = [];
+function getKollegen() { return _kollegen; }
+function getPersonByName(name) { return _kollegen.find(p => p.name === name) || null; }
+
+// ══════════════════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════════════════
+function initLogin() {
+  const kollegen = getKollegen();
+  const sel = document.getElementById('nameSelect');
+  const sorted = [...kollegen].sort((a,b) => a.name.localeCompare(b.name));
+  sorted.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.name;
+    opt.textContent = p.name;
+    sel.appendChild(opt);
+  });
+  // Fallback wenn keine Kollegen in der JS-Datei
+  if (sorted.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = '__unbekannt';
+    opt.textContent = '(Kein Name hinterlegt)';
+    sel.appendChild(opt);
+  }
+  sel.addEventListener('change', () => {
+    document.getElementById('loginBtn').disabled = sel.value === '';
+    document.getElementById('loginError').style.display = 'none';
+  });
+}
+
+function doLogin() {
+  const name = document.getElementById('nameSelect').value;
+  if (!name) {
+    document.getElementById('loginError').style.display = '';
+    return;
+  }
+  localStorage.setItem(SK_USER, name);
+  showMain(name);
+}
+
+function resetLogin() {
+  localStorage.removeItem(SK_USER);
+  location.reload();
+}
+
+// ══════════════════════════════════════════════════════
+// HAUPTSEITE AUFBAUEN
+// ══════════════════════════════════════════════════════
+function showMain(name) {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('mainPage').style.display = '';
+
+  const person = getPersonByName(name);
+  const posLabel = person?.position || null;
+
+  // Header Datum
+  document.getElementById('headerDate').innerHTML =
+    `<strong>${new Date().getDate().toString().padStart(2,'0')}.${(new Date().getMonth()+1).toString().padStart(2,'0')}.</strong>${['So','Mo','Di','Mi','Do','Fr','Sa'][new Date().getDay()]}`;
+
+  // Begrüßung
+  const greetHour = new Date().getHours();
+  const greetWord = greetHour < 10 ? 'Guten Morgen' : greetHour < 14 ? 'Guten Tag' : 'Guten Abend';
+  document.getElementById('greetingName').textContent = `${greetWord}, ${name}!`;
+
+  const infoEl = document.getElementById('greetingInfo');
+  if (posLabel) {
+    infoEl.innerHTML = `<span>Station:</span><span class="greeting-badge">${posLabel}</span>`;
+  } else {
+    infoEl.innerHTML = `<span style="font-style:italic;color:var(--text-dim)">Keine Station zugewiesen</span>`;
+  }
+
+  // Planungs-Erinnerung
+  if (person?.planungsverantwortlich && !person?.azubi) {
+    const planungVorhanden = checkPlanungVorhanden();
+    if (!planungVorhanden) {
+      document.getElementById('planungsReminder').style.display = '';
+    }
+  }
+
+  // Notiz
+  renderNotiz();
+
+  // Schnellzugriffe
+  renderSchnellzugriffe();
+
+  // Kollegen
+  renderKollegen(name);
+
+  // Frühschicht-Formular
+  renderFruehFormular();
+
+  // Produktion
+  renderProduktion();
+}
+
+// ══════════════════════════════════════════════════════
+// PLANUNGSCHECK
+// ══════════════════════════════════════════════════════
+function checkPlanungVorhanden() {
+  // Prüft ob für heute eine Planung im produktionsverlauf vorhanden ist
+  // Placeholder: liest bos_planung_<datum> aus localStorage
+  const key = `bos_planung_${todayKey()}`;
+  return !!localStorage.getItem(key);
+}
+
+// ══════════════════════════════════════════════════════
+// NOTIZ
+// ══════════════════════════════════════════════════════
+function renderNotiz() {
+  const el = document.getElementById('notizContent');
+
+  // Primär: exportierte JS-Datei (geräteübergreifend)
+  // Fallback: localStorage (nur eigenes Gerät)
+  let data = null;
+  if (window.BOS_MORGEN_DATA && window.BOS_MORGEN_DATA.notiz) {
+    data = window.BOS_MORGEN_DATA.notiz;
+  } else {
+    try {
+      const raw = localStorage.getItem(SK_NOTIZ);
+      if (raw) data = JSON.parse(raw);
+    } catch(e) {}
+  }
+
+  if (!data || !data.text || !data.text.trim()) {
+    el.innerHTML = '<div class="notiz-leer">Keine Notiz für heute hinterlegt.</div>';
+    return;
+  }
+
+  const ts = data.timestamp ? new Date(data.timestamp) : null;
+  const tsFmt = ts
+    ? `Eingetragen ${ts.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})} um ${ts.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr`
+    : '';
+  el.innerHTML = `<div class="notiz-box">
+    <div class="notiz-text">${escHtml(data.text)}</div>
+    ${tsFmt ? `<div class="notiz-meta">${tsFmt}</div>` : ''}
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// SCHNELLZUGRIFFE
+// ══════════════════════════════════════════════════════
+const ICON_MAP = {
+  'druckzentrale': '📋', 'froster': '❄️', 'produktions': '🧠',
+  'schwarzes_brett': '📌', 'schnellrechner': '🧮', 'baguette': '🥖',
+  'stempeluhr': '⏱', 'schichtplaner': '📅', 'bestand': '📦',
+  'inventur': '🔍', 'lieferanten': '🚚', 'archiv': '🗄',
+  'meldung': '📣', 'nfc': '📡', 'schlawiner': '🔢'
+};
+function _iconForKey(key) {
+  if (!key) return '🔗';
+  const k = key.toLowerCase();
+  for (var prefix in ICON_MAP) {
+    if (k.includes(prefix)) return ICON_MAP[prefix];
+  }
+  return '🔗';
+}
+
+function renderSchnellzugriffe() {
+  const el = document.getElementById('linksGrid');
+  if (!el) return;
+
+  // Priorität: JS-Datei → localStorage → leer
+  let links = window.BOS_MORGEN_DATA?.schnellzugriffe;
+  if (!links || links.length === 0) {
+    try {
+      const raw = localStorage.getItem('BOS_MORGEN_SCHNELLZUGRIFFE');
+      if (raw) links = JSON.parse(raw);
+    } catch(e) {}
+  }
+
+  if (!links || links.length === 0) {
+    el.style.display = 'block';
+    el.innerHTML = `<div style="padding:14px;font-size:13px;color:var(--text-dim);font-style:italic;">
+      Noch keine Schnellzugriffe konfiguriert —
+      in der <strong>NFC-Zentrale → Tab Seiten → ☆</strong> festlegen,
+      dann exportieren.
+    </div>`;
+    return;
+  }
+
+  el.style.display = '';
+  el.innerHTML = links.map(link => {
+    const icon = link.icon || _iconForKey(link.key || link.title || '');
+    return `<a class="link-btn" href="${escHtml(link.url)}">
+      <span class="link-icon">${icon}</span>
+      <div>
+        <div class="link-label">${escHtml(link.title)}</div>
+        ${link.sub ? `<div class="link-sub">${escHtml(link.sub)}</div>` : ''}
+      </div>
+    </a>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// KOLLEGEN
+// ══════════════════════════════════════════════════════
+function renderKollegen(eigenerName) {
+  const el = document.getElementById('kollegenContent');
+  const kollegen = getKollegen().filter(p => p.name !== eigenerName);
+
+  if (kollegen.length === 0) {
+    el.innerHTML = '<div class="kollegen-leer">Keine weiteren Kollegen hinterlegt.</div>';
+    return;
+  }
+  const chips = kollegen.map(p => {
+    const initial = p.name.charAt(0).toUpperCase();
+    return `<div class="kollege-chip">
+      <div class="k-avatar">${initial}</div>
+      ${escHtml(p.name)}
+      ${p.position ? `<span class="k-pos">${escHtml(p.position)}</span>` : ''}
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div class="kollegen-box">${chips}</div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// FRÜHSCHICHT-FORMULAR (aus DZ gespeichert)
+// ══════════════════════════════════════════════════════
+function renderFruehFormular() {
+  const sub     = document.getElementById('fruehFormSub');
+  const content = document.getElementById('fruehFormContent');
+
+  // Primär: exportierte JS-Datei (geräteübergreifend)
+  // Fallback: localStorage-Snapshot (BOS_SNAP_A_<datum>, eigenes Gerät)
+  let data = null;
+  if (window.BOS_MORGEN_DATA && window.BOS_MORGEN_DATA.formular_a) {
+    data = window.BOS_MORGEN_DATA.formular_a;
+  } else {
+    try {
+      const raw = localStorage.getItem('BOS_SNAP_A_' + todayKey());
+      if (raw) data = JSON.parse(raw);
+    } catch(e) {}
+  }
+
+  if (!data) {
+    sub.textContent = 'Noch nicht ausgefüllt';
+    content.innerHTML = '<div class="form-leer">Kein Formular für heute hinterlegt. Bitte in der Druckzentrale ausfüllen und exportieren.</div>';
+    return;
+  }
+
+  sub.textContent = `Ausgefüllt · ${todayLabel()}`;
+
+  // Strukturierte Darstellung — bekannte Felder aus Modul A
+  const PRODUKTE = [
+    { key: 'Schokocroissants',      label: 'Schokocroissants' },
+    { key: 'Laugenecken',           label: 'Laugenecken' },
+    { key: 'Buttercroissants',      label: 'Buttercroissants' },
+    { key: 'Minibuttercroissants',  label: 'Mini-Buttercroissants' },
+    { key: 'Minischokocroissants',  label: 'Mini-Schokocroissants' },
+    { key: 'Käsebrötchen_belegen',  label: 'Käsebrötchen belegen' },
+  ];
+
+  const val = (k, suffix) => {
+    const v = data[k];
+    if (!v && v !== 0) return '—';
+    return suffix ? `${escHtml(String(v))} ${suffix}` : `<strong>${escHtml(String(v))}</strong>`;
+  };
+
+  // Mohn + Sesam
+  const mohnSesam = (data.mohn || data.sesam) ? `
+    <div style="display:flex;gap:1px;background:var(--border);border-radius:6px;overflow:hidden;margin-bottom:1px;">
+      <div style="flex:1;background:var(--bg2);padding:10px 12px;">
+        <div class="fp-label">Mohn</div>
+        <div style="font-size:18px;font-weight:700;color:var(--amber);">${escHtml(String(data.mohn||'—'))}</div>
+        <div style="font-size:11px;color:var(--text-dim);">Bleche</div>
+      </div>
+      <div style="flex:1;background:var(--bg2);padding:10px 12px;">
+        <div class="fp-label">Sesam</div>
+        <div style="font-size:18px;font-weight:700;color:var(--amber);">${escHtml(String(data.sesam||'—'))}</div>
+        <div style="font-size:11px;color:var(--text-dim);">Bleche</div>
+      </div>
+    </div>` : '';
+
+  // Produkt-Zeilen
+  const produktRows = PRODUKTE.map((p, i) => {
+    const v = data[p.key];
+    const hasVal = v !== undefined && v !== '' && v !== null;
+    const zebra = i % 2 === 0 ? 'background:var(--bg);' : 'background:var(--bg2);';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;
+        padding:9px 14px;${zebra}border-bottom:1px solid var(--border);">
+      <span style="font-size:14px;font-weight:500;">${p.label}</span>
+      <span style="font-size:16px;font-weight:700;color:${hasVal && v ? 'var(--amber)' : 'var(--text-dim)'};">
+        ${hasVal && v ? escHtml(String(v)) : '—'}
+        ${hasVal && v ? '<span style="font-size:11px;font-weight:400;color:var(--text-dim);margin-left:3px;">Bl.</span>' : ''}
+      </span>
+    </div>`;
+  }).join('');
+
+  // Extra-Zeilen
+  const extraRows = (data.extra || [])
+    .filter(e => e.name || e.val)
+    .map(e => `<div style="display:flex;align-items:center;justify-content:space-between;
+        padding:9px 14px;background:var(--bg2);border-bottom:1px solid var(--border);">
+      <span style="font-size:14px;font-style:italic;color:var(--text-dim);">${escHtml(e.name||'?')}</span>
+      <span style="font-size:16px;font-weight:700;color:var(--amber);">${escHtml(String(e.val||'—'))}
+        <span style="font-size:11px;font-weight:400;color:var(--text-dim);margin-left:3px;">Bl.</span>
+      </span>
+    </div>`).join('');
+
+  // Notiz-Zeilen (Koma / Froster) — mit vollem Satz-Kontext
+  const notizZeilen = (data.notizZeilen || [])
+    .filter(z => z.text && z.text.trim())
+    .map(z => `<div style="padding:10px 14px;border-bottom:1px solid var(--border);">
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:3px;">
+        Noch in den <strong style="color:var(--text);">${escHtml(z.ort||'?')}</strong> stellen:
+      </div>
+      <div style="font-size:14px;font-weight:500;">${escHtml(z.text)}</div>
+    </div>`).join('');
+
+  // Anmerkungen
+  const anm = data.anmerkungen && data.anmerkungen.trim()
+    ? `<div style="padding:10px 14px;font-size:13px;color:var(--text-dim);font-style:italic;
+        border-top:1px solid var(--border);">
+        <div class="fp-label" style="margin-bottom:4px;">Anmerkungen</div>
+        ${escHtml(data.anmerkungen)}
+       </div>` : '';
+
+  content.innerHTML = `
+    <div style="padding:12px 14px 8px;">${mohnSesam}</div>
+    <div style="border-top:1px solid var(--border);">${produktRows}${extraRows}</div>
+    ${notizZeilen ? `<div style="border-top:1px solid var(--border);">${notizZeilen}</div>` : ''}
+    ${anm}
+  `;
+}
+
+// ══════════════════════════════════════════════════════
+// AKKORDEON
+// ══════════════════════════════════════════════════════
+function toggleAkk(btn) {
+  const body = btn.nextElementSibling;
+  const chev = btn.querySelector('.akkordeon-chevron');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+}
+
+// ══════════════════════════════════════════════════════
+// PRODUKTION (Placeholder — später aus produktionsverlauf_db.json)
+// ══════════════════════════════════════════════════════
+function renderProduktion() {
+  const el = document.getElementById('produktionContent');
+  // Placeholder: liest bos_produktion_<datum> aus localStorage
+  const key = `bos_produktion_${todayKey()}`;
+  const raw = localStorage.getItem(key);
+
+  if (!raw) {
+    el.innerHTML = '<div class="prod-leer">Keine Produktionsdaten für heute verfügbar.</div>';
+    return;
+  }
+
+  try {
+    const produkte = JSON.parse(raw); // erwartet [{name, menge, einheit, typ}]
+    const rows = produkte.map(p => {
+      const badgeClass = p.typ === 'froster' ? 'badge-froster'
+                       : p.typ === 'direkt'  ? 'badge-direkt'
+                       : 'badge-ofen';
+      const badgeLabel = p.typ === 'froster' ? 'Froster'
+                       : p.typ === 'direkt'  ? 'Direkt'
+                       : 'Ofen';
+      return `<tr>
+        <td><div class="prod-name">${escHtml(p.name)}</div></td>
+        <td>${p.menge} <span class="prod-unit">${escHtml(p.einheit||'Stk')}</span></td>
+        <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
+      </tr>`;
+    }).join('');
+
+    el.innerHTML = `<table class="prod-table">
+      <thead><tr><th>Produkt</th><th>Menge</th><th>Typ</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  } catch(e) {
+    el.innerHTML = '<div class="prod-leer">Fehler beim Laden der Produktionsdaten.</div>';
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', async function init() {
+  _kollegen = await ladeKollegen();
+  const savedUser = localStorage.getItem(SK_USER);
+  if (savedUser && getPersonByName(savedUser)) {
+    showMain(savedUser);
+  } else {
+    initLogin();
+  }
+});
+</script>
+<script src="shell.js"></script>
+</body>
+</html>

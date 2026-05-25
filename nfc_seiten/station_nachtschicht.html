@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>BOS · Nachtschicht</title>
+<link rel="stylesheet" href="../systemdesign.css">
+<script src="../feiertage_nds.js"></script>
+<script src="../produktions_gehirn.js"></script>
+<script src="../inventurdaten.js"></script>
+<script src="../AdminTools/hamster_logik.js"></script>
+<script src="produktionskette_logik.js"></script>
+<style>
+  body { padding-bottom: 100px; margin: 0; background: var(--bg); }
+
+  .nfc-header { background: #111; padding: 20px 20px 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+  .nfc-nav  { display:flex; justify-content:space-between; margin-bottom:6px; }
+  .nfc-back { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:0.7rem; color:rgba(255,255,255,0.4); text-decoration:none; letter-spacing:1px; text-transform:uppercase; -webkit-tap-highlight-color:transparent; }
+  .nfc-kicker { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:0.68rem; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,0.3); text-align:center; }
+  .nfc-title  { font-family:'Fraunces',serif; font-weight:900; font-size:2rem; color:var(--amber); line-height:1; margin:4px 0 0; text-align:center; }
+  .nfc-sub    { font-family:'Barlow Condensed',sans-serif; font-size:0.7rem; color:rgba(255,255,255,0.28); margin-top:4px; letter-spacing:1px; text-align:center; }
+
+  .brain-status { padding:8px 16px; text-align:center; font-size:0.75rem; font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:0.5px; border-bottom:2px solid var(--border); }
+  .brain-status.loading { color:var(--amber); background:rgba(192,122,16,0.06); }
+  .brain-status.ready   { color:var(--green);  background:rgba(77,184,122,0.06); }
+  .brain-status.error   { color:var(--red);    background:rgba(201,74,74,0.06); }
+  body > div[style*="position:fixed"][style*="background:#ef4444"] { display:none !important; }
+
+  .froster-bar { padding:9px 16px; border-bottom:2px solid var(--border); display:flex; align-items:center; gap:10px; }
+  .froster-label { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:0.7rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--dim); flex-shrink:0; }
+  .f-toggle { flex:1; display:flex; gap:6px; }
+  .f-btn { flex:1; padding:8px 6px; border:1.5px solid var(--border-s); background:var(--surface2); border-radius:10px; font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:0.78rem; color:var(--dim); cursor:pointer; -webkit-tap-highlight-color:transparent; transition:0.15s; }
+  .f-btn.yes.active { border-color:var(--green); background:rgba(77,184,122,0.1); color:var(--green); }
+  .f-btn.no.active  { border-color:var(--amber); background:rgba(192,122,16,0.1); color:var(--amber); }
+
+  .settings-bar { padding:7px 16px; border-bottom:2px solid var(--border); }
+  .settings-label { display:flex; align-items:center; gap:7px; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.8px; color:var(--dim); }
+  .settings-label input[type=checkbox] { width:15px; height:15px; accent-color:var(--amber); }
+
+  .container { max-width:600px; margin:0 auto; padding:12px; }
+
+  .prod-card { background:var(--surface); border:2px solid var(--border); border-radius:18px; margin-bottom:14px; overflow:hidden; box-shadow:0 3px 12px var(--shadow); }
+  .prod-card::before { content:''; display:block; height:3px; background:var(--border-s); transition:background 0.3s; }
+  .prod-card.ok::before        { background:linear-gradient(90deg,var(--green),rgba(77,184,122,0.1)); }
+  .prod-card.warn::before      { background:linear-gradient(90deg,var(--red),rgba(201,74,74,0.1)); }
+  .prod-card.knapp-card::before{ background:linear-gradient(90deg,var(--amber),rgba(192,122,16,0.1)); }
+
+  .prod-name   { font-family:'Fraunces',serif; font-weight:900; font-size:1.05rem; padding:11px 14px 2px; color:var(--text); }
+  .prod-status { font-family:'Barlow Condensed',sans-serif; font-size:0.68rem; font-weight:700; color:var(--dim); padding:0 14px 8px; }
+  .prod-status.ok    { color:var(--green); }
+  .prod-status.err   { color:var(--red); }
+  .prod-status.knapp { color:var(--amber); }
+
+  .section { padding:0 12px 10px; }
+  .slabel { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:0.62rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--amber); margin-bottom:5px; }
+
+  .day-row { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .day-btn { height:50px; border-radius:10px; border:1.5px solid var(--border-s); background:var(--surface2); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; -webkit-tap-highlight-color:transparent; transition:all 0.12s; user-select:none; padding:0; }
+  .day-btn .db-icon { font-size:1rem; line-height:1; display:block; min-height:1rem; }
+  .day-btn .db-day  { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:0.72rem; color:var(--dim); line-height:1; }
+  .day-btn .db-date { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.55rem; color:var(--dim); opacity:0.55; }
+  .day-btn.on { background:rgba(192,122,16,0.1); border-color:var(--amber); }
+  .day-btn.on .db-day  { color:var(--amber); }
+  .day-btn.on .db-date { opacity:0.8; color:var(--amber); }
+  .day-btn.disabled { opacity:0.22; cursor:not-allowed; }
+  .day-btn.ist-zu { opacity:0.35; }
+  .day-btn:not(.disabled):active { transform:scale(0.88); }
+
+  .ziel-row { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .ziel-btn { height:50px; border-radius:9px; border:1.5px solid var(--border-s); background:var(--surface2); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; -webkit-tap-highlight-color:transparent; transition:all 0.12s; padding:0; }
+  .ziel-btn .z-day  { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:0.74rem; color:var(--dim); line-height:1; }
+  .ziel-btn .z-date { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.56rem; color:var(--dim); opacity:0.6; }
+  .ziel-btn.on { background:var(--amber); border-color:var(--amber); }
+  .ziel-btn.on .z-day  { color:white; }
+  .ziel-btn.on .z-date { color:rgba(255,255,255,0.85); opacity:1; }
+  .ziel-btn:active { transform:scale(0.88); }
+
+  /* ── VORSCHLAG-FELDER ── */
+  .vorschlag-wrap { border-top:1.5px solid var(--border-s); padding:10px 12px 4px; }
+  .vorschlag-hint { font-family:'Barlow Condensed',sans-serif; font-size:0.68rem; font-weight:700; color:var(--green); margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
+  .inline-warn { font-family:'Barlow Condensed',sans-serif; font-size:0.7rem; font-weight:700; padding:5px 8px; border-radius:8px; margin-bottom:6px; }
+  .inline-warn.luecke { background:rgba(201,74,74,0.1); color:var(--red); }
+  .inline-warn.knapp  { background:rgba(192,122,16,0.1); color:var(--amber); }
+  .hint-right { font-weight:700; color:var(--dim); font-size:0.65rem; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+
+  .vd-grid { display:grid; gap:8px; }
+  .vd-grid.cols-1 { grid-template-columns:1fr; }
+  .vd-grid.cols-2 { grid-template-columns:1fr 1fr; }
+  .vd-grid.cols-3 { grid-template-columns:1fr 1fr 1fr; }
+
+  .vday-cell { background:var(--surface2); border-radius:12px; padding:8px 8px 6px; border:1.5px solid var(--border-s); }
+  .vday-cell.is-auto   { border-color:var(--amber);  background:rgba(192,122,16,0.05); }
+  .vday-cell.is-soft   { border-color:#60a5fa; background:rgba(96,165,250,0.06); }
+  .vday-cell.is-locked { border-color:var(--green);  background:rgba(77,184,122,0.06); }
+  .vday-cell.is-warn   { border-color:var(--red) !important; background:rgba(201,74,74,0.06) !important; }
+
+  .vday-label { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:0.72rem; color:var(--dim); text-align:center; margin-bottom:4px; }
+  .vday-label span { font-size:0.58rem; opacity:0.7; }
+  .vday-input { width:100%; height:44px; border:none; background:transparent; color:var(--text); font-family:'Fraunces',serif; font-weight:900; font-size:1.6rem; text-align:center; box-sizing:border-box; outline:none; padding:0; }
+  .vday-input.is-soft   { color:#1d4ed8; }
+  .vday-input.is-locked { color:var(--green); }
+
+  .vday-footer { display:flex; align-items:center; justify-content:space-between; margin-top:3px; }
+  .vday-min       { font-family:'Barlow Condensed',sans-serif; font-size:0.6rem; font-weight:700; color:var(--dim); opacity:0.65; }
+  .vday-min.warn  { color:var(--red); opacity:1; }
+  .vday-lock { background:none; border:none; cursor:pointer; font-size:0.8rem; opacity:0.28; padding:0; -webkit-tap-highlight-color:transparent; }
+  .vday-lock.active { opacity:1; }
+
+  /* ── AKKORDEON ── */
+  .akk-toggle { width:100%; padding:9px 14px; background:none; border:none; border-top:1.5px solid var(--border-s); cursor:pointer; display:flex; align-items:center; justify-content:space-between; font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:0.7rem; color:var(--dim); text-transform:uppercase; letter-spacing:0.8px; -webkit-tap-highlight-color:transparent; }
+  .akk-toggle:active { background:var(--surface2); }
+  .akk-arrow { transition:transform 0.2s; }
+  .akk-arrow.open { transform:rotate(180deg); }
+  .akk-body { display:none; border-top:1px solid var(--border-s); }
+  .akk-body.open { display:block; }
+
+  .chain-row { display:flex; align-items:center; padding:5px 12px; gap:6px; border-bottom:1px solid var(--border-s); }
+  .chain-row:last-child { border-bottom:none; }
+  .chain-row.row-prod   { background:rgba(77,184,122,0.05); }
+  .chain-row.row-luecke { background:rgba(201,74,74,0.06); }
+  .chain-row.row-heute  { background:rgba(192,122,16,0.04); }
+  .chain-row.row-froster { opacity:0.35; }
+  .chain-row.row-zu { opacity:0.35; background:rgba(100,100,100,0.04); }
+  .cr-tag  { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:0.75rem; width:28px; color:var(--dim); flex-shrink:0; }
+  .cr-date { font-family:'Barlow Condensed',sans-serif; font-size:0.6rem; color:var(--dim); opacity:0.55; width:32px; flex-shrink:0; }
+  .cr-verb { width:28px; text-align:center; font-family:'Barlow Condensed',sans-serif; font-size:0.72rem; color:var(--dim); flex-shrink:0; }
+  .cr-prod { width:36px; text-align:center; font-family:'Fraunces',serif; font-weight:900; font-size:0.9rem; color:var(--amber); flex-shrink:0; }
+  .cr-prod.empty { color:var(--border); font-size:0.68rem; }
+  .cr-best { flex:1; text-align:right; font-family:'Fraunces',serif; font-weight:900; font-size:1rem; }
+  .cr-best.pos { color:var(--green); }
+  .cr-best.nul { color:var(--amber); }
+  .cr-best.neg { color:var(--red); }
+
+  .warn-row { padding:6px 14px; font-family:'Barlow Condensed',sans-serif; font-size:0.7rem; font-weight:700; border-top:1.5px solid rgba(0,0,0,0.05); }
+  .warn-row.ok     { background:rgba(77,184,122,0.08); color:var(--green); }
+  .warn-row.knapp  { background:rgba(192,122,16,0.08); color:var(--amber); }
+  .warn-row.luecke { background:rgba(201,74,74,0.08);  color:var(--red); }
+
+  .card-footer { display:flex; align-items:center; justify-content:space-between; padding:8px 14px; border-top:1.5px solid var(--border-s); }
+  .footer-sum { font-family:'Barlow Condensed',sans-serif; font-size:0.78rem; font-weight:700; color:var(--dim); }
+  .footer-sum span { font-family:'Fraunces',serif; font-size:1.05rem; font-weight:900; color:var(--amber); }
+  .btn-reset { padding:5px 11px; border-radius:8px; border:1.5px solid var(--border-s); background:var(--surface2); color:var(--dim); font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .btn-reset:active { transform:scale(0.95); }
+
+  /* ── EXPORT-BAR ── */
+  .export-bar { position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:2px solid var(--border); padding:10px 16px 20px; z-index:200; box-shadow:0 -4px 20px var(--shadow); }
+  .btn-export { width:100%; padding:14px; border:none; border-radius:14px; background:#25D366; color:white; font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1rem; letter-spacing:1px; text-transform:uppercase; cursor:pointer; -webkit-tap-highlight-color:transparent; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .btn-export:active { transform:scale(0.98); opacity:0.9; }
+  .btn-export.disabled { background:var(--border-s); color:var(--dim); cursor:not-allowed; }
+  .export-count { font-size:0.72rem; font-weight:700; color:var(--dim); text-align:center; margin-top:5px; font-family:'Barlow Condensed',sans-serif; }
+</style>
+</head>
+<body>
+
+<div class="nfc-header">
+  <div class="nfc-nav">
+    <a href="../index.html" class="nfc-back">← BäckereiOS</a>
+    <span></span>
+  </div>
+  <div class="nfc-kicker">BäckereiOS · Produktionskette</div>
+  <h1 class="nfc-title">🌙 Nachtschicht</h1>
+  <div class="nfc-sub">Tage wählen · Ziel setzen · Zahlen bestätigen</div>
+</div>
+
+<div class="brain-status loading" id="brain-status">⏳ Produktdaten werden geladen…</div>
+
+<div class="froster-bar">
+  <span class="froster-label">Froster</span>
+  <div class="f-toggle">
+    <button class="f-btn yes" id="f-ja"   onclick="setFroster(true)">✓ Fertig</button>
+    <button class="f-btn no active" id="f-nein" onclick="setFroster(false)">noch nicht</button>
+  </div>
+</div>
+
+<div class="settings-bar">
+  <label class="settings-label">
+    <input type="checkbox" id="cb-gleichm" onchange="recalcAll()">
+    ⚖ Gleichmäßige Belastung
+  </label>
+</div>
+
+<div class="container" id="prod-container">
+  <div style="text-align:center;padding:40px;font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--dim);">Wird geladen…</div>
+</div>
+
+<!-- EXPORT BAR -->
+<div class="export-bar">
+  <button class="btn-export disabled" id="btn-export" onclick="exportWhatsApp()">
+    📤 Per WhatsApp senden
+  </button>
+  <div class="export-count" id="export-count">0 / 0 Produkte mit Vorschlag</div>
+</div>
+
+<script>
+var Nachtschicht = 'Nachtschicht';
+var STATION_CFG  = 'Nachtschicht';
+var heute        = new Date(); heute.setHours(0,0,0,0);
+var JS_ZU_BOS    = [6,0,1,2,3,4,5];
+var WT_KURZ      = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+var WT_LANG      = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+var heuteBos     = JS_ZU_BOS[heute.getDay()];
+
+// Diese Woche: Montag berechnen
+var wochenMo = new Date(heute);
+wochenMo.setDate(heute.getDate() - heuteBos);
+// Nächste Woche: Montag
+var naechsteMo = new Date(wochenMo);
+naechsteMo.setDate(wochenMo.getDate() + 7);
+
+// Offset-Tabellen (BOS-Index 0=Mo..6=So)
+var dieseWocheOffsets = [], naechsteWocheOffsets = [];
+for (var bi = 0; bi < 7; bi++) {
+  var d1 = new Date(wochenMo);  d1.setDate(wochenMo.getDate() + bi);
+  dieseWocheOffsets[bi] = Math.round((d1 - heute) / 86400000);
+  var d2 = new Date(naechsteMo); d2.setDate(naechsteMo.getDate() + bi);
+  naechsteWocheOffsets[bi] = Math.round((d2 - heute) / 86400000);
+}
+
+function fmtD(d) {
+  return d.getDate().toString().padStart(2,'0') + '.' + (d.getMonth()+1).toString().padStart(2,'0') + '.';
+}
+function fmtFull(d) {
+  return d.getDate().toString().padStart(2,'0') + '.' + (d.getMonth()+1).toString().padStart(2,'0') + '.' + d.getFullYear();
+}
+function offsetToDate(off) {
+  var d = new Date(heute); d.setDate(heute.getDate() + off); return d;
+}
+function setStatus(cls, txt) {
+  var el = document.getElementById('brain-status');
+  el.className = 'brain-status ' + cls; el.textContent = txt;
+}
+
+var frosterFertig = false;
+var state = {};
+var PRODUKTE = [];
+var rebuildTimers = {};
+var wochenconfigMap = null; // { YYYY-MM-DD: typ }
+
+window.addEventListener('load', async function() {
+  document.documentElement.setAttribute('data-theme', localStorage.getItem('BOS_THEME') || 'light');
+  if (!window.BOS_GEHIRN || !window.BOS_GEHIRN.init) { setStatus('error','⚠ Produktdaten nicht verfügbar'); return; }
+  var results = await Promise.all([
+    window.BOS_GEHIRN.init().catch(function(){ return false; }),
+    fetch('../produkt_config.json', { cache:'no-store' }).then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; }),
+    fetch('../wochenconfig.json', { cache:'no-store' }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+    window.BOS_HAMSTER ? window.BOS_HAMSTER.init('../').catch(function(){ return false; }) : Promise.resolve(false)
+  ]);
+  var brainOk = results[0], configData = results[1], wochenRaw = results[2];
+
+  // wochenconfig → schnelle Lookup-Map { 'YYYY-MM-DD': typ }
+  if (wochenRaw && wochenRaw.tage) {
+    wochenconfigMap = {};
+    wochenRaw.tage.forEach(function(e) { wochenconfigMap[e.datum] = e.typ; });
+  }
+  if (!brainOk) { setStatus('error','⚠ Produktdaten konnten nicht geladen werden'); return; }
+  PRODUKTE = configData
+    .filter(function(cfg){ return cfg.station === STATION_CFG && cfg.legacyKey; })
+    .map(function(cfg) {
+      var bosId = window.BOS_GEHIRN.bosIdFuerKey(cfg.legacyKey);
+      var p = bosId ? window.BOS_STAMMDATEN[bosId] : null;
+      return p ? { bosId:bosId, name:cfg.name, legacyKey:cfg.legacyKey, p:p } : null;
+    })
+    .filter(Boolean);
+  if (!PRODUKTE.length) {
+    setStatus('error','⚠ Keine Produkte für diese Station gefunden');
+    document.getElementById('prod-container').innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim);font-family:\'Barlow Condensed\',sans-serif;font-weight:700;">Keine Produkte gefunden.</div>';
+    return;
+  }
+  setStatus('ready', '✓ ' + PRODUKTE.length + ' Produkte geladen');
+  PRODUKTE.forEach(function(prod) {
+    if (!state[prod.bosId]) state[prod.bosId] = { zielOff:null, prodTage:{}, manuelleWerte:{}, gesperrtWerte:{}, _akkOpen:false };
+  });
+  renderAll();
+});
+
+function renderAll() {
+  var c = document.getElementById('prod-container');
+  c.innerHTML = '';
+  PRODUKTE.forEach(function(prod){ c.appendChild(buildCard(prod.bosId)); });
+  updateExportBar();
+}
+function recalcAll() {
+  PRODUKTE.forEach(function(prod){ rebuildCard(prod.bosId); });
+  updateExportBar();
+}
+function rebuildCard(bosId) {
+  var old = document.getElementById('card-' + bosId);
+  if (old) old.replaceWith(buildCard(bosId));
+  updateExportBar();
+}
+
+function getResult(bosId) {
+  var prod = PRODUKTE.find(function(x){ return x.bosId === bosId; });
+  if (!prod) return null;
+  var s = state[bosId];
+  if (s.zielOff === null) return null;
+  var lk = prod.legacyKey;
+  var inv = (window.BOS_INVENTUR && window.BOS_INVENTUR.products && window.BOS_INVENTUR.products[lk]) ? window.BOS_INVENTUR.products[lk] : null;
+  var startBest = inv ? (inv.stock || 0) : 0;
+  var fehlmengeAbs = inv ? Math.abs(Math.min(0, inv.fehlmenge || 0)) : 0;
+  return window.PK_LOGIK.berechne({
+    p:prod.p, startBest:startBest, fehlmengeAbs:fehlmengeAbs,
+    frosterFertig:frosterFertig, zielOff:s.zielOff,
+    prodTage:s.prodTage, manuelleWerte:s.manuelleWerte, gesperrtWerte:s.gesperrtWerte,
+    gleichmaessig: document.getElementById('cb-gleichm').checked,
+    heute:heute,
+    wochenconfigMap: wochenconfigMap
+  });
+}
+
+function buildCard(bosId) {
+  var prod = PRODUKTE.find(function(x){ return x.bosId === bosId; });
+  if (!prod) return document.createElement('div');
+  var s = state[bosId];
+  var lk = prod.legacyKey;
+  var inv = (window.BOS_INVENTUR && window.BOS_INVENTUR.products && window.BOS_INVENTUR.products[lk]) ? window.BOS_INVENTUR.products[lk] : null;
+  var startBest = inv ? (inv.stock || 0) : 0;
+
+  var result = getResult(bosId);
+  var prodKeys = Object.keys(s.prodTage).filter(function(k){ return s.prodTage[k]; });
+  var prodCount = prodKeys.length;
+  var hasWarn = result && result.warnungen.length > 0;
+  var isOk    = result && prodCount > 0 && !hasWarn;
+
+  var card = document.createElement('div');
+  card.id = 'card-' + bosId;
+  var hatLuecke = result && result.warnungen.some(function(w){ return w.typ === 'luecke'; });
+  var hatKnapp  = result && !hatLuecke && result.warnungen.some(function(w){ return w.typ === 'knapp'; });
+  card.className = 'prod-card' + (isOk ? ' ok' : hatLuecke ? ' warn' : hatKnapp ? ' knapp-card' : '');
+
+  var statusTxt = 'Produktionstage und Ziel wählen', statusCls = '';
+  if (s.zielOff !== null && !prodCount) statusTxt = 'Produktionstage wählen';
+  else if (prodCount && s.zielOff === null) statusTxt = 'Zieldatum wählen';
+  else if (isOk)      { statusTxt = '✓ Kette vollständig gedeckt · Bestand: ' + startBest + ' Bl.'; statusCls = ' ok'; }
+  else if (hatLuecke) { statusTxt = '⚠ Lücke — Produktion erhöhen oder Tag hinzufügen'; statusCls = ' err'; }
+  else if (hatKnapp)  { statusTxt = '◌ Bestand 0 an ' + result.warnungen.length + ' Tag' + (result.warnungen.length > 1 ? 'en' : '') + ' — Produktionstag nötig'; statusCls = ' knapp'; }
+
+  var html = '<div class="prod-name">' + prod.name + '</div>';
+  html += '<div class="prod-status' + statusCls + '">' + statusTxt + '</div>';
+
+  // ── PRODUKTIONSTAGE (diese Woche) ──
+  html += '<div class="section"><div class="slabel">Produktionstage</div><div class="day-row">';
+  for (var bi = 0; bi < 7; bi++) {
+    var off = dieseWocheOffsets[bi];
+    var d   = offsetToDate(off);
+    // Wochenconfig: ist dieser Tag geschlossen?
+    var tagIso = d.getFullYear() + '-'
+               + (d.getMonth()+1).toString().padStart(2,'0') + '-'
+               + d.getDate().toString().padStart(2,'0');
+    var tagTypStr = wochenconfigMap ? (wochenconfigMap[tagIso] || 'normal') : 'normal';
+    var istZuTag  = tagTypStr === 'zu';
+    var isDisabled = (off < 0) || (bi === 6) || istZuTag;
+    var isOn = !isDisabled && !!s.prodTage[off];
+    var cls  = 'day-btn' + (isOn ? ' on' : '') + (isDisabled ? ' disabled' : '') + (istZuTag ? ' ist-zu' : '');
+    var icon = istZuTag ? '🔒' : (isOn ? '🥐' : '&nbsp;');
+    var click = isDisabled ? '' : 'onclick="tapDay(\'' + bosId + '\',' + off + ')"';
+    html += '<div class="' + cls + '" ' + click + '>'
+          + '<span class="db-icon">' + icon + '</span>'
+          + '<span class="db-day">' + WT_KURZ[bi] + '</span>'
+          + '<span class="db-date">' + fmtD(d) + '</span>'
+          + '</div>';
+  }
+  html += '</div></div>';
+
+  // ── ZIEL (nächste Woche) ──
+  html += '<div class="section"><div class="slabel">Bis wann nächste Woche?</div><div class="ziel-row">';
+  for (var bi = 0; bi < 7; bi++) {
+    var off = naechsteWocheOffsets[bi];
+    var d   = offsetToDate(off);
+    var on  = s.zielOff === off ? ' on' : '';
+    html += '<button class="ziel-btn' + on + '" onclick="setZiel(\'' + bosId + '\',' + off + ')">'
+          + '<span class="z-day">' + WT_KURZ[bi] + '</span>'
+          + '<span class="z-date">' + fmtD(d) + '</span>'
+          + '</button>';
+  }
+  html += '</div></div>';
+
+  // ── VORSCHLAG-FELDER ──
+  if (result && prodCount > 0) {
+    var prodOffsets = Object.keys(s.prodTage).map(Number).filter(function(o){ return s.prodTage[o]; }).sort(function(a,b){ return a-b; });
+    var colsCls = prodOffsets.length >= 3 ? 'cols-3' : prodOffsets.length === 2 ? 'cols-2' : 'cols-1';
+
+    html += '<div class="vorschlag-wrap">';
+    html += '<div class="vorschlag-hint">🥐 Vorschlag<span class="hint-right" onclick="toggleAkk(\'' + bosId + '\')">Kette prüfen ▾</span></div>';
+    html += '<div class="vd-grid ' + colsCls + '">';
+
+    prodOffsets.forEach(function(off) {
+      var t = result.kette[off];
+      if (!t) return;
+      var cellCls  = t.istGesperrt ? 'is-locked' : t.istManuell ? 'is-soft' : 'is-auto';
+      var inputCls = t.istGesperrt ? 'is-locked' : t.istManuell ? 'is-soft' : '';
+      var lockIcon = t.istGesperrt ? '🔒' : '🔓';
+      var lockCls  = 'vday-lock' + ((t.istGesperrt || t.istManuell) ? ' active' : '');
+
+      // ── MINIMUM ──────────────────────────────────────────────────────
+      // Mindestproduktion = max(0, Brutto-Verbrauch bis nächster Prod-Tag − vorhandener Bestand)
+      // Brutto-Verbrauch: Summe vbAn(off+1) .. vbAn(naechsterProdTag)
+      // Vorhandener Bestand: Bestand VOR dieser Produktion (Bestand nach − Produktion + Verbrauch)
+      var nextOff = prodOffsets.find(function(o){ return o > off; });
+      var bisOff  = nextOff !== undefined ? nextOff : s.zielOff;
+      var futureBedarf = 0;
+      for (var j = off + 1; j <= bisOff; j++) {
+        if (result.kette[j]) futureBedarf += result.kette[j].verbrauch || 0;
+      }
+      // bestandNachMorgen = tiefster Punkt vor dieser Produktion (direkt aus Logik)
+      var puffer = Math.max(0, t.bestandNachMorgen);
+      var minBed = Math.max(0, futureBedarf - puffer);
+      var unterMin = t.vorschlag < minBed;
+
+      // Zell-Klasse: bei Unterschreitung des Minimums rot einrahmen
+      var warnCellCls = unterMin && !t.istGesperrt ? ' is-warn' : '';
+      var minCls = unterMin ? 'vday-min warn' : 'vday-min';
+
+      html += '<div class="vday-cell ' + cellCls + warnCellCls + '">'
+            + '<div class="vday-label">' + t.tagKurz + ' <span>' + fmtD(t.datum) + '</span></div>'
+            + '<input class="vday-input ' + inputCls + '" type="number" min="0" value="' + t.vorschlag + '"'
+            + ' data-bid="' + bosId + '" data-off="' + off + '"'
+            + ' oninput="onInput(\'' + bosId + '\',' + off + ',this)" onfocus="this.select()">'
+            + '<div class="vday-footer">'
+            + '<span class="' + minCls + '">' + (unterMin ? '⚠ min ' + minBed : 'min ' + minBed) + ' Bl.</span>'
+            + '<button class="' + lockCls + '" onclick="toggleLock(\'' + bosId + '\',' + off + ')">' + lockIcon + '</button>'
+            + '</div></div>';
+    });
+    html += '</div></div>';
+
+    // Akkordeon
+    html += '<button class="akk-toggle" onclick="toggleAkk(\'' + bosId + '\')" id="akk-btn-' + bosId + '">'
+          + '<span>Kette prüfen</span><span class="akk-arrow" id="akk-arr-' + bosId + '">▾</span></button>';
+    html += '<div class="akk-body" id="akk-' + bosId + '">';
+    result.kette.forEach(function(t) {
+      var rowCls = 'chain-row';
+      if (t.istHeute)             rowCls += ' row-heute';
+      else if (t.istZu)           rowCls += ' row-zu';
+      else if (t.prodTag)         rowCls += ' row-prod';
+      if (t.warnung === 'luecke') rowCls += ' row-luecke';
+      if (t.gedecktDurchFroster)  rowCls += ' row-froster';
+      var prodTxt = t.prodTag ? '<span class="cr-prod">' + t.vorschlag + '</span>' : '<span class="cr-prod empty">—</span>';
+      var verb;
+      if (t.gedecktDurchFroster) verb = '❄';
+      else if (t.istZu)          verb = '🔒';
+      else if (t.istHamster)     verb = t.verbrauch + ' 🐹';
+      else                       verb = t.verbrauch || '—';
+
+      // Bestand-Anzeige:
+      // Bei Produktionstagen zeigen wir den Bestand VOR Produktion (nach Morgen-Verbrauch)
+      // damit klar ist: "mit diesem Bestand öffnet der Laden, DANN wird produziert"
+      var bestandZeigen, bCls;
+      if (t.prodTag && !t.istHeute) {
+        // Zwischenstand nach Morgen (VOR Produktion)
+        var bNM = t.bestandNachMorgen;
+        var bNMCls = bNM < 0 ? 'neg' : bNM === 0 ? 'nul' : 'pos';
+        // Endstand nach Produktion
+        var bEnd = t.bestand;
+        var bEndCls = bEnd > 0 ? 'pos' : bEnd === 0 ? 'nul' : 'neg';
+        bestandZeigen = '<span class="cr-best ' + bNMCls + '" title="vor Produktion">' + bNM + '</span>'
+                      + '<span style="font-size:0.55rem;color:var(--dim);margin:0 2px;">→</span>'
+                      + '<span class="cr-best ' + bEndCls + '" title="nach Produktion">' + bEnd + '</span>';
+      } else {
+        bCls = t.bestand > 0 ? 'pos' : t.bestand === 0 ? 'nul' : 'neg';
+        bestandZeigen = '<span class="cr-best ' + bCls + '">' + t.bestand + '</span>';
+      }
+
+      html += '<div class="' + rowCls + '">'
+            + '<span class="cr-tag">' + t.tagKurz + '</span>'
+            + '<span class="cr-date">' + fmtD(t.datum) + '</span>'
+            + '<span class="cr-verb">' + verb + '</span>'
+            + prodTxt
+            + bestandZeigen
+            + '</div>';
+    });
+    html += '</div>';
+
+    if (!result.warnungen.length) {
+      html += '<div class="warn-row ok">✓ Alle Tage gedeckt · Endlager: ' + result.endlager + ' Bl.</div>';
+    } else {
+      result.warnungen.forEach(function(w) {
+        html += '<div class="warn-row ' + (w.typ === 'luecke' ? 'luecke' : 'knapp') + '">'
+              + (w.typ === 'luecke' ? '⚠ Lücke ' + w.tag + ' ' + w.datum + ': ' + Math.abs(w.delta) + ' Bl. fehlen' : '◌ ' + w.tag + ' ' + w.datum + ': Bestand 0 — nächster Produktionstag nötig')
+              + '</div>';
+      });
+    }
+    html += '<div class="card-footer">'
+          + '<div class="footer-sum">Produktion: <span>' + result.gesamtProduktion + '</span> Bl.</div>'
+          + '<button class="btn-reset" onclick="resetCard(\'' + bosId + '\')">↺ Reset</button>'
+          + '</div>';
+  }
+
+  card.innerHTML = html;
+  if (state[bosId]._akkOpen) {
+    var body = card.querySelector('#akk-' + bosId);
+    var arr  = card.querySelector('#akk-arr-' + bosId);
+    if (body) body.classList.add('open');
+    if (arr)  arr.classList.add('open');
+  }
+  return card;
+}
+
+// ── INTERAKTION ─────────────────────────────────
+function setFroster(v) {
+  frosterFertig = v;
+  document.getElementById('f-ja').classList.toggle('active',  v === true);
+  document.getElementById('f-nein').classList.toggle('active', v === false);
+  recalcAll();
+}
+
+function tapDay(bosId, offset) {
+  var s = state[bosId];
+  if (s.prodTage[offset]) {
+    delete s.prodTage[offset]; delete s.manuelleWerte[offset]; delete s.gesperrtWerte[offset];
+  } else {
+    s.prodTage[offset] = true;
+  }
+  rebuildCard(bosId);
+}
+
+function setZiel(bosId, off) {
+  var s = state[bosId];
+  s.zielOff = (s.zielOff === off) ? null : off;
+  if (s.zielOff !== null) {
+    [s.prodTage, s.manuelleWerte, s.gesperrtWerte].forEach(function(obj) {
+      Object.keys(obj).forEach(function(k) { if (parseInt(k) > s.zielOff) delete obj[k]; });
+    });
+  }
+  rebuildCard(bosId);
+}
+
+// FIX TASTATUR: Debounce — Rebuild erst nach 700ms Tipp-Pause
+function onInput(bosId, offset, el) {
+  var val = parseInt(el.value), s = state[bosId];
+  if (!isNaN(val) && val >= 0) {
+    s.manuelleWerte[offset] = val;
+    if (s.gesperrtWerte[offset] !== undefined) s.gesperrtWerte[offset] = val;
+  } else {
+    delete s.manuelleWerte[offset]; delete s.gesperrtWerte[offset];
+  }
+  // Kein sofortiges Rebuild — erst nach Pause damit Tastatur offen bleibt
+  clearTimeout(rebuildTimers[bosId]);
+  rebuildTimers[bosId] = setTimeout(function() {
+    rebuildCard(bosId);
+  }, 700);
+}
+
+function toggleLock(bosId, offset) {
+  clearTimeout(rebuildTimers[bosId]);
+  var s = state[bosId];
+  if (s.gesperrtWerte[offset] !== undefined) {
+    delete s.gesperrtWerte[offset];
+  } else {
+    var inp = document.querySelector('input[data-bid="' + bosId + '"][data-off="' + offset + '"]');
+    var wert = parseInt(inp ? inp.value : 0) || 0;
+    s.gesperrtWerte[offset] = wert; s.manuelleWerte[offset] = wert;
+  }
+  rebuildCard(bosId);
+}
+
+function resetCard(bosId) {
+  clearTimeout(rebuildTimers[bosId]);
+  var s = state[bosId];
+  Object.keys(s.manuelleWerte).forEach(function(k) {
+    if (s.gesperrtWerte[k] === undefined) delete s.manuelleWerte[k];
+  });
+  rebuildCard(bosId);
+}
+
+function toggleAkk(bosId) {
+  var s = state[bosId]; s._akkOpen = !s._akkOpen;
+  var body = document.getElementById('akk-' + bosId);
+  var arr  = document.getElementById('akk-arr-' + bosId);
+  if (body) body.classList.toggle('open', s._akkOpen);
+  if (arr)  arr.classList.toggle('open', s._akkOpen);
+}
+
+// ── EXPORT BAR ────────────────────────────────
+function updateExportBar() {
+  var fertig = 0, gesamt = PRODUKTE.length;
+  PRODUKTE.forEach(function(prod) {
+    var s = state[prod.bosId];
+    var prodCount = Object.keys(s.prodTage).filter(function(k){ return s.prodTage[k]; }).length;
+    if (s.zielOff !== null && prodCount > 0) fertig++;
+  });
+  var btn = document.getElementById('btn-export');
+  var cnt = document.getElementById('export-count');
+  btn.className = 'btn-export' + (fertig === 0 ? ' disabled' : '');
+  cnt.textContent = fertig + ' / ' + gesamt + ' Produkte mit Vorschlag';
+}
+
+function exportWhatsApp() {
+  var lines = [];
+  var exportData = { station: Nachtschicht, datum: fmtFull(heute), froster: frosterFertig, produkte: {} };
+  var fertig = false;
+
+  // Header
+  lines.push('🔗 Produktionskette — ' + Nachtschicht);
+  lines.push('📅 ' + fmtFull(heute) + ' · Froster: ' + (frosterFertig ? '✓ Fertig' : 'noch nicht'));
+  lines.push('');
+
+  PRODUKTE.forEach(function(prod) {
+    var s = state[prod.bosId];
+    var result = getResult(prod.bosId);
+    var prodOffsets = Object.keys(s.prodTage).map(Number).filter(function(o){ return s.prodTage[o]; }).sort(function(a,b){ return a-b; });
+
+    if (s.zielOff === null || !prodOffsets.length) return;
+    fertig = true;
+
+    var lk = prod.legacyKey;
+    var inv = (window.BOS_INVENTUR && window.BOS_INVENTUR.products && window.BOS_INVENTUR.products[lk]) ? window.BOS_INVENTUR.products[lk] : null;
+    var startBest = inv ? (inv.stock || 0) : 0;
+
+    lines.push('🥐 ' + prod.name + ' (Bestand: ' + startBest + ' Bl.)');
+    if (result) {
+      prodOffsets.forEach(function(off) {
+        var t = result.kette[off];
+        if (t) lines.push('   ' + t.tagKurz + ' ' + fmtD(t.datum) + ': ' + t.vorschlag + ' Bl.');
+      });
+      var zielTag = result.kette[s.zielOff];
+      lines.push('   Endlager: ' + result.endlager + ' Bl. · Gesamt: ' + result.gesamtProduktion + ' Bl.');
+      if (result.warnungen.length) {
+        result.warnungen.forEach(function(w) {
+          lines.push('   ⚠ ' + w.tag + (w.typ === 'luecke' ? ': ' + Math.abs(w.delta) + ' Bl. fehlen' : ': Bestand 0'));
+        });
+      }
+    }
+    lines.push('');
+
+    // Daten für Base64
+    exportData.produkte[prod.bosId] = {
+      name: prod.name,
+      bestand: startBest,
+      zielOff: s.zielOff,
+      prodTage: s.prodTage,
+      manuelleWerte: s.manuelleWerte,
+      gesperrtWerte: s.gesperrtWerte,
+      ergebnis: result ? { gesamtProduktion: result.gesamtProduktion, endlager: result.endlager, warnungen: result.warnungen } : null
+    };
+  });
+
+  if (!fertig) return;
+
+  // Base64 anhängen
+  var jsonStr = JSON.stringify(exportData);
+  var b64 = btoa(unescape(encodeURIComponent(jsonStr)));
+  lines.push('---');
+  lines.push(b64);
+
+  var text = lines.join('\n');
+  var waUrl = 'https://wa.me/?text=' + encodeURIComponent(text);
+  window.open(waUrl, '_blank');
+}
+</script>
+</body>
+</html>
