@@ -259,9 +259,10 @@
             <!-- Kontext manuell (falls kein separater Kontext-Prompt) -->
             <div style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
                 <div onclick="togKontext()" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#f8fafc;cursor:pointer;font-size:0.8rem;font-weight:700;">
-                    <span>&#x1F4C5; Kontext manuell ausf&uuml;llen <span style="font-weight:400;color:var(--text-muted);">(wenn kein Kontext-Foto)</span></span>
+                    <span>&#x1F4C5; Kontext <span style="font-weight:400;color:var(--text-muted);">(wird automatisch befüllt oder hier manuell)</span></span>
                     <span id="ar-kontext">&#x25BC;</span>
                 </div>
+                <div id="kontext-auto-hint" style="display:none;font-size:0.78rem;font-weight:700;color:#16a34a;padding:6px 12px;background:#f0fdf4;border-bottom:1px solid #bbf7d0;"></div>
                 <div id="bd-kontext" style="padding:10px 12px;display:none;">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
                     <div>
@@ -586,8 +587,18 @@ function buildMegaPrompt() {
         'PFLICHTFELD: Lies das Produktionsdatum aus der SPALTENÜBERSCHRIFT "Anzahl [Wochentag] TT.MM." — NICHT aus dem Dokumentkopf "Datum TT.MM.JJJJ" (das ist das Druckdatum!).',
         '',
         'FORMAT:',
-        '{"datum":"JJJJ-MM-TT","wochentag":"Wochentag","broetchen":{"produkte":{...},"unbekannt":[...]},"brot":{"produkte":{...}},"konditorei":{"produkte":{...}},"schlawiner":{"produkte":{...}},"tk":{"eintraege":{...},"unbekannt":[...]}}',
+        '{"datum":"JJJJ-MM-TT","wochentag":"Wochentag","kontext":{"wetter":"sonnig","temperatur":12,"ferien":false,"feiertag":false,"besonderheit":""},"broetchen":{"produkte":{...},"unbekannt":[...]},"brot":{"produkte":{...}},"konditorei":{"produkte":{...}},"schlawiner":{"produkte":{...}},"tk":{"eintraege":{...},"unbekannt":[...]}}',
         'Schlüssel weglassen wenn kein passendes Foto vorhanden.',
+        '',
+        '── KONTEXT ──────────────────────────────────────────────',
+        'Lies das Produktionsdatum aus den Fotos (Spaltenüberschrift "Anzahl [Wochentag] TT.MM.").',
+        'Recherchiere das historische Wetter für dieses Datum in Seelze, Niedersachsen (Region Hannover).',
+        'Prüfe ob Schulferien in Niedersachsen oder ein gesetzlicher Feiertag vorlag.',
+        'wetter: eines von sonnig / bewölkt / wechselhaft / regnerisch / kalt / warm / Schnee',
+        'temperatur: Tageshöchsttemperatur als ganze Zahl in °C',
+        'ferien: true/false — Schulferien NDS',
+        'feiertag: true/false — gesetzlicher Feiertag',
+        'besonderheit: kurze Notiz wenn relevant (Stadtfest, Sturm, etc.), sonst leer lassen',
         '',
         '═══ ABSCHNITT-REGELN ══════════════════════════════════════',
         ''
@@ -725,7 +736,35 @@ function valMega() {
             }
         }
 
-        // Kontext aus manuellen Feldern bauen
+        // Kontext aus KI-Antwort übernehmen (hat Vorrang vor Formular-Defaults)
+        if (p.kontext && typeof p.kontext === 'object') {
+            const c = p.kontext;
+            const wetterEl = document.getElementById('man-wetter');
+            const tempEl   = document.getElementById('man-temp');
+            const ferienEl = document.getElementById('man-ferien');
+            const feiertEl = document.getElementById('man-feiertag');
+            const besEl    = document.getElementById('besonderheit');
+            if (c.wetter) {
+                const wOpts = [...wetterEl.options].map(o => o.value);
+                const wIdx  = wOpts.indexOf(c.wetter);
+                if (wIdx >= 0) wetterEl.selectedIndex = wIdx;
+            }
+            if (c.temperatur != null) tempEl.value = c.temperatur;
+            ferienEl.checked  = !!c.ferien;
+            feiertEl.checked  = !!c.feiertag;
+            if (c.besonderheit && besEl) besEl.value = c.besonderheit;
+            // Akkordeon öffnen und Hinweis zeigen
+            const bdK = document.getElementById('bd-kontext');
+            const arK = document.getElementById('ar-kontext');
+            if (bdK && bdK.style.display !== 'block') {
+                bdK.style.display = 'block';
+                if (arK) arK.textContent = '▲';
+            }
+            const autoHint = document.getElementById('kontext-auto-hint');
+            if (autoHint) { autoHint.textContent = '✅ Kontext automatisch befüllt — bitte prüfen'; autoHint.style.display = 'block'; }
+        }
+
+        // Kontext aus Formular bauen
         R.kontext = buildKontextFromForm();
 
         const BEREICHE = [
