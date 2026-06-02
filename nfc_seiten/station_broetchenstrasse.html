@@ -150,9 +150,82 @@
   .btn-export:active { transform:scale(0.98); opacity:0.9; }
   .btn-export.disabled { background:var(--border-s); color:var(--dim); cursor:not-allowed; }
   .export-count { font-size:0.72rem; font-weight:700; color:var(--dim); text-align:center; margin-top:5px; font-family:'Barlow Condensed',sans-serif; }
+
+  /* ─── POKA-YOKE FROSTER MODAL ─── */
+  .pk-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.72);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .pk-modal {
+    background: var(--surface);
+    border-radius: 22px;
+    padding: 28px 22px 24px;
+    max-width: 400px; width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    text-align: center;
+    animation: pkIn 0.2s ease;
+  }
+  @keyframes pkIn {
+    from { transform: scale(0.92); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+  .pk-icon   { font-size: 2.6rem; margin-bottom: 10px; }
+  .pk-frage  {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 0.75rem;
+    text-transform: uppercase; letter-spacing: 2px;
+    color: var(--dim); margin-bottom: 6px;
+  }
+  .pk-title  {
+    font-family: 'Fraunces', serif;
+    font-weight: 900; font-size: 1.5rem;
+    color: var(--text); line-height: 1.2; margin-bottom: 6px;
+  }
+  .pk-sub {
+    font-size: 0.78rem; color: var(--dim);
+    margin-bottom: 22px; line-height: 1.45;
+  }
+  .pk-btns   { display: flex; flex-direction: column; gap: 10px; }
+  .pk-btn-ja {
+    width: 100%; padding: 16px;
+    border-radius: 14px; border: none;
+    background: var(--green); color: white;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 1.1rem;
+    text-transform: uppercase; letter-spacing: 1px;
+    cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    transition: 0.1s; -webkit-tap-highlight-color: transparent;
+  }
+  .pk-btn-ja:active  { transform: translateY(3px); box-shadow: none; }
+  .pk-btn-nein {
+    width: 100%; padding: 14px;
+    border-radius: 14px; border: 2px solid var(--border-s);
+    background: var(--surface2); color: var(--dim);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 1rem;
+    text-transform: uppercase; letter-spacing: 1px;
+    cursor: pointer; transition: 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pk-btn-nein:active { background: rgba(201,74,74,0.08); color: var(--red); border-color: var(--red); }
 </style>
 </head>
 <body>
+
+<div class="pk-overlay" id="pk-overlay">
+  <div class="pk-modal">
+    <div class="pk-icon">❄️</div>
+    <div class="pk-frage">Pflichtabfrage · Poka-Yoke</div>
+    <div class="pk-title" id="pk-title">Froster für morgen?</div>
+    <div class="pk-sub" id="pk-sub">Ist der Froster für den morgigen Tag bereits befüllt?</div>
+    <div class="pk-btns">
+      <button class="pk-btn-ja"   onclick="pkWahl(true)">✓ Ja, bereits befüllt</button>
+      <button class="pk-btn-nein" onclick="pkWahl(false)">✗ Nein, noch nicht fertig</button>
+    </div>
+  </div>
+</div>
 
 <div class="nfc-header">
   <div class="nfc-nav">
@@ -647,6 +720,38 @@ function exportWhatsApp() {
   var text = lines.join('\n');
   var waUrl = 'https://wa.me/?text=' + encodeURIComponent(text);
   window.open(waUrl, '_blank');
+}
+
+// ─── POKA-YOKE FROSTER MODAL ─────────────────────────────────────────────────
+(function() {
+  var morgen = new Date(heute);
+  morgen.setDate(heute.getDate() + 1);
+  var WT_LANG_PK = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+  var pad = function(n) { return String(n).padStart(2,'0'); };
+  var morgenStr = WT_LANG_PK[morgen.getDay()] + ', ' + pad(morgen.getDate()) + '.' + pad(morgen.getMonth()+1) + '.';
+  var t = document.getElementById('pk-title');
+  var s = document.getElementById('pk-sub');
+  if (t) t.textContent = 'Froster für ' + morgenStr;
+  if (s) s.textContent = 'Ist der Froster für ' + morgenStr + ' bereits befüllt und der Tag damit gedeckt?';
+})();
+
+function pkWahl(v) {
+  // Froster-Status setzen
+  setFroster(v);
+  // Modal ausblenden
+  var ov = document.getElementById('pk-overlay');
+  if (ov) {
+    ov.style.transition = 'opacity 0.2s';
+    ov.style.opacity = '0';
+    setTimeout(function() { ov.style.display = 'none'; }, 200);
+  }
+  // Froster-Bar im UI synchronisieren
+  var ja   = document.getElementById('f-ja');
+  var nein = document.getElementById('f-nein');
+  if (ja && nein) {
+    ja.classList.toggle('active', v === true);
+    nein.classList.toggle('active', v === false);
+  }
 }
 </script>
 </body>
