@@ -154,7 +154,7 @@
   /* ─── POKA-YOKE FROSTER MODAL ─── */
   .pk-overlay {
     position: fixed; inset: 0; z-index: 9999;
-    background: rgba(0,0,0,0.72);
+    background: rgba(0,0,0,0.92);
     display: flex; align-items: center; justify-content: center;
     padding: 20px;
   }
@@ -270,6 +270,7 @@
 var Brötchenstraße = 'Brötchenstraße';
 var STATION_CFG  = 'Brötchenstraße';
 var heute        = new Date(); heute.setHours(0,0,0,0);
+pkInit();
 var JS_ZU_BOS    = [6,0,1,2,3,4,5];
 var WT_KURZ      = ['Mo','Di','Mi','Do','Fr','Sa','So'];
 var WT_LANG      = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
@@ -723,7 +724,7 @@ function exportWhatsApp() {
 }
 
 // ─── POKA-YOKE FROSTER MODAL ─────────────────────────────────────────────────
-(function() {
+function pkInit() {
   var morgen = new Date(heute);
   morgen.setDate(heute.getDate() + 1);
   var WT_LANG_PK = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
@@ -733,24 +734,26 @@ function exportWhatsApp() {
   var s = document.getElementById('pk-sub');
   if (t) t.textContent = 'Froster für ' + morgenStr;
   if (s) s.textContent = 'Ist der Froster für ' + morgenStr + ' bereits befüllt und der Tag damit gedeckt?';
-})();
+}
 
 function pkWahl(v) {
   // Froster-Status setzen
-  setFroster(v);
-  // Modal ausblenden
-  var ov = document.getElementById('pk-overlay');
-  if (ov) {
-    ov.style.transition = 'opacity 0.2s';
-    ov.style.opacity = '0';
-    setTimeout(function() { ov.style.display = 'none'; }, 200);
-  }
+  frosterFertig = v;
   // Froster-Bar im UI synchronisieren
   var ja   = document.getElementById('f-ja');
   var nein = document.getElementById('f-nein');
   if (ja && nein) {
     ja.classList.toggle('active', v === true);
     nein.classList.toggle('active', v === false);
+  }
+  // Modal ausblenden
+  var ov = document.getElementById('pk-overlay');
+  if (ov) {
+    ov.style.transition = 'opacity 0.2s';
+    ov.style.opacity = '0';
+    setTimeout(function() {
+      ov.style.display = 'none';
+    }, 180);
   }
 }
 </script>
