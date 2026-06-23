@@ -1124,7 +1124,8 @@
     "inventurRelevant": true,
     "pressenGroesse": null,
     "teiggewichtAufschlag": null,
-    "schnellrechnerRelevant": true
+    "schnellrechnerRelevant": true,
+    "frosterliste": false
   },
   {
     "artNr": "134041",
@@ -1241,7 +1242,8 @@
     ],
     "hinweis": "Automatisch erkannt — bitte prüfen",
     "inventurRelevant": true,
-    "schnellrechnerRelevant": true
+    "schnellrechnerRelevant": true,
+    "frosterliste": false
   },
   {
     "artNr": "134042",
@@ -1260,7 +1262,8 @@
     ],
     "hinweis": "Automatisch erkannt — bitte prüfen",
     "inventurRelevant": false,
-    "schnellrechnerRelevant": true
+    "schnellrechnerRelevant": true,
+    "frosterliste": false
   },
   {
     "artNr": "131202",
@@ -1660,7 +1663,8 @@
       6
     ],
     "hinweis": "Automatisch erkannt — bitte prüfen",
-    "inventurRelevant": true
+    "inventurRelevant": true,
+    "frosterliste": false
   },
   {
     "artNr": "134038",
@@ -1857,7 +1861,7 @@
     "name": "Erdbeer-Plunder",
     "kategorie": "Konditorei",
     "charge": 1,
-    "einheit": "stueck",
+    "einheit": "bleche",
     "legacyKey": "erdbeer_plunder_stueck",
     "station": "Rondo",
     "unit": 0,
