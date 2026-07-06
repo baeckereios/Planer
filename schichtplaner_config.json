@@ -88,16 +88,13 @@
     },
     {
       "id": "felix",
-      "name": "Felix",
+      "name": "Duong",
       "attribute": [
         "22uhr"
       ],
       "stammkraft_von": null,
       "wunschFreierTag": null,
-      "gesperrt": [
-        "freitag",
-        "samstag"
-      ],
+      "gesperrt": [],
       "azubi": true
     },
     {
@@ -197,16 +194,28 @@
         "bis": "2026-04-15",
         "notiz": ""
       }
+    ],
+    "joerg": [
+      {
+        "von": "2026-06-29",
+        "bis": "2026-07-19",
+        "notiz": "Sommerurlaub "
+      },
+      {
+        "von": "",
+        "bis": "",
+        "notiz": ""
+      }
     ]
   },
   "fruehschichtEinsaetze": [],
   "tagGewichte": {
-    "montag":     0.5,
-    "dienstag":   0,
-    "mittwoch":   0,
+    "montag": 0.5,
+    "dienstag": 0,
+    "mittwoch": 0,
     "donnerstag": 0,
-    "freitag":    0,
-    "samstag":    1.0
+    "freitag": 0,
+    "samstag": 1
   },
   "wunschGewicht": 1.5,
   "wunschBasisBonus": 3,
